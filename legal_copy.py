@@ -13,7 +13,7 @@ O EGO-AI compromete-se com boas práticas de proteção de dados pessoais, em li
 Ao criar conta, aceder ou utilizar o EGO-AI ("**Serviço**"), o utilizador ("**Utilizador**") declara ter lido e aceitado estes Termos. Se não concordar, não deve utilizar o Serviço.
 
 ### 2. Descrição do Serviço
-O EGO-AI é uma aplicação de assistência baseada em **modelos de inteligência artificial** de terceiros (ex.: Google Gemini, OpenAI). As respostas são **geradas automaticamente** e podem conter imprecisões, omissões ou conteúdos inadequados. O Utilizador **não deve** depender exclusivamente do Serviço para decisões médicas, jurídicas, financeiras ou de segurança.
+O EGO-AI é uma aplicação de assistência baseada em **modelos de inteligência artificial** de terceiros (Google Gemini / Google AI). As respostas são **geradas automaticamente** e podem conter imprecisões, omissões ou conteúdos inadequados. O Utilizador **não deve** depender exclusivamente do Serviço para decisões médicas, jurídicas, financeiras ou de segurança.
 
 ### 3. Conta e idade
 O Utilizador compromete-se a fornecer informações verídicas quando exigido (incluindo verificação de identidade, se aplicável). O Serviço não se destina a menores de **16 anos** (ou idade mínima exigida na jurisdição aplicável).

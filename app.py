@@ -1,5 +1,5 @@
 """
-Ego-AI — painel Streamlit: Gemini ou OpenAI, PDFs, dashboard e chat.
+Ego-AI — painel Streamlit: Google Gemini (Google AI Studio), PDFs, dashboard e chat.
 """
 
 from __future__ import annotations
@@ -51,11 +51,6 @@ except ImportError:
     PdfReader = None  # type: ignore[misc, assignment]
 
 try:
-    from openai import OpenAI
-except ImportError:
-    OpenAI = None  # type: ignore[misc, assignment]
-
-try:
     from supabase import Client, create_client
 except ImportError:
     Client = None  # type: ignore[misc, assignment]
@@ -87,17 +82,15 @@ you may register it by adding EXACTLY ONE line at the very END of your reply (af
 
 def reminder_instruction_block() -> str:
     return REMINDER_LLM_INSTRUCTION
-MODEL_CANDIDATES = [
-    "gemini-2.0-flash",
-    "gemini-1.5-flash",
-    "gemini-1.5-pro",
-]
+
+
+# Chat: apenas Gemini 1.5 (API google-generativeai). Ordem padrão = preferência do utilizador na sidebar.
+GEMINI_15_MODEL_PRO = "gemini-1.5-pro"
+GEMINI_15_MODEL_FLASH = "gemini-1.5-flash"
+GEMINI_15_MODEL_IDS = (GEMINI_15_MODEL_PRO, GEMINI_15_MODEL_FLASH)
 
 # Trecho dos PDFs na instrução de sistema (Gemini).
 PDF_CONTEXT_IN_SYSTEM_CHARS = 4000
-# Trecho dos PDFs na mensagem system (OpenAI), como no seu exemplo.
-OPENAI_PDF_CONTEXT_CHARS = 5000
-OPENAI_DEFAULT_MODEL = "gpt-4o"
 SUPABASE_STORAGE_BUCKET = "usuarios"
 SUPABASE_HISTORY_TABLE = "chat_history"
 SUPABASE_PROFILES_TABLE = "profiles"
@@ -141,6 +134,14 @@ def _ego_read_secret(name: str) -> str:
         except Exception:
             return ""
     return ""
+
+
+def effective_gemini_api_key() -> str:
+    """Chave do campo da barra lateral ou variável/secrets (Google AI Studio)."""
+    k = (st.session_state.get("_ego_gemini_key") or "").strip()
+    if k:
+        return k
+    return _ego_read_secret("GOOGLE_API_KEY") or _ego_read_secret("GEMINI_API_KEY")
 
 
 def ego_operator_legal_name() -> str:
@@ -488,9 +489,12 @@ def init_session() -> None:
         st.session_state.messages = []
     st.session_state.setdefault("user_name", "")
     st.session_state.setdefault("gemini_model_ok", None)
+    st.session_state.setdefault("gemini_model_preference", GEMINI_15_MODEL_PRO)
+    _gm_ok = (st.session_state.get("gemini_model_ok") or "") if isinstance(st.session_state.get("gemini_model_ok"), str) else ""
+    if _gm_ok and "gemini-2" in _gm_ok:
+        st.session_state["gemini_model_ok"] = None
     st.session_state.setdefault("pdf_context", "")
-    st.session_state.setdefault("ego_ai_provider", "Gemini")
-    st.session_state.setdefault("openai_model_input", OPENAI_DEFAULT_MODEL)
+    st.session_state["ego_ai_provider"] = "Gemini"
     st.session_state.setdefault("user_logged", False)
     st.session_state.setdefault("global_user_name", "")
     st.session_state.setdefault("auth_user_id", "")
@@ -522,6 +526,27 @@ def init_session() -> None:
     st.session_state.setdefault("assistant_voice_id", "vf1")
 
 
+def _supabase_project_url_ok(url: str) -> bool:
+    """
+    URL real do projeto: https://<ref>.supabase.co
+    Rejeita o erro comum https://supabase.co (sem subdomínio do projeto).
+    """
+    u = (url or "").strip().rstrip("/")
+    if not u.startswith("https://"):
+        return False
+    try:
+        host = (urlparse(u).hostname or "").lower()
+    except Exception:
+        return False
+    if host in ("", "supabase.co", "www.supabase.co"):
+        return False
+    if not host.endswith(".supabase.co"):
+        return False
+    # ex.: abcdefghijk.supabase.co
+    ref = host[: -len(".supabase.co")]
+    return bool(ref) and "." not in ref
+
+
 def get_supabase_client() -> Client | None:
     """Cria cliente Supabase a partir de session state, environment ou secrets."""
     if not create_client:
@@ -538,15 +563,44 @@ def get_supabase_client() -> Client | None:
         key = (st.secrets.get("SUPABASE_KEY", "") if hasattr(st, "secrets") else "").strip()
     if not url or not key:
         return None
+    if not _supabase_project_url_ok(url):
+        return None
     try:
         return create_client(url, key)
     except Exception:
         return None
 
 
+def _supabase_setup_hint(url: str, key: str) -> str:
+    """Mensagem curta para o utilizador corrigir URL/chave."""
+    u = (url or "").strip()
+    k = (key or "").strip()
+    if not u and not k:
+        return "Preencha SUPABASE_URL e SUPABASE_KEY (ou defina-os nos Secrets do Streamlit Cloud)."
+    if not u:
+        return "Falta SUPABASE_URL."
+    if not k:
+        return "Falta SUPABASE_KEY (chave anon public do Supabase)."
+    if not u.startswith("https://"):
+        return "SUPABASE_URL deve começar por https://"
+    if not _supabase_project_url_ok(u):
+        return (
+            "SUPABASE_URL inválido. No Supabase vá em Settings → API e copie o **Project URL**: "
+            "deve ser como `https://abcdefgh.supabase.co` — **não** use só `https://supabase.co`."
+        )
+    if len(k) < 40:
+        return "SUPABASE_KEY parece incompleta. Copie a chave **anon** **public** (texto longo) em Settings → API."
+    return "Não consegui conectar. Confirme URL e anon key do mesmo projeto e tente outra vez."
+
+
 def render_supabase_setup() -> None:
     """Tela rápida para configurar credenciais Supabase quando ausentes."""
-    st.error("Supabase não configurado.")
+    st.error("Supabase não configurado ou URL/chave inválidos.")
+    st.info(
+        "**Dica:** `SUPABASE_URL` tem de ser o **Project URL** do painel (ex.: "
+        "`https://abcdefgh.supabase.co`). **Não** use apenas `https://supabase.co`. "
+        "No **Streamlit Cloud**: Manage app → **Secrets** → cole as três chaves → **Save** → **Reboot app**."
+    )
     render_public_trust_landing()
     st.markdown("### Configure as credenciais para entrar no app")
     with st.form("supabase_setup_form", border=True):
@@ -565,11 +619,13 @@ def render_supabase_setup() -> None:
         )
         submitted = st.form_submit_button("Salvar e testar conexão", use_container_width=True)
         if submitted:
+            u_try = (st.session_state.get("supabase_url_input") or "").strip()
+            k_try = (st.session_state.get("supabase_key_input") or "").strip()
             if get_supabase_client():
                 st.success("Conexão Supabase configurada com sucesso.")
                 st.rerun()
             else:
-                st.warning("Não consegui conectar. Verifique URL e KEY.")
+                st.warning(_supabase_setup_hint(u_try, k_try))
     render_trust_footer(authenticated=False)
 
 
@@ -676,7 +732,7 @@ def carregar_historico_do_banco(user_id: str) -> list[dict]:
 
 
 def count_tokens_text(text: str, encoding_name: str = "cl100k_base") -> int:
-    """Contagem de tokens (OpenAI cl100k); aproximação útil também para Gemini."""
+    """Contagem aproximada de tokens (encoding cl100k); útil para limites mensais com Gemini."""
     if not text:
         return 0
     if tiktoken is None:
@@ -966,7 +1022,7 @@ def render_chat_messages_with_feedback(supabase: Client | None, user_id: str) ->
     if not msgs:
         st.caption("Nenhuma mensagem ainda. Envie algo abaixo para começar.")
         return
-    provider = st.session_state.get("ego_ai_provider", "Gemini")
+    provider = "Gemini"
     for i, msg in enumerate(msgs):
         role = msg.get("role", "user")
         with st.chat_message(role):
@@ -3070,37 +3126,24 @@ def sidebar_settings() -> None:
             st.session_state.history_loaded = False
             st.rerun()
         st.sidebar.divider()
-    st.sidebar.radio(
-        "Provedor de IA",
-        ["Gemini", "OpenAI"],
-        horizontal=True,
-        key="ego_ai_provider",
+    st.sidebar.caption("IA: **Google Gemini** (Google AI Studio).")
+    st.sidebar.selectbox(
+        "Modelo Gemini (1.5)",
+        options=list(GEMINI_15_MODEL_IDS),
+        format_func=lambda m: "Gemini 1.5 Pro" if m == GEMINI_15_MODEL_PRO else "Gemini 1.5 Flash",
+        key="gemini_model_preference",
+        help="Pro: mais capacidade. Flash: mais rápido e económico. O chat usa só estes modelos.",
     )
-    provider = st.session_state.ego_ai_provider
-
-    gemini_key = ""
-    openai_key = ""
-    if provider == "Gemini":
-        gemini_key = st.sidebar.text_input(
-            "Chave da API do Gemini",
-            type="password",
-            placeholder="Cole sua chave aqui",
-            help="Gere a chave no Google AI Studio.",
-            key="gemini_api_key_input",
-        )
-    else:
-        openai_key = st.sidebar.text_input(
-            "Chave da API da OpenAI",
-            type="password",
-            placeholder="sk-…",
-            help="Ou use a variável de ambiente OPENAI_API_KEY nesta máquina.",
-            key="openai_api_key_input",
-        )
-        st.sidebar.text_input(
-            "Modelo OpenAI",
-            help="Ex.: gpt-4o, gpt-4o-mini.",
-            key="openai_model_input",
-        )
+    gemini_key = st.sidebar.text_input(
+        "Chave da API do Gemini (Google AI Studio)",
+        type="password",
+        placeholder="Cole sua chave aqui",
+        help=(
+            "Crie em https://aistudio.google.com/apikey . "
+            "Alternativa: variável de ambiente ou secrets `GOOGLE_API_KEY` ou `GEMINI_API_KEY`."
+        ),
+        key="gemini_api_key_input",
+    )
 
     name = st.sidebar.text_input(
         "Como podemos te chamar?",
@@ -3138,7 +3181,6 @@ def sidebar_settings() -> None:
         st.rerun()
 
     st.session_state._ego_gemini_key = gemini_key or ""
-    st.session_state._ego_openai_key = openai_key or ""
 
 
 def render_profile(supabase: Client | None, user_id: str) -> None:
@@ -3684,9 +3726,7 @@ def render_travel_page(supabase: Client | None, user_id: str) -> None:
 
 
 def _api_ready() -> bool:
-    if st.session_state.get("ego_ai_provider") == "OpenAI":
-        return bool(st.session_state.get("_ego_openai_key"))
-    return bool(st.session_state.get("_ego_gemini_key"))
+    return bool(effective_gemini_api_key())
 
 
 def _bubble_html(role: str, content: str) -> str:
@@ -3779,9 +3819,9 @@ def render_dashboard(supabase: Client | None, user_id: str) -> None:
         )
 
     with c3:
-        prov = st.session_state.get("ego_ai_provider", "Gemini")
+        prov = "Google Gemini"
         tip_base = (
-            f"Configure a chave da API ({prov}) na barra lateral para usar o chat."
+            f"Configure a chave da API ({prov}) na barra lateral ou em secrets/env para usar o chat."
             if not _api_ready()
             else "O assistente está pronto — use o campo de mensagem abaixo."
         )
@@ -3936,6 +3976,31 @@ def _messages_to_gemini_history(messages: list) -> list[dict]:
     return history
 
 
+def _normalize_gemini_model_id(model_name: str) -> str:
+    """API `GenerativeModel` usa o id sem prefixo `models/`."""
+    m = (model_name or "").strip()
+    if m.startswith("models/"):
+        return m[len("models/") :]
+    return m
+
+
+def _gemini_15_variant_list() -> list[str]:
+    """Variações de nome (com e sem prefixo) só para 1.5 Pro / Flash, na ordem preferida."""
+    pref = st.session_state.get("gemini_model_preference") or GEMINI_15_MODEL_PRO
+    if pref not in GEMINI_15_MODEL_IDS:
+        pref = GEMINI_15_MODEL_PRO
+    other = GEMINI_15_MODEL_FLASH if pref == GEMINI_15_MODEL_PRO else GEMINI_15_MODEL_PRO
+    out: list[str] = []
+    for mid in (pref, other):
+        out.extend([mid, f"models/{mid}"])
+    return out
+
+
+def _is_gemini_15_listed_name(name: str) -> bool:
+    n = _normalize_gemini_model_id(name)
+    return n in GEMINI_15_MODEL_IDS
+
+
 def _linearize_messages_for_fallback(messages: list, last_user: str) -> str:
     """Única string com o diálogo (fallback se start_chat falhar)."""
     lines: list[str] = []
@@ -3954,14 +4019,15 @@ def _linearize_messages_for_fallback(messages: list, last_user: str) -> str:
 
 def _generate_with_model(model_name: str, full_system: str, prior_messages: list, user_text: str) -> str:
     """Uma chamada: system + histórico (chat) ou prompt único (fallback)."""
+    mid = _normalize_gemini_model_id(model_name)
     try:
         model = genai.GenerativeModel(
-            model_name=model_name,
+            model_name=mid,
             system_instruction=full_system,
         )
         legacy_prompt_merge = False
     except TypeError:
-        model = genai.GenerativeModel(model_name=model_name)
+        model = genai.GenerativeModel(model_name=mid)
         legacy_prompt_merge = True
 
     history = _messages_to_gemini_history(prior_messages)
@@ -3969,7 +4035,7 @@ def _generate_with_model(model_name: str, full_system: str, prior_messages: list
         blob = _linearize_messages_for_fallback(prior_messages, user_text)
         prompt = f"{full_system}\n\n{blob}"
         resp = model.generate_content(prompt)
-        st.session_state["gemini_model_ok"] = model_name
+        st.session_state["gemini_model_ok"] = mid
         return resp.text or ""
 
     if history:
@@ -3982,7 +4048,7 @@ def _generate_with_model(model_name: str, full_system: str, prior_messages: list
     else:
         resp = model.generate_content(user_text)
 
-    st.session_state["gemini_model_ok"] = model_name
+    st.session_state["gemini_model_ok"] = mid
     return resp.text or ""
 
 
@@ -3994,11 +4060,14 @@ def run_gemini_reply(
     conversation_messages: list | None = None,
     lang_code: str = "pt-BR",
 ) -> str:
-    """Envia ao Gemini com system (PDF até 4000 chars) + histórico das mensagens anteriores."""
+    """Envia ao Gemini 1.5 (Pro ou Flash): instrução de sistema (incl. PDF até 4000 chars) + histórico de chat."""
     if not genai:
         return "Instale o pacote `google-generativeai` (veja requirements.txt)."
     if not api_key.strip():
-        return "Adicione a **chave da API do Gemini** em **Configurações** para receber respostas."
+        return (
+            "Adicione a **chave da API do Gemini** na barra lateral ou defina "
+            "`GOOGLE_API_KEY` / `GEMINI_API_KEY` em variáveis de ambiente ou em `.streamlit/secrets.toml`."
+        )
 
     msgs = conversation_messages if conversation_messages is not None else []
     prior = msgs[:-1] if msgs else []
@@ -4018,28 +4087,40 @@ def run_gemini_reply(
         except Exception:
             listed_supported = []
 
-        preferred_variants = []
-        for candidate in MODEL_CANDIDATES:
-            preferred_variants.extend([candidate, f"models/{candidate}"])
+        preferred_variants = _gemini_15_variant_list()
 
         chosen_model = st.session_state.get("gemini_model_ok")
-        if chosen_model and listed_supported and chosen_model not in listed_supported:
-            chosen_model = None
+        if chosen_model:
+            cm = _normalize_gemini_model_id(str(chosen_model))
+            if cm not in GEMINI_15_MODEL_IDS:
+                chosen_model = None
+            elif listed_supported and chosen_model not in listed_supported:
+                # list_models usa por vezes só o formato `models/...`
+                alt = f"models/{cm}" if not str(chosen_model).startswith("models/") else cm
+                if alt in listed_supported:
+                    chosen_model = alt
+                else:
+                    chosen_model = None
 
         if not chosen_model:
-            # Prioriza candidatos conhecidos; se não houver, usa o primeiro retornado pela API.
+            listed_15 = [n for n in listed_supported if _is_gemini_15_listed_name(n)]
             for preferred in preferred_variants:
                 if preferred in listed_supported:
                     chosen_model = preferred
                     break
-            if not chosen_model and listed_supported:
-                chosen_model = listed_supported[0]
+            if not chosen_model and listed_15:
+                chosen_model = listed_15[0]
             if not chosen_model:
-                chosen_model = MODEL_CANDIDATES[0]
-            st.session_state["gemini_model_ok"] = chosen_model
+                chosen_model = st.session_state.get("gemini_model_preference") or GEMINI_15_MODEL_PRO
+                if chosen_model not in GEMINI_15_MODEL_IDS:
+                    chosen_model = GEMINI_15_MODEL_PRO
+            st.session_state["gemini_model_ok"] = _normalize_gemini_model_id(str(chosen_model))
 
-        model_try_order = [chosen_model]
+        model_try_order: list[str] = [chosen_model]
         for name in [*preferred_variants, *listed_supported]:
+            if name not in model_try_order and _is_gemini_15_listed_name(name):
+                model_try_order.append(name)
+        for name in preferred_variants:
             if name not in model_try_order:
                 model_try_order.append(name)
 
@@ -4059,67 +4140,6 @@ def run_gemini_reply(
         return f"Erro ao chamar o Gemini: {last_error}"
     except Exception as e:  # noqa: BLE001
         return f"Erro ao chamar o Gemini: {e}"
-
-
-def run_openai_reply(
-    api_key: str,
-    pdf_context: str,
-    conversation_messages: list,
-    model_id: str,
-    *,
-    temperature: float = 0.7,
-    lang_code: str = "pt-BR",
-) -> str:
-    """OpenAI Chat Completions: system + histórico (como no seu exemplo); PDF até 5000 chars no system."""
-    if not OpenAI:
-        return 'Instale o pacote `openai` (veja requirements.txt ou `pip install openai`).'
-    key = (api_key or "").strip()
-    if not key:
-        key = os.getenv("OPENAI_API_KEY", "").strip()
-    if not key:
-        key = (st.secrets.get("OPENAI_API_KEY", "") if hasattr(st, "secrets") else "").strip()
-    try:
-        client = OpenAI(api_key=key) if key else OpenAI()
-    except Exception as e:  # noqa: BLE001
-        return f"Erro ao iniciar cliente OpenAI: {e}"
-
-    system_message = (
-        "You are EGO-AI, a global assistant. "
-        "IMPORTANT: detect the language of the user's message automatically. "
-        "If the user writes in Portuguese, reply in Portuguese. "
-        "If the user writes in English, reply in English. "
-        "Always match the user's language."
-    )
-    system_message += language_instruction(lang_code)
-    system_message += build_food_hint()
-    pdf_raw = (pdf_context or "").strip()
-    if pdf_raw:
-        snippet = pdf_raw[:OPENAI_PDF_CONTEXT_CHARS]
-        system_message += f"\n\nContexto extraído dos PDFs:\n{snippet}"
-        system_message += (
-            "\n\nResponda com base no contexto acima quando a pergunta for relacionada aos documentos."
-        )
-    system_message += reminder_instruction_block()
-
-    openai_msgs: list[dict] = [{"role": "system", "content": system_message}]
-    for m in conversation_messages:
-        role = m.get("role")
-        if role not in ("user", "assistant"):
-            continue
-        openai_msgs.append({"role": role, "content": (m.get("content") or "")})
-
-    mid = (model_id or "").strip() or OPENAI_DEFAULT_MODEL
-    try:
-        response = client.chat.completions.create(
-            model=mid,
-            messages=openai_msgs,
-            temperature=temperature,
-        )
-        resposta_final = response.choices[0].message.content
-        out = (resposta_final or "").strip()
-        return out if out else "A API não retornou texto."
-    except Exception as e:  # noqa: BLE001
-        return f"Erro na API OpenAI: {e}"
 
 
 def render_chat(supabase: Client | None, user_id: str) -> None:
@@ -4203,22 +4223,13 @@ def render_chat(supabase: Client | None, user_id: str) -> None:
         )
         pdf_ctx = st.session_state.get("pdf_context") or ""
 
-        if st.session_state.get("ego_ai_provider") == "OpenAI":
-            reply = run_openai_reply(
-                st.session_state.get("_ego_openai_key") or "",
-                pdf_ctx,
-                st.session_state.messages,
-                st.session_state.get("openai_model_input") or OPENAI_DEFAULT_MODEL,
-                lang_code=detected_lang,
-            )
-        else:
-            reply = run_gemini_reply(
-                st.session_state.get("_ego_gemini_key") or "",
-                prompt,
-                pdf_ctx,
-                conversation_messages=st.session_state.messages,
-                lang_code=detected_lang,
-            )
+        reply = run_gemini_reply(
+            effective_gemini_api_key(),
+            prompt,
+            pdf_ctx,
+            conversation_messages=st.session_state.messages,
+            lang_code=detected_lang,
+        )
         reply_clean = process_assistant_reminders(supabase, user_id, reply)
         mid_a: str | None = None
         if user_id and supabase:
