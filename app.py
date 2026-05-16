@@ -64,10 +64,13 @@ except ImportError:
     PdfReader = None  # type: ignore[misc, assignment]
 
 try:
-    from supabase import Client, create_client
+    from ego_supabase import Client, create_client
 except ImportError:
-    Client = None  # type: ignore[misc, assignment]
-    create_client = None  # type: ignore[misc, assignment]
+    try:
+        from supabase import Client, create_client
+    except ImportError:
+        Client = None  # type: ignore[misc, assignment]
+        create_client = None  # type: ignore[misc, assignment]
 
 try:
     from langdetect import DetectorFactory, LangDetectException, detect, detect_langs
