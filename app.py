@@ -1,18 +1,31 @@
 """
-Ego-AI — painel Streamlit: Google Gemini (Google AI Studio), PDFs, dashboard e chat.
+Ego-AI — painel Streamlit: Google Gemini (Google AI Studio), chat com PDFs e lembretes.
 """
 
 from __future__ import annotations
 
+import base64
 import datetime
+import hashlib
 import html
 import json
-import math
 import os
-import secrets
-from collections import Counter
+import re
 from io import BytesIO
-from urllib.parse import parse_qsl, quote, urlencode, urlparse, urlunparse
+from pathlib import Path
+from urllib.parse import parse_qsl, quote, unquote, urlencode, urlparse, urlunparse
+
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    ZoneInfo = None  # type: ignore[misc, assignment]
+
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv()
+except ImportError:
+    pass
 
 import requests
 import streamlit as st
@@ -65,18 +78,56 @@ except ImportError:
     detect_langs = None  # type: ignore[misc, assignment]
 
 GEMINI_SYSTEM_INSTRUCTION = """\
-You are EGO-AI, a global assistant.
-Detect the user's language automatically and always reply in the same language.
-Be concise, helpful, and safe.
+Você é o EGO-AI, o assistente pessoal e amigo mais leal do utilizador. A sua voz e escrita devem ser \
+acolhedoras, empáticas, inteligentes e focadas no bem-estar mental e emocional de quem fala consigo. \
+Se a pessoa estiver sozinha ou a desabafar, ouça com a sensibilidade de um conselheiro: validação, \
+escuta ativa e sugestões práticas e breves — nunca julgamentos. Nunca soe como um robô rígido ou burocrático. \
+Detete o idioma do utilizador e responda sempre no mesmo idioma. Seja conciso e seguro (sem aconselhamento \
+médico/legal definitivo; encaminhe a profissionais quando necessário).
 """
 
-REMINDER_LLM_INSTRUCTION = """
+AGENDA_HORIZON_DAYS = int(os.getenv("EGO_AGENDA_HORIZON_DAYS", "90"))
+AGENDA_HORIZON_HOURS = AGENDA_HORIZON_DAYS * 24
+
+REMINDER_LLM_INSTRUCTION = f"""
 REMINDERS / ALARMS: If the user asks for a reminder, alarm, meeting, or important call at a specific time,
 you may register it by adding EXACTLY ONE line at the very END of your reply (after your normal answer), with this format:
-[[EGO_REMINDER:{"title":"short title","scheduled_at":"ISO-8601 datetime WITH timezone offset","announce":"what to say at the first alarm (10 min before)"}]]
+[[EGO_REMINDER:{{"title":"short title","scheduled_at":"ISO-8601 datetime WITH timezone offset","announce":"what to say at the first alarm (10 min before)"}}]]
 - scheduled_at is the moment the event happens (e.g. time of the call), NOT the first alarm time.
 - The app notifies starting 10 minutes before, then every 5 minutes until that moment.
-- If date/time is ambiguous, do NOT add the line; ask one clarifying question instead.
+- Agenda window: only schedule between now and the next {AGENDA_HORIZON_DAYS} days (reject beyond that).
+- If the user omits the year, use the current calendar year; if that date/time already passed, use the next year.
+- If the user omits the month, use the current month.
+- Always output scheduled_at as full ISO-8601 with timezone offset after resolving year/month/day/time.
+- If date/time is still ambiguous, do NOT add the line; ask one short clarifying question instead.
+- When the user clearly wants a reminder/alarm at a known time, you MUST output the [[EGO_REMINDER:...]] line automatically.
+  Do NOT ask whether to turn on the alarm, wait for confirmation, or offer to "activate" it — the app registers the line as soon as you send it.
+"""
+
+AGENDA_RECURRING_LLM_INSTRUCTION = """
+AGENDA / MEETINGS (Supabase — each user only sees their own rows via user_id):
+
+A) ONE-OFF meetings / reuniões / calls with a specific calendar date and time
+   (e.g. "reunião amanhã às 15h", "meeting on June 5 at 3pm"):
+   → use [[EGO_REMINDER:{"title":"...","scheduled_at":"ISO-8601 with timezone offset","announce":"..."}]]
+   at the END of your reply. This saves to table `reminders` for THAT user only.
+
+B) WEEKLY recurring habits (same weekdays every week, no single calendar date):
+   (e.g. "academia segunda a sexta às 8h"):
+   → use [[EGO_AGENDA:{"titulo":"short title","horario":"HH:MM","dias_da_semana":"seg,ter,qua,qui,sex"}]]
+   at the END of your reply. This saves to table `agenda` for THAT user only.
+
+Rules for [[EGO_AGENDA:...]]:
+- dias_da_semana: lowercase Portuguese 3-letter codes: seg, ter, qua, qui, sex, sab, dom (comma-separated).
+- horario: 24h HH:MM (e.g. 08:00, 15:30).
+- When date+time are clear for a single meeting → use EGO_REMINDER, NOT EGO_AGENDA.
+- When weekdays+time are clear for recurrence → use EGO_AGENDA automatically; do NOT ask to confirm saving.
+
+READING THE USER'S CALENDAR:
+- Below you receive a block "CURRENT USER AGENDA" loaded live from Supabase for THIS user only.
+- ALWAYS use that block when the user asks what they have scheduled, conflicts, free time, or "my agenda".
+- Do NOT invent meetings not listed there. If the block says (none), say the calendar is empty.
+- Before adding [[EGO_REMINDER:...]] or [[EGO_AGENDA:...]], check the snapshot to avoid duplicate entries unless the user wants to replace one.
 """
 
 
@@ -84,34 +135,38 @@ def reminder_instruction_block() -> str:
     return REMINDER_LLM_INSTRUCTION
 
 
-# Chat: apenas Gemini 1.5 (API google-generativeai). Ordem padrão = preferência do utilizador na sidebar.
-GEMINI_15_MODEL_PRO = "gemini-1.5-pro"
-GEMINI_15_MODEL_FLASH = "gemini-1.5-flash"
-GEMINI_15_MODEL_IDS = (GEMINI_15_MODEL_PRO, GEMINI_15_MODEL_FLASH)
+def agenda_instruction_block() -> str:
+    return AGENDA_RECURRING_LLM_INSTRUCTION
+
+
+# Motor principal pedido: gemini-1.5-flash (rápido). Se a API devolver 404, o código faz fallback para 2.5.
+GEMINI_MODEL_FLASH = os.getenv("EGO_GEMINI_MODEL_FLASH", "gemini-1.5-flash")
+GEMINI_MODEL_PRO = os.getenv("EGO_GEMINI_MODEL_PRO", "gemini-2.5-pro")
+GEMINI_MODEL_IDS = (GEMINI_MODEL_FLASH, GEMINI_MODEL_PRO)
 
 # Trecho dos PDFs na instrução de sistema (Gemini).
-PDF_CONTEXT_IN_SYSTEM_CHARS = 4000
+PDF_CONTEXT_IN_SYSTEM_CHARS = int(os.getenv("EGO_PDF_CONTEXT_CHARS", "3000"))
+PDF_EXTRACT_MAX_CHARS = int(os.getenv("EGO_PDF_EXTRACT_MAX_CHARS", "120000"))
+PDF_EXTRACT_MAX_PAGES = int(os.getenv("EGO_PDF_EXTRACT_MAX_PAGES", "24"))
 SUPABASE_STORAGE_BUCKET = "usuarios"
 SUPABASE_HISTORY_TABLE = "chat_history"
 SUPABASE_PROFILES_TABLE = "profiles"
 SUPABASE_FEEDBACK_TABLE = "message_feedback"
 SUPABASE_PERSONA_TABLE = "user_personas"
-SUPABASE_FOOD_TABLE = "food_history"
-SUPABASE_DRINK_TABLE = "drink_history"
-SUPABASE_SHOP_TABLE = "shopping_history"
-SUPABASE_TRAVEL_TABLE = "travel_history"
-SUPABASE_NIGHTLIFE_TABLE = "nightlife_history"
 SUPABASE_REMINDERS_TABLE = "reminders"
-SUPABASE_GOOGLE_CALENDAR_TOKENS_TABLE = "google_calendar_tokens"
-SUPABASE_GOOGLE_OAUTH_PENDING_TABLE = "google_oauth_pending"
-GOOGLE_CALENDAR_READONLY_SCOPE = "https://www.googleapis.com/auth/calendar.readonly"
-GOOGLE_OAUTH_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth"
-GOOGLE_OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token"
-GOOGLE_CALENDAR_EVENTS_URL = (
-    "https://www.googleapis.com/calendar/v3/calendars/primary/events"
+SUPABASE_AGENDA_TABLE = "agenda"
+EGO_SCHEMA_TABLE_SPECS: tuple[tuple[str, str], ...] = (
+    ("Perfil e preferências", SUPABASE_PROFILES_TABLE),
+    ("Histórico do chat", SUPABASE_HISTORY_TABLE),
+    ("Lembretes", SUPABASE_REMINDERS_TABLE),
+    ("Agenda recorrente", SUPABASE_AGENDA_TABLE),
+    ("Avatar e voz", SUPABASE_PERSONA_TABLE),
 )
+VALID_AGENDA_DOW = frozenset({"seg", "ter", "qua", "qui", "sex", "sab", "dom"})
+DOW_PT_ORDER = ("seg", "ter", "qua", "qui", "sex", "sab", "dom")
 REMINDER_MINUTES_BEFORE = 10
 REMINDER_NUDGE_MINUTES = 5
+REMINDER_PAST_GRACE = datetime.timedelta(minutes=5)
 STRIPE_MENSAL_URL = os.getenv("STRIPE_CHECKOUT_MENSAL_URL", "URL_DO_STRIPE_MENSAL")
 STRIPE_ANUAL_URL = os.getenv("STRIPE_CHECKOUT_ANUAL_URL", "URL_DO_STRIPE_ANUAL")
 # Trial: dias após created_at em profiles (ajuste com EGO_TRIAL_DAYS). Beta: EGO_BETA_DEADLINE ISO libera todos não-Pro até a data.
@@ -122,6 +177,23 @@ PAYWALL_PRECO_ANUAL = os.getenv("EGO_PAYWALL_ANUAL_LABEL", "R$ 299,00")
 EGO_MONTHLY_TOKEN_LIMIT_FREE = int(os.getenv("EGO_MONTHLY_TOKEN_LIMIT_FREE", "500000"))
 EGO_MONTHLY_TOKEN_LIMIT_PRO = int(os.getenv("EGO_MONTHLY_TOKEN_LIMIT_PRO", "10000000"))
 EGO_APP_VERSION = os.getenv("EGO_APP_VERSION", "v1.5.0 — Global Stable")
+CHAT_LLM_MAX_TURNS = int(os.getenv("EGO_CHAT_LLM_MAX_TURNS", "24"))
+LOCAL_AUTH_VERSION = 1
+EGO_BROWSER_AUTH_STORAGE_KEY = "ego_auth_v1"
+EGO_AUTOSAVE_MIN_INTERVAL_SEC = int(os.getenv("EGO_AUTOSAVE_MIN_INTERVAL_SEC", "45"))
+
+# Persistência de UI + PDF em profiles.ui_state (jsonb). Ver profiles_ui_state.sql no Supabase.
+UI_STATE_VERSION = 1
+UI_STATE_PDF_MAX_CHARS = int(os.getenv("EGO_UI_STATE_PDF_MAX_CHARS", "800000"))
+ALLOWED_EGO_NAV_VALUES = frozenset(
+    {
+        "Chat",
+        "Políticas",
+        "Agenda e lembretes",
+        "Meu Perfil",
+        "Meu Avatar",
+    }
+)
 
 
 def _ego_read_secret(name: str) -> str:
@@ -154,19 +226,6 @@ def ego_operator_legal_name() -> str:
 
 def ego_support_email() -> str:
     return _ego_read_secret("EGO_SUPPORT_EMAIL") or "suporte@egoai.com.br"
-
-
-def ego_whatsapp_business_url() -> str:
-    u = _ego_read_secret("EGO_WHATSAPP_URL")
-    if u.startswith("http"):
-        return u
-    phone = _ego_read_secret("EGO_SUPPORT_WHATSAPP").replace(" ", "").replace("-", "")
-    if phone.startswith("+"):
-        phone = phone[1:]
-    if not phone:
-        return ""
-    msg = _ego_read_secret("EGO_WHATSAPP_PREFILL") or "Olá, preciso de suporte com o EGO-AI."
-    return f"https://wa.me/{phone}?text={urlencode({'text': msg})}"
 
 
 def _ego_beta_deadline() -> datetime.datetime | None:
@@ -258,8 +317,38 @@ VOICE_OPTIONS = [
     {"id": "pvf1", "name": "Nova Studio", "group": "Feminina", "premium": True},
 ]
 
+# Vozes Microsoft Edge TTS (servidor → st.audio, fiável no Streamlit).
+EDGE_TTS_VOICE_MAP: dict[str, str] = {
+    "vm1": "pt-BR-AntonioNeural",
+    "vm2": "pt-BR-DonatoNeural",
+    "vm3": "pt-BR-FabioNeural",
+    "vm4": "pt-BR-HumbertoNeural",
+    "vm5": "pt-BR-JulioNeural",
+    "vm6": "pt-BR-NicolauNeural",
+    "vm7": "en-US-GuyNeural",
+    "vm8": "en-US-ChristopherNeural",
+    "vm9": "en-US-EricNeural",
+    "vm10": "en-US-RogerNeural",
+    "vf1": "pt-BR-FranciscaNeural",
+    "vf2": "pt-BR-BrendaNeural",
+    "vf3": "pt-BR-ThalitaNeural",
+    "vf4": "pt-BR-YaraNeural",
+    "vf5": "pt-BR-LeilaNeural",
+    "vf6": "pt-BR-GiovannaNeural",
+    "vf7": "en-US-JennyNeural",
+    "vf8": "en-US-AriaNeural",
+    "vf9": "en-US-EmmaNeural",
+    "vf10": "en-US-MichelleNeural",
+    "pvm1": "en-US-DavisNeural",
+    "pvf1": "en-US-AmberNeural",
+}
+DEFAULT_EDGE_TTS_VOICE = "pt-BR-FranciscaNeural"
+
 
 def inject_styles() -> None:
+    if st.session_state.get("_ego_styles_injected"):
+        return
+    st.session_state["_ego_styles_injected"] = True
     st.markdown(
         """
         <style>
@@ -336,6 +425,14 @@ def inject_styles() -> None:
                 color: #e8e8ed;
                 margin-bottom: 0.75rem;
             }
+            .ego-brand-min {
+                font-size: 0.68rem;
+                letter-spacing: 0.2em;
+                text-transform: uppercase;
+                color: #94a3b8;
+                margin: 0 0 0.5rem 0;
+            }
+            div[data-testid="stChatMessage"] { margin-bottom: 0.45rem !important; }
             div[data-testid="stSidebar"] {
                 border-right: 1px solid rgba(255, 255, 255, 0.06);
                 background: linear-gradient(
@@ -476,6 +573,201 @@ def inject_styles() -> None:
                 color: #e9d5ff;
                 margin-bottom: 0.65rem;
             }
+            .ego-page-hero {
+                background: linear-gradient(135deg, #1a1025 0%, #12121a 55%, #0d1520 100%);
+                border: 1px solid rgba(124, 58, 237, 0.28);
+                border-radius: 18px;
+                padding: 1.35rem 1.5rem;
+                margin-bottom: 1.25rem;
+                box-shadow: 0 10px 36px rgba(0, 0, 0, 0.32);
+            }
+            .ego-page-hero h1 {
+                margin: 0 0 0.35rem 0;
+                font-size: 1.55rem;
+                font-weight: 700;
+                color: #f3f4f6;
+                letter-spacing: -0.02em;
+            }
+            .ego-page-hero p {
+                margin: 0;
+                color: #94a3b8;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+            .ego-section-head {
+                font-size: 0.72rem;
+                text-transform: uppercase;
+                letter-spacing: 0.14em;
+                color: #a78bfa;
+                font-weight: 700;
+                margin: 1.25rem 0 0.65rem 0;
+            }
+            .ego-form-shell {
+                background: linear-gradient(165deg, rgba(30, 30, 40, 0.9) 0%, rgba(18, 18, 26, 0.95) 100%);
+                border: 1px solid rgba(255, 255, 255, 0.08);
+                border-radius: 16px;
+                padding: 1rem 1.15rem 0.35rem;
+                margin-bottom: 1.1rem;
+            }
+            .ego-reminder-list {
+                display: flex;
+                flex-direction: column;
+                gap: 0.75rem;
+                margin: 0.5rem 0 1rem 0;
+            }
+            .ego-reminder-card {
+                display: grid;
+                grid-template-columns: auto 1fr;
+                gap: 0.85rem 1rem;
+                align-items: start;
+                background: linear-gradient(145deg, #1e2433 0%, #161b26 100%);
+                border: 1px solid rgba(255, 255, 255, 0.07);
+                border-left: 3px solid #7c3aed;
+                border-radius: 14px;
+                padding: 0.95rem 1.1rem;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+            }
+            .ego-reminder-card.is-today {
+                border-left-color: #38bdf8;
+                background: linear-gradient(145deg, #1a2438 0%, #141c2a 100%);
+            }
+            .ego-reminder-card.is-soon {
+                border-left-color: #fbbf24;
+            }
+            .ego-reminder-when {
+                text-align: center;
+                min-width: 3.6rem;
+                padding: 0.35rem 0.5rem;
+                border-radius: 12px;
+                background: rgba(124, 58, 237, 0.18);
+                border: 1px solid rgba(167, 139, 250, 0.25);
+            }
+            .ego-reminder-when .ego-r-time {
+                display: block;
+                font-size: 1.15rem;
+                font-weight: 700;
+                color: #f5f3ff;
+                line-height: 1.1;
+            }
+            .ego-reminder-when .ego-r-date {
+                display: block;
+                font-size: 0.68rem;
+                color: #c4b5fd;
+                margin-top: 0.2rem;
+                text-transform: uppercase;
+                letter-spacing: 0.06em;
+            }
+            .ego-reminder-body .ego-r-title {
+                font-size: 1.02rem;
+                font-weight: 600;
+                color: #f3f4f6;
+                margin: 0 0 0.35rem 0;
+                line-height: 1.3;
+            }
+            .ego-reminder-body .ego-r-announce {
+                font-size: 0.86rem;
+                color: #9ca3af;
+                margin: 0 0 0.45rem 0;
+                line-height: 1.45;
+            }
+            .ego-reminder-meta {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.35rem;
+                align-items: center;
+            }
+            .ego-pill {
+                display: inline-block;
+                font-size: 0.68rem;
+                font-weight: 600;
+                letter-spacing: 0.04em;
+                padding: 0.22rem 0.55rem;
+                border-radius: 999px;
+                background: rgba(255, 255, 255, 0.06);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+                color: #d1d5db;
+            }
+            .ego-pill.rel { background: rgba(56, 189, 248, 0.15); border-color: rgba(56, 189, 248, 0.35); color: #bae6fd; }
+            .ego-pill.snooze { background: rgba(251, 191, 36, 0.12); border-color: rgba(251, 191, 36, 0.35); color: #fde68a; }
+            .ego-pill.recurring { background: rgba(52, 211, 153, 0.12); border-color: rgba(52, 211, 153, 0.3); color: #a7f3d0; }
+            .ego-agenda-card {
+                background: linear-gradient(145deg, #1a2228 0%, #141a20 100%);
+                border: 1px solid rgba(255, 255, 255, 0.07);
+                border-left: 3px solid #34d399;
+                border-radius: 14px;
+                padding: 0.85rem 1rem;
+                margin-bottom: 0.65rem;
+            }
+            .ego-agenda-card .ego-a-title {
+                font-size: 0.98rem;
+                font-weight: 600;
+                color: #ecfdf5;
+                margin: 0 0 0.4rem 0;
+            }
+            .ego-agenda-card .ego-a-row {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.35rem;
+                align-items: center;
+            }
+            .ego-dow-chip {
+                display: inline-block;
+                font-size: 0.65rem;
+                font-weight: 600;
+                padding: 0.18rem 0.45rem;
+                border-radius: 6px;
+                background: rgba(52, 211, 153, 0.15);
+                border: 1px solid rgba(52, 211, 153, 0.28);
+                color: #a7f3d0;
+            }
+            .ego-alarm-banner {
+                background: linear-gradient(135deg, rgba(124, 58, 237, 0.35) 0%, rgba(45, 90, 254, 0.25) 100%);
+                border: 1px solid rgba(167, 139, 250, 0.45);
+                border-radius: 16px;
+                padding: 1rem 1.15rem;
+                margin-bottom: 0.85rem;
+                box-shadow: 0 8px 28px rgba(124, 58, 237, 0.2);
+            }
+            .ego-alarm-banner .ego-alarm-tag {
+                font-size: 0.65rem;
+                text-transform: uppercase;
+                letter-spacing: 0.12em;
+                color: #e9d5ff;
+                font-weight: 700;
+                margin-bottom: 0.35rem;
+            }
+            .ego-alarm-banner .ego-alarm-title {
+                font-size: 1.05rem;
+                font-weight: 700;
+                color: #fff;
+                margin: 0 0 0.35rem 0;
+            }
+            .ego-alarm-banner .ego-alarm-sub {
+                font-size: 0.88rem;
+                color: #e0e7ff;
+                margin: 0;
+                line-height: 1.45;
+            }
+            .ego-empty-state {
+                text-align: center;
+                padding: 1.5rem 1rem;
+                border-radius: 14px;
+                border: 1px dashed rgba(255, 255, 255, 0.12);
+                background: rgba(255, 255, 255, 0.02);
+                color: #94a3b8;
+                font-size: 0.9rem;
+                line-height: 1.5;
+                margin: 0.5rem 0 1rem 0;
+            }
+            div[data-testid="stVerticalBlock"] > div:has(.ego-reminder-card) + div[data-testid="stHorizontalBlock"] {
+                margin-top: -0.35rem;
+                margin-bottom: 0.65rem;
+            }
+            .ego-tts-controls-hint {
+                font-size: 0.78rem;
+                color: #94a3b8;
+                margin: 0.15rem 0 0.35rem 0;
+            }
         </style>
         """,
         unsafe_allow_html=True,
@@ -489,10 +781,13 @@ def init_session() -> None:
         st.session_state.messages = []
     st.session_state.setdefault("user_name", "")
     st.session_state.setdefault("gemini_model_ok", None)
-    st.session_state.setdefault("gemini_model_preference", GEMINI_15_MODEL_PRO)
+    st.session_state.setdefault("gemini_model_preference", GEMINI_MODEL_FLASH)
     _gm_ok = (st.session_state.get("gemini_model_ok") or "") if isinstance(st.session_state.get("gemini_model_ok"), str) else ""
-    if _gm_ok and "gemini-2" in _gm_ok:
+    _gm_pref = st.session_state.get("gemini_model_preference") or ""
+    if _gm_ok and ("gemini-1.5" in _gm_ok or "gemini-2" in _gm_ok and _gm_ok not in GEMINI_MODEL_IDS):
         st.session_state["gemini_model_ok"] = None
+    if _gm_pref not in GEMINI_MODEL_IDS:
+        st.session_state["gemini_model_preference"] = GEMINI_MODEL_FLASH
     st.session_state.setdefault("pdf_context", "")
     st.session_state["ego_ai_provider"] = "Gemini"
     st.session_state.setdefault("user_logged", False)
@@ -503,27 +798,53 @@ def init_session() -> None:
     st.session_state.setdefault("ego_nav", "Chat")
     if st.session_state.get("ego_nav") == "Jurídico":
         st.session_state["ego_nav"] = "Políticas"
+    _legacy_nav = {
+        "Comida Perto",
+        "Bares e restaurantes",
+        "Bebidas Perto",
+        "Compras online",
+        "Viagens e hospedagem",
+        "Conexões (e-mail, redes, CRM)",
+    }
+    if st.session_state.get("ego_nav") in _legacy_nav:
+        st.session_state["ego_nav"] = "Chat"
     st.session_state.setdefault("supabase_url_input", "")
     st.session_state.setdefault("supabase_key_input", "")
     st.session_state.setdefault("local_mode", False)
     st.session_state.setdefault("last_detected_language", "pt-BR")
     st.session_state.setdefault("last_detected_confidence", 0.0)
-    st.session_state.setdefault("food_history", [])
-    st.session_state.setdefault("drink_history", [])
-    st.session_state.setdefault("shopping_history", [])
-    st.session_state.setdefault("shop_market", "Brasil")
-    st.session_state.setdefault("travel_history", [])
-    st.session_state.setdefault("nightlife_history", [])
-    st.session_state.setdefault("travel_market", "Brasil")
     st.session_state.setdefault("_ego_rem_fired", {})
     st.session_state.setdefault("ego_legal_tab", 0)
     st.session_state.setdefault("_legal_render_id", 0)
     st.session_state.setdefault("ego_login_policies", False)
-    st.session_state.setdefault("food_city", "")
-    st.session_state.setdefault("food_country", "")
     st.session_state.setdefault("persona_loaded", False)
     st.session_state.setdefault("assistant_avatar_id", "f1")
     st.session_state.setdefault("assistant_voice_id", "vf1")
+    st.session_state.setdefault("ego_ui_state_loaded", False)
+    st.session_state.setdefault("_ego_ui_state_saved_sig", "")
+    st.session_state.setdefault("_ego_session_boot_done", False)
+    st.session_state.setdefault("_ego_voice_done_sig", None)
+    st.session_state.setdefault("_ego_last_autosave_ts", 0.0)
+    st.session_state.setdefault("ego_voice_replies", True)
+    st.session_state.setdefault("ego_tts_volume", 80)
+    st.session_state.setdefault("ego_tts_muted", False)
+    st.session_state.setdefault("ego_tts_rate", 1.0)
+    st.session_state.setdefault("ego_client_timezone", "")
+    st.session_state.setdefault("ego_client_tz_offset_min", None)
+    st.session_state.setdefault("_ego_tz_injected", False)
+    st.session_state.setdefault("ego_assistant_display_name", "EGO-AI")
+    st.session_state.setdefault("ego_name_setup_done", False)
+    st.session_state.setdefault(
+        "ego_assistant_display_name_input",
+        st.session_state.get("ego_assistant_display_name") or "EGO-AI",
+    )
+    st.session_state.setdefault("ego_remember_device", True)
+    st.session_state.setdefault("_ego_sb_access", "")
+    st.session_state.setdefault("_ego_sb_refresh", "")
+    if "login_email" not in st.session_state:
+        last_em = _read_last_login_email_local()
+        if last_em:
+            st.session_state["login_email"] = last_em
 
 
 def _supabase_project_url_ok(url: str) -> bool:
@@ -547,28 +868,154 @@ def _supabase_project_url_ok(url: str) -> bool:
     return bool(ref) and "." not in ref
 
 
+def _supabase_ref_from_url(url: str) -> str | None:
+    u = (url or "").strip().rstrip("/")
+    if not _supabase_project_url_ok(u):
+        return None
+    host = (urlparse(u).hostname or "").lower()
+    return host[: -len(".supabase.co")]
+
+
+def _supabase_is_publishable_key(key: str) -> bool:
+    return (key or "").strip().startswith("sb_publishable_")
+
+
+def _supabase_ref_from_jwt_key(key: str) -> str | None:
+    """Extrai o project ref embutido na chave legada anon (JWT eyJ...)."""
+    try:
+        parts = (key or "").strip().split(".")
+        if len(parts) < 2:
+            return None
+        payload = parts[1]
+        pad = "=" * (-len(payload) % 4)
+        data = json.loads(base64.urlsafe_b64decode(payload + pad))
+        ref = data.get("ref")
+        return str(ref).strip() if ref else None
+    except Exception:
+        return None
+
+
+def _resolve_supabase_url() -> str:
+    """Project URL: .env (SUPABASE_URL) → secrets.toml → formulário da app."""
+    url = os.getenv("SUPABASE_URL", "").strip()
+    if not url:
+        url = _safe_streamlit_secret("SUPABASE_URL")
+    if not url:
+        url = (st.session_state.get("supabase_url_input") or "").strip()
+    return url
+
+
+def _resolve_supabase_api_key() -> str:
+    """Chave publishable/anon: .env (SUPABASE_KEY) → secrets.toml → formulário."""
+    key = os.getenv("SUPABASE_KEY", "").strip() or os.getenv("SUPABASE_PUBLISHABLE_KEY", "").strip()
+    if not key:
+        key = _safe_streamlit_secret("SUPABASE_KEY") or _safe_streamlit_secret("SUPABASE_PUBLISHABLE_KEY")
+    if not key:
+        key = (st.session_state.get("supabase_key_input") or "").strip()
+    return key
+
+
+def _supabase_api_key_looks_valid(key: str) -> bool:
+    k = (key or "").strip()
+    if _supabase_is_publishable_key(k) and len(k) > 24:
+        return True
+    if k.startswith("eyJ") and len(k) > 40:
+        return True
+    return False
+
+
+def _safe_streamlit_secret(name: str, default: str = "") -> str:
+    """Lê st.secrets sem derrubar a app se secrets.toml estiver mal formatado."""
+    if not hasattr(st, "secrets"):
+        return default
+    try:
+        return str(st.secrets.get(name, default) or default).strip()
+    except Exception:
+        return default
+
+
+def _peek_supabase_secrets() -> tuple[str, str]:
+    return _resolve_supabase_url(), _resolve_supabase_api_key()
+
+
 def get_supabase_client() -> Client | None:
-    """Cria cliente Supabase a partir de session state, environment ou secrets."""
+    """Cliente Supabase: create_client(SUPABASE_URL, SUPABASE_KEY) como no guia oficial."""
     if not create_client:
         return None
-    url = (st.session_state.get("supabase_url_input") or "").strip()
-    key = (st.session_state.get("supabase_key_input") or "").strip()
-    if not url:
-        url = os.getenv("SUPABASE_URL", "").strip()
-    if not key:
-        key = os.getenv("SUPABASE_KEY", "").strip()
-    if not url:
-        url = (st.secrets.get("SUPABASE_URL", "") if hasattr(st, "secrets") else "").strip()
-    if not key:
-        key = (st.secrets.get("SUPABASE_KEY", "") if hasattr(st, "secrets") else "").strip()
-    if not url or not key:
+    url = _resolve_supabase_url()
+    key = _resolve_supabase_api_key()
+    if not url or not key or not _supabase_api_key_looks_valid(key):
         return None
     if not _supabase_project_url_ok(url):
         return None
+    url_ref = _supabase_ref_from_url(url)
+    key_ref = _supabase_ref_from_jwt_key(key)
+    if url_ref and key_ref and url_ref != key_ref:
+        return None
     try:
         return create_client(url, key)
-    except Exception:
+    except Exception as exc:
+        msg = str(exc).lower()
+        if _supabase_is_publishable_key(key) and "invalid api key" in msg:
+            st.session_state["_ego_supabase_connect_hint"] = (
+                "Chave publishable detectada, mas o pacote `supabase` está antigo. "
+                "No terminal: `pip install -U \"supabase>=2.28.0\"` e reinicie o Streamlit."
+            )
         return None
+
+
+def _supabase_table_missing_error(exc: BaseException) -> bool:
+    err = str(exc).lower()
+    return (
+        "pgrst205" in err
+        or "schema cache" in err
+        or "does not exist" in err
+        or "42p01" in err
+    )
+
+
+def probe_ego_supabase_schema(supabase: Client | None) -> dict[str, bool]:
+    """Verifica se as tabelas existem (uma query leve por tabela)."""
+    if not supabase:
+        return {label: False for label, _ in EGO_SCHEMA_TABLE_SPECS}
+    out: dict[str, bool] = {}
+    for label, table in EGO_SCHEMA_TABLE_SPECS:
+        try:
+            supabase.table(table).select("*").limit(1).execute()
+            out[label] = True
+        except Exception as e:  # noqa: BLE001
+            out[label] = not _supabase_table_missing_error(e)
+    return out
+
+
+def render_ego_schema_banner() -> None:
+    """Aviso quando faltam tabelas — dados do utilizador não gravam sem isto."""
+    status = st.session_state.get("_ego_schema_status")
+    if not isinstance(status, dict):
+        return
+    missing = [name for name, ok in status.items() if not ok]
+    if not missing:
+        return
+    st.error(
+        "**Base de dados incompleta no Supabase.** "
+        f"Falta(m): {', '.join(missing)}. "
+        "Enquanto isso, lembretes, agenda e histórico podem não ser guardados."
+    )
+    with st.expander("Como corrigir (uma vez no projeto Supabase)", expanded=True):
+        st.markdown(
+            "1. Abra [Supabase](https://supabase.com) → o seu projeto → **SQL Editor** → **New query**.\n"
+            "2. Copie **todo** o ficheiro `supabase/bootstrap_ego_schema.sql` do repositório e execute **Run**.\n"
+            "3. Volte à app, faça **Sair** e **Entrar** de novo.\n\n"
+            "Cada utilizador fica ligado pelo `user_id` (o mesmo id do login):\n"
+            "- **profiles** — preferências (`ui_state`), trial/pro\n"
+            "- **chat_history** — mensagens do chat\n"
+            "- **agenda** — compromissos recorrentes\n"
+            "- **reminders** — lembretes com alarme\n"
+            "- **user_personas** — avatar e voz"
+        )
+        if st.button("Verificar tabelas outra vez", key="ego_schema_recheck"):
+            st.session_state.pop("_ego_schema_probed", None)
+            st.rerun()
 
 
 def _supabase_setup_hint(url: str, key: str) -> str:
@@ -576,11 +1023,17 @@ def _supabase_setup_hint(url: str, key: str) -> str:
     u = (url or "").strip()
     k = (key or "").strip()
     if not u and not k:
-        return "Preencha SUPABASE_URL e SUPABASE_KEY (ou defina-os nos Secrets do Streamlit Cloud)."
+        return (
+            "Crie um ficheiro `.env` na raiz (copie de `.env.example`) com SUPABASE_URL e SUPABASE_KEY, "
+            "ou use `.streamlit/secrets.toml` / Secrets no Streamlit Cloud."
+        )
     if not u:
         return "Falta SUPABASE_URL."
     if not k:
-        return "Falta SUPABASE_KEY (chave anon public do Supabase)."
+        return (
+            "Falta SUPABASE_KEY (ou SUPABASE_PUBLISHABLE_KEY): chave **publishable** "
+            "(`sb_publishable_...`) em Settings → API Keys."
+        )
     if not u.startswith("https://"):
         return "SUPABASE_URL deve começar por https://"
     if not _supabase_project_url_ok(u):
@@ -588,33 +1041,86 @@ def _supabase_setup_hint(url: str, key: str) -> str:
             "SUPABASE_URL inválido. No Supabase vá em Settings → API e copie o **Project URL**: "
             "deve ser como `https://abcdefgh.supabase.co` — **não** use só `https://supabase.co`."
         )
-    if len(k) < 40:
-        return "SUPABASE_KEY parece incompleta. Copie a chave **anon** **public** (texto longo) em Settings → API."
-    return "Não consegui conectar. Confirme URL e anon key do mesmo projeto e tente outra vez."
+    if not _supabase_api_key_looks_valid(k):
+        return (
+            "SUPABASE_KEY inválida. Use a **publishable** (`sb_publishable_...`) "
+            "ou, se preferir, a legada **anon** (`eyJ...`) — Settings → API Keys."
+        )
+    url_ref = _supabase_ref_from_url(u)
+    key_ref = _supabase_ref_from_jwt_key(k)
+    if url_ref and key_ref and url_ref != key_ref:
+        return (
+            f"A URL e a chave JWT **não são do mesmo projeto**. "
+            f"Na URL: `{url_ref}` · Na chave: `{key_ref}`. "
+            f"Corrija para: `https://{key_ref}.supabase.co` "
+            f"(copie **Project URL** e a chave no mesmo ecrã Supabase → API)."
+        )
+    return (
+        "Não consegui conectar. Confirme **Project URL** + **publishable** do mesmo projeto. "
+        "**Não** use a chave `service_role` no Streamlit."
+    )
 
 
 def render_supabase_setup() -> None:
     """Tela rápida para configurar credenciais Supabase quando ausentes."""
     st.error("Supabase não configurado ou URL/chave inválidos.")
+    if not create_client:
+        st.warning(
+            "O pacote Python `supabase` não está instalado. "
+            "No terminal: `pip install -r requirements.txt` e reinicie o Streamlit."
+        )
+    hint_sess = st.session_state.pop("_ego_supabase_connect_hint", None)
+    if hint_sess:
+        st.error(hint_sess)
+    su, sk = _peek_supabase_secrets()
+    if su or sk:
+        st.warning(f"**Diagnóstico (secrets.toml / variáveis):** {_supabase_setup_hint(su, sk)}")
+        if create_client and su and sk and _supabase_api_key_looks_valid(sk):
+            try:
+                probe = create_client(su, sk)
+                probe.table(SUPABASE_PROFILES_TABLE).select("id").limit(1).execute()
+            except Exception as exc:
+                err = str(exc)
+                if "profiles" in err and ("PGRST205" in err or "does not exist" in err.lower()):
+                    st.error(
+                        "Ligação OK, mas falta a tabela **profiles**. "
+                        "No Supabase → SQL Editor execute o ficheiro "
+                        "`supabase/bootstrap_ego_schema.sql` do projeto."
+                    )
+                elif "Invalid API key" in err:
+                    st.error(
+                        "Chave recusada pelo cliente Python. Atualize: "
+                        "`pip install -U \"supabase>=2.28.0\"` (publishable exige versão recente)."
+                    )
+    elif hasattr(st, "secrets"):
+        try:
+            _ = st.secrets.keys()
+        except Exception as exc:
+            st.error(
+                f"**secrets.toml inválido:** {exc} "
+                "Use aspas nas URLs (`SUPABASE_URL = \"https://...\"`) e não comece o ficheiro com a palavra `toml`."
+            )
     st.info(
-        "**Dica:** `SUPABASE_URL` tem de ser o **Project URL** do painel (ex.: "
-        "`https://abcdefgh.supabase.co`). **Não** use apenas `https://supabase.co`. "
-        "No **Streamlit Cloud**: Manage app → **Secrets** → cole as três chaves → **Save** → **Reboot app**."
+        "**Dica (igual ao guia Supabase):** crie `.env` na pasta do projeto com "
+        "`SUPABASE_URL` e `SUPABASE_KEY` (publishable `sb_publishable_...`). "
+        "Reinicie o Streamlit após guardar. No Cloud: Manage app → **Secrets**."
     )
     render_public_trust_landing()
     st.markdown("### Configure as credenciais para entrar no app")
+    url_prefill = (st.session_state.get("supabase_url_input") or su or "").strip()
+    key_prefill = (st.session_state.get("supabase_key_input") or sk or "").strip()
     with st.form("supabase_setup_form", border=True):
         st.text_input(
             "SUPABASE_URL",
-            value=st.session_state.get("supabase_url_input", ""),
+            value=url_prefill,
             placeholder="https://seu-projeto.supabase.co",
             key="supabase_url_input",
         )
         st.text_input(
-            "SUPABASE_KEY (anon key)",
-            value=st.session_state.get("supabase_key_input", ""),
+            "SUPABASE_KEY (publishable sb_publishable_...)",
+            value=key_prefill,
             type="password",
-            placeholder="eyJhbGciOi...",
+            placeholder="sb_publishable_...",
             key="supabase_key_input",
         )
         submitted = st.form_submit_button("Salvar e testar conexão", use_container_width=True)
@@ -684,7 +1190,13 @@ def salvar_mensagem_segura(
     """Persiste mensagem e devolve ego_msg_id (ou id) quando o Supabase devolver."""
     if not supabase:
         return None
+    if not ensure_supabase_auth_client(supabase):
+        st.session_state["_ego_chat_save_warn"] = (
+            "Histórico não gravado: sessão Supabase expirada. Faça **Sair** e **Entrar** de novo."
+        )
+        return None
     row = {"user_id": user_id, "role": role, "content": content}
+    last_err: Exception | None = None
     try:
         res = (
             supabase.table(SUPABASE_HISTORY_TABLE)
@@ -694,8 +1206,8 @@ def salvar_mensagem_segura(
         )
         if res.data and res.data[0].get("ego_msg_id"):
             return str(res.data[0]["ego_msg_id"])
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001
+        last_err = e
     try:
         res = (
             supabase.table(SUPABASE_HISTORY_TABLE)
@@ -705,12 +1217,18 @@ def salvar_mensagem_segura(
         )
         if res.data and res.data[0].get("id") is not None:
             return str(res.data[0]["id"])
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001
+        last_err = e
     try:
         supabase.table(SUPABASE_HISTORY_TABLE).insert(row).execute()
-    except Exception:
-        pass
+        return None
+    except Exception as e:  # noqa: BLE001
+        last_err = e
+    if last_err and _supabase_table_missing_error(last_err):
+        st.session_state["_ego_chat_save_warn"] = (
+            "Histórico do chat não foi gravado: tabela `chat_history` em falta no Supabase. "
+            "Execute `supabase/bootstrap_ego_schema.sql` no SQL Editor."
+        )
     return None
 
 
@@ -850,36 +1368,6 @@ def build_chat_export_txt(messages: list) -> bytes:
     return ("\n".join(lines)).encode("utf-8")
 
 
-def build_chat_export_pdf_bytes(messages: list) -> bytes:
-    try:
-        from reportlab.lib.pagesizes import A4
-        from reportlab.pdfgen import canvas as pdfcanvas
-    except ImportError:
-        return b""
-
-    buf = BytesIO()
-    c = pdfcanvas.Canvas(buf, pagesize=A4)
-    _, h = A4
-    x_margin, y_top = 40, h - 48
-    y = y_top
-    c.setFont("Helvetica", 9)
-    for m in messages:
-        role = str(m.get("role", "?"))
-        content = str(m.get("content") or "")
-        block = f"{role.upper()}: {content}"
-        for raw_line in block.split("\n"):
-            line = raw_line[:120]
-            safe = line.encode("latin-1", "replace").decode("latin-1")
-            if y < 48:
-                c.showPage()
-                y = y_top
-                c.setFont("Helvetica", 9)
-            c.drawString(x_margin, y, safe)
-            y -= 12
-    c.save()
-    return buf.getvalue()
-
-
 LEGAL_DOC_OPTIONS = [
     "Termos de Uso",
     "Política de Privacidade",
@@ -928,15 +1416,8 @@ def render_public_trust_landing() -> None:
     em_addr = ego_support_email()
     em = html.escape(em_addr)
     op = html.escape(ego_operator_legal_name())
-    wa = ego_whatsapp_business_url()
     mensal = html.escape(PAYWALL_PRECO_MENSAL)
     anual = html.escape(PAYWALL_PRECO_ANUAL)
-    wa_btn = (
-        f'<a class="ego-glass-cta" href="{html.escape(wa)}" target="_blank" rel="noopener noreferrer">'
-        "WhatsApp Business</a>"
-        if wa
-        else '<span class="ego-glass-cta" style="opacity:0.5;">WhatsApp (configure EGO_SUPPORT_WHATSAPP)</span>'
-    )
     mail_href = f"mailto:{quote(em_addr, safe='@')}?subject={quote('Suporte EGO-AI')}"
     mail_href_attr = html.escape(mail_href)
     st.markdown(
@@ -955,7 +1436,6 @@ def render_public_trust_landing() -> None:
   <p style="margin:0 0 0.35rem 0;"><strong>Contacto antes de criar conta</strong></p>
     <p style="margin:0;">
     <a class="ego-glass-cta" href="{mail_href_attr}">Enviar e-mail para suporte</a>
-    &nbsp;&nbsp;{wa_btn}
   </p>
   <p style="margin:0.85rem 0 0 0;font-size:0.8rem;color:#94a3b8;">
     Operador: <strong>{op}</strong> · Suporte: {em}
@@ -1017,27 +1497,549 @@ def render_trust_footer(*, authenticated: bool) -> None:
     st.markdown("</div>", unsafe_allow_html=True)
 
 
+def _plain_text_for_speech(md: str) -> str:
+    """Remove markdown ruidoso para TTS (não precisa ser perfeito)."""
+    t = (md or "").strip()
+    if not t:
+        return ""
+    t = re.sub(r"\[\[EGO_[^\]]+\]\]", "", t)
+    t = re.sub(r"```[\s\S]*?```", " ", t)
+    t = re.sub(r"`([^`]+)`", r"\1", t)
+    t = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", t)
+    t = re.sub(r"[*_#>|]+", " ", t)
+    t = re.sub(r"\s+", " ", t).strip()
+    return t[:4000]
+
+
 def render_chat_messages_with_feedback(supabase: Client | None, user_id: str) -> None:
     msgs = st.session_state.get("messages") or []
+    play_idx = st.session_state.pop("_ego_tts_play_index", None)
     if not msgs:
-        st.caption("Nenhuma mensagem ainda. Envie algo abaixo para começar.")
+        st.caption("Escreva abaixo para começar a conversar com a IA.")
         return
     provider = "Gemini"
+    show_fb = st.session_state.get("ego_show_msg_feedback", False)
+    voice_on = bool(st.session_state.get("ego_voice_replies", True))
+    last_i = len(msgs) - 1
     for i, msg in enumerate(msgs):
         role = msg.get("role", "user")
         with st.chat_message(role):
             st.markdown(msg.get("content") or "")
             mid = msg.get("msg_id")
-            if role == "assistant" and mid and user_id and supabase:
+            if (
+                voice_on
+                and role == "assistant"
+                and play_idx is not None
+                and i == play_idx
+            ):
+                spoken = _plain_text_for_speech(str(msg.get("content") or ""))
+                if spoken:
+                    st.session_state["_ego_tts_pending"] = {
+                        "text": spoken,
+                        "key": f"asst_{i}_{mid or i}",
+                        "lang": st.session_state.get("last_detected_language"),
+                    }
+            if (
+                voice_on
+                and role == "assistant"
+                and i == last_i
+                and (msg.get("content") or "").strip()
+            ):
+                if st.button(
+                    "Ouvir resposta",
+                    key=f"ego_tts_replay_{i}_{mid or i}",
+                    use_container_width=True,
+                ):
+                    spoken = _plain_text_for_speech(str(msg.get("content") or ""))
+                    if spoken:
+                        queue_assistant_speech(
+                            spoken,
+                            f"replay_{i}_{mid or i}",
+                            lang_hint=st.session_state.get("last_detected_language"),
+                        )
+                        st.rerun()
+            if (
+                show_fb
+                and role == "assistant"
+                and mid
+                and user_id
+                and supabase
+                and i == last_i
+            ):
                 u1, u2 = st.columns(2)
                 with u1:
-                    if st.button("👍 Útil", key=f"fb_up_{mid}_{i}", use_container_width=True):
+                    if st.button("👍", key=f"fb_up_{mid}_{i}", use_container_width=True):
                         save_message_feedback(supabase, user_id, str(mid), 1, provider)
-                        st.toast("Obrigado pelo feedback.")
+                        st.toast("Obrigado!")
                 with u2:
-                    if st.button("👎 Não útil", key=f"fb_dn_{mid}_{i}", use_container_width=True):
+                    if st.button("👎", key=f"fb_dn_{mid}_{i}", use_container_width=True):
                         save_message_feedback(supabase, user_id, str(mid), -1, provider)
-                        st.toast("Obrigado pelo feedback.")
+                        st.toast("Obrigado!")
+
+
+def _normalize_auth_email(raw: str) -> tuple[str, str | None]:
+    """E-mail para Auth/DB (RFC: até 254 caracteres)."""
+    email = (raw or "").strip()
+    if not email or "@" not in email or email.startswith("@") or email.endswith("@"):
+        return "", "Informe um e-mail válido (ex.: nome@dominio.com)."
+    if len(email) > 254:
+        return "", "E-mail demasiado longo. Use no máximo 254 caracteres."
+    return email, None
+
+
+def _format_auth_error(exc: BaseException) -> str:
+    """Mensagem amigável para erros comuns do Supabase Auth."""
+    msg = str(exc).strip()
+    low = msg.lower()
+    if "rate limit" in low or "too many requests" in low:
+        return (
+            "**Limite de e-mails do Supabase** (muitas tentativas de cadastro/confirmação). "
+            "Aguarde **15–60 minutos** e tente de novo, ou use a aba **Entrar** se a conta já existir. "
+            "Para testes: Supabase → **Authentication** → **Providers** → **Email** → desative "
+            "**Confirm email** e evite criar várias contas seguidas com o mesmo domínio."
+        )
+    if "already registered" in low or "already been registered" in low or "user already exists" in low:
+        return "Este e-mail **já está cadastrado**. Use a aba **Entrar** com a mesma senha."
+    if "invalid login" in low or "invalid credentials" in low:
+        return "E-mail ou senha incorretos."
+    return msg or "Erro de autenticação."
+
+
+def _sync_supabase_auth_from_response(supabase: Client | None, res: object) -> None:
+    """Garante JWT na sessão do cliente (RLS em profiles exige auth.uid())."""
+    if not supabase or not res:
+        return
+    session = getattr(res, "session", None)
+    if not session:
+        return
+    access = getattr(session, "access_token", None)
+    refresh = getattr(session, "refresh_token", None)
+    if access and refresh:
+        try:
+            supabase.auth.set_session(access, refresh)
+            _ego_persist_auth_tokens(str(access), str(refresh))
+        except Exception:
+            pass
+
+
+def _ego_persist_auth_tokens(access: str | None, refresh: str | None) -> None:
+    if access and refresh:
+        st.session_state["_ego_sb_access"] = access
+        st.session_state["_ego_sb_refresh"] = refresh
+
+
+def ensure_supabase_auth_client(supabase: Client | None) -> bool:
+    """Reaplica JWT do utilizador no cliente Supabase (RLS exige auth.uid() = user_id)."""
+    if not supabase:
+        return False
+    try:
+        cur = supabase.auth.get_session()
+        sess = getattr(cur, "session", None) if cur else None
+        if sess and getattr(sess, "access_token", None):
+            _ego_persist_auth_tokens(
+                str(getattr(sess, "access_token", "") or ""),
+                str(getattr(sess, "refresh_token", "") or ""),
+            )
+            return True
+        user_resp = supabase.auth.get_user()
+        if getattr(user_resp, "user", None):
+            return True
+    except Exception:
+        pass
+    access = st.session_state.get("_ego_sb_access")
+    refresh = st.session_state.get("_ego_sb_refresh")
+    if access and refresh:
+        try:
+            supabase.auth.set_session(str(access), str(refresh))
+            return True
+        except Exception:
+            pass
+    return False
+
+
+def _ego_local_auth_root() -> Path:
+    return Path.home() / ".ego-ai"
+
+
+def _ego_local_auth_project_ref() -> str:
+    return _supabase_ref_from_url(_resolve_supabase_url()) or "default"
+
+
+def _ego_local_auth_session_path(email: str) -> Path:
+    em = (email or "").strip().lower()
+    digest = hashlib.sha256(f"{_ego_local_auth_project_ref()}:{em}".encode()).hexdigest()[:28]
+    return _ego_local_auth_root() / "sessions" / f"{digest}.json"
+
+
+def _ego_local_auth_last_email_path() -> Path:
+    return _ego_local_auth_root() / "last_login.json"
+
+
+def _read_last_login_email_local() -> str:
+    p = _ego_local_auth_last_email_path()
+    if not p.is_file():
+        return ""
+    try:
+        data = json.loads(p.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            em = data.get("email")
+            return str(em).strip() if em else ""
+    except Exception:
+        pass
+    return ""
+
+
+def _auth_tokens_from_session(session: object | None) -> tuple[str, str, int | None]:
+    if not session:
+        return "", "", None
+    access = str(getattr(session, "access_token", None) or "")
+    refresh = str(getattr(session, "refresh_token", None) or "")
+    exp = getattr(session, "expires_at", None)
+    exp_i: int | None
+    try:
+        exp_i = int(exp) if exp is not None else None
+    except (TypeError, ValueError):
+        exp_i = None
+    return access, refresh, exp_i
+
+
+def _build_local_auth_snapshot(
+    supabase: Client | None,
+    email: str,
+    user: object,
+    res: object | None,
+) -> dict | None:
+    session = getattr(res, "session", None) if res else None
+    access, refresh, exp_i = _auth_tokens_from_session(session)
+    if (not access or not refresh) and supabase:
+        try:
+            live = supabase.auth.get_session()
+            sess = getattr(live, "session", None) if live else None
+            access, refresh, exp_i = _auth_tokens_from_session(sess)
+        except Exception:
+            pass
+    if not access or not refresh:
+        return None
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    return {
+        "v": LOCAL_AUTH_VERSION,
+        "project_ref": _ego_local_auth_project_ref(),
+        "email": (email or "").strip().lower(),
+        "user_id": str(getattr(user, "id", "") or ""),
+        "access_token": access,
+        "refresh_token": refresh,
+        "expires_at": exp_i,
+        "saved_at": now,
+        "last_login_at": now,
+    }
+
+
+def save_local_login_snapshot(
+    supabase: Client | None,
+    email: str,
+    user: object,
+    res: object | None,
+) -> None:
+    """Guarda sessão Supabase no disco (utilizador) e no localStorage do browser."""
+    if not st.session_state.get("ego_remember_device", True):
+        return
+    snap = _build_local_auth_snapshot(supabase, email, user, res)
+    if not snap or not snap.get("email"):
+        return
+    try:
+        root = _ego_local_auth_root()
+        root.mkdir(parents=True, exist_ok=True)
+        sess_path = _ego_local_auth_session_path(snap["email"])
+        sess_path.parent.mkdir(parents=True, exist_ok=True)
+        sess_path.write_text(json.dumps(snap, ensure_ascii=False), encoding="utf-8")
+        try:
+            os.chmod(sess_path, 0o600)
+        except OSError:
+            pass
+        last_path = _ego_local_auth_last_email_path()
+        last_path.write_text(
+            json.dumps(
+                {
+                    "email": snap["email"],
+                    "last_login_at": snap.get("last_login_at"),
+                    "project_ref": snap.get("project_ref"),
+                },
+                ensure_ascii=False,
+            ),
+            encoding="utf-8",
+        )
+        try:
+            os.chmod(last_path, 0o600)
+        except OSError:
+            pass
+    except OSError:
+        pass
+    _ego_auth_browser_write(snap)
+
+
+def clear_local_login_snapshot(email: str | None = None) -> None:
+    """Remove sessão guardada localmente (logout)."""
+    try:
+        if email and (email or "").strip():
+            p = _ego_local_auth_session_path(email)
+            if p.is_file():
+                p.unlink()
+        else:
+            sess_dir = _ego_local_auth_root() / "sessions"
+            ref = _ego_local_auth_project_ref()
+            if sess_dir.is_dir():
+                for fp in sess_dir.glob("*.json"):
+                    try:
+                        data = json.loads(fp.read_text(encoding="utf-8"))
+                        if data.get("project_ref") == ref:
+                            fp.unlink()
+                    except Exception:
+                        pass
+        last_p = _ego_local_auth_last_email_path()
+        if last_p.is_file():
+            try:
+                data = json.loads(last_p.read_text(encoding="utf-8"))
+                if not email or data.get("email") == (email or "").strip().lower():
+                    last_p.unlink()
+            except Exception:
+                last_p.unlink()
+    except OSError:
+        pass
+    _ego_auth_browser_clear()
+    for k in (
+        "_ego_browser_auth_raw",
+        "_ego_browser_auth_read_done",
+        "_ego_auth_restore_pass2",
+    ):
+        st.session_state.pop(k, None)
+
+
+def _ego_auth_browser_write(snap: dict) -> None:
+    try:
+        import streamlit.components.v1 as components
+    except ImportError:
+        return
+    blob = json.dumps(snap, ensure_ascii=False)
+    components.html(
+        f"""
+<script>
+(function() {{
+  try {{
+    localStorage.setItem({json.dumps(EGO_BROWSER_AUTH_STORAGE_KEY)}, {json.dumps(blob)});
+  }} catch (e) {{}}
+}})();
+</script>
+""",
+        height=0,
+        width=0,
+    )
+
+
+def _ego_auth_browser_clear() -> None:
+    try:
+        import streamlit.components.v1 as components
+    except ImportError:
+        return
+    key = json.dumps(EGO_BROWSER_AUTH_STORAGE_KEY)
+    components.html(
+        f"""
+<script>
+(function() {{
+  try {{ localStorage.removeItem({key}); }} catch (e) {{}}
+}})();
+</script>
+""",
+        height=0,
+        width=0,
+    )
+
+
+def _ego_auth_browser_read() -> str:
+    try:
+        import streamlit.components.v1 as components
+    except ImportError:
+        return ""
+    key = json.dumps(EGO_BROWSER_AUTH_STORAGE_KEY)
+    val = components.html(
+        f"""
+<script>
+(function() {{
+  var payload = "";
+  try {{
+    payload = localStorage.getItem({key}) || "";
+  }} catch (e) {{}}
+  window.parent.postMessage({{
+    type: "streamlit:setComponentValue",
+    value: payload
+  }}, "*");
+}})();
+</script>
+""",
+        height=0,
+        width=0,
+    )
+    if isinstance(val, str):
+        return val.strip()
+    return ""
+
+
+def _parse_local_auth_snapshot(raw: object) -> dict | None:
+    if raw is None:
+        return None
+    if isinstance(raw, dict):
+        data = raw
+    elif isinstance(raw, str) and raw.strip():
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            return None
+    else:
+        return None
+    if not isinstance(data, dict):
+        return None
+    if int(data.get("v") or 0) != LOCAL_AUTH_VERSION:
+        return None
+    if data.get("project_ref") and data.get("project_ref") != _ego_local_auth_project_ref():
+        return None
+    if not data.get("access_token") or not data.get("refresh_token"):
+        return None
+    return data
+
+
+def _load_local_auth_snapshots() -> list[dict]:
+    snaps: list[dict] = []
+    raw_browser = str(st.session_state.get("_ego_browser_auth_raw") or "")
+    parsed = _parse_local_auth_snapshot(raw_browser)
+    if parsed:
+        snaps.append(parsed)
+    last_em = _read_last_login_email_local()
+    if last_em:
+        p = _ego_local_auth_session_path(last_em)
+        if p.is_file():
+            try:
+                disk = _parse_local_auth_snapshot(json.loads(p.read_text(encoding="utf-8")))
+                if disk and disk not in snaps:
+                    snaps.append(disk)
+            except Exception:
+                pass
+    sess_dir = _ego_local_auth_root() / "sessions"
+    if sess_dir.is_dir():
+        ref = _ego_local_auth_project_ref()
+        files = sorted(sess_dir.glob("*.json"), key=lambda f: f.stat().st_mtime, reverse=True)
+        for fp in files[:3]:
+            try:
+                disk = _parse_local_auth_snapshot(json.loads(fp.read_text(encoding="utf-8")))
+                if disk and disk.get("project_ref") == ref and disk not in snaps:
+                    snaps.append(disk)
+            except Exception:
+                continue
+    return snaps
+
+
+def try_restore_local_auth(supabase: Client | None) -> bool:
+    """Reabre sessão Supabase a partir de credenciais guardadas neste dispositivo."""
+    if not supabase or st.session_state.get("user_logged"):
+        return False
+    for snap in _load_local_auth_snapshots():
+        email = str(snap.get("email") or "").strip()
+        access = str(snap.get("access_token") or "")
+        refresh = str(snap.get("refresh_token") or "")
+        if not access or not refresh:
+            continue
+        try:
+            supabase.auth.set_session(access, refresh)
+            _ego_persist_auth_tokens(access, refresh)
+            user_resp = supabase.auth.get_user()
+            user = getattr(user_resp, "user", None) if user_resp else None
+            if not user:
+                continue
+            em = email or str(getattr(user, "email", "") or "")
+            _ego_apply_auth_session(user, em)
+            touch_last_login(supabase, str(user.id))
+            save_local_login_snapshot(supabase, em, user, None)
+            return True
+        except Exception:
+            continue
+    return False
+
+
+def ensure_user_profile(
+    supabase: Client | None,
+    user_id: str,
+    *,
+    email: str = "",
+    full_name: str = "",
+    country: str = "Brasil",
+    document_type: str = "",
+) -> tuple[bool, str]:
+    """Cria ou atualiza linha em public.profiles para o utilizador autenticado."""
+    if not supabase or not user_id:
+        return False, "Cliente Supabase ou user_id em falta."
+    display = (full_name or "").strip() or (email.split("@")[0] if email else "Usuário")
+    em = (email or "").strip()
+    if len(em) > 254:
+        em = em[:254]
+    row = {
+        "id": user_id,
+        "full_name": display[:200],
+        "email": em or None,
+        "country": (country or "Brasil")[:80],
+        "document_type": (document_type or "")[:500],
+    }
+    try:
+        found = (
+            supabase.table(SUPABASE_PROFILES_TABLE)
+            .select("id")
+            .eq("id", user_id)
+            .limit(1)
+            .execute()
+        )
+        if found.data:
+            supabase.table(SUPABASE_PROFILES_TABLE).update(
+                {
+                    "full_name": row["full_name"],
+                    "email": row["email"],
+                    "country": row["country"],
+                    "document_type": row["document_type"],
+                }
+            ).eq("id", user_id).execute()
+        else:
+            supabase.table(SUPABASE_PROFILES_TABLE).insert(
+                {**row, "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}
+            ).execute()
+        return True, ""
+    except Exception as exc:
+        err = str(exc)
+        if "too long" in err.lower() or "muito longo" in err.lower() or "varchar" in err.lower():
+            return (
+                False,
+                f"{err} — No Supabase SQL Editor execute `supabase/fix_profiles_text_columns.sql`.",
+            )
+        return False, err
+
+
+def touch_last_login(supabase: Client | None, user_id: str) -> None:
+    """Grava profiles.last_login_at uma vez por sessão Streamlit (evita reruns)."""
+    if not supabase or not user_id:
+        return
+    if st.session_state.get("_ego_last_login_at_unsupported"):
+        return
+    if st.session_state.get("_ego_last_login_persisted_for") == user_id:
+        return
+    ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    try:
+        supabase.table(SUPABASE_PROFILES_TABLE).update({"last_login_at": ts}).eq("id", user_id).execute()
+    except Exception as exc:  # noqa: BLE001
+        err = str(exc).lower()
+        if (
+            "last_login_at" in err
+            or "could not find" in err
+            or ("column" in err and "does not exist" in err)
+            or "schema cache" in err
+        ):
+            st.session_state["_ego_last_login_at_unsupported"] = True
+        return
+    st.session_state["_ego_last_login_persisted_for"] = user_id
 
 
 def salvar_perfil_seguro(
@@ -1048,22 +2050,16 @@ def salvar_perfil_seguro(
     email: str,
     country: str,
     document_type: str,
-) -> None:
+) -> tuple[bool, str]:
     """Cria/atualiza perfil completo do usuário logado."""
-    if not supabase:
-        return
-    try:
-        supabase.table(SUPABASE_PROFILES_TABLE).upsert(
-            {
-                "id": user_id,
-                "full_name": full_name,
-                "email": email,
-                "country": country,
-                "document_type": document_type,
-            }
-        ).execute()
-    except Exception:
-        pass
+    return ensure_user_profile(
+        supabase,
+        user_id,
+        email=email,
+        full_name=full_name,
+        country=country,
+        document_type=document_type,
+    )
 
 
 def load_user_persona(supabase: Client | None, user_id: str) -> tuple[str, str]:
@@ -1125,869 +2121,6 @@ def clamp_persona_para_plano_nao_pro(
             st.session_state.assistant_avatar_id,
             st.session_state.assistant_voice_id,
         )
-
-
-def save_food_event(
-    supabase: Client | None,
-    user_id: str,
-    query: str,
-    city: str,
-    country: str,
-    options: list[dict],
-    price_tier: str = "",
-) -> None:
-    """Persiste busca/comida sugerida quando tabela existir."""
-    if not supabase or not user_id:
-        return
-    row: dict = {
-        "user_id": user_id,
-        "query": query,
-        "city": city,
-        "country": country,
-        "options": options,
-    }
-    if price_tier:
-        row["price_tier"] = price_tier
-    try:
-        supabase.table(SUPABASE_FOOD_TABLE).insert(row).execute()
-    except Exception:
-        try:
-            row.pop("price_tier", None)
-            supabase.table(SUPABASE_FOOD_TABLE).insert(row).execute()
-        except Exception:
-            pass
-
-
-def save_drink_event(
-    supabase: Client | None,
-    user_id: str,
-    query: str,
-    city: str,
-    country: str,
-    options: list[dict],
-    price_tier: str = "",
-    drink_category: str = "",
-) -> None:
-    """Persiste busca de bebidas quando a tabela existir."""
-    if not supabase or not user_id:
-        return
-    row: dict = {
-        "user_id": user_id,
-        "query": query,
-        "city": city,
-        "country": country,
-        "options": options,
-    }
-    if price_tier:
-        row["price_tier"] = price_tier
-    if drink_category:
-        row["drink_category"] = drink_category
-    while True:
-        try:
-            supabase.table(SUPABASE_DRINK_TABLE).insert(row).execute()
-            return
-        except Exception:
-            if "drink_category" in row:
-                row.pop("drink_category", None)
-                continue
-            if "price_tier" in row:
-                row.pop("price_tier", None)
-                continue
-            break
-
-
-def save_nightlife_event(
-    supabase: Client | None,
-    user_id: str,
-    query: str,
-    city: str,
-    country: str,
-    options: list[dict],
-    price_tier: str = "",
-    venue_category: str = "",
-) -> None:
-    """Persiste busca de bares, pubs e restaurantes quando a tabela existir."""
-    if not supabase or not user_id:
-        return
-    row: dict = {
-        "user_id": user_id,
-        "query": query,
-        "city": city,
-        "country": country,
-        "options": options,
-    }
-    if price_tier:
-        row["price_tier"] = price_tier
-    if venue_category:
-        row["venue_category"] = venue_category
-    while True:
-        try:
-            supabase.table(SUPABASE_NIGHTLIFE_TABLE).insert(row).execute()
-            return
-        except Exception:
-            if "venue_category" in row:
-                row.pop("venue_category", None)
-                continue
-            if "price_tier" in row:
-                row.pop("price_tier", None)
-                continue
-            break
-
-
-def save_shopping_event(
-    supabase: Client | None,
-    user_id: str,
-    query: str,
-    options: list[dict],
-    price_tier: str = "",
-    shop_category: str = "",
-    market_region: str = "",
-) -> None:
-    """Persiste busca de produtos online quando a tabela existir."""
-    if not supabase or not user_id:
-        return
-    row: dict = {
-        "user_id": user_id,
-        "query": query,
-        "options": options,
-    }
-    if price_tier:
-        row["price_tier"] = price_tier
-    if shop_category:
-        row["shop_category"] = shop_category
-    if market_region:
-        row["market_region"] = market_region
-    while True:
-        try:
-            supabase.table(SUPABASE_SHOP_TABLE).insert(row).execute()
-            return
-        except Exception:
-            if "market_region" in row:
-                row.pop("market_region", None)
-                continue
-            if "shop_category" in row:
-                row.pop("shop_category", None)
-                continue
-            if "price_tier" in row:
-                row.pop("price_tier", None)
-                continue
-            break
-
-
-def save_travel_event(
-    supabase: Client | None,
-    user_id: str,
-    destination: str,
-    query: str,
-    options: list[dict],
-    price_tier: str = "",
-    travel_mode: str = "",
-    travel_subcategory: str = "",
-    market_region: str = "",
-    origin_hint: str = "",
-) -> None:
-    """Persiste busca de hospedagem / pacotes quando a tabela existir."""
-    if not supabase or not user_id:
-        return
-    row: dict = {
-        "user_id": user_id,
-        "destination": destination,
-        "query": query,
-        "options": options,
-    }
-    if price_tier:
-        row["price_tier"] = price_tier
-    if travel_mode:
-        row["travel_mode"] = travel_mode
-    if travel_subcategory:
-        row["travel_subcategory"] = travel_subcategory
-    if market_region:
-        row["market_region"] = market_region
-    if origin_hint:
-        row["origin_hint"] = origin_hint
-    while True:
-        try:
-            supabase.table(SUPABASE_TRAVEL_TABLE).insert(row).execute()
-            return
-        except Exception:
-            if "origin_hint" in row:
-                row.pop("origin_hint", None)
-                continue
-            if "market_region" in row:
-                row.pop("market_region", None)
-                continue
-            if "travel_subcategory" in row:
-                row.pop("travel_subcategory", None)
-                continue
-            if "travel_mode" in row:
-                row.pop("travel_mode", None)
-                continue
-            if "price_tier" in row:
-                row.pop("price_tier", None)
-                continue
-            break
-
-
-def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
-    """Distância em linha reta entre dois pontos (km)."""
-    r = 6371.0
-    p1, p2 = math.radians(lat1), math.radians(lat2)
-    dphi = math.radians(lat2 - lat1)
-    dlmb = math.radians(lon2 - lon1)
-    a = math.sin(dphi / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dlmb / 2) ** 2
-    return 2 * r * math.asin(min(1.0, math.sqrt(a)))
-
-
-def _nominatim_search(q: str, limit: int = 8) -> list[dict]:
-    try:
-        resp = requests.get(
-            "https://nominatim.openstreetmap.org/search",
-            params={"q": q, "format": "jsonv2", "limit": limit},
-            headers={"User-Agent": "EGO-AI/1.0"},
-            timeout=12,
-        )
-        resp.raise_for_status()
-        return resp.json() or []
-    except Exception:
-        return []
-
-
-def _geocode_reference(city: str, country: str) -> tuple[float, float] | None:
-    """Centro aproximado da região (cidade + país) para calcular distâncias."""
-    parts = [p.strip() for p in [city, country] if p and p.strip()]
-    if not parts:
-        return None
-    data = _nominatim_search(" ".join(parts), limit=1)
-    if not data:
-        return None
-    row = data[0]
-    try:
-        lat = float(row.get("lat"))
-        lon = float(row.get("lon"))
-        return lat, lon
-    except (TypeError, ValueError):
-        return None
-
-
-FOOD_PRICE_TIERS = ("Economia", "Padrão", "Premium")
-FOOD_PRICE_QUERY_HINT: dict[str, str] = {
-    "Economia": "cheap affordable budget casual",
-    "Padrão": "restaurant",
-    "Premium": "fine dining upscale gourmet",
-}
-
-DRINK_PRICE_QUERY_HINT: dict[str, str] = {
-    "Economia": "cheap affordable budget local",
-    "Padrão": "cafe bar drinks beverage",
-    "Premium": "wine cocktail lounge speakeasy upscale craft",
-}
-
-DRINK_CATEGORIES = (
-    "Café e espresso",
-    "Chá, bubble tea e casas de chá",
-    "Suco, smoothie, açaí e vitamina",
-    "Refrigerante, energético e conveniência",
-    "Cerveja, pub e brewpub",
-    "Vinho, bar de vinhos e adega",
-    "Coquetéis, destilados e rooftop",
-    "Outro",
-)
-DRINK_TYPE_HINTS: dict[str, str] = {
-    "Café e espresso": "coffee espresso cafe roastery",
-    "Chá, bubble tea e casas de chá": "tea bubble tea teahouse",
-    "Suco, smoothie, açaí e vitamina": "juice smoothie acai açaí frutaria",
-    "Refrigerante, energético e conveniência": "convenience store beverages soft drink",
-    "Cerveja, pub e brewpub": "beer pub brewpub cervejaria",
-    "Vinho, bar de vinhos e adega": "wine bar enoteca adega",
-    "Coquetéis, destilados e rooftop": "cocktail bar distillery rooftop lounge",
-    "Outro": "",
-}
-
-
-def _search_venues_nearby(
-    user_terms: str,
-    city: str,
-    country: str,
-    price_tier: str,
-    tier_hints: dict[str, str],
-) -> list[dict]:
-    """
-    Busca via Nominatim com dica de faixa de preço + local; ordena por distância ao centro cidade+país.
-    """
-    q_base = (user_terms or "").strip()
-    if not q_base:
-        return []
-    tier = price_tier if price_tier in tier_hints else "Padrão"
-    hint = tier_hints[tier]
-    loc_bits = " ".join(x for x in [city.strip(), country.strip()] if x)
-    search_q = f"{q_base} {hint} {loc_bits}".strip()
-    ref = _geocode_reference(city, country)
-    data = _nominatim_search(search_q, limit=12)
-    out: list[dict] = []
-    for row in data:
-        name = row.get("name") or row.get("display_name", "Opção")
-        address = row.get("display_name", "")
-        map_query = requests.utils.quote(f"{name} {address}")
-        link = f"https://www.google.com/maps/search/?api=1&query={map_query}"
-        item: dict = {
-            "name": name,
-            "address": address,
-            "link": link,
-            "price_band": tier,
-        }
-        try:
-            plat = float(row.get("lat"))
-            plon = float(row.get("lon"))
-        except (TypeError, ValueError):
-            plat = plon = None  # type: ignore[assignment]
-        if ref and plat is not None and plon is not None:
-            item["distance_km"] = round(_haversine_km(ref[0], ref[1], plat, plon), 1)
-        else:
-            item["distance_km"] = None
-        out.append(item)
-
-    def sort_key(d: dict) -> tuple[int, float]:
-        dist = d.get("distance_km")
-        if dist is None:
-            return (1, 9999.0)
-        return (0, float(dist))
-
-    out.sort(key=sort_key)
-    return out[:8]
-
-
-def search_food_nearby(
-    query: str,
-    city: str,
-    country: str,
-    price_tier: str = "Padrão",
-) -> list[dict]:
-    """Comida: query livre + refinamento por faixa de preço."""
-    q_base = (query or "").strip()
-    if not q_base:
-        return []
-    return _search_venues_nearby(q_base, city, country, price_tier, FOOD_PRICE_QUERY_HINT)
-
-
-def search_drink_nearby(
-    query: str,
-    city: str,
-    country: str,
-    price_tier: str = "Padrão",
-    drink_category: str = "Outro",
-) -> list[dict]:
-    """Bebidas: categoria (café, chá, cerveja, etc.) + texto opcional + faixa de preço."""
-    extra = (DRINK_TYPE_HINTS.get(drink_category) or "").strip()
-    q_user = (query or "").strip()
-    if drink_category == "Outro" and not q_user:
-        return []
-    if q_user:
-        combined = f"{q_user} {extra}".strip()
-    else:
-        combined = extra
-    if not combined:
-        return []
-    return _search_venues_nearby(combined, city, country, price_tier, DRINK_PRICE_QUERY_HINT)
-
-
-NIGHTLIFE_PRICE_QUERY_HINT: dict[str, str] = {
-    "Economia": "cheap happy hour dive local casual affordable",
-    "Padrão": "restaurant bar pub dining drinks",
-    "Premium": "rooftop cocktail upscale wine tasting chef fine dining",
-}
-
-_NIGHTLIFE_VENUE_PAIRS: tuple[tuple[str, str], ...] = (
-    ("Restaurante (refeição)", "restaurant dining lunch dinner"),
-    ("Bar e balada", "bar nightclub dance lounge live music"),
-    ("Pub e sports bar", "pub sports bar draft beer tv"),
-    ("Cervejaria e brewpub", "brewpub craft beer taproom cervejaria"),
-    ("Wine bar e harmonização", "wine bar tasting charcuterie cheese pairing"),
-    ("Rodízio e churrascaria", "churrascaria rodizio steakhouse brazilian bbq"),
-    ("Boteco e petiscos", "boteco petiscos tapas casual bar food"),
-    ("Hamburgueria e lanchonete", "burger diner hamburger sandwich fast casual"),
-    ("Café, bistrô e brunch", "cafe bistro brunch breakfast"),
-    ("Outro", ""),
-)
-NIGHTLIFE_VENUE_LABELS = tuple(p[0] for p in _NIGHTLIFE_VENUE_PAIRS)
-NIGHTLIFE_VENUE_HINTS: dict[str, str] = dict(_NIGHTLIFE_VENUE_PAIRS)
-
-
-def search_nightlife_nearby(
-    query: str,
-    city: str,
-    country: str,
-    price_tier: str = "Padrão",
-    venue_category: str = "Outro",
-) -> list[dict]:
-    """Bares, pubs, restaurantes: tipo de estabelecimento + texto opcional + mapa (Nominatim)."""
-    extra = (NIGHTLIFE_VENUE_HINTS.get(venue_category) or "").strip()
-    q_user = (query or "").strip()
-    if venue_category == "Outro" and not q_user:
-        return []
-    if q_user:
-        combined = f"{q_user} {extra}".strip()
-    else:
-        combined = extra
-    if not combined:
-        return []
-    return _search_venues_nearby(combined, city, country, price_tier, NIGHTLIFE_PRICE_QUERY_HINT)
-
-
-_SHOP_PAIRS: tuple[tuple[str, str], ...] = (
-    ("Eletrodomésticos e cozinha", "geladeira fogão microondas air fryer liquidificador eletrodomésticos cozinha"),
-    ("TV, áudio e home theater", "smart tv soundbar home theater projetor caixa de som"),
-    ("Informática e periféricos", "notebook monitor teclado mouse impressora SSD memória periféricos"),
-    ("Games e consoles", "console videogame controle headset gamer placa de vídeo"),
-    ("Celulares, tablets e smartwatches", "smartphone celular tablet smartwatch fone bluetooth capa"),
-    ("Moda: camisetas, blusas e casacos", "camiseta blusa casaco moletom jaqueta moda masculina feminina"),
-    ("Moda: calças, bermudas e shorts", "calça jeans bermuda shorts legging moda"),
-    ("Moda: vestidos, saias e conjuntos", "vestido saia conjunto macacão moda feminina"),
-    ("Moda: calçados", "tênis sapato sandália bota chinelo calçados"),
-    ("Óculos, relógios e joias", "óculos relógio pulseira colar anel joias acessórios"),
-    ("Beleza, perfumaria e cuidados", "perfume skincare maquiagem shampoo barbeador beleza"),
-    ("Casa, móveis, cama e decoração", "sofá mesa cama roupa de cama decoração luminária tapete organizador"),
-    ("Ferramentas, construção e jardim", "furadeira parafusadeira ferramenta tinta jardim vaso"),
-    ("Automotivo e peças", "pneu acessório carro moto peça automotiva capa banco"),
-    ("Esporte, academia e outdoor", "bicicleta esteira halter bola tênis corrida camping mochila"),
-    ("Brinquedos, bebê e infantil", "brinquedo boneca lego bebê fralda carrinho infantil"),
-    ("Livros, papelaria e hobbies", "livro caderno caneta kindle papelaria hobbie"),
-    ("Pet shop", "ração pet brinquedo cachorro gato coleira comedouro"),
-    ("Supermercado e alimentos online", "mercado alimento despensa bebida não alcoólica snack"),
-    ("Farmácia, saúde e suplementos", "vitamina medicamento termômetro máscara suplemento saúde"),
-    ("Maletas, mochilas e viagem", "mala mochila necessaire organizador viagem"),
-    ("Outro", ""),
-)
-SHOP_CATEGORY_LABELS = tuple(p[0] for p in _SHOP_PAIRS)
-SHOP_CATEGORY_HINTS: dict[str, str] = dict(_SHOP_PAIRS)
-
-SHOP_MARKETS = ("Brasil", "Estados Unidos", "Global")
-
-SHOP_PRICE_QUERY_HINT: dict[str, str] = {
-    "Economia": "barato promoção oferta custo benefício",
-    "Padrão": "comprar online entrega",
-    "Premium": "premium lançamento importado luxo edição especial",
-}
-
-
-def search_online_products(
-    query: str,
-    shop_category: str,
-    price_tier: str = "Padrão",
-    market: str = "Brasil",
-) -> list[dict]:
-    """
-    Monta atalhos para comparar preços online (Google Shopping, marketplaces).
-    Não faz scraping: só URLs de busca seguras para o usuário abrir no navegador.
-    """
-    q_user = (query or "").strip()
-    if shop_category == "Outro" and not q_user:
-        return []
-    cat_hint = (SHOP_CATEGORY_HINTS.get(shop_category) or "").strip() if shop_category != "Outro" else ""
-    tier = price_tier if price_tier in SHOP_PRICE_QUERY_HINT else "Padrão"
-    ph = SHOP_PRICE_QUERY_HINT[tier].strip()
-    core = " ".join(x for x in [q_user, cat_hint, ph] if x).strip()
-    if not core:
-        return []
-    enc = requests.utils.quote(core)
-    buy_q = requests.utils.quote(f"comprar {core}")
-    out: list[dict] = []
-    out.append(
-        {
-            "name": "Google Shopping",
-            "link": f"https://www.google.com/search?tbm=shop&q={enc}",
-            "price_band": tier,
-        }
-    )
-    out.append(
-        {
-            "name": "Busca web (comprar)",
-            "link": f"https://www.google.com/search?q={buy_q}",
-            "price_band": tier,
-        }
-    )
-    if market in ("Brasil", "Global"):
-        out.append(
-            {
-                "name": "Mercado Livre",
-                "link": f"https://www.mercadolivre.com.br/jm/search?as_word={enc}",
-                "price_band": tier,
-            }
-        )
-        out.append(
-            {
-                "name": "Amazon.com.br",
-                "link": f"https://www.amazon.com.br/s?k={enc}",
-                "price_band": tier,
-            }
-        )
-        out.append(
-            {
-                "name": "Shopee Brasil",
-                "link": f"https://shopee.com.br/search?keyword={enc}",
-                "price_band": tier,
-            }
-        )
-    if market in ("Estados Unidos", "Global"):
-        out.append(
-            {
-                "name": "Amazon.com",
-                "link": f"https://www.amazon.com/s?k={enc}",
-                "price_band": tier,
-            }
-        )
-    seen: set[str] = set()
-    deduped: list[dict] = []
-    for item in out:
-        u = item.get("link", "")
-        if not u or u in seen:
-            continue
-        seen.add(u)
-        deduped.append(item)
-    return deduped
-
-
-TRAVEL_MODES = ("Hospedagem", "Pacote de viagem")
-
-_HOTEL_SUB: tuple[tuple[str, str], ...] = (
-    ("Hotel urbano", "hotel cidade centro"),
-    ("Resort ou all inclusive", "resort all inclusive praia spa"),
-    ("Pousada ou chalé", "pousada chalé sítio café da manhã"),
-    ("Hostel ou albergue", "hostel albergue dormitório mochilão"),
-    ("Apartamento por temporada", "apartamento temporada airbnb booking"),
-    ("Casa ou temporada em condomínio", "casa temporada condomínio piscina"),
-    ("Outro", ""),
-)
-HOTEL_SUB_LABELS = tuple(p[0] for p in _HOTEL_SUB)
-HOTEL_SUB_HINTS: dict[str, str] = dict(_HOTEL_SUB)
-
-_PKG_SUB: tuple[tuple[str, str], ...] = (
-    ("Praia no Brasil", "praia litoral resort nordeste sul"),
-    ("Serra, frio e natureza (BR)", "serra gramado campos jordão montanha frio"),
-    ("Grande cidade (BR)", "são paulo rio curitiba belo horizonte city tour"),
-    ("Internacional — Américas", "miami cancun buenos aires santiago caribe"),
-    ("Internacional — Europa ou Ásia", "europa paris lisboa toquio bangkok"),
-    ("Cruzeiro marítimo", "cruzeiro navio marítimo all inclusive"),
-    ("Lua de mel", "lua de mel honeymoon romântico resort"),
-    ("Viagem a negócios", "negócios corporativo hotel aeroporto"),
-    ("Feriado prolongado", "feriado prolongado fim de semana estendido"),
-    ("Outro", ""),
-)
-PKG_SUB_LABELS = tuple(p[0] for p in _PKG_SUB)
-PKG_SUB_HINTS: dict[str, str] = dict(_PKG_SUB)
-
-TRAVEL_PRICE_QUERY_HINT: dict[str, str] = {
-    "Economia": "econômico barato promoção",
-    "Padrão": "bem avaliado",
-    "Premium": "luxo 5 estrelas boutique resort exclusivo",
-}
-
-
-def search_travel_links(
-    travel_mode: str,
-    subcategory: str,
-    destination: str,
-    origin_hint: str,
-    extra_query: str,
-    price_tier: str = "Padrão",
-    market: str = "Brasil",
-) -> list[dict]:
-    """
-    Atalhos para pesquisar hospedagem e pacotes (Google Travel, Booking, buscas agregadoras).
-    Não reserva nem mostra preços: só abre buscas no navegador.
-    """
-    dest = (destination or "").strip()
-    if not dest:
-        return []
-    tier = price_tier if price_tier in TRAVEL_PRICE_QUERY_HINT else "Padrão"
-    ph = (TRAVEL_PRICE_QUERY_HINT.get(tier) or "").strip()
-    extra = (extra_query or "").strip()
-    origin = (origin_hint or "").strip()
-
-    if travel_mode == "Hospedagem":
-        hint = (HOTEL_SUB_HINTS.get(subcategory) or "").strip() if subcategory != "Outro" else ""
-        hotel_terms = " ".join(x for x in [dest, "hotel hospedagem", hint, ph, extra] if x)
-        pkg_terms = ""
-    else:
-        hint = (PKG_SUB_HINTS.get(subcategory) or "").strip() if subcategory != "Outro" else ""
-        hotel_terms = " ".join(x for x in [dest, "hotel", ph, extra] if x)
-        pkg_parts = ["pacote viagem", dest, hint, ph, extra]
-        if origin:
-            pkg_parts.insert(0, f"saindo de {origin}")
-        pkg_terms = " ".join(x for x in pkg_parts if x)
-
-    dest_enc = requests.utils.quote(dest)
-    out: list[dict] = []
-
-    out.append(
-        {
-            "name": "Google Travel — Hotéis",
-            "link": f"https://www.google.com/travel/hotels?q={requests.utils.quote(hotel_terms)}",
-            "price_band": tier,
-        }
-    )
-    out.append(
-        {
-            "name": "Booking.com",
-            "link": f"https://www.booking.com/searchresults.html?ss={dest_enc}",
-            "price_band": tier,
-        }
-    )
-    out.append(
-        {
-            "name": "Airbnb (busca web)",
-            "link": f"https://www.google.com/search?q={requests.utils.quote('airbnb ' + dest + ' ' + extra)}",
-            "price_band": tier,
-        }
-    )
-
-    if travel_mode == "Pacote de viagem" and pkg_terms:
-        out.append(
-            {
-                "name": "Busca — pacotes (voo + hotel)",
-                "link": f"https://www.google.com/search?q={requests.utils.quote(pkg_terms)}",
-                "price_band": tier,
-            }
-        )
-        flight_q = " ".join(x for x in [origin, dest, extra] if x) if origin else " ".join(x for x in [dest, extra, "passagens"] if x)
-        out.append(
-            {
-                "name": "Google Flights",
-                "link": f"https://www.google.com/travel/flights?q={requests.utils.quote(flight_q)}",
-                "price_band": tier,
-            }
-        )
-
-    if market in ("Brasil", "Global"):
-        br_q = (
-            pkg_terms
-            if travel_mode == "Pacote de viagem" and pkg_terms
-            else " ".join(x for x in [dest, "hotel", "decolar", "cvc", extra] if x)
-        )
-        out.append(
-            {
-                "name": "Agências BR (referência na busca)",
-                "link": f"https://www.google.com/search?q={requests.utils.quote(br_q)}",
-                "price_band": tier,
-            }
-        )
-
-    seen: set[str] = set()
-    deduped: list[dict] = []
-    for item in out:
-        u = item.get("link", "")
-        if not u or u in seen:
-            continue
-        seen.add(u)
-        deduped.append(item)
-    return deduped
-
-
-def _travel_entry_label(h: dict) -> str:
-    """Rótulo estável para histórico / dashboard / prompt."""
-    mode = str(h.get("travel_mode", "")).strip()
-    sub = str(h.get("travel_subcategory", "")).strip()
-    dest = str(h.get("destination", "")).strip()
-    q = str(h.get("query", "")).strip()
-    if mode and sub and dest:
-        base = f"{mode} — {sub}: {dest}"
-    elif dest and mode:
-        base = f"{mode}: {dest}"
-    elif dest:
-        base = dest
-    else:
-        base = mode or "viagem"
-    if q:
-        return f"{base} ({q[:48]}{'…' if len(q) > 48 else ''})"
-    return base
-
-
-def build_food_hint() -> str:
-    """Resumo curto do histórico de comida e bebidas para recomendação contextual da IA."""
-    parts: list[str] = []
-    food_hist = st.session_state.get("food_history") or []
-    fq = [str(h.get("query", "")).strip() for h in food_hist if str(h.get("query", "")).strip()]
-    if fq:
-        top = Counter(fq).most_common(3)
-        top_text = ", ".join([f"{q} ({n}x)" for q, n in top])
-        parts.append(
-            "\n\nContexto de preferências de comida do usuário: "
-            f"itens mais buscados recentemente: {top_text}. "
-            "Ao responder sobre o que comer hoje, use esse histórico para sugerir opções."
-        )
-    drink_hist = st.session_state.get("drink_history") or []
-    dq: list[str] = []
-    for h in drink_hist:
-        cat = str(h.get("drink_category", "")).strip()
-        q = str(h.get("query", "")).strip()
-        if q and cat:
-            dq.append(f"{cat}: {q}")
-        elif cat:
-            dq.append(cat)
-        elif q:
-            dq.append(q)
-    if dq:
-        top_d = Counter(dq).most_common(3)
-        d_text = ", ".join([f"{q} ({n}x)" for q, n in top_d])
-        parts.append(
-            "\n\nContexto de bebidas (café, chá, suco, álcool, etc.): "
-            f"buscas recentes mais frequentes: {d_text}. "
-            "Ao sugerir bebidas ou lugares para beber, considere esse histórico."
-        )
-    nl_hist = st.session_state.get("nightlife_history") or []
-    nlq: list[str] = []
-    for h in nl_hist:
-        cat = str(h.get("venue_category", "")).strip()
-        q = str(h.get("query", "")).strip()
-        if q and cat:
-            nlq.append(f"{cat}: {q}")
-        elif cat:
-            nlq.append(cat)
-        elif q:
-            nlq.append(q)
-    if nlq:
-        top_n = Counter(nlq).most_common(3)
-        n_text = ", ".join([f"{q} ({n}x)" for q, n in top_n])
-        parts.append(
-            "\n\nContexto de bares, pubs e restaurantes (saída à noite): "
-            f"buscas recentes mais frequentes: {n_text}. "
-            "Ao sugerir onde comer fora ou sair à noite, use esse histórico (estilo e orçamento)."
-        )
-    shop_hist = st.session_state.get("shopping_history") or []
-    sq: list[str] = []
-    for h in shop_hist:
-        cat = str(h.get("shop_category", "")).strip()
-        q = str(h.get("query", "")).strip()
-        if q and cat:
-            sq.append(f"{cat}: {q}")
-        elif cat:
-            sq.append(cat)
-        elif q:
-            sq.append(q)
-    if sq:
-        top_s = Counter(sq).most_common(3)
-        s_text = ", ".join([f"{q} ({n}x)" for q, n in top_s])
-        parts.append(
-            "\n\nContexto de compras online (eletrodomésticos, moda, eletrônicos, etc.): "
-            f"buscas recentes mais frequentes: {s_text}. "
-            "Ao recomendar produtos ou lojas, considere esse histórico (preço e categoria)."
-        )
-    trav_hist = st.session_state.get("travel_history") or []
-    tlabels = [_travel_entry_label(h) for h in trav_hist]
-    tlabels = [x for x in tlabels if x and x != "viagem"]
-    if tlabels:
-        top_t = Counter(tlabels).most_common(3)
-        t_text = ", ".join([f"{q} ({n}x)" for q, n in top_t])
-        parts.append(
-            "\n\nContexto de viagens e hospedagem do usuário: "
-            f"destinos e tipos mais buscados: {t_text}. "
-            "Ao sugerir hotéis, pacotes ou roteiros, considere esse histórico (orçamento e estilo)."
-        )
-    return "".join(parts)
-
-
-def format_food_option_label(opt: dict) -> str:
-    """Rótulo curto para botão de mapa: nome, distância aproximada e faixa de preço."""
-    name = str(opt.get("name") or "Opção")
-    bits = [name]
-    dist = opt.get("distance_km")
-    if dist is not None:
-        bits.append(f"~{dist} km")
-    band = opt.get("price_band")
-    if band:
-        bits.append(str(band))
-    return " · ".join(bits)
-
-
-def food_history_top_queries(limit: int = 3) -> list[tuple[str, int]]:
-    """Tipos de comida mais buscados na sessão (para o dashboard)."""
-    history = st.session_state.get("food_history") or []
-    queries = [str(h.get("query", "")).strip() for h in history if str(h.get("query", "")).strip()]
-    if not queries:
-        return []
-    return Counter(queries).most_common(limit)
-
-
-def drink_history_top_queries(limit: int = 3) -> list[tuple[str, int]]:
-    """Combinações categoria + bebida mais buscadas na sessão (para o dashboard)."""
-    history = st.session_state.get("drink_history") or []
-    labels: list[str] = []
-    for h in history:
-        cat = str(h.get("drink_category", "")).strip()
-        q = str(h.get("query", "")).strip()
-        if q and cat:
-            labels.append(f"{cat}: {q}")
-        elif cat:
-            labels.append(cat)
-        elif q:
-            labels.append(q)
-    if not labels:
-        return []
-    return Counter(labels).most_common(limit)
-
-
-def shopping_history_top_queries(limit: int = 3) -> list[tuple[str, int]]:
-    """Categoria + produto mais buscados na sessão (compras online)."""
-    history = st.session_state.get("shopping_history") or []
-    labels: list[str] = []
-    for h in history:
-        cat = str(h.get("shop_category", "")).strip()
-        q = str(h.get("query", "")).strip()
-        if q and cat:
-            labels.append(f"{cat}: {q}")
-        elif cat:
-            labels.append(cat)
-        elif q:
-            labels.append(q)
-    if not labels:
-        return []
-    return Counter(labels).most_common(limit)
-
-
-def shopping_dashboard_search_url(text: str) -> str:
-    """Reabre comparação no Google Shopping a partir do rótulo do histórico."""
-    return f"https://www.google.com/search?tbm=shop&q={requests.utils.quote(text.strip())}"
-
-
-def nightlife_history_top_queries(limit: int = 3) -> list[tuple[str, int]]:
-    """Categoria de estabelecimento + busca mais frequentes (bares / restaurantes)."""
-    history = st.session_state.get("nightlife_history") or []
-    labels: list[str] = []
-    for h in history:
-        cat = str(h.get("venue_category", "")).strip()
-        q = str(h.get("query", "")).strip()
-        if q and cat:
-            labels.append(f"{cat}: {q}")
-        elif cat:
-            labels.append(cat)
-        elif q:
-            labels.append(q)
-    if not labels:
-        return []
-    return Counter(labels).most_common(limit)
-
-
-def travel_history_top_queries(limit: int = 3) -> list[tuple[str, int]]:
-    """Hospedagem / pacotes mais buscados na sessão (rótulo composto)."""
-    history = st.session_state.get("travel_history") or []
-    labels = [_travel_entry_label(h) for h in history]
-    labels = [x for x in labels if x and x != "viagem"]
-    if not labels:
-        return []
-    return Counter(labels).most_common(limit)
-
-
-def travel_dashboard_open_url(text: str) -> str:
-    """Reabre busca agregada (hotéis / pacotes) a partir do rótulo do histórico."""
-    return f"https://www.google.com/search?q={requests.utils.quote(text.strip())}"
-
-
-def food_dashboard_maps_url(query: str) -> str:
-    """Link Google Maps para reabrir a busca com cidade/país da sessão."""
-    city = (st.session_state.get("food_city") or "").strip()
-    country = (st.session_state.get("food_country") or "").strip()
-    tail = " ".join(x for x in [city, country] if x)
-    full = f"{query.strip()} {tail}".strip()
-    return f"https://www.google.com/maps/search/?api=1&query={requests.utils.quote(full)}"
 
 
 def obter_user_id_logado() -> str:
@@ -2084,8 +2217,8 @@ def language_instruction(code: str) -> str:
     }
     label = labels.get(code, "português do Brasil")
     return (
-        f"\n\nCRITICAL: Reply strictly in {label} ({code}). "
-        "If uncertain, keep exactly the user's language."
+        f"\n\nImportante: responde em {label} ({code}). "
+        "Se não tiveres a certeza, mantém o idioma do utilizador."
     )
 
 
@@ -2129,43 +2262,617 @@ def carregar_perfil_usuario(supabase: Client | None, user_id: str) -> dict | Non
         return None
 
 
+def get_profile_cached(supabase: Client | None, user_id: str) -> dict | None:
+    """Perfil em memória na sessão (evita várias idas ao Supabase por rerun)."""
+    if not user_id:
+        return None
+    cached = st.session_state.get("_ego_profile_cache")
+    if isinstance(cached, dict) and cached.get("id") == user_id:
+        return cached
+    prof = carregar_perfil_usuario(supabase, user_id)
+    if prof:
+        st.session_state["_ego_profile_cache"] = prof
+    return prof
+
+
+def get_access_cached(supabase: Client | None, user_id: str) -> tuple[bool, str]:
+    """Trial/Pro com cache curto para não consultar profiles em cada rerun."""
+    if not user_id:
+        return False, "Expirado"
+    key = st.session_state.get("_ego_access_cache_key")
+    if key == user_id:
+        ts = float(st.session_state.get("_ego_access_cache_ts") or 0)
+        if (datetime.datetime.now().timestamp() - ts) < 45:
+            return (
+                bool(st.session_state.get("_ego_access_cache_ok")),
+                str(st.session_state.get("_ego_access_cache_status") or ""),
+            )
+    ok, status = verificar_acesso(supabase, user_id)
+    st.session_state["_ego_access_cache_key"] = user_id
+    st.session_state["_ego_access_cache_ok"] = ok
+    st.session_state["_ego_access_cache_status"] = status
+    st.session_state["_ego_access_cache_ts"] = datetime.datetime.now().timestamp()
+    return ok, status
+
+
+def limite_diario_cached(supabase: Client | None, user_id: str) -> tuple[bool, int]:
+    if not user_id:
+        return True, 0
+    if st.session_state.get("_ego_daily_limit_key") == user_id:
+        ts = float(st.session_state.get("_ego_daily_limit_ts") or 0)
+        if (datetime.datetime.now().timestamp() - ts) < 30:
+            return (
+                bool(st.session_state.get("_ego_daily_limit_ok")),
+                int(st.session_state.get("_ego_daily_limit_n") or 0),
+            )
+    ok, n = verificar_limite_diario(supabase, user_id)
+    st.session_state["_ego_daily_limit_key"] = user_id
+    st.session_state["_ego_daily_limit_ok"] = ok
+    st.session_state["_ego_daily_limit_n"] = n
+    st.session_state["_ego_daily_limit_ts"] = datetime.datetime.now().timestamp()
+    return ok, n
+
+
+def _cached_gemini_models_list() -> list[str]:
+    ts = float(st.session_state.get("_ego_gemini_models_ts") or 0)
+    if st.session_state.get("_ego_gemini_models") and (datetime.datetime.now().timestamp() - ts) < 600:
+        return list(st.session_state["_ego_gemini_models"])
+    if not genai:
+        return []
+    try:
+        genai.configure(api_key=effective_gemini_api_key().strip())
+        names = [
+            m.name
+            for m in genai.list_models()
+            if hasattr(m, "supported_generation_methods")
+            and "generateContent" in m.supported_generation_methods
+        ]
+        st.session_state["_ego_gemini_models"] = names
+        st.session_state["_ego_gemini_models_ts"] = datetime.datetime.now().timestamp()
+        return names
+    except Exception:
+        return []
+
+
+def bootstrap_logged_in_session(supabase: Client | None, user_id: str) -> None:
+    """Carrega histórico, UI e persona uma vez por sessão de login."""
+    if not user_id or not supabase or st.session_state.get("_ego_session_boot_done"):
+        return
+    u_obj = st.session_state.get("user")
+    boot_email = (
+        st.session_state.get("ego_profile_email")
+        or (getattr(u_obj, "email", None) if u_obj else None)
+        or ""
+    )
+    ok_prof, _ = ensure_user_profile(
+        supabase,
+        user_id,
+        email=str(boot_email or ""),
+        full_name=st.session_state.get("global_user_name", ""),
+    )
+    if ok_prof:
+        touch_last_login(supabase, user_id)
+    if not st.session_state.get("history_loaded"):
+        st.session_state.messages = carregar_historico_do_banco(user_id)
+        st.session_state.history_loaded = True
+    if not st.session_state.get("ego_ui_state_loaded"):
+        merge_ui_state_from_profile(supabase, user_id)
+        st.session_state["ego_ui_state_loaded"] = True
+    if not st.session_state.get("persona_loaded"):
+        avatar_id, voice_id = load_user_persona(supabase, user_id)
+        st.session_state.assistant_avatar_id = avatar_id
+        st.session_state.assistant_voice_id = voice_id
+        st.session_state.persona_loaded = True
+    get_profile_cached(supabase, user_id)
+    get_access_cached(supabase, user_id)
+    if not st.session_state.get("_ego_schema_probed"):
+        st.session_state["_ego_schema_status"] = probe_ego_supabase_schema(supabase)
+        st.session_state["_ego_schema_probed"] = True
+    st.session_state["_ego_session_boot_done"] = True
+
+
+def _normalize_profile_ui_state(raw: object) -> dict | None:
+    if raw is None:
+        return None
+    if isinstance(raw, str):
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError:
+            return None
+        raw = parsed
+    if not isinstance(raw, dict):
+        return None
+    return raw
+
+
+def _sanitize_display_name(raw: str, *, max_len: int = 80) -> str:
+    s = re.sub(r"\s+", " ", (raw or "").strip())
+    if not s:
+        return ""
+    s = re.sub(r"[<>\x00-\x08\x0b\x0c\x0e-\x1f*]", "", s)
+    return s[:max_len].strip()
+
+
+def _resolved_user_display_name() -> str:
+    dk = st.session_state.get("display_name_input")
+    if isinstance(dk, str) and dk.strip():
+        return _sanitize_display_name(dk.strip(), max_len=200)
+    un = (st.session_state.get("user_name") or "").strip()
+    if un:
+        return _sanitize_display_name(un, max_len=200)
+    g = (st.session_state.get("global_user_name") or "").strip()
+    return _sanitize_display_name(g, max_len=200) if g else ""
+
+
+def _resolved_assistant_display_name() -> str:
+    a = (st.session_state.get("ego_assistant_display_name") or "").strip()
+    if a:
+        return _sanitize_display_name(a, max_len=48) or "EGO-AI"
+    return "EGO-AI"
+
+
+def build_ui_state_payload() -> dict:
+    """Snapshot do estado persistível (sem chaves API)."""
+    pdf = str(st.session_state.get("pdf_context") or "")
+    truncated = False
+    if len(pdf) > UI_STATE_PDF_MAX_CHARS:
+        pdf = pdf[:UI_STATE_PDF_MAX_CHARS]
+        truncated = True
+    nav = str(st.session_state.get("ego_nav") or "Chat").strip()
+    if nav not in ALLOWED_EGO_NAV_VALUES:
+        nav = "Chat"
+    pref = st.session_state.get("gemini_model_preference") or GEMINI_MODEL_FLASH
+    if pref not in GEMINI_MODEL_IDS:
+        pref = GEMINI_MODEL_FLASH
+    uname = _resolved_user_display_name()
+    return {
+        "v": UI_STATE_VERSION,
+        "ego_nav": nav,
+        "pdf_context": pdf,
+        "pdf_truncated": truncated,
+        "gemini_model_preference": pref,
+        "user_name": uname[:200],
+        "ego_voice_replies": bool(st.session_state.get("ego_voice_replies", True)),
+        "ego_tts_volume": max(0, min(100, int(st.session_state.get("ego_tts_volume", 80)))),
+        "ego_tts_muted": bool(st.session_state.get("ego_tts_muted", False)),
+        "ego_tts_rate": float(st.session_state.get("ego_tts_rate", 1.0)),
+        "ego_client_timezone": str(st.session_state.get("ego_client_timezone") or "")[
+            :120
+        ],
+        "ego_client_tz_offset_min": st.session_state.get("ego_client_tz_offset_min"),
+        "ego_assistant_display_name": _resolved_assistant_display_name()[:48],
+        "ego_name_setup_done": bool(st.session_state.get("ego_name_setup_done")),
+    }
+
+
+def merge_ui_state_from_profile(supabase: Client | None, user_id: str) -> None:
+    """Aplica profiles.ui_state ao session_state (não altera auth nem mensagens)."""
+    if not supabase or not user_id:
+        return
+    try:
+        res = (
+            supabase.table(SUPABASE_PROFILES_TABLE)
+            .select("ui_state")
+            .eq("id", user_id)
+            .limit(1)
+            .execute()
+        )
+        rows = res.data or []
+        if not rows:
+            return
+        state = _normalize_profile_ui_state(rows[0].get("ui_state"))
+        if state is None:
+            return
+        if int(state.get("v") or 0) > UI_STATE_VERSION:
+            return
+        nav = str(state.get("ego_nav") or "").strip()
+        if nav in ALLOWED_EGO_NAV_VALUES:
+            st.session_state["ego_nav"] = nav
+        if "pdf_context" in state and isinstance(state["pdf_context"], str):
+            st.session_state["pdf_context"] = state["pdf_context"]
+        pref = state.get("gemini_model_preference")
+        if isinstance(pref, str) and pref in GEMINI_MODEL_IDS:
+            st.session_state["gemini_model_preference"] = pref
+        uname = state.get("user_name")
+        if isinstance(uname, str) and uname.strip():
+            st.session_state["user_name"] = uname.strip()[:200]
+        if "ego_voice_replies" in state:
+            st.session_state["ego_voice_replies"] = bool(state["ego_voice_replies"])
+        tv = state.get("ego_tts_volume")
+        if isinstance(tv, bool):
+            pass
+        elif isinstance(tv, (int, float)):
+            st.session_state["ego_tts_volume"] = max(0, min(100, int(tv)))
+        if "ego_tts_muted" in state:
+            st.session_state["ego_tts_muted"] = bool(state["ego_tts_muted"])
+        tr = state.get("ego_tts_rate")
+        if isinstance(tr, (int, float)) and tr in (1.0, 1.5, 2.0):
+            st.session_state["ego_tts_rate"] = float(tr)
+        tz_saved = state.get("ego_client_timezone")
+        if isinstance(tz_saved, str):
+            tz_ok = _sanitize_client_timezone(tz_saved)
+            if tz_ok:
+                st.session_state["ego_client_timezone"] = tz_ok
+        om = state.get("ego_client_tz_offset_min")
+        if isinstance(om, bool):
+            pass
+        elif isinstance(om, int):
+            st.session_state["ego_client_tz_offset_min"] = om
+        elif isinstance(om, float) and om.is_integer():
+            st.session_state["ego_client_tz_offset_min"] = int(om)
+        elif om is not None:
+            try:
+                st.session_state["ego_client_tz_offset_min"] = int(om)
+            except (TypeError, ValueError):
+                pass
+        asst = state.get("ego_assistant_display_name")
+        if isinstance(asst, str) and asst.strip():
+            st.session_state["ego_assistant_display_name"] = _sanitize_display_name(
+                asst.strip(), max_len=48
+            ) or "EGO-AI"
+        st.session_state["ego_assistant_display_name_input"] = st.session_state.get(
+            "ego_assistant_display_name", "EGO-AI"
+        )
+        done = state.get("ego_name_setup_done")
+        has_uname = bool((st.session_state.get("user_name") or "").strip())
+        if done is True:
+            st.session_state["ego_name_setup_done"] = True
+        elif has_uname:
+            st.session_state["ego_name_setup_done"] = True
+        elif isinstance(done, bool) and not done:
+            st.session_state["ego_name_setup_done"] = False
+        else:
+            st.session_state["ego_name_setup_done"] = False
+    except Exception:
+        pass
+    finally:
+        pl = build_ui_state_payload()
+        st.session_state["_ego_ui_state_saved_sig"] = json.dumps(
+            pl, ensure_ascii=False, sort_keys=True
+        )
+
+
+def save_ui_state_to_profile(supabase: Client | None, user_id: str, payload: dict) -> bool:
+    if not supabase or not user_id:
+        return False
+    try:
+        supabase.table(SUPABASE_PROFILES_TABLE).update({"ui_state": payload}).eq(
+            "id", user_id
+        ).execute()
+        return True
+    except Exception:
+        return False
+
+
+def maybe_autosave_ui_state(supabase: Client | None, user_id: str) -> None:
+    if not supabase or not user_id or not st.session_state.get("user_logged"):
+        return
+    now = datetime.datetime.now().timestamp()
+    payload = build_ui_state_payload()
+    sig = json.dumps(payload, ensure_ascii=False, sort_keys=True)
+    if st.session_state.get("_ego_ui_state_saved_sig") == sig:
+        return
+    if (now - float(st.session_state.get("_ego_last_autosave_ts") or 0)) < EGO_AUTOSAVE_MIN_INTERVAL_SEC:
+        return
+    if save_ui_state_to_profile(supabase, user_id, payload):
+        st.session_state["_ego_ui_state_saved_sig"] = sig
+        st.session_state["_ego_last_autosave_ts"] = now
+
+
 def verificar_acesso(supabase: Client | None, user_id: str) -> tuple[bool, str]:
-    """Retorna (acesso_liberado, status): Pro, beta (EGO_BETA_DEADLINE), trial (EGO_TRIAL_DAYS) ou expirado."""
+    """Retorna (acesso_liberado, status): Pro, beta, trial (EGO_TRIAL_DAYS desde profiles.created_at) ou expirado."""
     if not supabase:
         return True, "Modo Local"
     agora = datetime.datetime.now(datetime.timezone.utc)
     beta_fim = _ego_beta_deadline()
+    if _ego_beta_sem_limite():
+        return True, "Beta (sem limite)"
+    if beta_fim and agora < beta_fim:
+        return True, "Beta grátis"
     try:
-        perfil = (
+        res = (
             supabase.table(SUPABASE_PROFILES_TABLE)
             .select("created_at,is_pro")
             .eq("id", user_id)
-            .single()
+            .limit(1)
             .execute()
         )
-        data = perfil.data or {}
+        rows = res.data or []
+        if not rows:
+            return True, f"Trial ({EGO_TRIAL_DAYS} dias restantes)"
+        data = rows[0]
         is_pro = bool(data.get("is_pro", False))
         if is_pro:
             return True, "Pro"
-        if _ego_beta_sem_limite():
-            return True, "Beta (sem limite)"
-        if beta_fim and agora < beta_fim:
-            return True, "Beta grátis"
         created_at = data.get("created_at")
         if not created_at:
-            # Perfil sem data: não bloquear (evita "expirado" falso no primeiro acesso).
             return True, f"Trial ({EGO_TRIAL_DAYS} dias restantes)"
-        data_criacao = datetime.datetime.fromisoformat(created_at.replace("Z", "+00:00"))
-        dias_de_uso = (agora - data_criacao).days
-        if dias_de_uso <= EGO_TRIAL_DAYS:
-            return True, f"Trial ({EGO_TRIAL_DAYS - dias_de_uso} dias restantes)"
+        data_criacao = _parse_ts_iso(str(created_at))
+        if not data_criacao:
+            return True, f"Trial ({EGO_TRIAL_DAYS} dias restantes)"
+        dias_de_uso = max(0, (agora.date() - data_criacao.date()).days)
+        restantes = EGO_TRIAL_DAYS - dias_de_uso
+        if restantes >= 0:
+            return True, f"Trial ({restantes} dias restantes)"
         return False, "Expirado"
     except Exception:
-        if _ego_beta_sem_limite():
-            return True, "Beta (sem limite)"
-        if beta_fim and agora < beta_fim:
-            return True, "Beta grátis"
-        return False, "Expirado"
+        return True, f"Trial ({EGO_TRIAL_DAYS} dias restantes)"
+
+
+def _query_param_first(key: str) -> str:
+    try:
+        qp = st.query_params
+        v = qp.get(key)
+        if v is None:
+            return ""
+        if isinstance(v, (list, tuple)):
+            return str(v[0] or "").strip()
+        return str(v).strip()
+    except Exception:
+        return ""
+
+
+def _sanitize_client_timezone(raw: str) -> str:
+    s = unquote((raw or "").strip())[:120]
+    if not s or ".." in s or len(s) > 80:
+        return ""
+    if not re.match(r"^[A-Za-z0-9_/+-]+$", s):
+        return ""
+    return s
+
+
+def ensure_user_timezone_from_browser() -> None:
+    """Após login: lê ?ego_tz= da URL (definido por JS) ou injeta redirect único para capturar IANA."""
+    if not st.session_state.get("user_logged"):
+        return
+    raw_tz = _query_param_first("ego_tz")
+    if raw_tz:
+        tz_clean = _sanitize_client_timezone(raw_tz)
+        raw_off = _query_param_first("ego_tzoff")
+        off_min: int | None = None
+        if raw_off.strip():
+            try:
+                off_min = int(raw_off.strip())
+            except ValueError:
+                off_min = None
+        if tz_clean:
+            st.session_state["ego_client_timezone"] = tz_clean
+            st.session_state["ego_client_tz_offset_min"] = off_min
+        elif off_min is not None:
+            st.session_state["ego_client_tz_offset_min"] = off_min
+        st.session_state.pop("_ego_tz_injected", None)
+        for qp_key in ("ego_tz", "ego_tzoff"):
+            try:
+                if qp_key in st.query_params:
+                    del st.query_params[qp_key]
+            except Exception:
+                pass
+        st.rerun()
+        return
+    if (st.session_state.get("ego_client_timezone") or "").strip():
+        return
+    if st.session_state.get("_ego_tz_injected"):
+        return
+    st.session_state["_ego_tz_injected"] = True
+    try:
+        import streamlit.components.v1 as components
+    except ImportError:
+        return
+    components.html(
+        """
+<script>
+(function() {
+  try {
+    var root = window.top || window.parent || window;
+    if (!root || !root.location) return;
+    var u = new URL(root.location.href);
+    if (u.searchParams.get('ego_tz')) return;
+    var tz = (Intl.DateTimeFormat().resolvedOptions().timeZone || '').trim();
+    if (!tz) return;
+    var off = String(-new Date().getTimezoneOffset());
+    u.searchParams.set('ego_tz', tz);
+    u.searchParams.set('ego_tzoff', off);
+    root.location.replace(u.toString());
+  } catch (e) {}
+})();
+</script>
+""",
+        height=0,
+        width=0,
+    )
+
+
+def _browser_offset_tzinfo() -> datetime.timezone | None:
+    """ego_client_tz_offset_min = `-getTimezoneOffset()` em minutos (ex.: -180 para UTC−3)."""
+    off = st.session_state.get("ego_client_tz_offset_min")
+    if not isinstance(off, int):
+        return None
+    try:
+        return datetime.timezone(datetime.timedelta(minutes=int(off)))
+    except Exception:
+        return None
+
+
+def _effective_local_now() -> datetime.datetime:
+    tz_name = (st.session_state.get("ego_client_timezone") or "").strip()
+    if tz_name and ZoneInfo is not None:
+        try:
+            return datetime.datetime.now(ZoneInfo(tz_name))
+        except Exception:
+            pass
+    tz_off = _browser_offset_tzinfo()
+    if tz_off is not None:
+        return datetime.datetime.now(tz_off)
+    return datetime.datetime.now().astimezone()
+
+
+def _local_now() -> datetime.datetime:
+    return _effective_local_now()
+
+
+def client_datetime_context_instruction() -> str:
+    """Relógio sempre derivado em Python (evita o modelo a «adivinhar» data/hora)."""
+    tz = (st.session_state.get("ego_client_timezone") or "").strip()
+    off_min = st.session_state.get("ego_client_tz_offset_min")
+    utc_now = datetime.datetime.now(datetime.timezone.utc)
+    loc = _effective_local_now()
+    dias_pt = (
+        "segunda-feira",
+        "terça-feira",
+        "quarta-feira",
+        "quinta-feira",
+        "sexta-feira",
+        "sábado",
+        "domingo",
+    )
+    wd = dias_pt[loc.weekday()]
+    utc_iso = utc_now.isoformat(timespec="seconds")
+    loc_iso = loc.isoformat(timespec="seconds")
+    lines: list[str] = [
+        "\n\nRELÓGIO DE REFERÊNCIA (calculado pela app — para «que dia/hora é», usa **apenas** isto, nunca estimes):",
+        f"- Agora em UTC: **{utc_iso}**",
+        f"- Agora no fuso local do utilizador: **{loc_iso}** (dia da semana: **{wd}**).",
+    ]
+    if tz:
+        lines.append(f"- Fuso IANA sincronizado do dispositivo: **{tz}**.")
+    if isinstance(off_min, int):
+        lines.append(
+            f"- Offset guardado a partir do browser (minutos, convencão interna da app): **{off_min}**."
+        )
+    if not tz and not isinstance(off_min, int):
+        lines.append(
+            "- **Aviso:** o fuso do dispositivo ainda não sincronizou; o «local» acima pode ser o do servidor."
+        )
+    lines.extend(
+        [
+            "- Usa este instante local para lembretes, recorrências e qualquer pergunta sobre data/hora.",
+            "- **Não perguntes** em que país, cidade ou fuso a pessoa está para perguntas simples de relógio.",
+        ]
+    )
+    return "\n".join(lines) + "\n"
+
+
+def names_and_identity_instruction() -> str:
+    uname = _resolved_user_display_name()
+    alias = _resolved_assistant_display_name()
+    if uname:
+        who_line = (
+            f"- O utilizador chama-se «{uname}». Trata-o por esse nome de forma natural, "
+            "sobretudo em cumprimentos e mensagens acolhedoras.\n"
+        )
+    else:
+        who_line = (
+            "- Ainda não indicou o nome preferido; cumprimenta de forma calorosa sem insistir "
+            "em perguntas repetidas sobre o nome, salvo se for essencial ao pedido.\n"
+        )
+    return (
+        "\n\nIDENTIDADE E TRATAMENTO:\n"
+        f"{who_line}"
+        f"- Tu apresentas-te e falas na primeira pessoa como «{alias}» — é o nome que o utilizador "
+        "escolheu para ti; usa-o com consistência na conversa.\n"
+        "- O produto/serviço chama-se EGO-AI; podes mencionar essa marca quando falares da aplicação ou da empresa, "
+        f"mas na relação direta contigo és «{alias}» para este utilizador.\n"
+        "- Não voltes a perguntar como te chamar ou como chamar o utilizador se já estiver definido acima.\n"
+    )
+
+
+def _default_time_for_agenda_date(d_val: datetime.date) -> datetime.time:
+    """Evita horário padrão no passado quando a data é hoje."""
+    ref = _local_now()
+    if d_val != ref.date():
+        return datetime.time(9, 0)
+    slot = ref + datetime.timedelta(minutes=30)
+    slot = slot.replace(second=0, microsecond=0)
+    if slot.date() != d_val:
+        return datetime.time(23, 55)
+    return slot.time()
+
+
+def _agenda_horizon_utc(ref: datetime.datetime | None = None) -> datetime.datetime:
+    base = ref or datetime.datetime.now(datetime.timezone.utc)
+    if base.tzinfo is None:
+        base = base.replace(tzinfo=datetime.timezone.utc)
+    return base + datetime.timedelta(days=AGENDA_HORIZON_DAYS)
+
+
+def _infer_year_for_month_day(month: int, day: int, ref: datetime.datetime) -> int | None:
+    year = ref.year
+    for candidate_year in (year, year + 1):
+        try:
+            d = datetime.date(candidate_year, month, day)
+        except ValueError:
+            continue
+        if d >= ref.date():
+            return candidate_year
+    return year + 1
+
+
+def _parse_partial_reminder_datetime(
+    raw: str, ref: datetime.datetime | None = None
+) -> datetime.datetime | None:
+    """Interpreta datas incompletas: mês atual se faltar mês; ano atual (ou próximo) se faltar ano."""
+    ref = ref or _local_now()
+    tz = ref.tzinfo or datetime.timezone.utc
+    s = (raw or "").strip()
+    if not s:
+        return None
+
+    def _combine(
+        year: int, month: int, day: int, hour: int = 9, minute: int = 0
+    ) -> datetime.datetime | None:
+        try:
+            return datetime.datetime(year, month, day, hour, minute, tzinfo=tz)
+        except ValueError:
+            return None
+
+    m = re.match(
+        r"^(\d{4})-(\d{1,2})-(\d{1,2})(?:[T\s](\d{1,2}):(\d{2}))?",
+        s,
+    )
+    if m:
+        y, mo, d = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        h = int(m.group(4) or 9)
+        mi = int(m.group(5) or 0)
+        return _combine(y, mo, d, h, mi)
+
+    m = re.match(
+        r"^(\d{1,2})[/.-](\d{1,2})[/.-](\d{4})(?:\s+(\d{1,2}):(\d{2}))?",
+        s,
+    )
+    if m:
+        d, mo, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
+        h = int(m.group(4) or 9)
+        mi = int(m.group(5) or 0)
+        return _combine(y, mo, d, h, mi)
+
+    m = re.match(
+        r"^(\d{1,2})[/.-](\d{1,2})(?:\s+(\d{1,2}):(\d{2}))?$",
+        s,
+    )
+    if m:
+        d, mo = int(m.group(1)), int(m.group(2))
+        h = int(m.group(3) or 9)
+        mi = int(m.group(4) or 0)
+        y = _infer_year_for_month_day(mo, d, ref)
+        if y is None:
+            return None
+        return _combine(y, mo, d, h, mi)
+
+    m = re.match(
+        r"^(\d{1,2})(?:\s+(?:às|as|at)\s+)?(\d{1,2}):(\d{2})$",
+        s,
+        re.IGNORECASE,
+    )
+    if m:
+        d = int(m.group(1))
+        h, mi = int(m.group(2)), int(m.group(3))
+        mo = ref.month
+        y = _infer_year_for_month_day(mo, d, ref)
+        if y is None:
+            return None
+        return _combine(y, mo, d, h, mi)
+
+    return None
 
 
 def _parse_ts_iso(value: str | None) -> datetime.datetime | None:
@@ -2180,6 +2887,64 @@ def _parse_ts_iso(value: str | None) -> datetime.datetime | None:
         return None
 
 
+def _coerce_reminder_to_utc(
+    value: str | datetime.datetime | int | float | None,
+    *,
+    ref: datetime.datetime | None = None,
+) -> datetime.datetime | None:
+    """Converte valor do lembrete para instante em UTC (sem validar passado/horizonte)."""
+    ref = ref or _local_now()
+    if value is None:
+        return None
+    if type(value) is bool:
+        return None
+    if isinstance(value, (dict, list)):
+        return None
+    if isinstance(value, (int, float)):
+        try:
+            return datetime.datetime.fromtimestamp(
+                float(value), tz=datetime.timezone.utc
+            )
+        except (OSError, OverflowError, ValueError):
+            return None
+    if isinstance(value, datetime.datetime):
+        dt = value
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=ref.tzinfo or datetime.timezone.utc)
+        return dt.astimezone(datetime.timezone.utc)
+    raw = str(value).strip()
+    if not raw:
+        return None
+    parsed = _parse_ts_iso(raw)
+    if parsed:
+        return parsed
+    partial = _parse_partial_reminder_datetime(raw, ref)
+    if not partial:
+        return None
+    return partial.astimezone(datetime.timezone.utc)
+
+
+def normalize_scheduled_at(
+    value: str | datetime.datetime | int | float | None,
+    *,
+    ref: datetime.datetime | None = None,
+) -> datetime.datetime | None:
+    """
+    Normaliza data/hora do lembrete (UTC): ano/mês implícitos, só aceita até AGENDA_HORIZON_DAYS.
+    Aceita ISO (str), datetime, timestamp Unix (int/float).
+    """
+    dt_utc = _coerce_reminder_to_utc(value, ref=ref)
+    if not dt_utc:
+        return None
+    now_utc = datetime.datetime.now(datetime.timezone.utc)
+    horizon = _agenda_horizon_utc(now_utc)
+    if dt_utc < now_utc - REMINDER_PAST_GRACE:
+        return None
+    if dt_utc > horizon:
+        return None
+    return dt_utc
+
+
 def extract_ego_reminders_from_reply(text: str) -> tuple[str, list[dict]]:
     """Remove [[EGO_REMINDER:{json}]] do texto e devolve lembretes válidos."""
     marker = "[[EGO_REMINDER:"
@@ -2190,13 +2955,24 @@ def extract_ego_reminders_from_reply(text: str) -> tuple[str, list[dict]]:
     if end == -1:
         return text, []
     raw = text[idx + len(marker) : end].strip()
+    if raw.startswith("```"):
+        raw = re.sub(r"^```[a-zA-Z0-9]*\s*", "", raw)
+        raw = re.sub(r"\s*```\s*$", "", raw).strip()
     clean = (text[:idx].rstrip() + "\n" + text[end + 2 :].lstrip()).strip()
+    obj: object = None
     try:
         obj = json.loads(raw)
-        if isinstance(obj, dict) and obj.get("scheduled_at"):
-            return clean, [obj]
     except json.JSONDecodeError:
-        pass
+        j0, j1 = raw.find("{"), raw.rfind("}")
+        if j0 != -1 and j1 > j0:
+            try:
+                obj = json.loads(raw[j0 : j1 + 1])
+            except json.JSONDecodeError:
+                return text, []
+        else:
+            return text, []
+    if isinstance(obj, dict) and obj.get("scheduled_at") not in (None, ""):
+        return clean, [obj]
     return text, []
 
 
@@ -2234,13 +3010,19 @@ def reminder_current_window(
 
 
 def list_upcoming_reminders(
-    supabase: Client | None, user_id: str, *, hours_back: int = 1, hours_ahead: int = 48
+    supabase: Client | None,
+    user_id: str,
+    *,
+    hours_back: int = 0,
+    days_ahead: int = AGENDA_HORIZON_DAYS,
 ) -> list[dict]:
     if not supabase or not user_id:
         return []
+    if not ensure_supabase_auth_client(supabase):
+        return []
     now = datetime.datetime.now(datetime.timezone.utc)
     start = (now - datetime.timedelta(hours=hours_back)).isoformat()
-    end = (now + datetime.timedelta(hours=hours_ahead)).isoformat()
+    end = (now + datetime.timedelta(days=days_ahead)).isoformat()
     try:
         res = (
             supabase.table(SUPABASE_REMINDERS_TABLE)
@@ -2286,32 +3068,61 @@ def insert_reminder_row(
     user_id: str,
     *,
     title: str,
-    scheduled_at: datetime.datetime,
+    scheduled_at: object,
     announce: str = "",
-    google_event_id: str | None = None,
-) -> bool:
+) -> tuple[bool, str]:
     if not supabase or not user_id:
-        return False
+        return False, "Sessão ou Supabase indisponível."
+    if scheduled_at is None or scheduled_at == "":
+        return False, "Data/hora do lembrete em falta."
+    if isinstance(scheduled_at, (dict, list)):
+        return False, "scheduled_at inválido (objeto em vez de data/hora)."
+    if not isinstance(scheduled_at, (str, datetime.datetime, int, float)):
+        return False, "Tipo de data/hora não suportado no lembrete."
+    norm = normalize_scheduled_at(scheduled_at)
+    if not norm:
+        coerced = _coerce_reminder_to_utc(scheduled_at)
+        if not coerced:
+            return (
+                False,
+                "Data/hora do lembrete inválida. Use ISO com fuso "
+                "(ex.: 2026-06-01T15:30:00-03:00).",
+            )
+        now_utc = datetime.datetime.now(datetime.timezone.utc)
+        if coerced < now_utc - REMINDER_PAST_GRACE:
+            return False, "A data/hora já passou. Escolha um horário no futuro."
+        return (
+            False,
+            f"Só é possível agendar nos próximos {AGENDA_HORIZON_DAYS} dias.",
+        )
     row: dict = {
         "user_id": user_id,
         "title": (title or "Lembrete")[:500],
-        "scheduled_at": scheduled_at.astimezone(datetime.timezone.utc).isoformat(),
+        "scheduled_at": norm.astimezone(datetime.timezone.utc).isoformat(),
         "announce": (announce or title or "")[:2000],
     }
-    if google_event_id:
-        row["google_event_id"] = str(google_event_id)[:300]
+    if not ensure_supabase_auth_client(supabase):
+        return False, "Sessão expirada. Saia e entre de novo para gravar lembretes/reuniões."
     try:
-        supabase.table(SUPABASE_REMINDERS_TABLE).insert(row).execute()
-        return True
-    except Exception:
-        if google_event_id and "google_event_id" in row:
-            row.pop("google_event_id", None)
-            try:
-                supabase.table(SUPABASE_REMINDERS_TABLE).insert(row).execute()
-                return True
-            except Exception:
-                return False
-        return False
+        res = supabase.table(SUPABASE_REMINDERS_TABLE).insert(row).select("id").execute()
+        if not (res.data or []):
+            return False, "O lembrete não foi confirmado pelo Supabase (resposta vazia)."
+        return True, ""
+    except Exception as e:  # noqa: BLE001
+        err = str(e).lower()
+        if _supabase_table_missing_error(e):
+            return (
+                False,
+                "Tabela `reminders` em falta. No Supabase → SQL Editor, execute "
+                "`supabase/bootstrap_ego_schema.sql` (ou `reminders.sql`).",
+            )
+        if "row-level security" in err or "rls" in err or "42501" in err:
+            return (
+                False,
+                "Permissão negada ao salvar (RLS). Confirme se está logado e se as policies de "
+                "`reminders` existem.",
+            )
+        return False, f"Erro ao salvar no banco: {e}"
 
 
 def process_assistant_reminders(
@@ -2320,15 +3131,433 @@ def process_assistant_reminders(
     clean, items = extract_ego_reminders_from_reply(reply)
     if not user_id or not supabase or not items:
         return clean
+    msgs: list[str] = []
     for it in items:
-        st_iso = it.get("scheduled_at")
-        dt = _parse_ts_iso(st_iso if isinstance(st_iso, str) else None)
-        if not dt:
+        raw_sched = it.get("scheduled_at")
+        if raw_sched is None or raw_sched == "":
+            msgs.append("Lembrete sem data/hora no marcador.")
+            continue
+        if isinstance(raw_sched, (dict, list)):
+            msgs.append("Marcador de lembrete com scheduled_at inválido.")
             continue
         title = str(it.get("title") or "Lembrete")[:500]
         announce = str(it.get("announce") or title)[:2000]
-        insert_reminder_row(supabase, user_id, title=title, scheduled_at=dt, announce=announce)
+        ok, err = insert_reminder_row(
+            supabase,
+            user_id,
+            title=title,
+            scheduled_at=raw_sched,
+            announce=announce,
+        )
+        if not ok and err:
+            msgs.append(err)
+    if msgs:
+        st.session_state["_ego_reminder_warn"] = " ".join(msgs)[:1500]
     return clean
+
+
+def _parse_horario_br(v: object) -> datetime.time | None:
+    """Aceita '8:00', '08:00', '08:00:00' ou objeto vindo do PostgREST."""
+    if v is None:
+        return None
+    raw = str(v).strip()
+    if not raw:
+        return None
+    raw = raw.replace("T", " ").split()[0] if " " in raw.replace("T", " ") else raw
+    parts = raw.replace(".", ":").split(":")
+    try:
+        h = int(parts[0])
+        m = int(parts[1]) if len(parts) > 1 else 0
+        s = int(parts[2]) if len(parts) > 2 else 0
+        if not (0 <= h <= 23 and 0 <= m <= 59 and 0 <= s <= 59):
+            return None
+        return datetime.time(h, m, s)
+    except (ValueError, IndexError):
+        return None
+
+
+def _horario_to_pg(t: datetime.time) -> str:
+    return t.strftime("%H:%M:%S")
+
+
+def _normalize_agenda_dias_csv(raw: str) -> tuple[str | None, str | None]:
+    """Devolve (csv canónico seg,ter,... ou None, erro)."""
+    if not raw or not str(raw).strip():
+        return None, "dias_da_semana vazio"
+    low = str(raw).lower()
+    if any(
+        x in low
+        for x in (
+            "segunda a sexta",
+            "seg a sex",
+            "seg–sex",
+            "mon-fri",
+            "monday to friday",
+            "dias úteis",
+            "dias uteis",
+        )
+    ):
+        return "seg,ter,qua,qui,sex", None
+    if "todos os dias" in low or "todo dia" in low or "diário" in low or "diario" in low:
+        return "seg,ter,qua,qui,sex,sab,dom", None
+    aliases = {
+        "segunda": "seg",
+        "segunda-feira": "seg",
+        "terça": "ter",
+        "terca": "ter",
+        "terça-feira": "ter",
+        "quarta": "qua",
+        "quarta-feira": "qua",
+        "quinta": "qui",
+        "quinta-feira": "qui",
+        "sexta": "sex",
+        "sexta-feira": "sex",
+        "sábado": "sab",
+        "sabado": "sab",
+        "domingo": "dom",
+    }
+    seen: list[str] = []
+    seen_set: set[str] = set()
+    for part in str(raw).lower().replace(";", ",").split(","):
+        tok = part.strip()
+        if not tok:
+            continue
+        tok = aliases.get(tok, tok)
+        if tok not in VALID_AGENDA_DOW:
+            return None, f"dia inválido: {tok}"
+        if tok not in seen_set:
+            seen_set.add(tok)
+            seen.append(tok)
+    if not seen:
+        return None, "nenhum dia válido"
+    seen.sort(key=lambda d: DOW_PT_ORDER.index(d))
+    return ",".join(seen), None
+
+
+def refresh_user_agenda_snapshot(supabase: Client | None, user_id: str) -> list[dict]:
+    rows = fetch_user_agenda_rows(supabase, user_id)
+    st.session_state["_ego_agenda_rows_snapshot"] = rows
+    return rows
+
+
+def fetch_user_agenda_rows(supabase: Client | None, user_id: str) -> list[dict]:
+    if not supabase or not user_id:
+        return []
+    if not ensure_supabase_auth_client(supabase):
+        st.session_state["_ego_agenda_fetch_warn"] = (
+            "Sessão Supabase expirada. Faça **Sair** e **Entrar** de novo para carregar a agenda."
+        )
+        return []
+    try:
+        res = (
+            supabase.table(SUPABASE_AGENDA_TABLE)
+            .select("id,titulo,horario,dias_da_semana,data_criacao")
+            .eq("user_id", user_id)
+            .order("data_criacao", desc=True)
+            .execute()
+        )
+        return list(res.data or [])
+    except Exception as e:  # noqa: BLE001
+        if _supabase_table_missing_error(e):
+            st.session_state["_ego_agenda_fetch_warn"] = (
+                "Tabela `agenda` em falta. Execute `supabase/bootstrap_ego_schema.sql` no Supabase."
+            )
+        return []
+
+
+def insert_agenda_row(
+    supabase: Client | None,
+    user_id: str,
+    *,
+    titulo: str,
+    horario: object,
+    dias_da_semana: str,
+) -> tuple[bool, str]:
+    if not supabase or not user_id:
+        return False, "Sessão indisponível."
+    t = _parse_horario_br(horario)
+    if not t:
+        return False, "Horário inválido (use HH:MM, ex.: 08:00)."
+    dias_ok, err = _normalize_agenda_dias_csv(dias_da_semana)
+    if not dias_ok:
+        return False, err or "Dias da semana inválidos."
+    tit = (titulo or "").strip()[:500] or "Compromisso"
+    row = {
+        "user_id": user_id,
+        "titulo": tit,
+        "horario": _horario_to_pg(t),
+        "dias_da_semana": dias_ok[:500],
+    }
+    if not ensure_supabase_auth_client(supabase):
+        return False, "Sessão expirada. Saia e entre de novo para gravar na agenda."
+    try:
+        res = supabase.table(SUPABASE_AGENDA_TABLE).insert(row).select("id").execute()
+        if not (res.data or []):
+            return False, "A agenda não confirmou a gravação (resposta vazia do Supabase)."
+        return True, ""
+    except Exception as e:  # noqa: BLE001
+        es = str(e).lower()
+        if _supabase_table_missing_error(e):
+            return (
+                False,
+                "Tabela `agenda` em falta. No Supabase → SQL Editor, execute "
+                "`supabase/bootstrap_ego_schema.sql` (ou `agenda.sql`).",
+            )
+        if "row-level security" in es or "rls" in es or "42501" in es:
+            return False, "Sem permissão para gravar na agenda (RLS)."
+        return False, f"Erro ao salvar agenda: {e}"
+
+
+def delete_agenda_row(supabase: Client | None, user_id: str, agenda_id: str) -> bool:
+    if not supabase or not user_id or not agenda_id:
+        return False
+    try:
+        supabase.table(SUPABASE_AGENDA_TABLE).delete().eq("id", agenda_id).eq(
+            "user_id", user_id
+        ).execute()
+        return True
+    except Exception:
+        return False
+
+
+def extract_ego_agenda_from_reply(text: str) -> tuple[str, list[dict]]:
+    marker = "[[EGO_AGENDA:"
+    if marker not in text:
+        return text, []
+    idx = text.find(marker)
+    end = text.find("]]", idx)
+    if end == -1:
+        return text, []
+    raw = text[idx + len(marker) : end].strip()
+    if raw.startswith("```"):
+        raw = re.sub(r"^```[a-zA-Z0-9]*\s*", "", raw)
+        raw = re.sub(r"\s*```\s*$", "", raw).strip()
+    clean = (text[:idx].rstrip() + "\n" + text[end + 2 :].lstrip()).strip()
+    obj: object = None
+    try:
+        obj = json.loads(raw)
+    except json.JSONDecodeError:
+        j0, j1 = raw.find("{"), raw.rfind("}")
+        if j0 != -1 and j1 > j0:
+            try:
+                obj = json.loads(raw[j0 : j1 + 1])
+            except json.JSONDecodeError:
+                return text, []
+        else:
+            return text, []
+    if not isinstance(obj, dict):
+        return text, []
+    tit = obj.get("titulo") or obj.get("title")
+    hor = obj.get("horario") or obj.get("time")
+    dias = obj.get("dias_da_semana") or obj.get("dias") or obj.get("weekdays")
+    if tit and hor is not None and dias:
+        return clean, [obj]
+    return text, []
+
+
+def process_assistant_agenda(supabase: Client | None, user_id: str, reply: str) -> str:
+    clean, items = extract_ego_agenda_from_reply(reply)
+    if not user_id or not supabase or not items:
+        return clean
+    msgs: list[str] = []
+    for it in items:
+        tit = str(it.get("titulo") or it.get("title") or "").strip()
+        hor = it.get("horario") if it.get("horario") is not None else it.get("time")
+        dias = it.get("dias_da_semana") or it.get("dias") or it.get("weekdays")
+        ok, err = insert_agenda_row(
+            supabase,
+            user_id,
+            titulo=tit,
+            horario=hor,
+            dias_da_semana=str(dias),
+        )
+        if ok:
+            refresh_user_agenda_snapshot(supabase, user_id)
+            try:
+                st.toast("Compromisso recorrente guardado na agenda.", icon="📅")
+            except Exception:
+                pass
+        elif err:
+            msgs.append(f"Agenda: {err}")
+    if msgs:
+        prev = st.session_state.get("_ego_reminder_warn")
+        add = " ".join(msgs)[:800]
+        st.session_state["_ego_reminder_warn"] = (
+            f"{prev} {add}".strip() if prev else add
+        )[:1500]
+    return clean
+
+
+def next_recurring_agenda_message_today(rows: list[dict]) -> str | None:
+    """Próximo compromisso recorrente ainda hoje (fuso local), ou None."""
+    now = datetime.datetime.now().astimezone()
+    today = now.date()
+    wk = today.weekday()
+    abbr = DOW_PT_ORDER[wk]
+    tz = now.tzinfo or datetime.timezone.utc
+    candidates: list[tuple[datetime.datetime, str]] = []
+    for row in rows:
+        dias_raw = (row.get("dias_da_semana") or "").lower()
+        days_set = {d.strip() for d in dias_raw.split(",") if d.strip()}
+        if abbr not in days_set:
+            continue
+        titulo = (row.get("titulo") or "Compromisso").strip()
+        hor = _parse_horario_br(row.get("horario"))
+        if not hor:
+            continue
+        try:
+            dt_local = datetime.datetime.combine(today, hor, tzinfo=tz)
+        except (TypeError, ValueError):
+            continue
+        if dt_local > now:
+            candidates.append((dt_local, titulo))
+    if not candidates:
+        return None
+    candidates.sort(key=lambda x: x[0])
+    t0, title = candidates[0]
+    hm = t0.strftime("%H:%M")
+    return f"🔔 Lembrete: o seu **{title}** é hoje às **{hm}**."
+
+
+_DOW_LABEL_PT = {
+    "seg": "Seg",
+    "ter": "Ter",
+    "qua": "Qua",
+    "qui": "Qui",
+    "sex": "Sex",
+    "sab": "Sáb",
+    "dom": "Dom",
+}
+
+
+def _format_reminder_display(scheduled_raw: object) -> tuple[str, str, str, str]:
+    """Data legível, hora, etiqueta relativa (Hoje/Amanhã) e classe CSS extra."""
+    sch = _parse_ts_iso(scheduled_raw)
+    if not sch:
+        return "—", "—", "", ""
+    loc = sch.astimezone()
+    now = _local_now()
+    date_line = loc.strftime("%d/%m")
+    time_line = loc.strftime("%H:%M")
+    day_delta = (loc.date() - now.date()).days
+    if day_delta == 0:
+        rel, extra = "Hoje", "is-today"
+    elif day_delta == 1:
+        rel, extra = "Amanhã", "is-soon"
+    elif day_delta < 0:
+        rel, extra = "Passado", ""
+    elif day_delta <= 7:
+        rel, extra = f"Em {day_delta} dias", "is-soon"
+    else:
+        rel, extra = loc.strftime("%d %b"), ""
+    return date_line, time_line, rel, extra
+
+
+def _format_snooze_label(snooze_raw: object) -> str:
+    sn = _parse_ts_iso(snooze_raw)
+    if not sn:
+        return ""
+    return f"Adiado até {sn.astimezone().strftime('%d/%m %H:%M')}"
+
+
+def _reminder_card_html(row: dict) -> str:
+    title = html.escape(str(row.get("title") or "Lembrete"))
+    announce = (row.get("announce") or row.get("title") or "").strip()
+    announce_html = (
+        f'<p class="ego-r-announce">{html.escape(announce)}</p>' if announce else ""
+    )
+    date_line, time_line, rel, extra_cls = _format_reminder_display(row.get("scheduled_at"))
+    snooze = _format_snooze_label(row.get("snooze_until"))
+    pills = f'<span class="ego-pill rel">{html.escape(rel)}</span>' if rel else ""
+    if snooze:
+        pills += f'<span class="ego-pill snooze">{html.escape(snooze)}</span>'
+    cls = f"ego-reminder-card {extra_cls}".strip()
+    return (
+        f'<div class="{cls}">'
+        f'<div class="ego-reminder-when">'
+        f'<span class="ego-r-time">{html.escape(time_line)}</span>'
+        f'<span class="ego-r-date">{html.escape(date_line)}</span>'
+        f"</div>"
+        f'<div class="ego-reminder-body">'
+        f'<p class="ego-r-title">{title}</p>'
+        f"{announce_html}"
+        f'<div class="ego-reminder-meta">{pills}</div>'
+        f"</div></div>"
+    )
+
+
+def _agenda_card_html(row: dict) -> str:
+    tit = html.escape(str(row.get("titulo") or "Compromisso"))
+    hor = html.escape(str(row.get("horario") or "")[:5])
+    dias_raw = str(row.get("dias_da_semana") or "")
+    chips = "".join(
+        f'<span class="ego-dow-chip">{html.escape(_DOW_LABEL_PT.get(d.strip(), d.strip()))}</span>'
+        for d in dias_raw.split(",")
+        if d.strip()
+    )
+    return (
+        f'<div class="ego-agenda-card">'
+        f'<p class="ego-a-title">{tit}</p>'
+        f'<div class="ego-a-row">'
+        f'<span class="ego-pill recurring">{hor}</span>{chips}'
+        f"</div></div>"
+    )
+
+
+def _reminder_alarm_html(tag: str, title: str, announce: str, when_local: str) -> str:
+    title_e = html.escape(title or "Lembrete")
+    when_e = html.escape(when_local)
+    if tag == "first":
+        tag_label = "10 min antes"
+        sub = html.escape((announce or title or "").strip())
+        detail = f"Compromisso às <strong>{when_e}</strong>"
+    elif tag == "final":
+        tag_label = "Agora"
+        sub = title_e
+        detail = f"<strong>{when_e}</strong>"
+    else:
+        tag_label = "Em breve"
+        sub = title_e
+        detail = f"Faltam poucos minutos para <strong>{when_e}</strong>"
+    return (
+        f'<div class="ego-alarm-banner">'
+        f'<div class="ego-alarm-tag">{html.escape(tag_label)}</div>'
+        f'<p class="ego-alarm-title">{sub}</p>'
+        f'<p class="ego-alarm-sub">{detail}</p>'
+        f"</div>"
+    )
+
+
+def render_recurring_agenda_banner(supabase: Client | None, user_id: str) -> None:
+    if not user_id:
+        return
+    rows = st.session_state.get("_ego_agenda_rows_snapshot")
+    if not isinstance(rows, list):
+        rows = fetch_user_agenda_rows(supabase, user_id)
+    if not rows:
+        return
+    msg = next_recurring_agenda_message_today(rows)
+    if msg:
+        st.info(msg)
+
+
+def render_sidebar_agenda_panel(supabase: Client | None, user_id: str) -> None:
+    if not user_id:
+        return
+    rows = st.session_state.get("_ego_agenda_rows_snapshot")
+    if not isinstance(rows, list):
+        rows = fetch_user_agenda_rows(supabase, user_id)
+    with st.sidebar.expander("📅 Minha Agenda", expanded=False):
+        if not rows:
+            st.caption("Nenhum hábito recorrente. Diga no chat: *marque academia de segunda a sexta às 8h*.")
+            return
+        st.caption("Recorrente · horário local")
+        for row in rows[:20]:
+            aid = str(row.get("id") or "")
+            st.caption(f"{row.get('titulo') or '—'} · {row.get('dias_da_semana') or ''} · {row.get('horario') or ''}")
+            if aid and st.button("Remover", key=f"agdel_{aid}", use_container_width=True):
+                if delete_agenda_row(supabase, user_id, aid):
+                    st.rerun()
 
 
 def dismiss_reminder(supabase: Client | None, user_id: str, reminder_id: str) -> None:
@@ -2358,30 +3587,279 @@ def snooze_reminder_minutes(
         pass
 
 
-def try_speech_reminder(text: str, html_key: str) -> None:
-    """Tenta falar no navegador (Web Speech). Pode ser bloqueado sem gesto do usuário."""
+def _edge_voice_for_assistant(voice_id: str) -> str:
+    return EDGE_TTS_VOICE_MAP.get(str(voice_id or "").strip(), DEFAULT_EDGE_TTS_VOICE)
+
+
+def _tts_cache_key(text: str, voice_id: str) -> str:
+    payload = f"{voice_id}:{text[:2400]}".encode("utf-8", errors="ignore")
+    return hashlib.sha256(payload).hexdigest()[:20]
+
+
+def synthesize_speech_mp3(text: str, voice_id: str) -> bytes | None:
+    """Gera MP3 no servidor (edge-tts). Funciona onde o Web Speech do iframe falha."""
+    plain = (text or "").strip()[:3000]
+    if not plain:
+        return None
+    ck = _tts_cache_key(plain, voice_id)
+    cache: dict[str, bytes] = st.session_state.setdefault("_ego_mp3_cache", {})
+    if ck in cache:
+        return cache[ck]
+    edge_voice = _edge_voice_for_assistant(voice_id)
+    try:
+        import asyncio
+
+        import edge_tts
+
+        async def _run() -> bytes:
+            communicate = edge_tts.Communicate(plain, edge_voice)
+            data = b""
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    data += chunk["data"]
+            return data
+
+        data = asyncio.run(_run())
+    except Exception:
+        return None
+    if not data:
+        return None
+    if len(cache) > 40:
+        cache.clear()
+    cache[ck] = data
+    return data
+
+
+def _ego_pause_all_audio_elements() -> None:
     try:
         import streamlit.components.v1 as components
     except ImportError:
         return
-    safe = json.dumps((text or "")[:2000])
     components.html(
-        f"""
-<div id="ego-tts-{html_key}"></div>
+        """
 <script>
-(function() {{
-  const msg = {safe};
-  if (!msg || !('speechSynthesis' in window)) return;
-  const u = new SpeechSynthesisUtterance(msg);
-  const lang = navigator.language || 'pt-BR';
-  u.lang = lang.startsWith('pt') ? 'pt-BR' : lang;
-  try {{ speechSynthesis.cancel(); speechSynthesis.speak(u); }} catch (e) {{}}
-}})();
+(function() {
+  function pauseAll(doc) {
+    if (!doc) return;
+    try {
+      doc.querySelectorAll("audio").forEach(function(a) {
+        try { a.pause(); a.currentTime = 0; } catch (e) {}
+      });
+    } catch (e) {}
+  }
+  pauseAll(document);
+  try { pauseAll(window.parent.document); } catch (e) {}
+  try {
+    var s = window.speechSynthesis || (window.parent && window.parent.speechSynthesis);
+    if (s) s.cancel();
+  } catch (e) {}
+})();
 </script>
-""",
+        """,
         height=0,
         width=0,
     )
+
+
+def _ego_tts_playback_volume() -> float:
+    return max(0.0, min(1.0, float(st.session_state.get("ego_tts_volume", 80)) / 100.0))
+
+
+def _ego_tts_playback_rate() -> float:
+    rate = float(st.session_state.get("ego_tts_rate", 1.0))
+    if rate not in (1.0, 1.5, 2.0):
+        return 1.0
+    return rate
+
+
+_EGO_TTS_RATE_LABELS = ("1x", "1.5x", "2x")
+_EGO_TTS_RATE_VALUES = (1.0, 1.5, 2.0)
+
+
+def _ego_apply_audio_playback_rate(rate: float) -> None:
+    try:
+        import streamlit.components.v1 as components
+    except ImportError:
+        return
+    r = max(0.5, min(3.0, float(rate)))
+    components.html(
+        f"""
+<script>
+(function() {{
+  var rate = {r};
+  function apply(doc) {{
+    if (!doc) return;
+    try {{
+      doc.querySelectorAll("audio").forEach(function(a) {{
+        try {{ a.playbackRate = rate; }} catch (e) {{}}
+      }});
+    }} catch (e) {{}}
+  }}
+  apply(document);
+  try {{ apply(window.parent.document); }} catch (e) {{}}
+}})();
+</script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
+def _ego_tts_try_autoplay_audio(vol: float, rate: float) -> None:
+    """Tenta dar play no último <audio> (autoplay do st.audio falha em alguns browsers)."""
+    try:
+        import streamlit.components.v1 as components
+    except ImportError:
+        return
+    v = max(0.0, min(1.0, float(vol)))
+    r = max(0.5, min(3.0, float(rate)))
+    components.html(
+        f"""
+<script>
+(function() {{
+  var vol = {v};
+  var rate = {r};
+  function run(doc) {{
+    if (!doc) return;
+    var list = [];
+    try {{ list = doc.querySelectorAll("audio"); }} catch (e) {{ return; }}
+    if (!list.length) return;
+    var a = list[list.length - 1];
+    try {{
+      a.volume = vol;
+      a.playbackRate = rate;
+      if (vol > 0) a.play().catch(function() {{}});
+    }} catch (e) {{}}
+  }}
+  run(document);
+  try {{ run(window.parent.document); }} catch (e) {{}}
+}})();
+</script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
+def queue_assistant_speech(
+    text: str, html_key: str, *, lang_hint: str | None = None, max_chars: int = 3500
+) -> None:
+    """Prepara áudio MP3 para reproduzir no leitor Streamlit."""
+    if st.session_state.get("ego_tts_muted"):
+        return
+    plain = _plain_text_for_speech((text or "")[:max_chars])
+    if not plain:
+        return
+    vid = str(st.session_state.get("assistant_voice_id", "vf1"))
+    mp3 = synthesize_speech_mp3(plain, vid)
+    if not mp3:
+        st.session_state["_ego_tts_error"] = (
+            "Não foi possível gerar áudio. Instale: pip install edge-tts"
+        )
+        return
+    st.session_state.pop("_ego_tts_error", None)
+    st.session_state["_ego_tts_playback"] = {
+        "mp3": mp3,
+        "key": html_key,
+        "vol": int(st.session_state.get("ego_tts_volume", 80)),
+        "rate": _ego_tts_playback_rate(),
+        "lang": lang_hint,
+    }
+
+
+def render_tts_playback_player() -> None:
+    """Leitor de áudio visível (st.audio) — o utilizador pode dar play se o autoplay falhar."""
+    pb = st.session_state.get("_ego_tts_playback")
+    if not pb or not pb.get("mp3"):
+        return
+    mp3 = pb["mp3"]
+    vol = _ego_tts_playback_volume()
+    rate = _ego_tts_playback_rate()
+    st.markdown("**Voz da assistente**")
+    st.caption(
+        f"Velocidade {rate}x · se não ouvir, prima ▶ no leitor."
+    )
+    st.audio(mp3, format="audio/mp3", autoplay=vol > 0)
+    _ego_apply_audio_playback_rate(rate)
+    if vol > 0:
+        _ego_tts_try_autoplay_audio(vol, rate)
+
+
+def inject_ego_tts_controller() -> None:
+    """Compatibilidade: controlo de áudio via st.audio (sem motor no iframe)."""
+    return
+
+
+def render_tts_controls() -> None:
+    """Barra de controlo: velocidade, volume e mudo."""
+    st.markdown(
+        '<p class="ego-tts-controls-hint">Controlo da voz da IA (áudio gerado no servidor)</p>',
+        unsafe_allow_html=True,
+    )
+    err = st.session_state.pop("_ego_tts_error", None)
+    if err:
+        st.warning(str(err))
+    vol_now = int(st.session_state.get("ego_tts_volume", 80))
+    if vol_now <= 0:
+        st.caption("Volume em 0 — sobe o slider para ouvir.")
+    if st.session_state.get("ego_tts_muted"):
+        st.caption("Mudo ligado — desliga «Mudo» para ouvir.")
+    cur_rate = _ego_tts_playback_rate()
+    try:
+        rate_idx = _EGO_TTS_RATE_VALUES.index(cur_rate)
+    except ValueError:
+        rate_idx = 0
+    c_spd, c_vol, c_mut, c_test = st.columns([2.2, 2.2, 1, 1])
+    with c_spd:
+        picked = st.radio(
+            "Velocidade",
+            list(_EGO_TTS_RATE_LABELS),
+            index=rate_idx,
+            horizontal=True,
+            key="ego_tts_rate_radio",
+            label_visibility="collapsed",
+        )
+        st.session_state["ego_tts_rate"] = _EGO_TTS_RATE_VALUES[
+            _EGO_TTS_RATE_LABELS.index(picked)
+        ]
+    with c_vol:
+        st.slider(
+            "Volume",
+            min_value=0,
+            max_value=100,
+            step=5,
+            key="ego_tts_volume",
+            help="Controla o leitor HTML. Use também o volume do sistema.",
+        )
+    with c_mut:
+        st.toggle("Mudo", key="ego_tts_muted", help="Não gera nem reproduz áudio.")
+    with c_test:
+        if st.button("Testar", key="ego_tts_btn_test", use_container_width=True):
+            queue_assistant_speech(
+                "Olá. O áudio da assistente está a funcionar.",
+                "ego_tts_test",
+                lang_hint="pt-BR",
+            )
+            st.rerun()
+    _ego_apply_audio_playback_rate(_ego_tts_playback_rate())
+
+
+def try_browser_tts(
+    text: str, html_key: str, *, lang_hint: str | None = None, max_chars: int = 3500
+) -> None:
+    """Gera MP3 no servidor e mostra leitor de áudio."""
+    queue_assistant_speech(text, html_key, lang_hint=lang_hint, max_chars=max_chars)
+
+
+def try_speech_reminder(text: str, html_key: str) -> None:
+    """Lembretes: mesma pipeline de áudio MP3."""
+    queue_assistant_speech(
+        text,
+        html_key,
+        lang_hint=st.session_state.get("last_detected_language"),
+        max_chars=2000,
+    )
+    render_tts_playback_player()
 
 
 def render_reminder_alarm_fragment(supabase: Client | None, user_id: str) -> None:
@@ -2389,7 +3867,7 @@ def render_reminder_alarm_fragment(supabase: Client | None, user_id: str) -> Non
     if not supabase or not user_id:
         return
 
-    @st.fragment(run_every=datetime.timedelta(seconds=40))
+    @st.fragment(run_every=datetime.timedelta(seconds=120))
     def _tick() -> None:
         st.session_state.setdefault("_ego_rem_fired", {})
         fired: dict[str, bool] = st.session_state["_ego_rem_fired"]
@@ -2418,512 +3896,240 @@ def render_reminder_alarm_fragment(supabase: Client | None, user_id: str) -> Non
             announce = (row.get("announce") or title or "").strip()
             when_local = sch.astimezone().strftime("%H:%M")
             if tag == "first":
-                body = f"**Primeiro aviso (10 min antes):** {announce}\n\nHora do compromisso: **{when_local}**."
                 try_speech_reminder(announce, f"{rid}-first")
             elif tag == "final":
-                body = f"**Hora marcada:** {title}\n\n({when_local})"
                 try_speech_reminder(f"Hora do compromisso: {title}", f"{rid}-final")
             else:
-                body = f"**Lembrete:** {title}\n\nFaltam poucos minutos para **{when_local}**."
                 try_speech_reminder(f"Lembrete: {title}. Em breve às {when_local}.", f"{rid}-mid")
-            st.warning(body)
+            st.markdown(
+                _reminder_alarm_html(tag, str(title), announce, when_local),
+                unsafe_allow_html=True,
+            )
             c1, c2, c3 = st.columns(3)
             with c1:
-                if st.button("Desligar lembrete", key=f"dr_{rid}_{safe_a}"):
+                if st.button(
+                    "Desligar lembrete", key=f"dr_{rid}_{safe_a}", use_container_width=True
+                ):
                     dismiss_reminder(supabase, user_id, rid)
                     st.rerun()
             with c2:
-                if st.button("Adiar 5 min", key=f"sn_{rid}_{safe_a}"):
+                if st.button(
+                    "Adiar 5 min", key=f"sn_{rid}_{safe_a}", use_container_width=True
+                ):
                     snooze_reminder_minutes(supabase, user_id, rid, 5)
                     st.rerun()
             with c3:
-                if st.button("Ouvir de novo", key=f"rp_{rid}_{safe_a}"):
+                if st.button(
+                    "Ouvir de novo", key=f"rp_{rid}_{safe_a}", use_container_width=True
+                ):
                     try_speech_reminder(announce if tag == "first" else title, f"{rid}-replay")
 
     _tick()
 
 
 def render_agenda_reminders_page(supabase: Client | None, user_id: str) -> None:
-    st.title("Agenda e lembretes")
-    st.caption(
-        "O avatar pode criar lembretes pelo **chat** (ele adiciona um código no fim da resposta) "
-        "ou você cadastra aqui. Avisos: **10 minutos antes** (falado, se o navegador permitir) e **a cada 5 minutos** até a hora."
+    st.markdown(
+        """
+        <div class="ego-page-hero">
+            <span class="ego-version-badge">Agenda</span>
+            <h1>Agenda e lembretes</h1>
+            <p>Reuniões com data ficam nos lembretes; hábitos da semana na agenda recorrente.
+            Avisos automáticos 10 min antes e a cada 5 min até a hora marcada.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
     if not user_id:
         st.error("Sessão inválida.")
         return
-    upcoming = list_upcoming_reminders(supabase, user_id, hours_back=0, hours_ahead=168)
+    ag_warn = st.session_state.pop("_ego_agenda_fetch_warn", None)
+    if ag_warn:
+        st.warning(str(ag_warn))
+
+    agenda_rows = refresh_user_agenda_snapshot(supabase, user_id)
+
+    st.markdown(
+        '<p class="ego-section-head">Hábitos recorrentes (semana)</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown('<div class="ego-form-shell">', unsafe_allow_html=True)
+    with st.form("nova_agenda_recorrente", clear_on_submit=True):
+        ar_tit = st.text_input("Título", placeholder="Academia, reunião de equipa…")
+        ar_hor = st.text_input("Horário (24h)", placeholder="08:00")
+        ar_dias = st.text_input(
+            "Dias da semana",
+            placeholder="seg,ter,qua,qui,sex ou segunda a sexta",
+        )
+        if st.form_submit_button("Salvar na agenda", use_container_width=True):
+            ok_a, err_a = insert_agenda_row(
+                supabase,
+                user_id,
+                titulo=ar_tit,
+                horario=ar_hor,
+                dias_da_semana=ar_dias,
+            )
+            if ok_a:
+                refresh_user_agenda_snapshot(supabase, user_id)
+                st.success("Guardado na sua agenda (só você vê).")
+                st.rerun()
+            else:
+                st.error(err_a or "Não foi possível salvar.")
+    st.markdown("</div>", unsafe_allow_html=True)
+    if agenda_rows:
+        for row in agenda_rows[:30]:
+            aid = str(row.get("id") or "")
+            st.markdown(_agenda_card_html(row), unsafe_allow_html=True)
+            if aid and st.button("Remover", key=f"ag_rm_{aid}", use_container_width=True):
+                if delete_agenda_row(supabase, user_id, aid):
+                    refresh_user_agenda_snapshot(supabase, user_id)
+                    st.rerun()
+    else:
+        st.markdown(
+            '<div class="ego-empty-state">Nenhum hábito recorrente.<br>'
+            "Ex.: no chat: <em>marca academia de segunda a sexta às 8h</em>.</div>",
+            unsafe_allow_html=True,
+        )
+
+    st.divider()
+    st.markdown(
+        '<p class="ego-section-head">Reuniões e lembretes (data específica)</p>',
+        unsafe_allow_html=True,
+    )
+    today = _local_now().date()
+    max_day = today + datetime.timedelta(days=AGENDA_HORIZON_DAYS)
+    upcoming = list_upcoming_reminders(supabase, user_id)
+    st.markdown('<div class="ego-form-shell">', unsafe_allow_html=True)
     with st.form("nova_meta", clear_on_submit=True):
-        st.subheader("Novo lembrete")
-        tit = st.text_input("Título", placeholder="Ligar para …")
+        tit = st.text_input("Título da reunião / lembrete", placeholder="Reunião com cliente…")
         d_col, h_col = st.columns(2)
         with d_col:
-            d_val = st.date_input("Data do compromisso", value=datetime.date.today())
+            d_val = st.date_input(
+                "Data",
+                value=today,
+                min_value=today,
+                max_value=max_day,
+            )
         with h_col:
-            t_val = st.time_input("Hora do compromisso", value=datetime.time(9, 0))
+            t_val = st.time_input(
+                "Hora",
+                value=_default_time_for_agenda_date(d_val),
+            )
         ann = st.text_input(
             "O que falar no primeiro aviso (10 min antes)",
-            placeholder="Ligar para minha esposa às 15 horas",
+            placeholder="Sua reunião começa em dez minutos",
         )
-        sub = st.form_submit_button("Salvar lembrete")
-        if sub:
+        if st.form_submit_button("Salvar reunião / lembrete", use_container_width=True):
             if not tit.strip():
                 st.error("Preencha o título.")
             else:
-                local_tz = datetime.datetime.now().astimezone().tzinfo or datetime.timezone.utc
+                local_tz = _local_now().tzinfo or datetime.timezone.utc
                 dt = datetime.datetime.combine(d_val, t_val).replace(tzinfo=local_tz)
-                dt = dt.astimezone(datetime.timezone.utc)
-                if insert_reminder_row(
-                    supabase,
-                    user_id,
-                    title=tit.strip(),
-                    scheduled_at=dt,
-                    announce=ann.strip() or tit.strip(),
-                ):
-                    st.success("Lembrete salvo.")
+                if d_val > max_day:
+                    st.error(f"Escolha uma data até {max_day.strftime('%d/%m/%Y')}.")
+                else:
+                    ok_ins, err_ins = insert_reminder_row(
+                        supabase,
+                        user_id,
+                        title=tit.strip(),
+                        scheduled_at=dt,
+                        announce=ann.strip() or tit.strip(),
+                    )
+                    if ok_ins:
+                        st.success("Reunião/lembrete guardado (só você vê).")
+                        st.rerun()
+                    else:
+                        st.error(err_ins or "Não foi possível salvar.")
+    st.markdown("</div>", unsafe_allow_html=True)
+    if upcoming:
+        st.markdown('<div class="ego-reminder-list">', unsafe_allow_html=True)
+        for r in upcoming[:40]:
+            sid = str(r.get("id"))
+            st.markdown(_reminder_card_html(r), unsafe_allow_html=True)
+            c1, c2 = st.columns(2)
+            with c1:
+                if st.button("Desligar", key=f"agd_d_{sid}", use_container_width=True):
+                    dismiss_reminder(supabase, user_id, sid)
                     st.rerun()
-                st.error(
-                    "Não foi possível salvar. Crie a tabela `reminders` no Supabase "
-                    "(arquivo reminders.sql na pasta do projeto)."
-                )
-    st.subheader("Próximos lembretes")
-    if not upcoming:
-        st.info("Nenhum lembrete futuro. Peça no chat: “me lembre de … às …”.")
-        return
-    for r in upcoming[:40]:
-        sid = str(r.get("id"))
-        st.write(
-            f"**{r.get('title', '')}** — {r.get('scheduled_at', '')} "
-            f"{'(adiado até ' + str(r.get('snooze_until')) + ')' if r.get('snooze_until') else ''}"
+            with c2:
+                if st.button("Adiar 5 min", key=f"agd_s_{sid}", use_container_width=True):
+                    snooze_reminder_minutes(supabase, user_id, sid, 5)
+                    st.rerun()
+        st.markdown("</div>", unsafe_allow_html=True)
+    else:
+        st.markdown(
+            f'<div class="ego-empty-state">Nenhuma reunião nos próximos {AGENDA_HORIZON_DAYS} dias.<br>'
+            "No chat: <em>marca reunião amanhã às 15h</em>.</div>",
+            unsafe_allow_html=True,
         )
-        c1, c2 = st.columns(2)
-        with c1:
-            if st.button("Desligar", key=f"agd_d_{sid}"):
-                dismiss_reminder(supabase, user_id, sid)
-                st.rerun()
-        with c2:
-            if st.button("Adiar 5 min", key=f"agd_s_{sid}"):
-                snooze_reminder_minutes(supabase, user_id, sid, 5)
-                st.rerun()
 
 
-def _secret_any(name: str) -> str:
-    raw = (os.getenv(name) or "").strip()
-    if raw:
-        return raw
-    if hasattr(st, "secrets"):
-        try:
-            return str(st.secrets.get(name, "") or "").strip()
-        except Exception:
-            return ""
-    return ""
+def _ego_apply_auth_session(user: object, email: str) -> None:
+    """Marca sessão Streamlit após login ou cadastro bem-sucedido."""
+    st.session_state.user_logged = True
+    st.session_state.user = user
+    st.session_state.auth_user_id = user.id
+    st.session_state.global_user_name = (email.split("@")[0] or "Usuário Global")
+    st.session_state["ego_profile_email"] = email
+    st.session_state.history_loaded = False
+    st.session_state["ego_ui_state_loaded"] = False
+    st.session_state.pop("_ego_ui_state_saved_sig", None)
+    _ego_invalidate_caches()
 
 
-def google_calendar_oauth_credentials() -> tuple[str, str, str] | None:
-    """(client_id, client_secret, redirect_uri) ou None se incompleto."""
-    cid = _secret_any("GOOGLE_OAUTH_CLIENT_ID")
-    csec = _secret_any("GOOGLE_OAUTH_CLIENT_SECRET")
-    redir = _secret_any("GOOGLE_OAUTH_REDIRECT_URI")
-    if not cid or not csec or not redir:
-        return None
-    return cid, csec, redir
+def _ego_invalidate_caches(*, full: bool = False) -> None:
+    for key in (
+        "_ego_profile_cache",
+        "_ego_access_cache_key",
+        "_ego_access_cache_ok",
+        "_ego_access_cache_status",
+        "_ego_access_cache_ts",
+        "_ego_daily_limit_key",
+        "_ego_daily_limit_ok",
+        "_ego_daily_limit_n",
+        "_ego_daily_limit_ts",
+        "_ego_session_boot_done",
+        "_ego_last_login_persisted_for",
+        "_ego_last_login_at_unsupported",
+        "_ego_voice_done_sig",
+    ):
+        st.session_state.pop(key, None)
+    if full:
+        st.session_state.pop("_ego_gemini_models", None)
+        st.session_state.pop("_ego_gemini_models_ts", None)
+        st.session_state.pop("gemini_model_ok", None)
+        for _tzk in ("ego_client_timezone", "ego_client_tz_offset_min", "_ego_tz_injected"):
+            st.session_state.pop(_tzk, None)
+        for _nk in ("ego_onb_user_name", "ego_onb_asst_name"):
+            st.session_state.pop(_nk, None)
+        st.session_state.pop("_ego_sb_access", None)
+        st.session_state.pop("_ego_sb_refresh", None)
 
 
-def build_google_calendar_authorize_url(client_id: str, redirect_uri: str, state: str) -> str:
-    params = {
-        "client_id": client_id,
-        "redirect_uri": redirect_uri,
-        "response_type": "code",
-        "scope": GOOGLE_CALENDAR_READONLY_SCOPE,
-        "access_type": "offline",
-        "prompt": "consent",
-        "include_granted_scopes": "true",
-        "state": state,
-    }
-    return f"{GOOGLE_OAUTH_AUTH_URL}?{urlencode(params)}"
-
-
-def register_google_oauth_pending(supabase: Client | None, user_id: str, state: str) -> bool:
-    if not supabase or not user_id or not state:
-        return False
-    try:
-        supabase.table(SUPABASE_GOOGLE_OAUTH_PENDING_TABLE).delete().eq(
-            "user_id", user_id
-        ).execute()
-    except Exception:
-        pass
-    try:
-        supabase.table(SUPABASE_GOOGLE_OAUTH_PENDING_TABLE).insert(
-            {"state": state, "user_id": user_id}
-        ).execute()
-        return True
-    except Exception:
-        return False
-
-
-def google_oauth_pending_exists(
-    supabase: Client | None, user_id: str, state: str
-) -> bool:
-    if not supabase or not user_id or not state:
-        return False
-    try:
-        res = (
-            supabase.table(SUPABASE_GOOGLE_OAUTH_PENDING_TABLE)
-            .select("state")
-            .eq("user_id", user_id)
-            .eq("state", state)
-            .execute()
-        )
-        return bool(res.data)
-    except Exception:
-        return False
-
-
-def delete_google_oauth_pending(supabase: Client | None, user_id: str, state: str) -> None:
-    if not supabase or not user_id or not state:
-        return
-    try:
-        supabase.table(SUPABASE_GOOGLE_OAUTH_PENDING_TABLE).delete().eq(
-            "user_id", user_id
-        ).eq("state", state).execute()
-    except Exception:
-        pass
-
-
-def exchange_google_oauth_code(
-    code: str, client_id: str, client_secret: str, redirect_uri: str
-) -> dict:
-    r = requests.post(
-        GOOGLE_OAUTH_TOKEN_URL,
-        data={
-            "code": code,
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "redirect_uri": redirect_uri,
-            "grant_type": "authorization_code",
-        },
-        timeout=30,
-    )
-    r.raise_for_status()
-    return r.json()
-
-
-def google_refresh_access_token(
-    refresh_token: str, client_id: str, client_secret: str
-) -> str | None:
-    try:
-        r = requests.post(
-            GOOGLE_OAUTH_TOKEN_URL,
-            data={
-                "refresh_token": refresh_token,
-                "client_id": client_id,
-                "client_secret": client_secret,
-                "grant_type": "refresh_token",
-            },
-            timeout=30,
-        )
-        r.raise_for_status()
-        data = r.json()
-        tok = data.get("access_token")
-        return str(tok) if tok else None
-    except Exception:
-        return None
-
-
-def save_google_calendar_refresh_token(
-    supabase: Client | None, user_id: str, refresh_token: str
-) -> bool:
-    if not supabase or not user_id or not refresh_token:
-        return False
-    try:
-        supabase.table(SUPABASE_GOOGLE_CALENDAR_TOKENS_TABLE).upsert(
-            {
-                "user_id": user_id,
-                "refresh_token": refresh_token,
-                "updated_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            }
-        ).execute()
-        return True
-    except Exception:
-        return False
-
-
-def load_google_calendar_refresh_token(supabase: Client | None, user_id: str) -> str | None:
-    if not supabase or not user_id:
-        return None
-    try:
-        res = (
-            supabase.table(SUPABASE_GOOGLE_CALENDAR_TOKENS_TABLE)
-            .select("refresh_token")
-            .eq("user_id", user_id)
-            .single()
-            .execute()
-        )
-        tok = (res.data or {}).get("refresh_token")
-        return str(tok).strip() if tok else None
-    except Exception:
-        return None
-
-
-def disconnect_google_calendar(supabase: Client | None, user_id: str) -> None:
-    if not supabase or not user_id:
-        return
-    try:
-        supabase.table(SUPABASE_GOOGLE_CALENDAR_TOKENS_TABLE).delete().eq(
-            "user_id", user_id
-        ).execute()
-    except Exception:
-        pass
-
-
-def parse_google_calendar_event_start(ev: dict) -> datetime.datetime | None:
-    start = ev.get("start") or {}
-    if start.get("dateTime"):
-        return _parse_ts_iso(start["dateTime"])
-    if start.get("date"):
-        try:
-            d = datetime.date.fromisoformat(str(start["date"]))
-            return datetime.datetime.combine(
-                d, datetime.time(9, 0), tzinfo=datetime.timezone.utc
-            )
-        except ValueError:
-            return None
-    return None
-
-
-def fetch_google_calendar_events(
-    access_token: str,
+def _ego_finish_auth(
+    supabase: Client,
+    res: object,
+    user: object,
+    email: str,
     *,
-    time_min: datetime.datetime,
-    time_max: datetime.datetime,
-    max_results: int = 25,
-) -> list[dict]:
-    params = {
-        "singleEvents": "true",
-        "orderBy": "startTime",
-        "maxResults": str(max_results),
-        "timeMin": time_min.astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "timeMax": time_max.astimezone(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-    }
-    url = f"{GOOGLE_CALENDAR_EVENTS_URL}?{urlencode(params)}"
-    try:
-        r = requests.get(
-            url,
-            headers={"Authorization": f"Bearer {access_token}"},
-            timeout=30,
-        )
-        r.raise_for_status()
-        data = r.json()
-        return list(data.get("items") or [])
-    except Exception:
-        return []
-
-
-def _query_param_first(key: str) -> str | None:
-    try:
-        qp = st.query_params
-        if key not in qp:
-            return None
-        v = qp[key]
-        if isinstance(v, (list, tuple)):
-            return str(v[0]) if v else None
-        return str(v) if v is not None else None
-    except Exception:
-        return None
-
-
-def maybe_finish_google_oauth_callback(supabase: Client | None, user_id: str) -> None:
-    """Se a URL tiver ?code=&state= do Google, troca o código e grava refresh_token."""
-    if not supabase or not user_id:
-        return
-    code = _query_param_first("code")
-    state = _query_param_first("state")
-    if not code or not state:
-        return
-    cred = google_calendar_oauth_credentials()
-    if not cred:
-        return
-    client_id, client_secret, redirect_uri = cred
-    if not google_oauth_pending_exists(supabase, user_id, str(state)):
-        st.error("Estado OAuth inválido ou expirado. Gere o link de novo em Conexões.")
-        try:
-            st.query_params.clear()
-        except Exception:
-            pass
-        return
-    try:
-        tokens = exchange_google_oauth_code(
-            str(code), client_id, client_secret, redirect_uri
-        )
-        refresh = tokens.get("refresh_token")
-        if not refresh:
-            st.warning(
-                "Google não devolveu refresh_token (pode acontecer se a conta já autorizou antes). "
-                "Revogue o acesso em myaccount.google.com/permissions e conecte de novo."
-            )
-        else:
-            save_google_calendar_refresh_token(supabase, user_id, str(refresh))
-            st.success("Google Calendar conectado. Os avisos sonoros seguem os lembretes do EGO.")
-    except Exception as e:  # noqa: BLE001
-        st.error(f"Falha ao conectar Google: {e}")
-    finally:
-        delete_google_oauth_pending(supabase, user_id, str(state))
-    try:
-        st.query_params.clear()
-    except Exception:
-        pass
-
-
-def import_google_events_as_reminders(
-    supabase: Client | None, user_id: str, days: int = 7
-) -> tuple[int, str]:
-    """Importa eventos do calendário principal para a tabela reminders (avisos T-10 / 5 em 5)."""
-    if not supabase or not user_id:
-        return 0, "Sessão inválida."
-    cred = google_calendar_oauth_credentials()
-    if not cred:
-        return 0, "Configure GOOGLE_OAUTH_* nos secrets."
-    client_id, client_secret, _redirect_uri = cred
-    refresh = load_google_calendar_refresh_token(supabase, user_id)
-    if not refresh:
-        return 0, "Conecte o Google Calendar antes."
-    access = google_refresh_access_token(refresh, client_id, client_secret)
-    if not access:
-        return 0, "Não foi possível renovar o token. Conecte de novo."
-    now = datetime.datetime.now(datetime.timezone.utc)
-    tmax = now + datetime.timedelta(days=days)
-    events = fetch_google_calendar_events(access, time_min=now, time_max=tmax, max_results=40)
-    n = 0
-    for ev in events:
-        eid = str(ev.get("id") or "")
-        title = (ev.get("summary") or "Evento no calendário").strip()[:500]
-        st_dt = parse_google_calendar_event_start(ev)
-        if not st_dt or st_dt < now:
-            continue
-        ann = f"Lembrete do calendário: {title}"
-        if insert_reminder_row(
-            supabase,
-            user_id,
-            title=title,
-            scheduled_at=st_dt,
-            announce=ann,
-            google_event_id=eid or None,
-        ):
-            n += 1
-    return n, ""
-
-
-def render_google_calendar_section(supabase: Client | None, user_id: str) -> None:
-    st.subheader("Google Calendar (OAuth)")
-    cred = google_calendar_oauth_credentials()
-    if not cred:
-        st.warning(
-            "Para conectar, crie credenciais **OAuth 2.0 (Web)** no Google Cloud Console, "
-            "ative a API **Google Calendar**, e adicione ao `secrets.toml`:\n\n"
-            "`GOOGLE_OAUTH_CLIENT_ID`, `GOOGLE_OAUTH_CLIENT_SECRET`, `GOOGLE_OAUTH_REDIRECT_URI` "
-            "(a URI de redirecionamento deve ser **igual** à URL pública do app, ex.: `https://seu-app.streamlit.app/`)."
-        )
-        return
-    client_id, _client_secret, redirect_uri = cred
-    connected = bool(load_google_calendar_refresh_token(supabase, user_id))
-    if connected:
-        st.success("Calendário conectado. Use **Importar** para gerar lembretes com avisos sonoros.")
-        if st.button("Desconectar Google Calendar", key="gcal_disc"):
-            disconnect_google_calendar(supabase, user_id)
-            st.rerun()
-        if st.button("Importar próximos 7 dias para lembretes do EGO", key="gcal_imp"):
-            n, err = import_google_events_as_reminders(supabase, user_id, days=7)
-            if err:
-                st.error(err)
-            elif n == 0:
-                st.info("Nenhum evento futuro encontrado (ou já importados).")
-            else:
-                st.success(f"{n} evento(s) viraram lembretes com alarme.")
-        return
-
-    st.caption(
-        "Escopo: **somente leitura** do calendário (`calendar.readonly`). "
-        "O EGO não altera eventos no Google; só lê e cria lembretes locais com aviso."
+    full_name: str = "",
+) -> tuple[bool, str]:
+    """Sessão JWT no cliente + linha em profiles."""
+    _sync_supabase_auth_from_response(supabase, res)
+    _ego_apply_auth_session(user, email)
+    ok_prof, err_prof = ensure_user_profile(
+        supabase,
+        user.id,
+        email=email,
+        full_name=full_name or st.session_state.get("global_user_name", ""),
     )
-    if st.button("Gerar link seguro para autorizar o Google", key="gcal_start"):
-        st_val = secrets.token_urlsafe(32)
-        if register_google_oauth_pending(supabase, user_id, st_val):
-            st.session_state["_gcal_oauth_state_ready"] = st_val
-        else:
-            st.error(
-                "Não foi possível registrar o fluxo OAuth. Rode o SQL `google_calendar_oauth.sql` no Supabase."
-            )
-    st_val = st.session_state.get("_gcal_oauth_state_ready")
-    if st_val:
-        auth_url = build_google_calendar_authorize_url(client_id, redirect_uri, st_val)
-        st.link_button("Abrir Google e autorizar calendário", auth_url, use_container_width=True)
-
-
-def render_connections_page(supabase: Client | None, user_id: str) -> None:
-    st.title("Conexões — calendário, música e outros apps")
-    st.markdown(
-        """
-O avatar **não tem acesso genérico a “todos os aplicativos”** da pessoa. Cada serviço (Google, Spotify, WhatsApp, CRM…)
-exige **login separado (OAuth)** e **permissões explícitas** que você aprova. Isso é o que torna o uso legal e seguro.
-
-- **Google Calendar (abaixo):** já preparado para OAuth + importar eventos como **lembretes com avisos sonoros** (mesma lógica T−10 / 5 em 5 min).
-- **Spotify / “tocar uma música”:** é possível numa **fase seguinte**, com **Spotify OAuth** e a API Web (ex.: colocar na fila / iniciar reprodução num **dispositivo já ativo**). Limitações típicas: conta **Premium** para alguns fluxos no web player, e o utilizador precisa de ter o Spotify aberto num aparelho.
-- **E-mail, redes, CRM:** cada um com OAuth próprio e revisão de privacidade.
-        """
-    )
-    render_google_calendar_section(supabase, user_id)
-    st.divider()
-    st.subheader("Spotify e outros (próximas fases)")
-    st.info(
-        "Pedir “põe esta música no Spotify” implica integrar a **Web API do Spotify** (pesquisa + fila + play). "
-        "O avatar só consegue isso **depois** de o utilizador autorizar o Spotify e, em muitos casos, com o leitor "
-        "ou telemóvel já ligado. Não substitui o acesso total ao telemóvel."
-    )
-
-
-PAIS_CADASTRO = [
-    "Brasil",
-    "Portugal",
-    "Argentina",
-    "México",
-    "Colômbia",
-    "Chile",
-    "Peru",
-    "Uruguai",
-    "Paraguai",
-    "Estados Unidos",
-    "Canadá",
-    "Reino Unido",
-    "Alemanha",
-    "França",
-    "Espanha",
-    "Itália",
-    "Outros",
-]
-
-DOC_INSTRUCOES_PAIS: dict[str, str] = {
-    "Brasil": "Envie documento **com foto** (CNH, RG físico ou e-RG com QR legível). Na segunda foto, **você ao lado do documento aberto** (rosto visível).",
-    "Portugal": "Cartão de cidadão (CC) ou título/residência com **foto**. Segunda imagem: **selfie com o documento**.",
-    "Argentina": "DNI com **foto** vigente. Segunda imagem: **selfie segurando o DNI**.",
-    "México": "INE/IFE ou pasaporte con **foto**. Segunda imagen: **selfie con el documento**.",
-    "Colômbia": "Cédula de ciudadanía con **foto**. Segunda imagen: **selfie con la cédula**.",
-    "Chile": "Cédula de identidad con **foto**. Segunda imagen: **selfie con la cédula**.",
-    "Peru": "DNI/electoral con **foto**. Segunda imagen: **selfie con el documento**.",
-    "Uruguai": "Cédula de identidad con **foto**. Segunda imagen: **selfie con la cédula**.",
-    "Paraguai": "Cédula con **foto**. Segunda imagen: **selfie con el documento**.",
-    "Estados Unidos": "State ID ou passport com **foto**. Second image: **selfie holding the ID open**.",
-    "Canadá": "Driver's license ou passport com **foto**. Second image: **selfie with document**.",
-    "Reino Unido": "Passport ou driving licence com **foto**. Second image: **selfie with document**.",
-    "Alemanha": "Personalausweis ou Reisepass mit **Foto**. Zweites Bild: **Selfie mit Dokument**.",
-    "França": "Carte d’identité ou passeport avec **photo**. Deuxième image: **selfie avec le document**.",
-    "Espanha": "DNI o pasaporte con **foto**. Segunda imagen: **selfie con el documento**.",
-    "Itália": "Carta d’identità o passaporto con **foto**. Seconda immagine: **selfie con il documento**.",
-    "Outros": "Documento nacional **com foto** válido. Segunda imagem: **selfie com o documento aberto**.",
-}
+    if ok_prof:
+        touch_last_login(supabase, user.id)
+    save_local_login_snapshot(supabase, email, user, res)
+    return ok_prof, err_prof
 
 
 def login_usuario(supabase: Client) -> None:
-    """Tela de entrada/cadastro com Supabase Auth + upload de documento no Storage."""
+    """Tela de entrada/cadastro com Supabase Auth (sem upload de documento no cadastro)."""
     if st.session_state.get("ego_login_policies"):
         render_sidebar_support_and_version()
         render_policies_page(for_public_login=True)
@@ -2933,6 +4139,12 @@ def login_usuario(supabase: Client) -> None:
     render_public_trust_landing()
     st.markdown("## Acesso à sua conta")
     st.caption("Entre ou cadastre-se — autenticação segura via Supabase.")
+    st.checkbox(
+        "Manter sessão neste dispositivo (último login)",
+        key="ego_remember_device",
+        help="Guarda o e-mail e a sessão no browser e em ficheiros locais deste aparelho. "
+        "Use «Sair» para remover.",
+    )
     with st.expander("Políticas — resumo (documentos completos no rodapé)", expanded=False):
         lt1, lt2, lt3 = st.tabs(
             ["Termos de Uso", "Política de Privacidade", "Política de Reembolso"]
@@ -2947,113 +4159,115 @@ def login_usuario(supabase: Client) -> None:
 
     with aba2:
         with st.form("cadastro_supabase", border=True):
-            col1, col2 = st.columns(2)
-            with col1:
-                nome = st.text_input("Nome completo (como no documento)")
-                email = st.text_input("E-mail")
-                pais = st.selectbox("País / país de emissão do documento", PAIS_CADASTRO)
-            with col2:
-                senha = st.text_input("Senha", type="password")
-                doc_tipo = st.text_input(
-                    "Tipo e número do documento (ex.: RG 12.345.678-9, DNI, passport …)"
-                )
-            st.markdown(DOC_INSTRUCOES_PAIS.get(pais, DOC_INSTRUCOES_PAIS["Outros"]))
-            doc_frente = st.file_uploader(
-                "1) Documento com foto (frente legível)",
-                type=["jpg", "jpeg", "png", "pdf"],
-                key="cad_doc_frente",
-            )
-            doc_selfie = st.file_uploader(
-                "2) Selfie sua segurando o mesmo documento aberto (rosto visível)",
-                type=["jpg", "jpeg", "png", "pdf"],
-                key="cad_doc_selfie",
-            )
+            email = st.text_input("E-mail", placeholder="nome@exemplo.com")
+            senha = st.text_input("Senha", type="password")
+            st.caption("E-mail: até 254 caracteres (formato nome@dominio.com).")
+            nome = st.text_input("Nome (opcional)", placeholder="Pode deixar em branco para testar")
+            st.caption("Sem upload de documento — só e-mail e senha.")
 
-            if st.form_submit_button("Finalizar Cadastro Global", use_container_width=True):
-                if not (
-                    nome.strip()
-                    and email.strip()
-                    and senha.strip()
-                    and doc_tipo.strip()
-                    and doc_frente
-                    and doc_selfie
-                ):
-                    st.error(
-                        "Preencha nome, e-mail, senha, tipo/número do documento e as **duas** imagens obrigatórias."
-                    )
+            if st.form_submit_button("Criar conta e entrar", use_container_width=True):
+                email_norm, email_err = _normalize_auth_email(email)
+                if email_err:
+                    st.error(email_err)
+                elif not senha.strip():
+                    st.error("Preencha a senha.")
                 else:
                     try:
-                        res = supabase.auth.sign_up({"email": email, "password": senha})
+                        display = nome.strip() or email_norm.split("@")[0] or "Usuário"
+                        res = supabase.auth.sign_up(
+                            {
+                                "email": email_norm,
+                                "password": senha,
+                                "options": {
+                                    "data": {
+                                        "full_name": display,
+                                        "country": "Brasil",
+                                    }
+                                },
+                            }
+                        )
                         user = getattr(res, "user", None)
                         if not user:
-                            st.warning("Conta criada. Verifique o e-mail para confirmar.")
-                        else:
-                            user_id = user.id
-                            salvar_perfil_seguro(
-                                supabase,
-                                user_id=user_id,
-                                full_name=nome.strip(),
-                                email=email.strip(),
-                                country=pais,
-                                document_type=doc_tipo.strip(),
+                            st.warning(
+                                "Conta criada no Auth. Confirme o e-mail (se estiver ativo) e use **Entrar**. "
+                                "Se o perfil não aparecer em `profiles`, execute "
+                                "`supabase/trigger_profile_on_signup.sql` no SQL Editor."
                             )
-                            bucket = supabase.storage.from_(SUPABASE_STORAGE_BUCKET)
-                            for label, up in (
-                                ("documento_frente", doc_frente),
-                                ("documento_selfie", doc_selfie),
-                            ):
-                                ext = (
-                                    up.name.split(".")[-1].lower() if "." in up.name else "bin"
+                        else:
+                            ok_prof, err_prof = _ego_finish_auth(
+                                supabase,
+                                res,
+                                user,
+                                email_norm,
+                                full_name=display,
+                            )
+                            if ok_prof:
+                                st.success("Conta criada! A entrar…")
+                                st.rerun()
+                            else:
+                                st.warning(
+                                    f"Entrou no Auth, mas o perfil não gravou: {err_prof} "
+                                    "Execute `supabase/trigger_profile_on_signup.sql` no Supabase."
                                 )
-                                path = f"{user_id}/{label}.{ext}"
-                                bucket.upload(path, up.getvalue(), {"upsert": "true"})
-                            st.success("Conta criada! Verifique seu e-mail.")
                     except Exception as e:  # noqa: BLE001
-                        st.error(f"Falha no cadastro: {e}")
+                        st.error(_format_auth_error(e))
 
     with aba1:
         with st.form("login_supabase", border=True):
             email_login = st.text_input("E-mail", key="login_email")
             senha_login = st.text_input("Senha", type="password", key="login_senha")
             if st.form_submit_button("Entrar", use_container_width=True):
-                if not email_login.strip() or not senha_login.strip():
-                    st.error("Informe e-mail e senha.")
+                email_norm, email_err = _normalize_auth_email(email_login)
+                if email_err:
+                    st.error(email_err)
+                elif not senha_login.strip():
+                    st.error("Informe a senha.")
                 else:
                     try:
                         res = supabase.auth.sign_in_with_password(
-                            {"email": email_login, "password": senha_login}
+                            {"email": email_norm, "password": senha_login}
                         )
                         user = getattr(res, "user", None)
                         if not user:
                             st.error("Não foi possível autenticar. Verifique suas credenciais.")
                         else:
-                            st.session_state.user_logged = True
-                            st.session_state.user = user
-                            st.session_state.auth_user_id = user.id
-                            st.session_state.global_user_name = (
-                                email_login.split("@")[0] or "Usuário Global"
+                            ok_prof, err_prof = _ego_finish_auth(
+                                supabase,
+                                res,
+                                user,
+                                email_norm,
                             )
-                            st.session_state.history_loaded = False
+                            if not ok_prof:
+                                st.warning(f"Login OK, mas perfil: {err_prof}")
                             st.success("Login realizado com sucesso.")
                             st.rerun()
                     except Exception as e:  # noqa: BLE001
-                        st.error(f"Falha no login: {e}")
+                        st.error(_format_auth_error(e))
     render_trust_footer(authenticated=False)
 
 
 def get_pdf_text(pdf_files: list) -> str:
-    """Extrai texto de uma lista de arquivos PDF (objetos UploadedFile do Streamlit)."""
+    """Extrai texto dos PDFs em blocos (páginas), com limites para não travar em ficheiros grandes."""
     if not PdfReader:
         return ""
     text_parts: list[str] = []
+    total_chars = 0
     for pdf in pdf_files:
         try:
             raw = pdf.getvalue() if hasattr(pdf, "getvalue") else pdf.read()
             reader = PdfReader(BytesIO(raw))
-            for page in reader.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    text_parts.append(page_text)
+            for i, page in enumerate(reader.pages):
+                if i >= PDF_EXTRACT_MAX_PAGES:
+                    text_parts.append("\n[… páginas extra omitidas para velocidade]\n")
+                    break
+                page_text = page.extract_text() or ""
+                if not page_text.strip():
+                    continue
+                text_parts.append(page_text)
+                total_chars += len(page_text)
+                if total_chars >= PDF_EXTRACT_MAX_CHARS:
+                    text_parts.append("\n[… limite de caracteres atingido neste PDF]\n")
+                    break
         except Exception as exc:  # noqa: BLE001
             text_parts.append(f"\n[Erro ao ler um PDF: {exc}]\n")
     return "\n".join(text_parts)
@@ -3066,16 +4280,6 @@ def render_sidebar_support_and_version() -> None:
         unsafe_allow_html=True,
     )
     st.sidebar.markdown("### AJUDA E SUPORTE")
-    wa_url = ego_whatsapp_business_url()
-    if wa_url:
-        st.sidebar.link_button(
-            "WhatsApp Business",
-            wa_url,
-            use_container_width=True,
-            help="Abre o chat oficial no WhatsApp.",
-        )
-    else:
-        st.sidebar.caption("Configure `EGO_SUPPORT_WHATSAPP` ou `EGO_WHATSAPP_URL` nos secrets.")
     em_raw = ego_support_email()
     st.sidebar.link_button(
         "Enviar e-mail",
@@ -3087,105 +4291,125 @@ def render_sidebar_support_and_version() -> None:
 
 def sidebar_settings() -> None:
     render_sidebar_support_and_version()
-    st.sidebar.markdown("### Configurações")
-    st.sidebar.caption("As chaves ficam só nesta sessão do navegador; não são salvas em disco.")
     if st.session_state.get("user_logged"):
-        who = st.session_state.get("global_user_name") or "Usuário Global"
-        st.sidebar.success(f"Conectado como: {who}")
+        who = st.session_state.get("global_user_name") or "Utilizador"
+        st.sidebar.caption(f"**{who}**")
         user_obj = st.session_state.get("user")
         if user_obj and getattr(user_obj, "email", None):
-            st.sidebar.caption(f"Conta: {user_obj.email}")
+            st.sidebar.caption(user_obj.email)
         st.sidebar.radio(
-            "Navegação",
+            "Ir para",
             [
                 "Chat",
                 "Políticas",
                 "Agenda e lembretes",
-                "Conexões (e-mail, redes, CRM)",
                 "Meu Perfil",
                 "Meu Avatar",
-                "Comida Perto",
-                "Bares e restaurantes",
-                "Bebidas Perto",
-                "Compras online",
-                "Viagens e hospedagem",
             ],
             key="ego_nav",
         )
+        render_sidebar_agenda_panel(get_supabase_client(), obter_user_id_logado())
         if st.sidebar.button("Sair", use_container_width=True):
             supabase = get_supabase_client()
+            logout_email = (
+                st.session_state.get("ego_profile_email")
+                or (getattr(st.session_state.get("user"), "email", None) if st.session_state.get("user") else None)
+                or ""
+            )
             if supabase:
                 try:
                     supabase.auth.sign_out()
                 except Exception:
                     pass
+            clear_local_login_snapshot(str(logout_email or ""))
             st.session_state.user_logged = False
             st.session_state.user = None
             st.session_state.auth_user_id = ""
             st.session_state.messages = []
             st.session_state.history_loaded = False
+            st.session_state["ego_ui_state_loaded"] = False
+            _ego_invalidate_caches(full=True)
+            st.session_state.pop("_ego_ui_state_saved_sig", None)
             st.rerun()
         st.sidebar.divider()
-    st.sidebar.caption("IA: **Google Gemini** (Google AI Studio).")
-    st.sidebar.selectbox(
-        "Modelo Gemini (1.5)",
-        options=list(GEMINI_15_MODEL_IDS),
-        format_func=lambda m: "Gemini 1.5 Pro" if m == GEMINI_15_MODEL_PRO else "Gemini 1.5 Flash",
-        key="gemini_model_preference",
-        help="Pro: mais capacidade. Flash: mais rápido e económico. O chat usa só estes modelos.",
-    )
-    gemini_key = st.sidebar.text_input(
-        "Chave da API do Gemini (Google AI Studio)",
-        type="password",
-        placeholder="Cole sua chave aqui",
-        help=(
-            "Crie em https://aistudio.google.com/apikey . "
-            "Alternativa: variável de ambiente ou secrets `GOOGLE_API_KEY` ou `GEMINI_API_KEY`."
-        ),
-        key="gemini_api_key_input",
-    )
-
-    name = st.sidebar.text_input(
-        "Como podemos te chamar?",
-        placeholder="Seu nome",
-        key="display_name_input",
-    )
-    if name:
-        st.session_state.user_name = name.strip()
-    st.sidebar.divider()
-    st.sidebar.markdown("### Documentos do EGO")
-    uploaded_files = st.sidebar.file_uploader(
-        "Envie PDFs para análise no chat",
-        type=["pdf"],
-        accept_multiple_files=True,
-        key="ego_pdf_uploader",
-    )
-    if st.sidebar.button("Processar documentos", use_container_width=True):
-        if not PdfReader:
-            st.sidebar.error("Instale o pacote PyPDF2 (veja requirements.txt).")
-        elif uploaded_files:
-            with st.spinner("O Ego-AI está lendo os PDFs…"):
-                raw_text = get_pdf_text(list(uploaded_files))
-                st.session_state.pdf_context = raw_text
-            n_chars = len(st.session_state.pdf_context)
-            st.sidebar.success(f"Conhecimento absorvido! ({n_chars:,} caracteres)")
-        else:
-            st.sidebar.warning("Selecione pelo menos um PDF.")
-
-    if st.sidebar.button("Limpar documentos carregados", use_container_width=True):
-        st.session_state.pdf_context = ""
-        st.rerun()
-
-    if st.sidebar.button("Limpar histórico do chat", use_container_width=True):
-        st.session_state.messages = []
-        st.rerun()
-
-    st.session_state._ego_gemini_key = gemini_key or ""
+        with st.sidebar.expander("👤 Perfil e ficheiros", expanded=False):
+            name = st.text_input(
+                "Nome",
+                placeholder="Como te chamar",
+                key="display_name_input",
+                label_visibility="collapsed",
+            )
+            if name:
+                st.session_state.user_name = name.strip()
+            st.text_input(
+                "Nome do assistente",
+                placeholder="Como ele se apresenta no chat (ex.: EGO-AI, Alex…)",
+                key="ego_assistant_display_name_input",
+                label_visibility="collapsed",
+            )
+            raw_asst = st.session_state.get("ego_assistant_display_name_input")
+            st.session_state["ego_assistant_display_name"] = _sanitize_display_name(
+                str(raw_asst or "").strip(), max_len=48
+            ) or "EGO-AI"
+            st.caption(
+                "Podes mudar **o teu nome** e **o nome do assistente** aqui a qualquer momento."
+            )
+            st.caption("Chaves: Streamlit Secrets (`GOOGLE_API_KEY`, etc.) ou `.env`.")
+            st.caption(
+                "Som do assistente: interruptor no **Chat** + velocidade (1x / 1.5x / 2x) e volume."
+            )
+            st.selectbox(
+                "Modelo",
+                options=list(GEMINI_MODEL_IDS),
+                format_func=lambda m: (
+                    "Gemini 1.5 Flash"
+                    if m == GEMINI_MODEL_FLASH
+                    else ("Gemini 2.5 Pro" if m == GEMINI_MODEL_PRO else m)
+                ),
+                key="gemini_model_preference",
+            )
+            st.text_input(
+                "Chave Gemini (opcional)",
+                type="password",
+                placeholder="Só se não estiver nos secrets",
+                key="gemini_api_key_input",
+                label_visibility="collapsed",
+            )
+            uploaded_files = st.file_uploader(
+                "PDF",
+                type=["pdf"],
+                accept_multiple_files=True,
+                key="ego_pdf_uploader",
+                label_visibility="collapsed",
+            )
+            if st.button("Carregar PDFs", use_container_width=True):
+                if not PdfReader:
+                    st.error("PyPDF2 em falta.")
+                elif uploaded_files:
+                    with st.spinner("A ler…"):
+                        raw_text = get_pdf_text(list(uploaded_files))
+                        st.session_state.pdf_context = raw_text[
+                            : min(len(raw_text), 200_000)
+                        ]
+                    st.success(f"{len(st.session_state.pdf_context):,} caracteres.")
+                else:
+                    st.warning("Escolhe um PDF.")
+            if st.button("Limpar PDFs", use_container_width=True):
+                st.session_state.pdf_context = ""
+                st.rerun()
+        st.sidebar.divider()
+        if st.sidebar.button("Limpar chat", use_container_width=True):
+            st.session_state.messages = []
+            st.session_state.history_loaded = True
+            st.rerun()
+    else:
+        st.sidebar.caption("Inicia sessão para ver o menu.")
+    st.session_state._ego_gemini_key = st.session_state.get("gemini_api_key_input") or ""
 
 
 def render_profile(supabase: Client | None, user_id: str) -> None:
     st.title("Meu Perfil EGO-AI")
-    perfil = carregar_perfil_usuario(supabase, user_id)
+    perfil = get_profile_cached(supabase, user_id)
     if not perfil:
         st.warning("Não foi possível carregar seu perfil no momento.")
         return
@@ -3196,7 +4420,9 @@ def render_profile(supabase: Client | None, user_id: str) -> None:
         st.info(f"**E-mail:** {perfil.get('email', '-')}")
     with col2:
         st.info(f"**País:** {perfil.get('country', '-')}")
-        st.info(f"**Documento:** {perfil.get('document_type', '-')}")
+        doc_tipo = (perfil.get("document_type") or "").strip()
+        if doc_tipo:
+            st.info(f"**Documento:** {doc_tipo}")
 
     pode, total = verificar_limite_diario(supabase, user_id)
     if _ego_beta_sem_limite():
@@ -3224,7 +4450,7 @@ def render_profile(supabase: Client | None, user_id: str) -> None:
 def render_avatar_page(supabase: Client | None, user_id: str) -> None:
     st.title("Meu Avatar e Voz")
     st.caption("Escolha um avatar humano e uma voz para o EGO-AI.")
-    _, status = verificar_acesso(supabase, user_id)
+    _, status = get_access_cached(supabase, user_id)
     is_pro = status == "Pro"
     if not is_pro:
         st.info("Itens Premium exigem plano Pro.")
@@ -3272,459 +4498,6 @@ def render_avatar_page(supabase: Client | None, user_id: str) -> None:
     )
 
 
-def render_food_page(supabase: Client | None, user_id: str) -> None:
-    st.title("Comida Perto de Você")
-    st.caption("Busque opções de comida perto da sua região e guarde preferências para sugestões futuras.")
-    perfil = carregar_perfil_usuario(supabase, user_id) or {}
-    default_country = perfil.get("country", "")
-
-    c1, c2 = st.columns(2)
-    with c1:
-        city = st.text_input("Cidade", value=st.session_state.get("food_city", ""))
-    with c2:
-        country = st.text_input(
-            "País",
-            value=st.session_state.get("food_country", "") or default_country,
-        )
-    query = st.text_input("O que você quer comer hoje?", placeholder="Ex.: sushi, pizza, hambúrguer")
-    tier_default = st.session_state.get("food_price_tier", "Padrão")
-    tier_index = FOOD_PRICE_TIERS.index(tier_default) if tier_default in FOOD_PRICE_TIERS else 1
-    price_tier = st.selectbox(
-        "Faixa de preço (refina a busca)",
-        FOOD_PRICE_TIERS,
-        index=tier_index,
-        help="Economia prioriza opções casuais/baratas; Premium prioriza experiências mais sofisticadas.",
-    )
-    st.session_state.food_price_tier = price_tier
-
-    if st.button("Buscar opções", use_container_width=True):
-        st.session_state.food_city = city
-        st.session_state.food_country = country
-        options = search_food_nearby(query, city, country, price_tier)
-        if not options:
-            st.warning("Não encontrei opções agora. Tente refinar cidade/país/comida.")
-        else:
-            item = {
-                "query": query.strip(),
-                "city": city.strip(),
-                "country": country.strip(),
-                "price_tier": price_tier,
-                "options": options,
-                "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            }
-            history = st.session_state.get("food_history") or []
-            st.session_state.food_history = [item, *history][:20]
-            save_food_event(
-                supabase,
-                user_id,
-                item["query"],
-                item["city"],
-                item["country"],
-                options,
-                price_tier=price_tier,
-            )
-            st.success("Opções encontradas! Distância é aproximada (linha reta a partir do centro da cidade).")
-
-    latest = (st.session_state.get("food_history") or [])
-    if latest:
-        st.markdown("### Opções recentes")
-        for entry in latest[:3]:
-            tier_lbl = entry.get("price_tier", "")
-            extra = f" · {tier_lbl}" if tier_lbl else ""
-            st.write(f"**Busca:** {entry.get('query', '-')}{extra}")
-            for opt in entry.get("options", [])[:5]:
-                st.link_button(format_food_option_label(opt), opt.get("link", "#"))
-
-
-def render_nightlife_page(supabase: Client | None, user_id: str) -> None:
-    st.title("Bares, pubs e restaurantes")
-    st.caption(
-        "Busque no mapa por tipo de lugar (bar, pub, restaurante, rodízio, etc.) — mesma lógica de "
-        "distância e faixa de preço da Comida Perto e Bebidas Perto."
-    )
-    perfil = carregar_perfil_usuario(supabase, user_id) or {}
-    default_country = perfil.get("country", "")
-
-    c1, c2 = st.columns(2)
-    with c1:
-        city = st.text_input(
-            "Cidade",
-            value=st.session_state.get("food_city", ""),
-            key="nightlife_input_city",
-        )
-    with c2:
-        country = st.text_input(
-            "País",
-            value=st.session_state.get("food_country", "") or default_country,
-            key="nightlife_input_country",
-        )
-    vc_default = st.session_state.get("nightlife_venue_choice", NIGHTLIFE_VENUE_LABELS[0])
-    vc_index = (
-        NIGHTLIFE_VENUE_LABELS.index(vc_default) if vc_default in NIGHTLIFE_VENUE_LABELS else 0
-    )
-    venue_category = st.selectbox(
-        "Tipo de lugar",
-        NIGHTLIFE_VENUE_LABELS,
-        index=vc_index,
-        help="Cada opção adiciona termos na busca (bar, pub, restaurante, rodízio…). Em «Outro», descreva.",
-    )
-    st.session_state.nightlife_venue_choice = venue_category
-    query = st.text_input(
-        "Refinar (opcional, exceto em «Outro»)",
-        placeholder="Ex.: ao ar livre, música ao vivo, pet friendly, jantar romântico",
-        key="nightlife_query_input",
-    )
-    tier_default = st.session_state.get("nightlife_price_tier", st.session_state.get("food_price_tier", "Padrão"))
-    tier_index = FOOD_PRICE_TIERS.index(tier_default) if tier_default in FOOD_PRICE_TIERS else 1
-    price_tier = st.selectbox(
-        "Faixa de preço (refina a busca)",
-        FOOD_PRICE_TIERS,
-        index=tier_index,
-        key="nightlife_price_tier_select",
-        help="Economia: boteco, happy hour; Premium: carta de vinhos, rooftop, alta gastronomia.",
-    )
-    st.session_state.nightlife_price_tier = price_tier
-
-    if st.button("Buscar no mapa", use_container_width=True, key="nightlife_search_btn"):
-        st.session_state.food_city = city
-        st.session_state.food_country = country
-        options = search_nightlife_nearby(query, city, country, price_tier, venue_category)
-        if not options:
-            st.warning(
-                "Não encontrei opções agora. Em «Outro» descreva o estilo de lugar; nos demais tipos refine ou use só a categoria."
-            )
-        else:
-            item = {
-                "query": query.strip(),
-                "venue_category": venue_category,
-                "city": city.strip(),
-                "country": country.strip(),
-                "price_tier": price_tier,
-                "options": options,
-                "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            }
-            history = st.session_state.get("nightlife_history") or []
-            st.session_state.nightlife_history = [item, *history][:25]
-            save_nightlife_event(
-                supabase,
-                user_id,
-                item["query"],
-                item["city"],
-                item["country"],
-                options,
-                price_tier=price_tier,
-                venue_category=venue_category,
-            )
-            st.success("Opções encontradas! Distância é aproximada (linha reta a partir do centro da cidade).")
-
-    latest = st.session_state.get("nightlife_history") or []
-    if latest:
-        st.markdown("### Opções recentes")
-        for entry in latest[:3]:
-            cat = entry.get("venue_category", "")
-            qtxt = entry.get("query", "")
-            head = f"{cat}" + (f" — {qtxt}" if qtxt else "")
-            tier_lbl = entry.get("price_tier", "")
-            extra = f" · {tier_lbl}" if tier_lbl else ""
-            st.write(f"**Busca:** {head}{extra}")
-            for opt in entry.get("options", [])[:5]:
-                st.link_button(format_food_option_label(opt), opt.get("link", "#"))
-
-
-def render_drink_page(supabase: Client | None, user_id: str) -> None:
-    st.title("Bebidas Perto de Você")
-    st.caption(
-        "Café, chá, sucos, cerveja, vinho, coquetéis e mais — mesma faixa de preço, distância aproximada e histórico para o assistente."
-    )
-    perfil = carregar_perfil_usuario(supabase, user_id) or {}
-    default_country = perfil.get("country", "")
-
-    c1, c2 = st.columns(2)
-    with c1:
-        city = st.text_input(
-            "Cidade",
-            value=st.session_state.get("food_city", ""),
-            key="drink_input_city",
-        )
-    with c2:
-        country = st.text_input(
-            "País",
-            value=st.session_state.get("food_country", "") or default_country,
-            key="drink_input_country",
-        )
-    dc_default = st.session_state.get("drink_category_choice", DRINK_CATEGORIES[0])
-    dc_index = DRINK_CATEGORIES.index(dc_default) if dc_default in DRINK_CATEGORIES else 0
-    drink_category = st.selectbox(
-        "Tipo de bebida / estabelecimento",
-        DRINK_CATEGORIES,
-        index=dc_index,
-        help="Cada opção adiciona termos de busca (café, chá, bar, etc.). Em «Outro», descreva livremente.",
-    )
-    st.session_state.drink_category_choice = drink_category
-    query = st.text_input(
-        "Refinar busca (opcional, exceto em «Outro»)",
-        placeholder="Ex.: gelado, artesanal, happy hour, sem álcool",
-        key="drink_query_input",
-    )
-    tier_default = st.session_state.get("drink_price_tier", st.session_state.get("food_price_tier", "Padrão"))
-    tier_index = FOOD_PRICE_TIERS.index(tier_default) if tier_default in FOOD_PRICE_TIERS else 1
-    price_tier = st.selectbox(
-        "Faixa de preço (refina a busca)",
-        FOOD_PRICE_TIERS,
-        index=tier_index,
-        key="drink_price_tier_select",
-        help="Economia: locais simples; Premium: cartas elaboradas, wine bar, coquetelaria.",
-    )
-    st.session_state.drink_price_tier = price_tier
-
-    if st.button("Buscar bebidas", use_container_width=True, key="drink_search_btn"):
-        st.session_state.food_city = city
-        st.session_state.food_country = country
-        options = search_drink_nearby(query, city, country, price_tier, drink_category)
-        if not options:
-            st.warning(
-                "Não encontrei opções agora. Em «Outro» digite o que procura; nos demais tipos você pode deixar só a categoria."
-            )
-        else:
-            item = {
-                "query": query.strip(),
-                "drink_category": drink_category,
-                "city": city.strip(),
-                "country": country.strip(),
-                "price_tier": price_tier,
-                "options": options,
-                "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            }
-            history = st.session_state.get("drink_history") or []
-            st.session_state.drink_history = [item, *history][:20]
-            save_drink_event(
-                supabase,
-                user_id,
-                item["query"],
-                item["city"],
-                item["country"],
-                options,
-                price_tier=price_tier,
-                drink_category=drink_category,
-            )
-            st.success("Opções encontradas! Distância é aproximada (linha reta a partir do centro da cidade).")
-
-    latest = st.session_state.get("drink_history") or []
-    if latest:
-        st.markdown("### Opções recentes")
-        for entry in latest[:3]:
-            cat = entry.get("drink_category", "")
-            qtxt = entry.get("query", "")
-            head = f"{cat}" + (f" — {qtxt}" if qtxt else "")
-            tier_lbl = entry.get("price_tier", "")
-            extra = f" · {tier_lbl}" if tier_lbl else ""
-            st.write(f"**Busca:** {head}{extra}")
-            for opt in entry.get("options", [])[:5]:
-                st.link_button(format_food_option_label(opt), opt.get("link", "#"))
-
-
-def render_shopping_page(supabase: Client | None, user_id: str) -> None:
-    st.title("Compras online")
-    st.caption(
-        "Eletrodomésticos, roupas, calçados, eletrônicos e dezenas de categorias — atalhos para "
-        "Google Shopping e marketplaces (sem login no app; você abre no navegador)."
-    )
-    m_default = st.session_state.get("shop_market", "Brasil")
-    m_index = SHOP_MARKETS.index(m_default) if m_default in SHOP_MARKETS else 0
-    market = st.selectbox(
-        "Região dos links",
-        SHOP_MARKETS,
-        index=m_index,
-        help="Ajusta quais lojas aparecem primeiro (Brasil, EUA ou misto).",
-    )
-    st.session_state.shop_market = market
-
-    cat_default = st.session_state.get("shop_category_choice", SHOP_CATEGORY_LABELS[0])
-    cat_index = SHOP_CATEGORY_LABELS.index(cat_default) if cat_default in SHOP_CATEGORY_LABELS else 0
-    shop_category = st.selectbox(
-        "Categoria do produto",
-        SHOP_CATEGORY_LABELS,
-        index=cat_index,
-    )
-    st.session_state.shop_category_choice = shop_category
-
-    query = st.text_input(
-        "O que você procura?",
-        placeholder="Ex.: geladeira inverse 400L, camisa social slim, tênis corrida 42",
-        key="shop_query_input",
-    )
-    tier_default = st.session_state.get("shop_price_tier", st.session_state.get("food_price_tier", "Padrão"))
-    tier_index = FOOD_PRICE_TIERS.index(tier_default) if tier_default in FOOD_PRICE_TIERS else 1
-    price_tier = st.selectbox(
-        "Faixa de preço (refina os termos de busca)",
-        FOOD_PRICE_TIERS,
-        index=tier_index,
-        key="shop_price_tier_select",
-        help="Economia enfatiza ofertas; Premium enfatiza linhas mais caras ou importadas.",
-    )
-    st.session_state.shop_price_tier = price_tier
-
-    if st.button("Gerar atalhos de compra", use_container_width=True, key="shop_search_btn"):
-        options = search_online_products(query, shop_category, price_tier, market)
-        if not options:
-            st.warning('Em «Outro» descreva o produto. Nas demais categorias, refine ou deixe só a categoria.')
-        else:
-            item = {
-                "query": query.strip(),
-                "shop_category": shop_category,
-                "price_tier": price_tier,
-                "market": market,
-                "options": options,
-                "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-            }
-            history = st.session_state.get("shopping_history") or []
-            st.session_state.shopping_history = [item, *history][:30]
-            save_shopping_event(
-                supabase,
-                user_id,
-                item["query"],
-                options,
-                price_tier=price_tier,
-                shop_category=shop_category,
-                market_region=market,
-            )
-            st.success("Atalhos prontos. Use os botões abaixo para comparar em cada loja.")
-
-    latest = st.session_state.get("shopping_history") or []
-    if latest:
-        st.markdown("### Buscas recentes")
-        for entry in latest[:3]:
-            cat = entry.get("shop_category", "")
-            qtxt = entry.get("query", "")
-            head = f"{cat}" + (f" — {qtxt}" if qtxt else "")
-            mk = entry.get("market", "")
-            tier_lbl = entry.get("price_tier", "")
-            extra = " · ".join(x for x in [mk, tier_lbl] if x)
-            st.write(f"**{head}**" + (f" ({extra})" if extra else ""))
-            for opt in entry.get("options", [])[:6]:
-                st.link_button(format_food_option_label(opt), opt.get("link", "#"))
-
-
-def render_travel_page(supabase: Client | None, user_id: str) -> None:
-    st.title("Viagens e hospedagem")
-    st.caption(
-        "Hotéis, pousadas, apartamentos temporários e pacotes (voo + hotel): atalhos para Google Travel, "
-        "Booking, voos e buscas em agências — você fecha a reserva no site da companhia ou agência."
-    )
-    m_default = st.session_state.get("travel_market", "Brasil")
-    m_index = SHOP_MARKETS.index(m_default) if m_default in SHOP_MARKETS else 0
-    market = st.selectbox(
-        "Região dos links (agências / contexto)",
-        SHOP_MARKETS,
-        index=m_index,
-        key="travel_market_select",
-        help="Inclui sugestão de busca focada em operadoras brasileiras quando for Brasil ou Global.",
-    )
-    st.session_state.travel_market = market
-
-    mode_default = st.session_state.get("travel_mode_choice", TRAVEL_MODES[0])
-    mode_index = TRAVEL_MODES.index(mode_default) if mode_default in TRAVEL_MODES else 0
-    travel_mode = st.radio(
-        "O que buscar primeiro?",
-        TRAVEL_MODES,
-        index=mode_index,
-        horizontal=True,
-        key="travel_mode_radio",
-    )
-    st.session_state.travel_mode_choice = travel_mode
-
-    sub_labels = HOTEL_SUB_LABELS if travel_mode == "Hospedagem" else PKG_SUB_LABELS
-    cat_default = st.session_state.get("travel_subcategory_choice", sub_labels[0])
-    if cat_default not in sub_labels:
-        cat_default = sub_labels[0]
-    sub_index = sub_labels.index(cat_default)
-    subcategory = st.selectbox(
-        "Tipo de hospedagem" if travel_mode == "Hospedagem" else "Tipo de pacote / viagem",
-        sub_labels,
-        index=sub_index,
-        key="travel_subcategory_select",
-    )
-    st.session_state.travel_subcategory_choice = subcategory
-
-    destination = st.text_input(
-        "Destino",
-        placeholder="Ex.: Porto de Galinhas, Paris, Tóquio, Cruzeiro pelo Caribe",
-        key="travel_destination_input",
-    )
-    origin_hint = st.text_input(
-        "Origem (opcional; ajuda em pacotes e voos)",
-        placeholder="Ex.: São Paulo, Brasília",
-        key="travel_origin_input",
-    )
-    extra = st.text_input(
-        "Datas, duração ou preferências (opcional)",
-        placeholder="Ex.: carnaval 2026, 5 noites, aceita pet, all inclusive",
-        key="travel_extra_input",
-    )
-
-    tier_default = st.session_state.get("travel_price_tier", st.session_state.get("food_price_tier", "Padrão"))
-    tier_index = FOOD_PRICE_TIERS.index(tier_default) if tier_default in FOOD_PRICE_TIERS else 1
-    price_tier = st.selectbox(
-        "Faixa de preço / estilo (refina a busca)",
-        FOOD_PRICE_TIERS,
-        index=tier_index,
-        key="travel_price_tier_select",
-        help="Economia: hospedagem econômica e ofertas; Premium: alto padrão, resorts e experiências.",
-    )
-    st.session_state.travel_price_tier = price_tier
-
-    if st.button("Gerar atalhos de viagem", use_container_width=True, key="travel_search_btn"):
-        if not destination.strip():
-            st.warning("Informe pelo menos o destino (cidade, região ou país).")
-        else:
-            options = search_travel_links(
-                travel_mode,
-                subcategory,
-                destination,
-                origin_hint,
-                extra,
-                price_tier,
-                market,
-            )
-            if not options:
-                st.warning("Não foi possível montar links. Verifique o destino e tente de novo.")
-            else:
-                item = {
-                    "destination": destination.strip(),
-                    "origin_hint": origin_hint.strip(),
-                    "query": extra.strip(),
-                    "travel_mode": travel_mode,
-                    "travel_subcategory": subcategory,
-                    "price_tier": price_tier,
-                    "market": market,
-                    "options": options,
-                    "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
-                }
-                history = st.session_state.get("travel_history") or []
-                st.session_state.travel_history = [item, *history][:30]
-                save_travel_event(
-                    supabase,
-                    user_id,
-                    item["destination"],
-                    item["query"],
-                    options,
-                    price_tier=price_tier,
-                    travel_mode=travel_mode,
-                    travel_subcategory=subcategory,
-                    market_region=market,
-                    origin_hint=item["origin_hint"],
-                )
-                st.success("Atalhos prontos. Confira datas e políticas direto em cada site antes de pagar.")
-
-    latest = st.session_state.get("travel_history") or []
-    if latest:
-        st.markdown("### Buscas recentes")
-        for entry in latest[:3]:
-            st.write(f"**{_travel_entry_label(entry)}**")
-            for opt in entry.get("options", [])[:7]:
-                st.link_button(format_food_option_label(opt), opt.get("link", "#"))
-
-
 def _api_ready() -> bool:
     return bool(effective_gemini_api_key())
 
@@ -3734,7 +4507,9 @@ def _bubble_html(role: str, content: str) -> str:
         (a["name"] for a in AVATAR_OPTIONS if a["id"] == st.session_state.get("assistant_avatar_id")),
         "Ego-AI",
     )
-    label = "Você" if role == "user" else avatar_name
+    alias = (st.session_state.get("ego_assistant_display_name") or "").strip()
+    assistant_label = _sanitize_display_name(alias, max_len=48) or avatar_name
+    label = "Você" if role == "user" else html.escape(str(assistant_label))
     safe = html.escape(content or "").replace("\n", "<br/>")
     cls = "user" if role == "user" else "assistant"
     return (
@@ -3765,7 +4540,7 @@ def render_chat_history_html() -> str:
 
 
 def render_dashboard(supabase: Client | None, user_id: str) -> None:
-    name = st.session_state.get("user_name") or "você"
+    name = _resolved_user_display_name() or "você"
     st.markdown(
         f"""
         <div class="ego-hero">
@@ -3794,9 +4569,7 @@ def render_dashboard(supabase: Client | None, user_id: str) -> None:
         )
 
     with c2:
-        agenda_items = list_upcoming_reminders(
-            supabase, user_id, hours_back=0, hours_ahead=168
-        )[:5]
+        agenda_items = list_upcoming_reminders(supabase, user_id)[:5]
         if agenda_items:
             lis = "".join(
                 f"<li>{html.escape(str(r.get('title', 'Lembrete')))} — "
@@ -3843,121 +4616,109 @@ def render_dashboard(supabase: Client | None, user_id: str) -> None:
     st.markdown(
         """
         <div class="ego-card" style="margin-top:1rem;">
-            <div class="ego-card-title">Sugestões rápidas — comida, bebidas, bares, compras e viagens</div>
-            <p style="color:#9ca3af;font-size:0.88rem;margin:0 0 0.5rem 0;">
-                Top 3 por sessão: mapa (comida, bebidas, bares/restaurantes), shopping e viagens.
+            <div class="ego-card-title">Chat com PDF e lembretes</div>
+            <p style="color:#9ca3af;font-size:0.88rem;margin:0;">
+                Use a barra lateral para carregar PDFs e o chat para perguntas.
+                Lembretes: peça no chat ou em <strong>Agenda e lembretes</strong>.
             </p>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    dash_food, dash_drink, dash_shop = st.columns(3)
-    top_food = food_history_top_queries(3)
-    with dash_food:
-        st.markdown("**Comida**")
-        if not top_food:
-            st.caption("Use **Comida Perto**.")
-        else:
-            cols = st.columns(min(3, len(top_food)))
-            for i, (fq, n) in enumerate(top_food):
-                with cols[i]:
-                    st.metric(label=fq[:28] + ("…" if len(fq) > 28 else ""), value=f"{n}×" if n > 1 else "1×")
-                    st.link_button("Mapa", food_dashboard_maps_url(fq), use_container_width=True)
-    top_drink = drink_history_top_queries(3)
-    with dash_drink:
-        st.markdown("**Bebidas**")
-        if not top_drink:
-            st.caption("Use **Bebidas Perto**.")
-        else:
-            cols = st.columns(min(3, len(top_drink)))
-            for i, (dq, n) in enumerate(top_drink):
-                with cols[i]:
-                    short = dq[:28] + ("…" if len(dq) > 28 else "")
-                    st.metric(label=short, value=f"{n}×" if n > 1 else "1×")
-                    st.link_button("Mapa", food_dashboard_maps_url(dq), use_container_width=True)
-    top_shop = shopping_history_top_queries(3)
-    with dash_shop:
-        st.markdown("**Compras online**")
-        if not top_shop:
-            st.caption("Use **Compras online**.")
-        else:
-            cols = st.columns(min(3, len(top_shop)))
-            for i, (sq, n) in enumerate(top_shop):
-                with cols[i]:
-                    short = sq[:28] + ("…" if len(sq) > 28 else "")
-                    st.metric(label=short, value=f"{n}×" if n > 1 else "1×")
-                    st.link_button("Shopping", shopping_dashboard_search_url(sq), use_container_width=True)
 
-    st.markdown(
-        """
-        <div class="ego-card" style="margin-top:0.85rem;">
-            <div class="ego-card-title">Bares, pubs e restaurantes — top 3 da sessão</div>
-            <p style="color:#9ca3af;font-size:0.88rem;margin:0 0 0.5rem 0;">
-                Mesmo mapa e cidade/país usados em Comida Perto.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    top_nl = nightlife_history_top_queries(3)
-    if not top_nl:
-        st.caption("Use **Bares e restaurantes** na barra lateral para ver aqui seus tipos de lugar mais buscados.")
-    else:
-        cols_nl = st.columns(min(3, len(top_nl)))
-        for i, (nq, n) in enumerate(top_nl):
-            with cols_nl[i]:
-                short = nq[:32] + ("…" if len(nq) > 32 else "")
-                st.metric(label=short, value=f"{n}×" if n > 1 else "1×")
-                st.link_button("Mapa", food_dashboard_maps_url(nq), use_container_width=True)
 
-    st.markdown(
-        """
-        <div class="ego-card" style="margin-top:0.85rem;">
-            <div class="ego-card-title">Viagens e hospedagem — top 3 da sessão</div>
-            <p style="color:#9ca3af;font-size:0.88rem;margin:0 0 0.5rem 0;">
-                Reabre uma busca semelhante na web (hotéis / pacotes).
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-    top_travel = travel_history_top_queries(3)
-    if not top_travel:
-        st.caption("Use **Viagens e hospedagem** na barra lateral para ver aqui seus destinos mais buscados.")
+def build_user_agenda_context_for_llm(
+    supabase: Client | None, user_id: str
+) -> str:
+    """Carrega agenda + lembretes do Supabase e injeta no system prompt do Gemini."""
+    if not supabase or not user_id:
+        return (
+            "\n\n=== CURRENT USER AGENDA ===\n"
+            "(not logged in — cannot read calendar)\n"
+            "=== END AGENDA ===\n"
+        )
+    if not ensure_supabase_auth_client(supabase):
+        return (
+            "\n\n=== CURRENT USER AGENDA ===\n"
+            "(session expired — ask the user to log out and log in again to sync calendar)\n"
+            "=== END AGENDA ===\n"
+        )
+    recurring = fetch_user_agenda_rows(supabase, user_id)
+    reminders = list_upcoming_reminders(supabase, user_id)
+    now_local = _local_now()
+    today_lbl = now_local.strftime("%d/%m/%Y %H:%M")
+    wk = DOW_PT_ORDER[now_local.weekday()]
+    lines = [
+        "",
+        "=== CURRENT USER AGENDA (Supabase — authoritative for this user) ===",
+        f"Loaded at local time: {today_lbl} (weekday code today: {wk})",
+        "Recurring rows are in table `agenda`; one-off meetings/alarms in `reminders`.",
+        "",
+    ]
+    if recurring:
+        lines.append("Recurring weekly habits:")
+        for row in recurring[:35]:
+            tit = (row.get("titulo") or "—").strip()
+            hor = str(row.get("horario") or "")[:5]
+            dias = row.get("dias_da_semana") or ""
+            today_mark = " [TODAY]" if wk in {d.strip() for d in str(dias).lower().split(",")} else ""
+            lines.append(f"  - {tit} | {hor} | days: {dias}{today_mark}")
     else:
-        cols_t = st.columns(min(3, len(top_travel)))
-        for i, (tq, n) in enumerate(top_travel):
-            with cols_t[i]:
-                short = tq[:32] + ("…" if len(tq) > 32 else "")
-                st.metric(label=short, value=f"{n}×" if n > 1 else "1×")
-                st.link_button("Buscar de novo", travel_dashboard_open_url(tq), use_container_width=True)
+        lines.append("Recurring weekly habits: (none)")
+    lines.append("")
+    if reminders:
+        lines.append(f"One-off meetings / reminders (next {AGENDA_HORIZON_DAYS} days):")
+        for row in reminders[:45]:
+            tit = (row.get("title") or "—").strip()
+            sch = _parse_ts_iso(row.get("scheduled_at"))
+            if sch:
+                when = sch.astimezone().strftime("%d/%m/%Y %H:%M %Z")
+            else:
+                when = str(row.get("scheduled_at") or "—")
+            extra = ""
+            sn = _parse_ts_iso(row.get("snooze_until"))
+            if sn:
+                extra = f" | snoozed until {sn.astimezone().strftime('%d/%m %H:%M')}"
+            lines.append(f"  - {tit} | {when}{extra}")
+    else:
+        lines.append(f"One-off meetings / reminders: (none in the next {AGENDA_HORIZON_DAYS} days)")
+    lines.append("=== END AGENDA ===")
+    return "\n".join(lines)
 
 
 def _build_contexto_instrucao_pdf(pdf_context: str) -> str:
-    """Como no seu exemplo: instrução + trecho limitado dos PDFs (não vai no prompt do usuário)."""
+    """Trecho curto no system prompt (até PDF_CONTEXT_IN_SYSTEM_CHARS) — RAG leve."""
     raw = (pdf_context or "").strip()
     if not raw:
         return ""
     snippet = raw[:PDF_CONTEXT_IN_SYSTEM_CHARS]
     suffix = (
-        "\n\n(Conteúdo truncado aos primeiros "
-        f"{PDF_CONTEXT_IN_SYSTEM_CHARS} caracteres para limitar tokens.)"
+        f"\n\n(O documento completo é maior; aqui há só os primeiros "
+        f"{PDF_CONTEXT_IN_SYSTEM_CHARS} caracteres. Resuma o essencial e diga se faltar contexto.)"
         if len(raw) > PDF_CONTEXT_IN_SYSTEM_CHARS
         else ""
     )
     return (
-        "\n\nBaseie sua resposta no seguinte conteúdo extraído de documentos:\n"
+        "\n\nContexto opcional de documento (início do ficheiro):\n"
         f"{snippet}{suffix}"
     )
 
 
-def _build_full_system_instruction(pdf_context: str, lang_code: str = "pt-BR") -> str:
+def _build_full_system_instruction(
+    pdf_context: str,
+    lang_code: str = "pt-BR",
+    *,
+    agenda_context: str = "",
+) -> str:
     return (
         GEMINI_SYSTEM_INSTRUCTION
         + language_instruction(lang_code)
+        + names_and_identity_instruction()
+        + client_datetime_context_instruction()
         + _build_contexto_instrucao_pdf(pdf_context)
-        + build_food_hint()
         + reminder_instruction_block()
+        + agenda_instruction_block()
+        + (agenda_context or "")
     )
 
 
@@ -3984,21 +4745,27 @@ def _normalize_gemini_model_id(model_name: str) -> str:
     return m
 
 
-def _gemini_15_variant_list() -> list[str]:
-    """Variações de nome (com e sem prefixo) só para 1.5 Pro / Flash, na ordem preferida."""
-    pref = st.session_state.get("gemini_model_preference") or GEMINI_15_MODEL_PRO
-    if pref not in GEMINI_15_MODEL_IDS:
-        pref = GEMINI_15_MODEL_PRO
-    other = GEMINI_15_MODEL_FLASH if pref == GEMINI_15_MODEL_PRO else GEMINI_15_MODEL_PRO
+def _gemini_variant_list() -> list[str]:
+    """Variações de nome (com e sem prefixo models/) na ordem preferida."""
+    pref = st.session_state.get("gemini_model_preference") or GEMINI_MODEL_FLASH
+    if pref not in GEMINI_MODEL_IDS:
+        pref = GEMINI_MODEL_FLASH
+    other = GEMINI_MODEL_PRO if pref == GEMINI_MODEL_FLASH else GEMINI_MODEL_FLASH
     out: list[str] = []
-    for mid in (pref, other):
-        out.extend([mid, f"models/{mid}"])
+    for mid in (pref, other, f"models/{pref}", f"models/{other}"):
+        if mid not in out:
+            out.append(mid)
     return out
 
 
-def _is_gemini_15_listed_name(name: str) -> bool:
-    n = _normalize_gemini_model_id(name)
-    return n in GEMINI_15_MODEL_IDS
+def _is_gemini_chat_model_name(name: str) -> bool:
+    n = _normalize_gemini_model_id(name).lower()
+    if n in GEMINI_MODEL_IDS:
+        return True
+    if "gemini" not in n:
+        return False
+    blocked = ("image", "tts", "embedding", "aqa", "vision")
+    return not any(b in n for b in blocked)
 
 
 def _linearize_messages_for_fallback(messages: list, last_user: str) -> str:
@@ -4017,8 +4784,16 @@ def _linearize_messages_for_fallback(messages: list, last_user: str) -> str:
     return "\n".join(lines)
 
 
-def _generate_with_model(model_name: str, full_system: str, prior_messages: list, user_text: str) -> str:
-    """Uma chamada: system + histórico (chat) ou prompt único (fallback)."""
+def _generate_with_model(
+    model_name: str,
+    full_system: str,
+    prior_messages: list,
+    user_text: str,
+    *,
+    audio_bytes: bytes | None = None,
+    audio_mime: str | None = None,
+) -> str:
+    """Uma chamada: system + histórico (chat) ou prompt único (fallback). Opcional: áudio multimodal."""
     mid = _normalize_gemini_model_id(model_name)
     try:
         model = genai.GenerativeModel(
@@ -4031,22 +4806,60 @@ def _generate_with_model(model_name: str, full_system: str, prior_messages: list
         legacy_prompt_merge = True
 
     history = _messages_to_gemini_history(prior_messages)
+    asst_nm = _resolved_assistant_display_name()
+    voice_intro = (
+        "Em anexo: mensagem de voz do utilizador. Escuta com atenção, responde no mesmo idioma "
+        f"da fala e mantém o tom acolhedor de {asst_nm}."
+    )
+
     if legacy_prompt_merge:
-        blob = _linearize_messages_for_fallback(prior_messages, user_text)
-        prompt = f"{full_system}\n\n{blob}"
-        resp = model.generate_content(prompt)
+        blob = _linearize_messages_for_fallback(prior_messages, user_text or "(voz)")
+        if audio_bytes:
+            prompt = f"{full_system}\n\n{voice_intro}\n\n{blob}"
+            resp = model.generate_content(
+                [prompt, {"mime_type": audio_mime or "audio/wav", "data": audio_bytes}]
+            )
+        else:
+            prompt = f"{full_system}\n\n{blob}"
+            resp = model.generate_content(prompt)
         st.session_state["gemini_model_ok"] = mid
         return resp.text or ""
 
     if history:
         try:
             chat = model.start_chat(history=history)
-            resp = chat.send_message(user_text)
+            if audio_bytes:
+                parts: list[object] = []
+                if (user_text or "").strip():
+                    parts.append((user_text or "").strip())
+                parts.append(voice_intro)
+                parts.append({"mime_type": audio_mime or "audio/wav", "data": audio_bytes})
+                resp = chat.send_message(parts)
+            else:
+                resp = chat.send_message(user_text)
         except Exception:  # noqa: BLE001
-            blob = _linearize_messages_for_fallback(prior_messages, user_text)
-            resp = model.generate_content(blob)
+            blob = _linearize_messages_for_fallback(
+                prior_messages, user_text or "(mensagem de voz)"
+            )
+            if audio_bytes:
+                resp = model.generate_content(
+                    [
+                        f"{full_system}\n\n{blob}\n\n{voice_intro}",
+                        {"mime_type": audio_mime or "audio/wav", "data": audio_bytes},
+                    ]
+                )
+            else:
+                resp = model.generate_content(blob)
     else:
-        resp = model.generate_content(user_text)
+        if audio_bytes:
+            parts2: list[object] = []
+            if (user_text or "").strip():
+                parts2.append((user_text or "").strip())
+            parts2.append(voice_intro)
+            parts2.append({"mime_type": audio_mime or "audio/wav", "data": audio_bytes})
+            resp = model.generate_content(parts2)
+        else:
+            resp = model.generate_content(user_text)
 
     st.session_state["gemini_model_ok"] = mid
     return resp.text or ""
@@ -4059,8 +4872,11 @@ def run_gemini_reply(
     *,
     conversation_messages: list | None = None,
     lang_code: str = "pt-BR",
+    audio_bytes: bytes | None = None,
+    audio_mime: str | None = None,
+    agenda_context: str = "",
 ) -> str:
-    """Envia ao Gemini 1.5 (Pro ou Flash): instrução de sistema (incl. PDF até 4000 chars) + histórico de chat."""
+    """Gemini: system (PDF até N chars) + histórico; opcionalmente áudio multimodal."""
     if not genai:
         return "Instale o pacote `google-generativeai` (veja requirements.txt)."
     if not api_key.strip():
@@ -4071,64 +4887,57 @@ def run_gemini_reply(
 
     msgs = conversation_messages if conversation_messages is not None else []
     prior = msgs[:-1] if msgs else []
+    if len(prior) > CHAT_LLM_MAX_TURNS:
+        prior = prior[-CHAT_LLM_MAX_TURNS:]
 
-    full_system = _build_full_system_instruction(pdf_context, lang_code)
+    full_system = _build_full_system_instruction(
+        pdf_context, lang_code, agenda_context=agenda_context
+    )
 
     try:
         genai.configure(api_key=api_key.strip())
-        listed_supported = []
-        try:
-            listed_supported = [
-                m.name
-                for m in genai.list_models()
-                if hasattr(m, "supported_generation_methods")
-                and "generateContent" in m.supported_generation_methods
-            ]
-        except Exception:
-            listed_supported = []
+        listed_supported = _cached_gemini_models_list()
 
-        preferred_variants = _gemini_15_variant_list()
+        preferred_variants = _gemini_variant_list()
+        listed_chat = [n for n in listed_supported if _is_gemini_chat_model_name(n)]
 
         chosen_model = st.session_state.get("gemini_model_ok")
         if chosen_model:
             cm = _normalize_gemini_model_id(str(chosen_model))
-            if cm not in GEMINI_15_MODEL_IDS:
+            if not _is_gemini_chat_model_name(cm):
                 chosen_model = None
             elif listed_supported and chosen_model not in listed_supported:
-                # list_models usa por vezes só o formato `models/...`
                 alt = f"models/{cm}" if not str(chosen_model).startswith("models/") else cm
-                if alt in listed_supported:
-                    chosen_model = alt
-                else:
-                    chosen_model = None
+                chosen_model = alt if alt in listed_supported else None
 
         if not chosen_model:
-            listed_15 = [n for n in listed_supported if _is_gemini_15_listed_name(n)]
             for preferred in preferred_variants:
                 if preferred in listed_supported:
                     chosen_model = preferred
                     break
-            if not chosen_model and listed_15:
-                chosen_model = listed_15[0]
+            if not chosen_model and listed_chat:
+                chosen_model = listed_chat[0]
             if not chosen_model:
-                chosen_model = st.session_state.get("gemini_model_preference") or GEMINI_15_MODEL_PRO
-                if chosen_model not in GEMINI_15_MODEL_IDS:
-                    chosen_model = GEMINI_15_MODEL_PRO
+                chosen_model = (
+                    st.session_state.get("gemini_model_preference") or GEMINI_MODEL_FLASH
+                )
             st.session_state["gemini_model_ok"] = _normalize_gemini_model_id(str(chosen_model))
 
-        model_try_order: list[str] = [chosen_model]
-        for name in [*preferred_variants, *listed_supported]:
-            if name not in model_try_order and _is_gemini_15_listed_name(name):
-                model_try_order.append(name)
-        for name in preferred_variants:
-            if name not in model_try_order:
+        model_try_order: list[str] = []
+        for name in [chosen_model, *preferred_variants, *listed_chat, "models/gemini-flash-latest"]:
+            if name and name not in model_try_order and _is_gemini_chat_model_name(name):
                 model_try_order.append(name)
 
         last_error = None
         for model_name in model_try_order:
             try:
                 text = _generate_with_model(
-                    model_name, full_system, prior, user_text
+                    model_name,
+                    full_system,
+                    prior,
+                    user_text,
+                    audio_bytes=audio_bytes,
+                    audio_mime=audio_mime,
                 )
                 if text:
                     return text
@@ -4137,51 +4946,216 @@ def run_gemini_reply(
                 last_error = model_err
                 continue
 
+        err_s = str(last_error)
+        if "404" in err_s and "gemini-1.5" in err_s:
+            return (
+                "Os modelos Gemini 1.5 já não estão disponíveis na API. "
+                "Atualize a app e escolha **Gemini 2.5 Flash** na barra lateral."
+            )
+        if "429" in err_s or "quota" in err_s.lower():
+            return (
+                "Cota da API Gemini esgotada (429). Crie outra chave em "
+                "https://aistudio.google.com/apikey ou ative faturação no Google AI."
+            )
         return f"Erro ao chamar o Gemini: {last_error}"
     except Exception as e:  # noqa: BLE001
+        err_s = str(e)
+        if "429" in err_s or "quota" in err_s.lower():
+            return (
+                "Cota da API Gemini esgotada. Verifique limites em "
+                "https://ai.google.dev/gemini-api/docs/rate-limits"
+            )
         return f"Erro ao chamar o Gemini: {e}"
 
 
+def _ego_process_chat_turn(
+    supabase: Client | None,
+    user_id: str,
+    user_display: str,
+    *,
+    audio_bytes: bytes | None = None,
+    audio_mime: str | None = None,
+    mark_voice_sig: int | None = None,
+) -> None:
+    """Texto ou voz: limites, Gemini, marcadores, Supabase, rerun."""
+    is_pro_chat = bool((get_profile_cached(supabase, user_id) or {}).get("is_pro"))
+    ok_tok, msg_tok, used_tok, lim_tok = check_monthly_token_allowance(
+        supabase, user_id, is_pro_chat
+    )
+    if not ok_tok:
+        st.error(msg_tok)
+        st.caption(f"Uso aproximado no mês: {used_tok:,} / {lim_tok:,} tokens.")
+        return
+    if mark_voice_sig is not None:
+        st.session_state["_ego_voice_done_sig"] = mark_voice_sig
+
+    if audio_bytes:
+        detected_lang = str(st.session_state.get("last_detected_language", "pt-BR"))
+        confidence = float(st.session_state.get("last_detected_confidence", 0.0))
+    else:
+        detected_lang, confidence = detect_user_language_with_confidence(user_display)
+    st.session_state.last_detected_language = detected_lang
+    st.session_state.last_detected_confidence = confidence
+    mid_u: str | None = None
+    if user_id and supabase:
+        mid_u = salvar_mensagem_segura(supabase, user_id, "user", user_display)
+    st.session_state.messages.append({"role": "user", "content": user_display, "msg_id": mid_u})
+    pdf_ctx = st.session_state.get("pdf_context") or ""
+    if user_id and supabase:
+        refresh_user_agenda_snapshot(supabase, user_id)
+    agenda_ctx = build_user_agenda_context_for_llm(supabase, user_id)
+
+    with st.spinner("A pensar…"):
+        reply = run_gemini_reply(
+            effective_gemini_api_key(),
+            user_display if not audio_bytes else "",
+            pdf_ctx,
+            conversation_messages=st.session_state.messages,
+            lang_code=detected_lang,
+            audio_bytes=audio_bytes,
+            audio_mime=audio_mime,
+            agenda_context=agenda_ctx,
+        )
+    reply_clean = process_assistant_reminders(supabase, user_id, reply)
+    reply_clean = process_assistant_agenda(supabase, user_id, reply_clean)
+    st.session_state.pop("_ego_daily_limit_ts", None)
+    st.session_state.pop("_ego_profile_cache", None)
+    mid_a: str | None = None
+    if user_id and supabase:
+        mid_a = salvar_mensagem_segura(supabase, user_id, "assistant", reply_clean)
+        tok_n = count_turn_tokens(user_display, reply_clean)
+        add_monthly_tokens_to_profile(supabase, user_id, tok_n, is_pro_chat)
+    st.session_state.messages.append(
+        {"role": "assistant", "content": reply_clean, "msg_id": mid_a}
+    )
+    if st.session_state.get("ego_voice_replies", True):
+        st.session_state["_ego_tts_play_index"] = len(st.session_state.messages) - 1
+    st.rerun()
+
+
+def _ego_apply_name_onboarding_submit(
+    supabase: Client, user_id: str, *, use_suggestions: bool
+) -> None:
+    gname = (st.session_state.get("global_user_name") or "").strip()
+    if use_suggestions:
+        u_ok = _sanitize_display_name(gname, max_len=80) or "Amigo(a)"
+        a_ok = "EGO-AI"
+    else:
+        u_ok = _sanitize_display_name(
+            str(st.session_state.get("ego_onb_user_name") or ""), max_len=80
+        )
+        if not u_ok:
+            u_ok = _sanitize_display_name(gname, max_len=80) or "Amigo(a)"
+        a_ok = (
+            _sanitize_display_name(
+                str(st.session_state.get("ego_onb_asst_name") or ""), max_len=48
+            )
+            or "EGO-AI"
+        )
+    st.session_state["user_name"] = u_ok
+    st.session_state["ego_assistant_display_name"] = a_ok
+    st.session_state["display_name_input"] = u_ok
+    st.session_state["ego_assistant_display_name_input"] = a_ok
+    st.session_state["ego_name_setup_done"] = True
+    save_ui_state_to_profile(supabase, user_id, build_ui_state_payload())
+    pl = build_ui_state_payload()
+    st.session_state["_ego_ui_state_saved_sig"] = json.dumps(
+        pl, ensure_ascii=False, sort_keys=True
+    )
+    st.rerun()
+
+
+@st.dialog("Como nos tratamos?")
+def _ego_name_onboarding_dialog(supabase: Client, user_id: str) -> None:
+    st.markdown(
+        "Indica **o teu nome** e **como queres chamar o assistente**. "
+        "Isto fica guardado no teu perfil — podes mudar a qualquer momento na barra lateral, "
+        "em **👤 Perfil e ficheiros**."
+    )
+    gname = (st.session_state.get("global_user_name") or "").strip()
+    du = (st.session_state.get("user_name") or "").strip() or gname
+    da = (st.session_state.get("ego_assistant_display_name") or "").strip() or "EGO-AI"
+    if "ego_onb_user_name" not in st.session_state:
+        st.session_state["ego_onb_user_name"] = du
+    if "ego_onb_asst_name" not in st.session_state:
+        st.session_state["ego_onb_asst_name"] = da
+    st.text_input("O teu nome (como te chamo)", max_chars=80, key="ego_onb_user_name")
+    st.text_input(
+        "Nome do assistente",
+        max_chars=48,
+        key="ego_onb_asst_name",
+        help="Ex.: EGO-AI, Alex, Luna…",
+    )
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("Guardar e continuar", type="primary", use_container_width=True):
+            _ego_apply_name_onboarding_submit(supabase, user_id, use_suggestions=False)
+    with c2:
+        if st.button("Usar sugestões", use_container_width=True):
+            _ego_apply_name_onboarding_submit(supabase, user_id, use_suggestions=True)
+
+
+def maybe_ego_name_onboarding(supabase: Client | None, user_id: str | None) -> None:
+    if not supabase or not user_id:
+        return
+    if not st.session_state.get("_ego_session_boot_done"):
+        return
+    if st.session_state.get("ego_name_setup_done"):
+        return
+    _ego_name_onboarding_dialog(supabase, user_id)
+
+
 def render_chat(supabase: Client | None, user_id: str) -> None:
-    st.markdown('<div class="ego-chat-wrap"><h3>EGO-AI Global Agent</h3></div>', unsafe_allow_html=True)
-    lang = st.session_state.get("last_detected_language", "pt-BR")
-    conf = float(st.session_state.get("last_detected_confidence", 0.0))
-    st.caption(f"Idioma detectado: {lang} · confiança: {conf:.0%}")
+    asst = _resolved_assistant_display_name()
+    st.markdown(
+        f'<p class="ego-brand-min">{html.escape(asst)}</p>',
+        unsafe_allow_html=True,
+    )
+    who = _resolved_user_display_name()
+    if who:
+        st.caption(f"Aqui por ti, «{who}» — estou aqui como «{asst}».")
+    else:
+        st.caption(f"Fala com «{asst}» quando quiseres.")
+    reminder_warn = st.session_state.pop("_ego_reminder_warn", None)
+    if reminder_warn:
+        st.warning(str(reminder_warn))
+    st.toggle(
+        f"Ouvir {asst} (voz no browser)",
+        key="ego_voice_replies",
+        help="Desliga em sítios em silêncio: só vês a resposta escrita. Ligado = texto + leitura em voz.",
+    )
+    render_tts_controls()
     msgs = st.session_state.get("messages") or []
-    if msgs:
-        ex1, ex2 = st.columns(2)
-        fn = f"ego_chat_{datetime.date.today().isoformat()}"
-        with ex1:
+    with st.expander("Exportar conversa", expanded=False):
+        if msgs:
             st.download_button(
-                "Exportar conversa (TXT)",
+                "TXT",
                 data=build_chat_export_txt(msgs),
-                file_name=f"{fn}.txt",
+                file_name=f"ego_chat_{datetime.date.today().isoformat()}.txt",
                 mime="text/plain; charset=utf-8",
-                use_container_width=True,
                 key="ego_export_txt",
             )
-        with ex2:
-            pdf_bytes = build_chat_export_pdf_bytes(msgs)
-            if pdf_bytes:
-                st.download_button(
-                    "Exportar conversa (PDF)",
-                    data=pdf_bytes,
-                    file_name=f"{fn}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    key="ego_export_pdf",
-                )
-            else:
-                st.caption("Instale `reportlab` para exportar PDF.")
+        else:
+            st.caption("Sem mensagens ainda.")
+        if not effective_gemini_api_key():
+            st.caption("Configura `GOOGLE_API_KEY` nos secrets do Streamlit Cloud ou no `.env`.")
 
     try:
-        with st.container(height=420, border=False):
+        with st.container(height=520, border=False):
             render_chat_messages_with_feedback(supabase, user_id)
     except TypeError:
-        with st.container():
-            render_chat_messages_with_feedback(supabase, user_id)
+        render_chat_messages_with_feedback(supabase, user_id)
 
-    acesso_liberado, _status = verificar_acesso(supabase, user_id)
+    pending_tts = st.session_state.pop("_ego_tts_pending", None)
+    if isinstance(pending_tts, dict) and pending_tts.get("text"):
+        queue_assistant_speech(
+            str(pending_tts["text"]),
+            str(pending_tts.get("key") or "asst_pending"),
+            lang_hint=pending_tts.get("lang"),
+        )
+    render_tts_playback_player()
+
+    acesso_liberado, _status = get_access_cached(supabase, user_id)
     if not acesso_liberado:
         st.error(f"🚨 Seu período de teste de {EGO_TRIAL_DAYS} dias expirou!")
         st.markdown("### Assine o plano Pro para continuar usando o EGO-AI")
@@ -4194,52 +5168,45 @@ def render_chat(supabase: Client | None, user_id: str) -> None:
             st.link_button(f"Plano Anual ({PAYWALL_PRECO_ANUAL})", link_anual, use_container_width=True)
         st.stop()
 
-    pode_enviar, total_hoje = verificar_limite_diario(supabase, user_id)
+    pode_enviar, total_hoje = limite_diario_cached(supabase, user_id)
     if not pode_enviar:
-        st.error("Você atingiu seu limite diário gratuito. Volte amanhã ou mude para o plano Pro.")
-        st.caption(f"Uso de hoje: {total_hoje} / 20 mensagens.")
+        st.error("Limite diário atingido. Volte amanhã ou assine o Pro.")
+        st.caption(f"Hoje: {total_hoje} / 20 mensagens.")
         return
 
-    if prompt := st.chat_input(
-        "Pergunte em qualquer idioma...",
-    ):
-        is_pro_chat = bool((carregar_perfil_usuario(supabase, user_id) or {}).get("is_pro"))
-        ok_tok, msg_tok, used_tok, lim_tok = check_monthly_token_allowance(
-            supabase, user_id, is_pro_chat
-        )
-        if not ok_tok:
-            st.error(msg_tok)
-            st.caption(f"Uso aproximado no mês: {used_tok:,} / {lim_tok:,} tokens.")
-            return
+    audio_rec = None
+    if hasattr(st, "audio_input"):
+        audio_rec = st.audio_input("Mensagem de voz", key="ego_voice_in")
+    voice_buf: bytes | None = None
+    voice_mime: str | None = None
+    if audio_rec is not None:
+        voice_buf = audio_rec.getvalue()
+        voice_mime = getattr(audio_rec, "type", None) or "audio/wav"
+    if audio_rec is not None and voice_buf and not effective_gemini_api_key():
+        st.caption("Configura `GOOGLE_API_KEY` nos secrets para usar a mensagem de voz.")
+    voice_sig = hash(voice_buf) if voice_buf else None
+    voice_pending = bool(
+        voice_buf
+        and effective_gemini_api_key()
+        and voice_sig is not None
+        and st.session_state.get("_ego_voice_done_sig") != voice_sig
+    )
 
-        detected_lang, confidence = detect_user_language_with_confidence(prompt)
-        st.session_state.last_detected_language = detected_lang
-        st.session_state.last_detected_confidence = confidence
-        mid_u: str | None = None
-        if user_id and supabase:
-            mid_u = salvar_mensagem_segura(supabase, user_id, "user", prompt)
-        st.session_state.messages.append(
-            {"role": "user", "content": prompt, "msg_id": mid_u}
-        )
-        pdf_ctx = st.session_state.get("pdf_context") or ""
+    prompt = st.chat_input("Escreve ou grava no microfone…")
 
-        reply = run_gemini_reply(
-            effective_gemini_api_key(),
-            prompt,
-            pdf_ctx,
-            conversation_messages=st.session_state.messages,
-            lang_code=detected_lang,
+    if voice_pending:
+        _ego_process_chat_turn(
+            supabase,
+            user_id,
+            "(mensagem de voz)",
+            audio_bytes=voice_buf,
+            audio_mime=voice_mime,
+            mark_voice_sig=voice_sig,
         )
-        reply_clean = process_assistant_reminders(supabase, user_id, reply)
-        mid_a: str | None = None
-        if user_id and supabase:
-            mid_a = salvar_mensagem_segura(supabase, user_id, "assistant", reply_clean)
-            tok_n = count_turn_tokens(prompt, reply_clean)
-            add_monthly_tokens_to_profile(supabase, user_id, tok_n, is_pro_chat)
-        st.session_state.messages.append(
-            {"role": "assistant", "content": reply_clean, "msg_id": mid_a}
-        )
-        st.rerun()
+        return
+
+    if prompt and prompt.strip():
+        _ego_process_chat_turn(supabase, user_id, prompt.strip())
 
 
 def main() -> None:
@@ -4247,7 +5214,7 @@ def main() -> None:
         page_title="EGO-AI Global",
         page_icon="🤖",
         layout="centered",
-        initial_sidebar_state="expanded",
+        initial_sidebar_state="collapsed",
     )
     init_session()
     inject_styles()
@@ -4261,57 +5228,59 @@ def main() -> None:
         return
     st.session_state.local_mode = False
     if not st.session_state.get("user_logged"):
+        if not st.session_state.get("_ego_browser_auth_read_done"):
+            raw_br = _ego_auth_browser_read()
+            if raw_br:
+                st.session_state["_ego_browser_auth_raw"] = raw_br
+            st.session_state["_ego_browser_auth_read_done"] = True
+            st.rerun()
+        if try_restore_local_auth(supabase):
+            st.rerun()
         login_usuario(supabase)
         return
-    # No início do bloco de usuário logado:
-    if not st.session_state.get("history_loaded"):
-        uid = obter_user_id_logado()
-        if uid and supabase:
-            st.session_state.messages = carregar_historico_do_banco(uid)
-        else:
-            st.session_state.messages = []
-        st.session_state.history_loaded = True
-    if not st.session_state.get("persona_loaded"):
-        uid = obter_user_id_logado()
-        avatar_id, voice_id = load_user_persona(supabase, uid)
-        st.session_state.assistant_avatar_id = avatar_id
-        st.session_state.assistant_voice_id = voice_id
-        st.session_state.persona_loaded = True
     uid = obter_user_id_logado()
     if uid and supabase:
-        maybe_finish_google_oauth_callback(supabase, uid)
-    perfil_nav = carregar_perfil_usuario(supabase, uid) if uid and supabase else None
+        ensure_supabase_auth_client(supabase)
+        bootstrap_logged_in_session(supabase, uid)
+        refresh_user_agenda_snapshot(supabase, uid)
+    else:
+        st.session_state.pop("_ego_agenda_rows_snapshot", None)
+    ensure_user_timezone_from_browser()
+    maybe_ego_name_onboarding(supabase, uid)
+    render_ego_schema_banner()
+    chat_db_warn = st.session_state.pop("_ego_chat_save_warn", None)
+    if chat_db_warn:
+        st.warning(str(chat_db_warn))
+    perfil_nav = get_profile_cached(supabase, uid) if uid and supabase else None
     is_pro_nav = bool((perfil_nav or {}).get("is_pro", False))
     clamp_persona_para_plano_nao_pro(supabase, uid or "", is_pro=is_pro_nav)
     sidebar_settings()
-    acesso_liberado, status = verificar_acesso(supabase, uid) if uid else (False, "Expirado")
+    acesso_liberado, status = get_access_cached(supabase, uid) if uid else (False, "Expirado")
     if acesso_liberado:
         st.sidebar.success(f"Status da Conta: {status}")
+    elif uid and supabase:
+        st.sidebar.error(f"Status: {status}")
+        st.sidebar.caption(
+            f"Trial = {EGO_TRIAL_DAYS} dias desde `profiles.created_at`. "
+            "Para reiniciar: execute `supabase/reset_trial_20_days.sql` no SQL Editor."
+        )
     if uid and supabase:
+        render_recurring_agenda_banner(supabase, uid)
+    nav = st.session_state.get("ego_nav") or "Chat"
+    if nav in ("Chat", "Agenda e lembretes") and uid and supabase:
         render_reminder_alarm_fragment(supabase, uid)
-    if st.session_state.get("ego_nav") == "Políticas":
+    if nav == "Políticas":
         render_policies_page(for_public_login=False)
-    elif st.session_state.get("ego_nav") == "Agenda e lembretes":
+    elif nav == "Agenda e lembretes":
         render_agenda_reminders_page(supabase, uid)
-    elif st.session_state.get("ego_nav") == "Conexões (e-mail, redes, CRM)":
-        render_connections_page(supabase, uid)
-    elif st.session_state.get("ego_nav") == "Meu Perfil":
+    elif nav == "Meu Perfil":
         render_profile(supabase, uid)
-    elif st.session_state.get("ego_nav") == "Meu Avatar":
+    elif nav == "Meu Avatar":
         render_avatar_page(supabase, uid)
-    elif st.session_state.get("ego_nav") == "Comida Perto":
-        render_food_page(supabase, uid)
-    elif st.session_state.get("ego_nav") == "Bares e restaurantes":
-        render_nightlife_page(supabase, uid)
-    elif st.session_state.get("ego_nav") == "Bebidas Perto":
-        render_drink_page(supabase, uid)
-    elif st.session_state.get("ego_nav") == "Compras online":
-        render_shopping_page(supabase, uid)
-    elif st.session_state.get("ego_nav") == "Viagens e hospedagem":
-        render_travel_page(supabase, uid)
     else:
-        render_dashboard(supabase, uid)
         render_chat(supabase, uid)
+    if uid and supabase:
+        maybe_autosave_ui_state(supabase, uid)
     render_trust_footer(authenticated=True)
 
 

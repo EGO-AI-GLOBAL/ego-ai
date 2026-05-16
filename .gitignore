@@ -19,3 +19,10 @@ ENV/
 *.swp
 .DS_Store
 Thumbs.db
+
+# Capacitor (mobile/)
+mobile/node_modules/
+mobile/android/
+mobile/ios/
+mobile/.capacitor/
+mobile/.env

@@ -1,0 +1,11 @@
+-- EGO-AI — criar TODAS as tabelas (histórico, preferências, agenda, lembretes).
+-- No Supabase: SQL Editor → New query → cole TODO o ficheiro
+--   supabase/bootstrap_ego_schema.sql
+-- → Run.
+--
+-- Esse script cria, por utilizador (auth.users.id + RLS):
+--   profiles      — conta, trial/pro, ui_state (preferências)
+--   chat_history  — mensagens do chat
+--   user_personas — avatar e voz
+--   agenda        — hábitos recorrentes (seg–sex, etc.)
+--   reminders     — lembretes pontuais com alarme

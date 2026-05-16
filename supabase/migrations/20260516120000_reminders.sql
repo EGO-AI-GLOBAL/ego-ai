@@ -1,4 +1,4 @@
--- Execute no Supabase → SQL Editor. Tabela de lembretes com alarme (T-10 min e a cada 5 min até T).
+-- EGO-AI: lembretes pontuais (alarmes). Liga cada linha a auth.users via user_id.
 
 create table if not exists public.reminders (
   id uuid primary key default gen_random_uuid(),
@@ -16,24 +16,27 @@ create index if not exists reminders_user_scheduled_idx
 
 alter table public.reminders enable row level security;
 
+drop policy if exists "reminders_select_own" on public.reminders;
 create policy "reminders_select_own"
   on public.reminders for select
   using (auth.uid() = user_id);
 
+drop policy if exists "reminders_insert_own" on public.reminders;
 create policy "reminders_insert_own"
   on public.reminders for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "reminders_update_own" on public.reminders;
 create policy "reminders_update_own"
   on public.reminders for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+drop policy if exists "reminders_delete_own" on public.reminders;
 create policy "reminders_delete_own"
   on public.reminders for delete
   using (auth.uid() = user_id);
 
--- Coluna opcional google_event_id (legado): não usada pela app atual; pode ignorar ou remover.
 alter table public.reminders add column if not exists google_event_id text;
 
 create unique index if not exists reminders_user_gcal_evt_idx

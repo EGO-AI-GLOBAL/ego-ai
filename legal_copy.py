@@ -56,7 +56,7 @@ O tratamento de dados pessoais observa os princípios da **LGPD** e, quando rele
 O responsável pelo tratamento de dados pessoais é a entidade que opera o EGO-AI, identificada nos canais oficiais do Serviço.
 
 ### 2. Dados que tratamos
-Podemos tratar: (a) **dados de conta** (nome, e-mail, país, identificação documental quando exigido); (b) **conteúdo de conversas** e ficheiros enviados (ex.: PDFs); (c) **dados técnicos** (logs, tokens aproximados de uso de IA, feedback 👍/👎); (d) **dados de pagamento** processados por **Stripe** (não armazenamos números completos de cartão no nosso sistema); (e) dados de integrações opcionais (ex.: Google Calendar), se ativadas.
+Podemos tratar: (a) **dados de conta** (nome, e-mail, país, identificação documental quando exigido); (b) **conteúdo de conversas** e ficheiros enviados (ex.: PDFs); (c) **dados técnicos** (logs, tokens aproximados de uso de IA, feedback 👍/👎); (d) **dados de pagamento** processados por **Stripe** (não armazenamos números completos de cartão no nosso sistema); (e) dados de integrações opcionais, se forem ativadas no futuro.
 
 ### 3. Finalidades e bases legais
 Tratamos dados para: prestação do Serviço e execução do contrato; **cumprimento de obrigações legais** (ex.: faturação, KYC quando aplicável); **interesses legítimos** (segurança, prevenção de abuso, métricas agregadas); e, quando exigido, **consentimento** (ex.: marketing, cookies não essenciais).
@@ -100,7 +100,7 @@ Esta política aplica-se a **subscrições pagas do plano Pro** processadas atra
 Sem prejuízo de direitos adicionais previstos na lei aplicável ao consumidor, o Utilizador pode solicitar **reembolso integral da primeira cobrança** do plano Pro **até 7 (sete) dias corridos** após a **data de confirmação da subscrição** (data em que o pagamento inicial é bem-sucedido e o acesso Pro é ativado).
 
 ### 3. Como solicitar
-Envie um pedido através do **e-mail de suporte** ou **WhatsApp Business** indicados na aplicação, com o **e-mail da conta**, **data da compra** e, se possível, o **comprovante ou ID da transação** (Stripe). Analisaremos o pedido e responderemos no prazo comercial razoável.
+Envie um pedido através do **e-mail de suporte** indicado na aplicação, com o **e-mail da conta**, **data da compra** e, se possível, o **comprovante ou ID da transação** (Stripe). Analisaremos o pedido e responderemos no prazo comercial razoável.
 
 ### 4. Exclusões e limitações
 Não são reembolsáveis: (a) períodos já decorridos após o prazo de 7 dias; (b) renovações automáticas posteriores à primeira fatura, salvo disposição legal em contrário; (c) situações de violação grave dos Termos de Uso (fraude, abuso, uso ilícito), caso em que nos reservamos o direito de recusar o reembolso, com fundamentação.

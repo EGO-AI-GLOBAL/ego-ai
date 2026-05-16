@@ -11,3 +11,9 @@ gatherUsageStats = false
 
 [server]
 headless = true
+
+[runner]
+fastReruns = true
+
+[client]
+showSidebarNavigation = false
