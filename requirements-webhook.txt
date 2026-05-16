@@ -1,0 +1,4 @@
+# Só para stripe_webhook.py (não usado no Streamlit Cloud)
+-r requirements.txt
+fastapi>=0.115.0
+uvicorn>=0.30.0
