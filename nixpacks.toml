@@ -1,3 +1,6 @@
-# Railway/Nixpacks: API Flask (não Streamlit app.py)
+# Fallback se Dockerfile não for usado
+[phases.install]
+cmds = ["pip install -r requirements-api.txt"]
+
 [start]
 cmd = "gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120 flask_api:app"
