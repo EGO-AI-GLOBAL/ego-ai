@@ -368,6 +368,11 @@ def chat_send():
             audio_bytes = upload.read()
             if upload.content_type:
                 audio_mime = upload.content_type
+            if not audio_bytes:
+                return _json_error(
+                    "Áudio vazio no envio. Grave de novo (microfone → falar → seta).",
+                    400,
+                )
         elif not message.strip():
             return _json_error(
                 "Áudio não chegou ao servidor. Toque no microfone, fale e toque outra vez.",

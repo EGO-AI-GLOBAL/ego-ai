@@ -243,7 +243,9 @@ def process_chat_message(
         )
 
     if not user_display and not audio_bytes:
-        return None, "Mensagem vazia."
+        return None, (
+            "Não recebemos o áudio. Toque no microfone, fale 3 segundos e toque na seta ↑."
+        )
 
     is_voice_msg = bool(audio_bytes)
     if is_voice_msg:
