@@ -232,13 +232,15 @@ def process_chat_message(
     if audio_bytes:
         if len(audio_bytes) < 128:
             return None, "Gravação demasiado curta. Fale pelo menos 1 segundo."
-        audio_mime = normalize_audio_mime(audio_mime)
+        audio_mime = normalize_audio_mime(audio_mime, audio_bytes)
         if not user_display:
             from ego_api.db import VOICE_MESSAGE_MARKER
 
             user_display = VOICE_MESSAGE_MARKER
     elif audio_b64:
-        return None, "Áudio inválido. Fale 2–3 segundos, toque em Enviar e tente outra vez."
+        return None, (
+            "Áudio inválido. Fale 2–3 segundos, toque na seta para enviar e tente outra vez."
+        )
 
     if not user_display and not audio_bytes:
         return None, "Mensagem vazia."

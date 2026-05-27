@@ -7,7 +7,21 @@ import binascii
 import re
 
 
-def normalize_audio_mime(mime: str | None) -> str:
+def sniff_audio_mime(data: bytes) -> str | None:
+    if len(data) < 12:
+        return None
+    if data[:4] == b"RIFF" and data[8:12] == b"WAVE":
+        return "audio/wav"
+    if data[:4] == b"RIFF" and data[8:12] == b"WEBM":
+        return "audio/webm"
+    if data[:4] == b"\x1a\x45\xdf\xa3":
+        return "audio/webm"
+    if len(data) >= 8 and data[4:8] == b"ftyp":
+        return "audio/mp4"
+    return None
+
+
+def normalize_audio_mime(mime: str | None, data: bytes | None = None) -> str:
     m = (mime or "").lower().strip()
     if "mp4" in m or "m4a" in m or "aac" in m:
         return "audio/mp4"
@@ -17,7 +31,10 @@ def normalize_audio_mime(mime: str | None) -> str:
         return "audio/wav"
     if "mpeg" in m or "mp3" in m:
         return "audio/mpeg"
-    return m or "audio/mp4"
+    sniffed = sniff_audio_mime(data) if data else None
+    if sniffed:
+        return sniffed
+    return m or "audio/webm"
 
 
 def decode_audio_base64(value: object) -> bytes | None:
