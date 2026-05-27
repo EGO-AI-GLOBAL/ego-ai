@@ -11,3 +11,8 @@ yarl>=1.20.1
 deprecation>=2.1.0
 pydantic>=2.0,<3
 protobuf>=4.25.3,<6
+# API REST para app mobile (flask_api.py)
+flask>=3.0.0
+flask-cors>=4.0.0
+gunicorn>=22.0.0
+edge-tts>=6.1.0
