@@ -1,0 +1,25 @@
+# Build Docker da API — não enviar lixo do monorepo
+.git
+.github
+.venv
+venv
+__pycache__
+*.pyc
+.env
+.env.*
+.streamlit
+app/node_modules
+app/.expo
+app/.expo-web-test
+mobile
+node_modules
+*.md
+docs
+marketing
+custo
+FOTOS-STRIPE
+assets
+scripts
+*.pdf
+*.zip
+*.html
