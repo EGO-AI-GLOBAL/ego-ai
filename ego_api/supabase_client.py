@@ -14,6 +14,26 @@ except ImportError:
     from supabase import create_client  # type: ignore[assignment]
 
 
+def supabase_env_status() -> dict[str, bool | int | str]:
+    """Diagnóstico seguro (sem expor URL/chave) para health e logs."""
+    url = supabase_url()
+    key = supabase_anon_key()
+    status: dict[str, bool | int | str] = {
+        "url_set": bool(url),
+        "key_set": bool(key),
+        "key_len": len(key) if key else 0,
+        "client_ok": False,
+    }
+    if not url or not key:
+        return status
+    try:
+        create_client(url, key)
+        status["client_ok"] = True
+    except Exception as exc:
+        status["client_error"] = type(exc).__name__
+    return status
+
+
 def create_anon_client() -> Client | None:
     url, key = supabase_url(), supabase_anon_key()
     if not url or not key:

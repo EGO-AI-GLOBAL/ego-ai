@@ -14,6 +14,7 @@ Ou:
 
 from __future__ import annotations
 
+import logging
 import os
 import time
 from functools import wraps
@@ -32,7 +33,7 @@ from ego_api.config import (
 )
 from ego_api.request_ctx import UserSession, get_session, set_session
 from ego_api import db, services
-from ego_api.supabase_client import apply_user_auth, create_anon_client
+from ego_api.supabase_client import apply_user_auth, create_anon_client, supabase_env_status
 
 try:
     from legal_copy import (
@@ -53,6 +54,21 @@ except ImportError:
 
 
 app = Flask(__name__)
+_log = logging.getLogger("ego.api")
+if not logging.getLogger().handlers:
+    logging.basicConfig(level=logging.INFO, format="%(message)s")
+_sb_boot = supabase_env_status()
+_boot_msg = (
+    "EGO_BOOT "
+    f"service={os.getenv('RAILWAY_SERVICE_NAME', '?')} "
+    f"env={os.getenv('RAILWAY_ENVIRONMENT', '?')} "
+    f"supabase url_set={_sb_boot.get('url_set')} "
+    f"key_set={_sb_boot.get('key_set')} "
+    f"key_len={_sb_boot.get('key_len')} "
+    f"client_ok={_sb_boot.get('client_ok')}"
+)
+_log.info(_boot_msg)
+print(_boot_msg, flush=True)
 CORS(
     app,
     resources={r"/api/*": {"origins": cors_origins()}},
@@ -144,7 +160,18 @@ def require_auth(f: Callable) -> Callable:
             return _json_error("Token ausente. Envie Authorization: Bearer <access_token>.", 401)
         client = create_anon_client()
         if not client:
-            return _json_error("Supabase não configurado no servidor.", 503)
+            st = supabase_env_status()
+            if not st.get("url_set") or not st.get("key_set"):
+                return _json_error(
+                    "Supabase não configurado no servidor. "
+                    "No Railway, defina SUPABASE_URL e SUPABASE_KEY (sem aspas) e faça Redeploy.",
+                    503,
+                )
+            return _json_error(
+                "Supabase: variáveis presentes mas o cliente falhou ao iniciar. "
+                "Confira se SUPABASE_KEY é a chave anon/publishable do projeto.",
+                503,
+            )
         try:
             if refresh:
                 client.auth.set_session(access, refresh)
@@ -232,15 +259,29 @@ def require_auth(f: Callable) -> Callable:
 @app.get("/api/health")
 @app.get("/api/v1/health")
 def health():
-    payload: dict[str, Any] = {"service": "ego-ai-api", "ok": True}
+    sb = supabase_env_status()
+    payload: dict[str, Any] = {
+        "service": "ego-ai-api",
+        "ok": True,
+        "checks": {
+            "supabase": bool(sb.get("client_ok")),
+            "supabase_url_set": bool(sb.get("url_set")),
+            "supabase_key_set": bool(sb.get("key_set")),
+        },
+    }
     include_details = os.getenv("EGO_HEALTH_DETAILS", "").lower() in ("1", "true", "yes")
-    if include_details and not is_production_env():
-        payload.update(
+    if include_details:
+        payload["checks"].update(
             {
-                "supabase_configured": bool(supabase_url() and supabase_anon_key()),
-                "gemini_configured": bool(gemini_api_key()),
+                "supabase_key_len": int(sb.get("key_len") or 0),
+                "gemini": bool(gemini_api_key()),
+                "railway_service": os.getenv("RAILWAY_SERVICE_NAME", ""),
+                "railway_environment": os.getenv("RAILWAY_ENVIRONMENT", ""),
             }
         )
+        err = sb.get("client_error")
+        if err:
+            payload["checks"]["supabase_client_error"] = str(err)
     return _json_ok(payload)
 
 

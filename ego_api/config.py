@@ -6,7 +6,7 @@ import os
 try:
     from dotenv import load_dotenv
 
-    load_dotenv()
+    load_dotenv(override=False)
 except ImportError:
     pass
 
@@ -36,7 +36,10 @@ STRIPE_ANUAL_URL = os.getenv("STRIPE_CHECKOUT_ANUAL_URL", "")
 
 
 def read_env(name: str, default: str = "") -> str:
-    return (os.getenv(name) or default).strip()
+    raw = (os.getenv(name) or default).strip()
+    if len(raw) >= 2 and raw[0] == raw[-1] and raw[0] in "\"'":
+        raw = raw[1:-1].strip()
+    return raw.rstrip(",").strip()
 
 
 def gemini_api_key() -> str:
