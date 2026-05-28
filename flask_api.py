@@ -14,7 +14,6 @@ Ou:
 
 from __future__ import annotations
 
-import logging
 import os
 import time
 from functools import wraps
@@ -54,21 +53,17 @@ except ImportError:
 
 
 app = Flask(__name__)
-_log = logging.getLogger("ego.api")
-if not logging.getLogger().handlers:
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
 _sb_boot = supabase_env_status()
-_boot_msg = (
-    "EGO_BOOT "
-    f"service={os.getenv('RAILWAY_SERVICE_NAME', '?')} "
-    f"env={os.getenv('RAILWAY_ENVIRONMENT', '?')} "
-    f"supabase url_set={_sb_boot.get('url_set')} "
-    f"key_set={_sb_boot.get('key_set')} "
-    f"key_len={_sb_boot.get('key_len')} "
-    f"client_ok={_sb_boot.get('client_ok')}"
+print(
+    "EGO_BOOT",
+    f"service={os.getenv('RAILWAY_SERVICE_NAME', '?')}",
+    f"env={os.getenv('RAILWAY_ENVIRONMENT', '?')}",
+    f"url_set={_sb_boot.get('url_set')}",
+    f"key_set={_sb_boot.get('key_set')}",
+    f"key_len={_sb_boot.get('key_len')}",
+    f"client_ok={_sb_boot.get('client_ok')}",
+    flush=True,
 )
-_log.info(_boot_msg)
-print(_boot_msg, flush=True)
 CORS(
     app,
     resources={r"/api/*": {"origins": cors_origins()}},
