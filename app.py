@@ -898,24 +898,73 @@ def _supabase_ref_from_jwt_key(key: str) -> str | None:
         return None
 
 
+def _ego_read_nested_secret(section: str, *field_names: str) -> str:
+    """Lê bloco TOML, ex.: [supabase] url = \"...\"."""
+    if not hasattr(st, "secrets"):
+        return ""
+    try:
+        block = st.secrets.get(section)
+        if block is None:
+            return ""
+        for field in field_names:
+            val = None
+            if hasattr(block, "get"):
+                val = block.get(field)
+            elif isinstance(block, dict):
+                val = block.get(field)
+            else:
+                try:
+                    val = block[field]  # type: ignore[index]
+                except Exception:
+                    val = None
+            if val:
+                return str(val).strip()
+    except Exception:
+        return ""
+    return ""
+
+
+def _ego_first_nonempty(*values: str) -> str:
+    for v in values:
+        s = (v or "").strip()
+        if s:
+            return s
+    return ""
+
+
 def _resolve_supabase_url() -> str:
-    """Project URL: .env (SUPABASE_URL) → secrets.toml → formulário da app."""
-    url = os.getenv("SUPABASE_URL", "").strip()
-    if not url:
-        url = _safe_streamlit_secret("SUPABASE_URL")
-    if not url:
-        url = (st.session_state.get("supabase_url_input") or "").strip()
-    return url
+    """Project URL: env → st.secrets (flat ou [supabase]) → formulário."""
+    nested = _ego_read_nested_secret(
+        "supabase", "url", "SUPABASE_URL", "project_url", "supabase_url"
+    )
+    return _ego_first_nonempty(
+        os.getenv("SUPABASE_URL", "").strip(),
+        _safe_streamlit_secret("SUPABASE_URL"),
+        nested,
+        (st.session_state.get("supabase_url_input") or "").strip(),
+    )
 
 
 def _resolve_supabase_api_key() -> str:
-    """Chave publishable/anon: .env (SUPABASE_KEY) → secrets.toml → formulário."""
-    key = os.getenv("SUPABASE_KEY", "").strip() or os.getenv("SUPABASE_PUBLISHABLE_KEY", "").strip()
-    if not key:
-        key = _safe_streamlit_secret("SUPABASE_KEY") or _safe_streamlit_secret("SUPABASE_PUBLISHABLE_KEY")
-    if not key:
-        key = (st.session_state.get("supabase_key_input") or "").strip()
-    return key
+    """Chave publishable/anon: env → st.secrets (flat ou [supabase]) → formulário."""
+    nested = _ego_read_nested_secret(
+        "supabase",
+        "key",
+        "SUPABASE_KEY",
+        "anon_key",
+        "publishable_key",
+        "api_key",
+    )
+    return _ego_first_nonempty(
+        os.getenv("SUPABASE_KEY", "").strip(),
+        os.getenv("SUPABASE_PUBLISHABLE_KEY", "").strip(),
+        os.getenv("SUPABASE_ANON_KEY", "").strip(),
+        _safe_streamlit_secret("SUPABASE_KEY"),
+        _safe_streamlit_secret("SUPABASE_PUBLISHABLE_KEY"),
+        _safe_streamlit_secret("SUPABASE_ANON_KEY"),
+        nested,
+        (st.session_state.get("supabase_key_input") or "").strip(),
+    )
 
 
 def _supabase_api_key_looks_valid(key: str) -> bool:
@@ -941,6 +990,43 @@ def _peek_supabase_secrets() -> tuple[str, str]:
     return _resolve_supabase_url(), _resolve_supabase_api_key()
 
 
+def _mask_secret(value: str) -> str:
+    s = (value or "").strip()
+    if not s:
+        return "—"
+    if len(s) <= 10:
+        return "•••• (definido)"
+    return f"{s[:8]}…{s[-4:]}"
+
+
+def _supabase_secrets_diagnostic() -> dict[str, str]:
+    """Estado das credenciais (sem expor valores completos)."""
+    url = _resolve_supabase_url()
+    key = _resolve_supabase_api_key()
+    out: dict[str, str] = {
+        "SUPABASE_URL": "✓ definido" if url else "✗ em falta",
+        "SUPABASE_KEY": "✓ definido" if key else "✗ em falta",
+    }
+    if url:
+        out["SUPABASE_URL"] += f" (`{_mask_secret(url)}`)"
+    if key:
+        kind = "publishable" if _supabase_is_publishable_key(key) else ("JWT anon" if key.startswith("eyJ") else "outro")
+        valid = "válida" if _supabase_api_key_looks_valid(key) else "formato inválido"
+        out["SUPABASE_KEY"] += f" ({kind}, {valid})"
+    if url and not _supabase_project_url_ok(url):
+        out["SUPABASE_URL"] += " — URL não parece um projeto `.supabase.co`"
+    out["GOOGLE_API_KEY"] = "✓ definido" if effective_gemini_api_key() else "✗ em falta (opcional para login)"
+    out["Cliente Python"] = "✓ ego_supabase" if create_client else "✗ dependências em falta"
+    secrets_ok = False
+    if hasattr(st, "secrets"):
+        try:
+            secrets_ok = bool(st.secrets.keys())
+        except Exception:
+            secrets_ok = False
+    out["Streamlit Secrets"] = "✓ ficheiro carregado" if secrets_ok else "✗ vazio ou inválido"
+    return out
+
+
 def get_supabase_client() -> Client | None:
     """Cliente Supabase: create_client(SUPABASE_URL, SUPABASE_KEY) como no guia oficial."""
     if not create_client:
@@ -961,8 +1047,8 @@ def get_supabase_client() -> Client | None:
         msg = str(exc).lower()
         if _supabase_is_publishable_key(key) and "invalid api key" in msg:
             st.session_state["_ego_supabase_connect_hint"] = (
-                "Chave publishable detectada, mas o pacote `supabase` está antigo. "
-                "No terminal: `pip install -U \"supabase>=2.28.0\"` e reinicie o Streamlit."
+                "Chave publishable recusada. No Supabase → Settings → API Keys confirme a "
+                "**publishable** do mesmo projeto que o URL. Não use `service_role`."
             )
         return None
 
@@ -1069,15 +1155,37 @@ def render_supabase_setup() -> None:
     st.error("Supabase não configurado ou URL/chave inválidos.")
     if not create_client:
         st.warning(
-            "O pacote Python `supabase` não está instalado. "
-            "No terminal: `pip install -r requirements.txt` e reinicie o Streamlit."
+            "Dependências Supabase em falta no servidor (`postgrest`, `supabase-auth`). "
+            "Confirme que `ego_supabase.py` e `requirements.txt` estão no repositório e faça **Reboot app**."
         )
     hint_sess = st.session_state.pop("_ego_supabase_connect_hint", None)
     if hint_sess:
         st.error(hint_sess)
+    diag = _supabase_secrets_diagnostic()
+    with st.expander("Diagnóstico (Streamlit Cloud → Secrets)", expanded=True):
+        for label, status in diag.items():
+            st.markdown(f"- **{label}:** {status}")
+        st.caption(
+            "Se **Streamlit Secrets** estiver ✗, a app no Cloud ainda não recebeu credenciais. "
+            "Isto é normal até colar o TOML em Manage app → Secrets → Save → Reboot."
+        )
+    with st.expander("Como configurar no Streamlit Cloud (copiar e colar)", expanded=not _resolve_supabase_url()):
+        st.markdown(
+            "1. Abra [share.streamlit.io](https://share.streamlit.io) → a sua app → **Manage app**.\n"
+            "2. Menu **Secrets** → cole o bloco abaixo (substitua pelos valores do Supabase).\n"
+            "3. **Save** → **Reboot app** (obrigatório após alterar secrets).\n\n"
+            "No Supabase: **Project Settings → API** → **Project URL** e chave **publishable** "
+            "(`sb_publishable_...`). **Não** use `service_role` aqui."
+        )
+        st.code(
+            'GOOGLE_API_KEY = "sua_chave_google_ai_studio"\n'
+            'SUPABASE_URL = "https://SEU-REF.supabase.co"\n'
+            'SUPABASE_KEY = "sb_publishable_..."',
+            language="toml",
+        )
     su, sk = _peek_supabase_secrets()
     if su or sk:
-        st.warning(f"**Diagnóstico (secrets.toml / variáveis):** {_supabase_setup_hint(su, sk)}")
+        st.warning(f"**Detalhe:** {_supabase_setup_hint(su, sk)}")
         if create_client and su and sk and _supabase_api_key_looks_valid(sk):
             try:
                 probe = create_client(su, sk)
@@ -1090,24 +1198,23 @@ def render_supabase_setup() -> None:
                         "No Supabase → SQL Editor execute o ficheiro "
                         "`supabase/bootstrap_ego_schema.sql` do projeto."
                     )
-                elif "Invalid API key" in err:
+                elif "Invalid API key" in err or "invalid api key" in err.lower():
                     st.error(
-                        "Chave recusada pelo cliente Python. Atualize: "
-                        "`pip install -U \"supabase>=2.28.0\"` (publishable exige versão recente)."
+                        "Chave recusada pelo Supabase. Use a **publishable** do mesmo projeto que o URL."
                     )
     elif hasattr(st, "secrets"):
         try:
             _ = st.secrets.keys()
         except Exception as exc:
             st.error(
-                f"**secrets.toml inválido:** {exc} "
-                "Use aspas nas URLs (`SUPABASE_URL = \"https://...\"`) e não comece o ficheiro com a palavra `toml`."
+                f"**Secrets inválidos:** {exc} "
+                'Use aspas: `SUPABASE_URL = "https://..."` — sem a palavra `toml` no início do ficheiro.'
             )
-    st.info(
-        "**Dica (igual ao guia Supabase):** crie `.env` na pasta do projeto com "
-        "`SUPABASE_URL` e `SUPABASE_KEY` (publishable `sb_publishable_...`). "
-        "Reinicie o Streamlit após guardar. No Cloud: Manage app → **Secrets**."
-    )
+    if not su and not sk:
+        st.info(
+            "No **Streamlit Cloud**, o ficheiro `.env` do seu PC **não** é enviado. "
+            "Configure só em **Manage app → Secrets** (ou no formulário abaixo para teste rápido)."
+        )
     render_public_trust_landing()
     st.markdown("### Configure as credenciais para entrar no app")
     url_prefill = (st.session_state.get("supabase_url_input") or su or "").strip()

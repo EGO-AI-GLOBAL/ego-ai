@@ -7,7 +7,7 @@ __pycache__
 *.pyc
 .env
 .env.*
-.streamlit
+# .streamlit — necessário no Dockerfile.streamlit (não ignorar)
 app/node_modules
 app/.expo
 app/.expo-web-test
