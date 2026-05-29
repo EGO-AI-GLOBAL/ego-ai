@@ -1,5 +1,5 @@
-# EGO-AI — app Streamlit (interface web)
-FROM python:3.11-slim
+# EGO-AI Streamlit — imagem leve (requirements-railway.txt)
+FROM python:3.11-slim-bookworm
 
 WORKDIR /app
 
@@ -11,8 +11,8 @@ COPY requirements-railway.txt .
 RUN pip install --no-cache-dir -r requirements-railway.txt
 
 COPY app.py ego_supabase.py legal_copy.py ./
-COPY .streamlit .streamlit
+COPY .streamlit/config.toml .streamlit/config.toml
 
 EXPOSE 8080
 
-CMD sh -c 'exec streamlit run app.py --server.port=${PORT:-8080} --server.address=0.0.0.0 --server.headless=true --server.fileWatcherType=none'
+CMD ["sh", "-c", "exec python -m streamlit run app.py --server.port=${PORT:-8080} --server.address=0.0.0.0 --server.headless=true --server.fileWatcherType=none"]

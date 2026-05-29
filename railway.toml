@@ -1,7 +1,7 @@
-# EGO-AI Streamlit — Nixpacks + script de arranque (python -m streamlit)
+# Docker leve — evita Nixpacks + script .sh com CRLF no Windows
 [build]
-builder = "nixpacks"
+builder = "DOCKERFILE"
+dockerfilePath = "Dockerfile.streamlit"
 
 [deploy]
-startCommand = "sh railway_start.sh"
 restartPolicyType = "on_failure"
