@@ -1,9 +1,9 @@
-# EGO-AI — Streamlit (app.py). API Flask fica em Dockerfile.api (outro serviço).
+# EGO-AI Streamlit — Nixpacks (build ~1 min). API Flask: Dockerfile.api (outro serviço).
 [build]
-builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile.streamlit"
+builder = "nixpacks"
 
 [deploy]
+startCommand = "streamlit run app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true --server.fileWatcherType=none"
 healthcheckPath = "/_stcore/health"
-healthcheckTimeout = 300
+healthcheckTimeout = 600
 restartPolicyType = "on_failure"

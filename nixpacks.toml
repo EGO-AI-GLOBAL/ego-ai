@@ -1,6 +1,9 @@
-# Fallback se Dockerfile não for usado
+# Railway Nixpacks — usa deps leves (evita falha de build do Docker)
+[phases.setup]
+nixPkgs = ["python311"]
+
 [phases.install]
-cmds = ["pip install -r requirements-api.txt"]
+cmds = ["pip install --no-cache-dir -r requirements-railway.txt"]
 
 [start]
-cmd = "gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120 flask_api:app"
+cmd = "streamlit run app.py --server.port=$PORT --server.address=0.0.0.0 --server.headless=true --server.fileWatcherType=none"
