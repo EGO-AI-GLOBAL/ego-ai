@@ -1,4 +1,4 @@
-# Deploy EGO-AI (Streamlit) na Railway — https://docs.railway.app/reference/config-as-code
+# EGO-AI — app Streamlit (app.py). Não usar gunicorn/Flask no domínio público.
 [build]
 builder = "nixpacks"
 

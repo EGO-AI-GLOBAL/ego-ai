@@ -1,5 +1,4 @@
-# streamlit obrigatório no venv do Cloud (>=1.44 evita conflito rich<14 do 1.39)
-streamlit>=1.44.0
+# Dependências só da API Flask (Railway) — sem Streamlit
 python-dotenv==1.0.1
 google-generativeai==0.8.3
 PyPDF2==3.0.1
@@ -11,7 +10,6 @@ yarl>=1.20.1
 deprecation>=2.1.0
 pydantic>=2.0,<3
 protobuf>=4.25.3,<6
-# API REST para app mobile (flask_api.py)
 flask>=3.0.0
 flask-cors>=4.0.0
 gunicorn>=22.0.0
