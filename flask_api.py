@@ -53,7 +53,9 @@ except ImportError:
 
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
 _sb_boot = supabase_env_status()
+_test_total = (os.getenv("EGO_TEST_TOTAL_EMAILS") or "").strip()
 print(
     "EGO_BOOT",
     f"service={os.getenv('RAILWAY_SERVICE_NAME', '?')}",
@@ -62,13 +64,14 @@ print(
     f"key_set={_sb_boot.get('key_set')}",
     f"key_len={_sb_boot.get('key_len')}",
     f"client_ok={_sb_boot.get('client_ok')}",
+    f"test_total_emails={_test_total or 'off'}",
     flush=True,
 )
 CORS(
     app,
     resources={r"/api/*": {"origins": cors_origins()}},
     supports_credentials=False,
-    allow_headers=["Content-Type", "Authorization", "X-Refresh-Token"],
+    allow_headers=["Content-Type", "Authorization", "X-Refresh-Token", "X-Play-Integrity"],
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 )
 
@@ -85,6 +88,9 @@ def _is_secure_request() -> bool:
 @app.before_request
 def _enforce_https_if_enabled():
     if request.method == "OPTIONS":
+        return None
+    path = request.path.rstrip("/") or "/"
+    if path in ("/api/health", "/api/v1/health"):
         return None
     enforce_https = os.getenv("EGO_ENFORCE_HTTPS", "").lower() in ("1", "true", "yes")
     if not enforce_https:
@@ -182,7 +188,17 @@ def require_auth(f: Callable) -> Callable:
         except Exception:  # noqa: BLE001
             return _json_error("Sessão inválida ou expirada.", 401)
 
-        body = request.get_json(silent=True) or {} if request.is_json else {}
+        # POST /chat/messages: nunca parsear corpo aqui (voz multipart / base64 grande).
+        path_tail = request.path.rstrip("/")
+        skip_json_body = request.method == "POST" and (
+            path_tail.endswith("/chat/messages") or path_tail.endswith("/chat/voice")
+        )
+        if skip_json_body:
+            body = {}
+        elif request.is_json:
+            body = request.get_json(silent=True) or {}
+        else:
+            body = {}
         meta = getattr(user, "user_metadata", None) or {}
         if not isinstance(meta, dict):
             meta = getattr(user, "raw_user_meta_data", None) or {}
@@ -248,6 +264,39 @@ def require_auth(f: Callable) -> Callable:
     return wrapper
 
 
+def require_play_integrity(f: Callable) -> Callable:
+    """Valida token Play Integrity (Android) quando EGO_PLAY_INTEGRITY=1."""
+
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        from ego_api import play_integrity
+
+        if not play_integrity.play_integrity_enabled():
+            return f(*args, **kwargs)
+        if not play_integrity.server_configured():
+            print("[EGO] play_integrity: servidor sem credenciais Google", flush=True)
+            if play_integrity.play_integrity_enforced():
+                return _json_error("Integridade do app indisponível no servidor.", 503)
+            return f(*args, **kwargs)
+
+        token = request.headers.get("X-Play-Integrity", "").strip()
+        ok, reason = play_integrity.verify_integrity_token(token)
+        user_id = getattr(g, "user_id", "") or "?"
+        if ok:
+            print(f"[EGO] play_integrity ok user={user_id}", flush=True)
+            return f(*args, **kwargs)
+
+        print(f"[EGO] play_integrity fail user={user_id} reason={reason}", flush=True)
+        if play_integrity.play_integrity_enforced():
+            return _json_error(
+                "Integridade do app não verificada. Instale o app oficial pela Play Store ou APK de teste.",
+                403,
+            )
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
 # --- Rotas públicas ---
 
 
@@ -266,10 +315,13 @@ def health():
     }
     include_details = os.getenv("EGO_HEALTH_DETAILS", "").lower() in ("1", "true", "yes")
     if include_details:
+        from ego_api import openai_realtime
+
         payload["checks"].update(
             {
                 "supabase_key_len": int(sb.get("key_len") or 0),
                 "gemini": bool(gemini_api_key()),
+                "openai_realtime": openai_realtime.is_available(),
                 "railway_service": os.getenv("RAILWAY_SERVICE_NAME", ""),
                 "railway_environment": os.getenv("RAILWAY_ENVIRONMENT", ""),
             }
@@ -278,6 +330,13 @@ def health():
         if err:
             payload["checks"]["supabase_client_error"] = str(err)
     return _json_ok(payload)
+
+
+@app.get("/api/v1/integrity/status")
+def integrity_status():
+    from ego_api import play_integrity
+
+    return _json_ok(play_integrity.status_payload())
 
 
 @app.post("/api/v1/auth/login")
@@ -376,12 +435,17 @@ def me():
 @app.get("/api/v1/chat/messages")
 @require_auth
 def chat_list():
+    from ego_api.config import chat_local_history_enabled
+
+    if chat_local_history_enabled():
+        return _json_ok({"messages": [], "chat_local_history": True})
     messages = db.load_chat_history(g.supabase, g.user_id)
-    return _json_ok({"messages": messages})
+    return _json_ok({"messages": messages, "chat_local_history": False})
 
 
 @app.post("/api/v1/chat/messages")
 @require_auth
+@require_play_integrity
 @rate_limit(30, 60, scope="user")
 def chat_send():
     message = ""
@@ -389,6 +453,7 @@ def chat_send():
     audio_bytes: bytes | None = None
     audio_mime = "audio/wav"
     speak_reply = False
+    client_history = None
 
     ctype = (request.content_type or "").lower()
     if "multipart/form-data" in ctype:
@@ -398,7 +463,10 @@ def chat_send():
             "true",
             "yes",
         )
-        audio_mime = str(request.form.get("audio_mime") or "audio/mp4")
+        from ego_api.chat_local import parse_client_history
+
+        client_history = parse_client_history(request.form.get("history"))
+        audio_mime = str(request.form.get("audio_mime") or "audio/webm")
         upload = request.files.get("audio")
         if upload:
             audio_bytes = upload.read()
@@ -406,20 +474,49 @@ def chat_send():
                 audio_mime = upload.content_type
             if not audio_bytes:
                 return _json_error(
-                    "Áudio vazio no envio. Grave de novo (microfone → falar → seta).",
+                    "Áudio vazio no envio. Grave de novo (microfone → falar → Enviar voz).",
                     400,
                 )
-        elif not message.strip():
-            return _json_error(
-                "Áudio não chegou ao servidor. Toque no microfone, fale e toque outra vez.",
-                400,
+        if not audio_bytes:
+            from ego_api.audio_b64 import decode_audio_base64
+
+            form_b64 = request.form.get("audio_base64")
+            if form_b64:
+                audio_bytes = decode_audio_base64(form_b64)
+                if not audio_bytes:
+                    return _json_error(
+                        "Áudio inválido. Grave de novo: microfone → fale 2–3 s → Enviar voz.",
+                        400,
+                    )
+        if not audio_bytes and not message.strip():
+            hint = (
+                "Áudio não chegou ao servidor. "
+                "Confirme: (1) python flask_api.py a correr, "
+                "(2) recarregue o browser com Ctrl+Shift+R, "
+                "(3) microfone → fale 2–3 s → Enviar voz."
             )
+            return _json_error(hint, 400)
     else:
         data = request.get_json(silent=True) or {}
         message = str(data.get("message") or "")
         audio_b64 = data.get("audio_base64")
         audio_mime = str(data.get("audio_mime") or "audio/wav")
         speak_reply = bool(data.get("speak") or data.get("speak_reply"))
+        from ego_api.chat_local import parse_client_history
+
+        client_history = parse_client_history(data.get("history"))
+        if audio_b64 and not audio_bytes:
+            from ego_api.audio_b64 import decode_audio_base64, normalize_audio_mime
+
+            audio_bytes = decode_audio_base64(audio_b64)
+            if audio_bytes:
+                audio_mime = normalize_audio_mime(audio_mime, audio_bytes)
+                audio_b64 = None
+            else:
+                return _json_error(
+                    "Áudio inválido. Grave de novo: microfone → fale 2–3 s → Enviar voz.",
+                    400,
+                )
 
     result, err = services.process_chat_message(
         g.supabase,
@@ -429,9 +526,163 @@ def chat_send():
         audio_bytes=audio_bytes,
         audio_mime=audio_mime,
         speak_reply=speak_reply,
+        client_history=client_history,
     )
     if err:
         return _json_error(err, 402 if "Limite" in err or "expirado" in err.lower() else 400)
+    return _json_ok(result)
+
+
+@app.post("/api/v1/chat/voice")
+@require_auth
+@require_play_integrity
+@rate_limit(30, 60, scope="user")
+def chat_voice():
+    """Mensagem de voz — só multipart (ficheiro binário), sem JSON/base64."""
+    from ego_api.chat_local import parse_client_history
+
+    print("[EGO] chat/voice: pedido recebido", flush=True)
+    speak_reply = str(request.form.get("speak", "true")).lower() in ("1", "true", "yes")
+    client_history = parse_client_history(request.form.get("history"))
+    audio_mime = str(request.form.get("audio_mime") or "audio/webm")
+    audio_bytes: bytes | None = None
+
+    upload = request.files.get("audio")
+    if upload:
+        audio_bytes = upload.read()
+        if upload.content_type:
+            audio_mime = upload.content_type
+
+    size = len(audio_bytes or b"")
+    if size < 128:
+        return _json_error(
+            f"Áudio não recebido ({size} bytes). "
+            "Reinicie python flask_api.py e o Expo, fale 3 segundos e toque Enviar voz.",
+            400,
+        )
+
+    result, err = services.process_chat_message(
+        g.supabase,
+        g.user_id,
+        "",
+        audio_bytes=audio_bytes,
+        audio_mime=audio_mime,
+        speak_reply=speak_reply,
+        client_history=client_history,
+    )
+    if err:
+        print(f"[EGO] chat/voice: erro — {err}", flush=True)
+        return _json_error(err, 402 if "Limite" in err or "expirado" in err.lower() else 400)
+    print("[EGO] chat/voice: resposta OK", flush=True)
+    return _json_ok(result)
+
+
+@app.get("/api/v1/voice/realtime/status")
+@require_auth
+def voice_realtime_status():
+    from ego_api import openai_realtime
+    from ego_api.config import openai_realtime_model, openai_realtime_phone_fast, openai_realtime_use_webrtc
+
+    return _json_ok(
+        {
+            "available": openai_realtime.is_available(),
+            "model": openai_realtime_model(),
+            "webrtc": openai_realtime_use_webrtc(),
+            "profile": "turbo" if openai_realtime_phone_fast() else "natural",
+            "phone_fast": openai_realtime_phone_fast(),
+        }
+    )
+
+
+@app.post("/api/v1/voice/realtime/client-secret")
+@require_auth
+@require_play_integrity
+@rate_limit(30, 60, scope="user")
+def voice_realtime_client_secret():
+    from ego_api import openai_realtime
+    from ego_api.chat_local import parse_client_history
+
+    if not openai_realtime.is_available():
+        return _json_error("OpenAI Realtime não configurado no servidor.", 503)
+
+    data = request.get_json(silent=True) or {}
+    client_history = parse_client_history(data.get("history"))
+    mode = str(data.get("mode") or "push").strip().lower()
+    phone_call = mode in ("call", "phone", "telefone", "chamada")
+    avatar_id, _ = services.ensure_persona_normalized(g.supabase, g.user_id)
+    payload, err = openai_realtime.prepare_session_for_user(
+        g.user_id,
+        avatar_id,
+        client_history=client_history,
+        phone_call=phone_call,
+    )
+    if err:
+        return _json_error(err, 502)
+    print("[EGO] voice/realtime: client secret OK", flush=True)
+    return _json_ok(payload)
+
+
+@app.post("/api/v1/voice/realtime/webrtc")
+@require_auth
+@require_play_integrity
+@rate_limit(30, 60, scope="user")
+def voice_realtime_webrtc():
+    """WebRTC SDP answer — latência mínima (OpenAI /v1/realtime/calls)."""
+    from ego_api import openai_realtime
+    from ego_api.chat_local import parse_client_history
+
+    if not openai_realtime.is_available():
+        return _json_error("OpenAI Realtime não configurado no servidor.", 503)
+
+    sdp_offer = ""
+    client_history: list[dict] = []
+    if request.content_type and "multipart" in request.content_type:
+        sdp_offer = str(request.form.get("sdp") or "")
+        client_history = parse_client_history(request.form.get("history"))
+    else:
+        sdp_offer = request.get_data(as_text=True) or ""
+        if request.is_json:
+            data = request.get_json(silent=True) or {}
+            sdp_offer = str(data.get("sdp") or sdp_offer)
+            client_history = parse_client_history(data.get("history"))
+
+    avatar_id, _ = services.ensure_persona_normalized(g.supabase, g.user_id)
+    answer, err = openai_realtime.prepare_webrtc_for_user(
+        g.user_id,
+        avatar_id,
+        sdp_offer,
+        client_history=client_history,
+    )
+    if err:
+        return _json_error(err, 502)
+    print("[EGO] voice/realtime: WebRTC SDP OK", flush=True)
+    return answer, 200, {"Content-Type": "application/sdp"}
+
+
+@app.post("/api/v1/voice/realtime/finish")
+@require_auth
+@require_play_integrity
+@rate_limit(30, 60, scope="user")
+def voice_realtime_finish():
+    from ego_api.chat_local import parse_client_history
+
+    data = request.get_json(silent=True) or {}
+    speak_reply = bool(data.get("speak"))
+    user_message = str(data.get("user_message") or data.get("user_transcript") or "")
+    assistant_reply = str(data.get("assistant_reply") or data.get("reply") or "")
+    client_history = parse_client_history(data.get("history"))
+
+    result, err = services.process_realtime_voice_turn(
+        g.supabase,
+        g.user_id,
+        user_message=user_message,
+        assistant_reply=assistant_reply,
+        speak_reply=speak_reply,
+        client_history=client_history,
+    )
+    if err:
+        return _json_error(err, 402 if "Limite" in err or "expirado" in err.lower() else 400)
+    print("[EGO] voice/realtime: turno guardado", flush=True)
     return _json_ok(result)
 
 
@@ -499,6 +750,42 @@ def access_status():
     return _json_ok(access)
 
 
+@app.post("/api/v1/pdf/extract")
+@require_auth
+def pdf_extract():
+    from ego_api.pdf_extract import (
+        PDF_UPLOAD_MAX_FILES,
+        extract_text_from_uploads,
+    )
+
+    uploads = request.files.getlist("pdf")
+    if not uploads:
+        one = request.files.get("pdf") or request.files.get("file")
+        uploads = [one] if one else []
+    files: list[tuple[str, bytes]] = []
+    for up in uploads[:PDF_UPLOAD_MAX_FILES]:
+        if not up or not up.filename:
+            continue
+        if not str(up.filename).lower().endswith(".pdf"):
+            return _json_error("Envie apenas ficheiros .pdf.")
+        raw = up.read()
+        if raw:
+            files.append((str(up.filename), raw))
+    if not files:
+        return _json_error("Nenhum PDF recebido.")
+    text, warnings = extract_text_from_uploads(files)
+    if not text.strip():
+        detail = "; ".join(warnings) if warnings else "Não foi possível extrair texto."
+        return _json_error(detail)
+    return _json_ok(
+        {
+            "text": text,
+            "char_count": len(text),
+            "warnings": warnings,
+        }
+    )
+
+
 @app.get("/api/v1/profile")
 @require_auth
 def profile_get():
@@ -514,7 +801,10 @@ def profile_patch():
     if "full_name" in data:
         fields["full_name"] = str(data["full_name"])[:200]
     if "ui_state" in data and isinstance(data["ui_state"], dict):
-        fields["ui_state"] = data["ui_state"]
+        prof = db.load_profile(g.supabase, g.user_id) or {}
+        existing = services.ui_state_from_profile(prof)
+        merged = {**existing, **data["ui_state"]}
+        fields["ui_state"] = merged
     if "country" in data:
         fields["country"] = str(data["country"])[:80]
     ok, err = db.update_profile_fields(g.supabase, g.user_id, fields)

@@ -225,19 +225,84 @@ def _ensure_token_period(supabase: Client, user_id: str, prof: dict) -> dict:
 
 
 def user_plan_limits(profile: dict | None) -> tuple[str, PlanLimits]:
+    prof = _profile_with_session_email(profile)
+    tier = resolve_plan_tier(prof)
+    return tier, plan_limits(tier)
+
+
+def _profile_with_session_email(profile: dict | None) -> dict:
     prof = dict(profile) if profile else {}
     if not str(prof.get("email") or "").strip():
         sess = get_session()
         if sess and str(sess.email or "").strip():
             prof["email"] = str(sess.email).strip()
-    tier = resolve_plan_tier(prof)
-    return tier, plan_limits(tier)
+    return prof
+
+
+def refresh_test_total_quota(
+    supabase: Client | None, user_id: str, profile: dict | None = None
+) -> dict:
+    """Conta EGO_TEST_TOTAL_EMAILS: zera contadores se bateu limite (só dev/teste)."""
+    from ego_api.plans import is_test_total_email
+
+    if not supabase or not user_id:
+        return profile or {}
+    prof = _profile_with_session_email(profile if profile is not None else load_profile(supabase, user_id))
+    if not is_test_total_email(str(prof.get("email") or "")):
+        return prof
+
+    tier, limits = user_plan_limits(prof)
+    prof = _ensure_token_period(supabase, user_id, prof)
+    used = int(prof.get("monthly_tokens_used") or 0)
+    text_used, voice_used = daily_message_counts_from_profile(prof)
+
+    over_tokens = limits.monthly_tokens > 0 and used >= int(limits.monthly_tokens * 0.85)
+    over_voice = (
+        not limits.unlimited_daily_voice()
+        and limits.daily_voice_messages > 0
+        and voice_used >= limits.daily_voice_messages
+    )
+    over_text = (
+        not limits.unlimited_daily_text()
+        and limits.daily_text_messages > 0
+        and text_used >= limits.daily_text_messages
+    )
+    if not over_tokens and not over_voice and not over_text:
+        return prof
+
+    ui = _parse_ui_state(prof)
+    ui.pop("daily_messages", None)
+    hoje = _today_iso()
+    patch: dict = {
+        "plan_tier": tier,
+        "is_pro": True,
+        "monthly_tokens_used": 0,
+        "monthly_tokens_period": _current_token_period_utc(),
+        "daily_tts_count": 0,
+        "daily_usage_date": hoje,
+        "ui_state": ui,
+    }
+    try:
+        supabase.table(SUPABASE_PROFILES_TABLE).update(patch).eq("id", user_id).execute()
+    except Exception:
+        return prof
+    prof.update(patch)
+    return prof
 
 
 def check_token_allowance(
     supabase: Client | None, user_id: str, profile: dict | None = None
 ) -> tuple[bool, str, int, int]:
-    prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
+    prof = _profile_with_session_email(
+        profile if profile is not None else (load_profile(supabase, user_id) or {})
+    )
+    from ego_api.plans import is_test_total_email
+
+    if is_test_total_email(str(prof.get("email") or "")):
+        _, limits = user_plan_limits(prof)
+        used = int(prof.get("monthly_tokens_used") or 0)
+        return True, "", used, limits.monthly_tokens
+
     _, limits = user_plan_limits(prof)
     lim = limits.monthly_tokens
     if lim <= 0 or not supabase or not user_id:
@@ -303,19 +368,80 @@ def _today_start_utc_iso() -> str:
     return start_utc.isoformat().replace("+00:00", "Z")
 
 
+def _parse_ui_state(prof: dict) -> dict:
+    raw = prof.get("ui_state")
+    if isinstance(raw, dict):
+        return dict(raw)
+    if isinstance(raw, str) and raw.strip():
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            pass
+    return {}
+
+
+def daily_message_counts_from_profile(prof: dict) -> tuple[int, int]:
+    """Contadores diários (texto, voz) quando o histórico é só no aparelho."""
+    hoje = _today_iso()
+    ui = _parse_ui_state(prof)
+    du = ui.get("daily_messages")
+    if not isinstance(du, dict) or (du.get("date") or "").strip() != hoje:
+        return 0, 0
+    return int(du.get("text") or 0), int(du.get("voice") or 0)
+
+
+def increment_daily_message_usage(
+    supabase: Client | None, user_id: str, *, is_voice: bool
+) -> None:
+    if not supabase or not user_id:
+        return
+    prof = load_profile(supabase, user_id) or {}
+    prof = _ensure_daily_usage(supabase, user_id, prof)
+    hoje = _today_iso()
+    ui = _parse_ui_state(prof)
+    du = ui.get("daily_messages")
+    if not isinstance(du, dict) or (du.get("date") or "").strip() != hoje:
+        du = {"date": hoje, "text": 0, "voice": 0}
+    else:
+        du = dict(du)
+    if is_voice:
+        du["voice"] = int(du.get("voice") or 0) + 1
+    else:
+        du["text"] = int(du.get("text") or 0) + 1
+    du["date"] = hoje
+    ui = dict(ui)
+    ui["daily_messages"] = du
+    try:
+        supabase.table(SUPABASE_PROFILES_TABLE).update({"ui_state": ui}).eq(
+            "id", user_id
+        ).execute()
+    except Exception:
+        pass
+
+
 def _ensure_daily_usage(supabase: Client, user_id: str, prof: dict) -> dict:
     hoje = _today_iso()
     if (prof.get("daily_usage_date") or "").strip() == hoje:
         return prof
+    ui = _parse_ui_state(prof)
+    ui.pop("daily_messages", None)
     try:
         supabase.table(SUPABASE_PROFILES_TABLE).update(
-            {"daily_tts_count": 0, "daily_usage_date": hoje}
+            {
+                "daily_tts_count": 0,
+                "daily_usage_date": hoje,
+                "ui_state": ui,
+            }
         ).eq("id", user_id).execute()
     except Exception:
         return prof
     prof = dict(prof)
     prof["daily_tts_count"] = 0
     prof["daily_usage_date"] = hoje
+    if isinstance(prof.get("ui_state"), dict):
+        prof["ui_state"] = ui
     return prof
 
 
@@ -340,10 +466,22 @@ def _count_user_messages_today(
 
 
 def daily_text_messages_ok(
-    supabase: Client | None, user_id: str, limits: PlanLimits
+    supabase: Client | None,
+    user_id: str,
+    limits: PlanLimits,
+    profile: dict | None = None,
 ) -> tuple[bool, int]:
     if not supabase or not user_id:
         return True, 0
+    from ego_api.config import chat_local_history_enabled
+
+    if chat_local_history_enabled():
+        prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
+        prof = _ensure_daily_usage(supabase, user_id, prof)
+        text_used, _voice_used = daily_message_counts_from_profile(prof)
+        if limits.unlimited_daily_text() or beta_unlimited():
+            return True, text_used
+        return text_used < limits.daily_text_messages, text_used
     uso = _count_user_messages_today(supabase, user_id, voice_only=False)
     voice = _count_user_messages_today(supabase, user_id, voice_only=True)
     text_used = max(0, uso - voice)
@@ -353,10 +491,22 @@ def daily_text_messages_ok(
 
 
 def daily_voice_messages_ok(
-    supabase: Client | None, user_id: str, limits: PlanLimits
+    supabase: Client | None,
+    user_id: str,
+    limits: PlanLimits,
+    profile: dict | None = None,
 ) -> tuple[bool, int]:
     if not supabase or not user_id:
         return True, 0
+    from ego_api.config import chat_local_history_enabled
+
+    if chat_local_history_enabled():
+        prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
+        prof = _ensure_daily_usage(supabase, user_id, prof)
+        _text_used, voice_used = daily_message_counts_from_profile(prof)
+        if limits.unlimited_daily_voice() or beta_unlimited():
+            return True, voice_used
+        return voice_used < limits.daily_voice_messages, voice_used
     uso = _count_user_messages_today(supabase, user_id, voice_only=True)
     if limits.unlimited_daily_voice() or beta_unlimited():
         return True, uso
@@ -432,11 +582,13 @@ def build_plan_access_payload(
     supabase: Client | None, user_id: str, profile: dict | None = None
 ) -> dict:
     prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
+    prof = refresh_test_total_quota(supabase, user_id, prof)
+    prof = _profile_with_session_email(prof)
     tier, limits = user_plan_limits(prof)
     ok_access, status = check_access(supabase, user_id)
     ok_tok, msg_tok, used_tok, lim_tok = check_token_allowance(supabase, user_id, prof)
-    ok_txt, txt_used = daily_text_messages_ok(supabase, user_id, limits)
-    ok_voice, voice_used = daily_voice_messages_ok(supabase, user_id, limits)
+    ok_txt, txt_used = daily_text_messages_ok(supabase, user_id, limits, prof)
+    ok_voice, voice_used = daily_voice_messages_ok(supabase, user_id, limits, prof)
     ok_tts, tts_used = daily_tts_ok(supabase, user_id, limits, prof)
     ag_ok, ag_n = agenda_limit_ok(supabase, user_id, limits)
     rem_ok, rem_n = reminders_limit_ok(supabase, user_id, limits)
@@ -472,7 +624,14 @@ def build_plan_access_payload(
         "reminders_limit": limits.max_reminders,
         "audio_speed_allowed": list(limits.audio_speed_multipliers),
         "chat_max_turns": limits.chat_llm_max_turns,
+        "chat_local_history": chat_local_history_enabled(),
     }
+
+
+def chat_local_history_enabled() -> bool:
+    from ego_api.config import chat_local_history_enabled as _enabled
+
+    return _enabled()
 
 
 def _parse_ts_iso(value: str | None) -> datetime.datetime | None:

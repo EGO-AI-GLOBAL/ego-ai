@@ -3,6 +3,7 @@ from __future__ import annotations
 import datetime
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeout
 
 from ego_api.config import (
     CHAT_LLM_MAX_TURNS,
@@ -41,6 +42,11 @@ escuta ativa e sugestões práticas e breves — nunca julgamentos. Nunca soe co
 Detete o idioma do utilizador e responda sempre no mesmo idioma. Seja conciso e seguro (sem aconselhamento \
 médico/legal definitivo; encaminhe a profissionais quando necessário).
 """
+
+VOICE_REPLY_INSTRUCTION = (
+    "O utilizador enviou mensagem de VOZ. Responda em 2 a 4 frases curtas, diretas e naturais "
+    "para ouvir em voz alta. Evite listas longas, markdown e parágrafos grandes."
+)
 
 REMINDER_LLM_INSTRUCTION = """
 REMINDERS / ALARMS: If the user asks for a reminder, alarm, meeting, or important call at a specific time,
@@ -289,14 +295,14 @@ def _gemini_error_message(exc: BaseException) -> str:
     return f"Erro ao chamar o Gemini: {exc}"
 
 
-def generate_reply(
+def _generate_reply_inner(
     user_text: str,
     *,
-    conversation_messages: list | None = None,
-    lang_code: str = "pt-BR",
-    agenda_context: str = "",
-    audio_bytes: bytes | None = None,
-    audio_mime: str | None = None,
+    conversation_messages: list | None,
+    lang_code: str,
+    agenda_context: str,
+    audio_bytes: bytes | None,
+    audio_mime: str | None,
 ) -> str:
     if not genai:
         return "Instale google-generativeai."
@@ -307,7 +313,12 @@ def generate_reply(
 
     msgs = conversation_messages if conversation_messages is not None else []
     prior = msgs[:-1] if msgs else []
-    if len(prior) > CHAT_LLM_MAX_TURNS:
+    if audio_bytes:
+        # Voz: pouco histórico + sem agenda = resposta mais rápida.
+        if len(prior) > 2:
+            prior = prior[-2:]
+        agenda_context = ""
+    elif len(prior) > CHAT_LLM_MAX_TURNS:
         prior = prior[-CHAT_LLM_MAX_TURNS:]
 
     full_system = build_system_instruction(sess, lang_code, agenda_context)
@@ -323,21 +334,29 @@ def generate_reply(
             chosen = preferred[0]
 
         model_try: list[str] = []
-        if gemini_flash_only():
-            model_try = [GEMINI_MODEL_FLASH, f"models/{GEMINI_MODEL_FLASH}"]
+        if audio_bytes or gemini_flash_only():
+            mid_flash = _normalize_model_id(GEMINI_MODEL_FLASH)
+            model_try = [mid_flash]
         else:
             for name in [chosen, *preferred, "models/gemini-flash-latest"]:
                 if name and name not in model_try and _is_chat_model(str(name)):
                     model_try.append(str(name))
-        model_try = model_try[:2]
+            model_try = model_try[:2]
 
         last_error: Exception | None = None
         for model_name in model_try:
             try:
                 mid = _normalize_model_id(model_name)
+                gen_cfg = None
+                try:
+                    gen_cfg = genai.GenerationConfig(max_output_tokens=420, temperature=0.75)
+                except Exception:  # noqa: BLE001
+                    gen_cfg = None
                 try:
                     model = genai.GenerativeModel(
-                        model_name=mid, system_instruction=full_system
+                        model_name=mid,
+                        system_instruction=full_system,
+                        generation_config=gen_cfg,
                     )
                     legacy = False
                 except TypeError:
@@ -346,8 +365,22 @@ def generate_reply(
 
                 history = _messages_to_gemini_history(prior)
                 voice_intro = (
-                    f"Mensagem de voz do utilizador. Responda no mesmo idioma, tom de {asst_nm}."
+                    f"Mensagem de voz do utilizador. Responda no mesmo idioma, tom de {asst_nm}. "
+                    f"{VOICE_REPLY_INSTRUCTION}"
                 )
+
+                # Voz: caminho simples (sem chat com histórico) — mais rápido.
+                if audio_bytes and not legacy:
+                    parts_voice: list[object] = [voice_intro]
+                    parts_voice.append(
+                        {"mime_type": audio_mime or "audio/webm", "data": audio_bytes}
+                    )
+                    resp = model.generate_content(parts_voice)
+                    sess.gemini_model_ok = mid
+                    text = resp.text or ""
+                    if text:
+                        return text
+                    return "Não obtive texto na resposta."
 
                 if legacy:
                     blob = _linearize(prior, user_text or "(voz)")
@@ -400,6 +433,45 @@ def generate_reply(
         return _gemini_error_message(last_error or Exception("sem resposta"))
     except Exception as e:  # noqa: BLE001
         return _gemini_error_message(e)
+
+
+def generate_reply(
+    user_text: str,
+    *,
+    conversation_messages: list | None = None,
+    lang_code: str = "pt-BR",
+    agenda_context: str = "",
+    audio_bytes: bytes | None = None,
+    audio_mime: str | None = None,
+) -> str:
+    """Gera resposta; mensagens de voz têm timeout para não bloquear o Flask."""
+    if not audio_bytes:
+        return _generate_reply_inner(
+            user_text,
+            conversation_messages=conversation_messages,
+            lang_code=lang_code,
+            agenda_context=agenda_context,
+            audio_bytes=None,
+            audio_mime=audio_mime,
+        )
+    timeout_s = 125
+    with ThreadPoolExecutor(max_workers=1) as pool:
+        fut = pool.submit(
+            _generate_reply_inner,
+            user_text,
+            conversation_messages=conversation_messages,
+            lang_code=lang_code,
+            agenda_context=agenda_context,
+            audio_bytes=audio_bytes,
+            audio_mime=audio_mime,
+        )
+        try:
+            return fut.result(timeout=timeout_s)
+        except FuturesTimeout:
+            return (
+                "A IA demorou demais para ouvir o áudio (mais de 1 minuto). "
+                "Tente uma gravação mais curta (3–5 segundos) ou escreva em texto."
+            )
 
 
 def extract_reminders(text: str) -> tuple[str, list[dict]]:
