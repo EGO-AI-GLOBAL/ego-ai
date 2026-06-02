@@ -800,9 +800,7 @@ def _read_persona_from_profile_ui(
     prof = load_profile(supabase, user_id) if supabase and user_id else None
     if not prof:
         return None
-    from ego_api.services import ui_state_from_profile
-
-    ui = ui_state_from_profile(prof)
+    ui = _parse_ui_state(prof)
     aid = str(ui.get("avatar_id") or "").strip()
     if not aid:
         return None
@@ -865,10 +863,9 @@ def _mirror_persona_to_profile(
     if not supabase or not user_id:
         return
     from ego_api.persona import assistant_display_name_for_avatar
-    from ego_api.services import ui_state_from_profile
 
     prof = load_profile(supabase, user_id) or {}
-    ui = ui_state_from_profile(prof)
+    ui = _parse_ui_state(prof)
     name = assistant_display_name_for_avatar(avatar_id)
     merged = {
         **ui,

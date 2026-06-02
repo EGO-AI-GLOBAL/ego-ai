@@ -836,9 +836,33 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
     )
     from ego_api import openai_realtime
 
-    access = db.build_plan_access_payload(supabase, user_id)
     local = chat_local_history_enabled()
-    messages = [] if local else db.load_chat_history(supabase, user_id)
+    try:
+        access = db.build_plan_access_payload(supabase, user_id)
+    except Exception:
+        access = {"plan_tier": "essential", "access_allowed": True, "access_status": "active"}
+    try:
+        me = me_payload(supabase, user_id)
+    except Exception as exc:
+        me = {
+            "user_id": user_id,
+            "persona_configured": False,
+            "persona": {"avatar_id": "f1", "voice_id": "vf1"},
+            "access": {"allowed": True, "status": "active"},
+            "bootstrap_error": str(exc)[:200],
+        }
+    try:
+        reminders = db.list_reminders(supabase, user_id)
+    except Exception:
+        reminders = []
+    try:
+        agenda = db.list_agenda(supabase, user_id)
+    except Exception:
+        agenda = []
+    try:
+        messages = [] if local else db.load_chat_history(supabase, user_id)
+    except Exception:
+        messages = []
     return {
         "health": {
             "ok": True,
@@ -847,10 +871,10 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
             "gemini_configured": bool(gemini_api_key()),
             "openai_realtime_configured": openai_realtime.is_available(),
         },
-        "me": me_payload(supabase, user_id),
+        "me": me,
         "access": {"ok": True, **access},
-        "reminders": db.list_reminders(supabase, user_id),
-        "agenda": db.list_agenda(supabase, user_id),
+        "reminders": reminders,
+        "agenda": agenda,
         "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
         "messages": messages,
         "chat_local_history": local,
@@ -866,7 +890,10 @@ def ensure_persona_normalized(supabase: Client | None, user_id: str) -> tuple[st
     if db.persona_is_configured(supabase, user_id) and (
         stored_a != avatar_id or stored_v != voice_id
     ):
-        db.save_persona(supabase, user_id, avatar_id, voice_id)
+        try:
+            db.save_persona(supabase, user_id, avatar_id, voice_id)
+        except Exception:
+            pass
     return avatar_id, voice_id
 
 

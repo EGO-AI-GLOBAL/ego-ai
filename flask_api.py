@@ -315,8 +315,9 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-02-persona-leo-fix",
+        "api_build": "2026-06-02-bootstrap-500-fix",
         "pdf_extract": True,
+        "deploy_hint": "Adicione SUPABASE_SERVICE_ROLE_KEY no Railway e redeploy",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -484,7 +485,18 @@ def legal(doc: str):
 
 
 def _dashboard_payload():
-    return _json_ok(services.bootstrap_payload(g.supabase, g.user_id))
+    try:
+        return _json_ok(services.bootstrap_payload(g.supabase, g.user_id))
+    except Exception as exc:  # noqa: BLE001
+        import traceback
+
+        print(f"[EGO] bootstrap error user={getattr(g, 'user_id', '')}: {exc}", flush=True)
+        traceback.print_exc()
+        return _json_error(
+            "Não foi possível carregar a agenda. Confirme SUPABASE_SERVICE_ROLE_KEY no Railway "
+            "e as tabelas no Supabase (shared_calendars).",
+            500,
+        )
 
 
 @app.post("/api/v1/app/bootstrap")
@@ -909,20 +921,28 @@ def pdf_extract():
             count = max(count, 1) + len(files)
         else:
             count = len(files)
-        capped, truncated = services.persist_pdf_context(
-            g.supabase,
-            g.user_id,
-            merged,
-            prof,
-            attachment_count=count,
-        )
+        stored = False
+        stored_chars = len(text)
+        truncated = False
+        try:
+            capped, truncated = services.persist_pdf_context(
+                g.supabase,
+                g.user_id,
+                merged,
+                prof,
+                attachment_count=count,
+            )
+            stored = True
+            stored_chars = len(capped)
+        except Exception as store_exc:
+            warnings.append(f"Texto lido; perfil não sincronizado: {store_exc}")
         return _json_ok(
             {
                 "text": text,
                 "char_count": len(text),
                 "warnings": warnings,
-                "stored": True,
-                "stored_char_count": len(capped),
+                "stored": stored,
+                "stored_char_count": stored_chars,
                 "stored_truncated": truncated,
                 "pdf_attachment_count": min(count, DOC_UPLOAD_MAX_FILES * 24),
             }
