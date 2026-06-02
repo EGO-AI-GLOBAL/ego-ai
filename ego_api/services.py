@@ -36,6 +36,8 @@ def normalize_email(raw: str) -> tuple[str, str | None]:
 def format_auth_error(exc: BaseException) -> str:
     msg = str(exc).strip()
     low = msg.lower()
+    if "no module named" in low:
+        return "Erro temporário no servidor. Tente novamente em alguns minutos."
     if "already registered" in low or "user already exists" in low:
         return "Este e-mail já está cadastrado."
     if "invalid login" in low or "invalid credentials" in low:

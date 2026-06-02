@@ -315,7 +315,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-02-persona-leo-load-fix",
+        "api_build": "2026-06-02-login-referrals-fix",
         "pdf_extract": True,
         "deploy_hint": "Adicione SUPABASE_SERVICE_ROLE_KEY no Railway e redeploy",
         "checks": {

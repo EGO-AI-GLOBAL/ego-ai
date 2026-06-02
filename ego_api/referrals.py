@@ -11,7 +11,10 @@ import re
 from datetime import datetime, timezone
 from typing import Any
 
-from supabase import Client
+try:
+    from ego_supabase import Client
+except ImportError:
+    from supabase import Client  # type: ignore[assignment]
 
 COMMISSION_CENTS_BRL = 1000  # R$ 10,00
 _CODE_RE = re.compile(r"^[A-Z0-9][A-Z0-9_-]{2,31}$")
