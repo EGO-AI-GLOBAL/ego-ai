@@ -625,7 +625,21 @@ def build_plan_access_payload(
         "audio_speed_allowed": list(limits.audio_speed_multipliers),
         "chat_max_turns": limits.chat_llm_max_turns,
         "chat_local_history": chat_local_history_enabled(),
+        "team_seats": _team_seats_from_profile(prof),
+        "plan_type": _plan_type_from_profile(prof),
     }
+
+
+def _team_seats_from_profile(prof: dict) -> int | None:
+    from ego_api.team_stripe_checkout import parse_team_seats
+
+    ui = _parse_ui_state(prof)
+    return parse_team_seats(ui.get("team_seats"))
+
+
+def _plan_type_from_profile(prof: dict) -> str:
+    ui = _parse_ui_state(prof)
+    return str(ui.get("plan_type") or "individual").strip() or "individual"
 
 
 def chat_local_history_enabled() -> bool:

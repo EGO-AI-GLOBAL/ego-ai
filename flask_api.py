@@ -14,12 +14,16 @@ Ou:
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from functools import wraps
 from typing import Any, Callable
 
-from flask import Flask, g, jsonify, request
+import html as html_lib
+import re
+
+from flask import Flask, Response, g, jsonify, request
 from flask_cors import CORS
 
 from ego_api.config import (
@@ -191,7 +195,9 @@ def require_auth(f: Callable) -> Callable:
         # POST /chat/messages: nunca parsear corpo aqui (voz multipart / base64 grande).
         path_tail = request.path.rstrip("/")
         skip_json_body = request.method == "POST" and (
-            path_tail.endswith("/chat/messages") or path_tail.endswith("/chat/voice")
+            path_tail.endswith("/chat/messages")
+            or path_tail.endswith("/chat/voice")
+            or path_tail.endswith("/chat/voice/stream")
         )
         if skip_json_body:
             body = {}
@@ -357,6 +363,7 @@ def auth_signup():
         data.get("email", ""),
         data.get("password", ""),
         data.get("full_name", ""),
+        data.get("referral_code", "") or data.get("referral", ""),
     )
     if err:
         return _json_error(err, 400)
@@ -392,6 +399,61 @@ def auth_refresh():
     return _json_ok({"session": payload})
 
 
+def _markdown_to_html_body(md: str) -> str:
+    """HTML simples para crawlers (Google Play) e browser."""
+    out: list[str] = []
+    for raw in (md or "").splitlines():
+        line = raw.rstrip()
+        if not line.strip():
+            out.append("<p>&nbsp;</p>")
+            continue
+        if line.startswith("### "):
+            out.append(f"<h3>{html_lib.escape(line[4:].strip())}</h3>")
+        elif line.startswith("## "):
+            out.append(f"<h2>{html_lib.escape(line[3:].strip())}</h2>")
+        elif line.startswith("# "):
+            out.append(f"<h1>{html_lib.escape(line[2:].strip())}</h1>")
+        elif line.startswith("- "):
+            out.append(f"<li>{html_lib.escape(line[2:].strip())}</li>")
+        else:
+            text = html_lib.escape(line)
+            text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+            out.append(f"<p>{text}</p>")
+    return "\n".join(out)
+
+
+def _legal_html_page(title: str, markdown_text: str) -> Response:
+    body = _markdown_to_html_body(markdown_text)
+    page = f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{html_lib.escape(title)} — EGO-AI</title>
+</head>
+<body>
+  <article style="max-width:720px;margin:2rem auto;padding:0 1rem;font-family:system-ui,sans-serif;line-height:1.55;color:#111">
+    <h1>{html_lib.escape(title)}</h1>
+    {body}
+  </article>
+</body>
+</html>"""
+    return Response(page, mimetype="text/html; charset=utf-8")
+
+
+@app.get("/privacy")
+@app.get("/privacidade")
+@app.get("/politica-de-privacidade")
+def privacy_policy_page():
+    return _legal_html_page("Política de Privacidade", privacy_policy_markdown())
+
+
+@app.get("/terms")
+@app.get("/termos")
+def terms_page():
+    return _legal_html_page("Termos de Uso", terms_of_use_markdown())
+
+
 @app.get("/api/v1/legal/<doc>")
 def legal(doc: str):
     docs = {
@@ -402,6 +464,14 @@ def legal(doc: str):
     entry = docs.get(doc.lower())
     if not entry:
         return _json_error("Documento não encontrado. Use terms, privacy ou refund.", 404)
+    accept = (request.headers.get("Accept") or "").lower()
+    if "text/html" in accept and doc.lower() in ("privacy", "terms", "refund"):
+        titles = {
+            "privacy": "Política de Privacidade",
+            "terms": "Termos de Uso",
+            "refund": "Política de Reembolso",
+        }
+        return _legal_html_page(titles[doc.lower()], entry[1]())
     return _json_ok({"document": entry[0], "markdown": entry[1]()})
 
 
@@ -575,6 +645,55 @@ def chat_voice():
         return _json_error(err, 402 if "Limite" in err or "expirado" in err.lower() else 400)
     print("[EGO] chat/voice: resposta OK", flush=True)
     return _json_ok(result)
+
+
+@app.post("/api/v1/chat/voice/stream")
+@require_auth
+@require_play_integrity
+@rate_limit(30, 60, scope="user")
+def chat_voice_stream():
+    """Voz com streaming NDJSON — texto aparece enquanto o Gemini gera."""
+    from ego_api.chat_local import parse_client_history
+    from ego_api.config import voice_stream_enabled
+    from flask import stream_with_context
+
+    if not voice_stream_enabled():
+        return _json_error("Streaming de voz desativado no servidor.", 503)
+
+    speak_reply = str(request.form.get("speak", "true")).lower() in ("1", "true", "yes")
+    client_history = parse_client_history(request.form.get("history"))
+    audio_mime = str(request.form.get("audio_mime") or "audio/webm")
+    audio_bytes: bytes | None = None
+
+    upload = request.files.get("audio")
+    if upload:
+        audio_bytes = upload.read()
+        if upload.content_type:
+            audio_mime = upload.content_type
+
+    size = len(audio_bytes or b"")
+    if size < 128:
+        return _json_error(
+            f"Áudio não recebido ({size} bytes). Grave 2–3 segundos e envie de novo.",
+            400,
+        )
+
+    def generate():
+        for event in services.iter_voice_chat_stream(
+            g.supabase,
+            g.user_id,
+            audio_bytes=audio_bytes or b"",
+            audio_mime=audio_mime,
+            speak_reply=speak_reply,
+            client_history=client_history,
+        ):
+            yield json.dumps(event, ensure_ascii=False) + "\n"
+
+    return Response(
+        stream_with_context(generate()),
+        mimetype="application/x-ndjson",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.get("/api/v1/voice/realtime/status")
@@ -753,26 +872,33 @@ def access_status():
 @app.post("/api/v1/pdf/extract")
 @require_auth
 def pdf_extract():
-    from ego_api.pdf_extract import (
-        PDF_UPLOAD_MAX_FILES,
+    from ego_api.document_extract import (
+        ALLOWED_SUFFIXES_LABEL,
+        DOC_UPLOAD_MAX_FILES,
         extract_text_from_uploads,
+        is_allowed_document,
     )
 
     uploads = request.files.getlist("pdf")
     if not uploads:
+        uploads = request.files.getlist("file")
+    if not uploads:
         one = request.files.get("pdf") or request.files.get("file")
         uploads = [one] if one else []
     files: list[tuple[str, bytes]] = []
-    for up in uploads[:PDF_UPLOAD_MAX_FILES]:
+    for up in uploads[:DOC_UPLOAD_MAX_FILES]:
         if not up or not up.filename:
             continue
-        if not str(up.filename).lower().endswith(".pdf"):
-            return _json_error("Envie apenas ficheiros .pdf.")
+        name = str(up.filename)
+        if not is_allowed_document(name):
+            return _json_error(
+                f"Formato não suportado. Envie: {ALLOWED_SUFFIXES_LABEL}."
+            )
         raw = up.read()
         if raw:
-            files.append((str(up.filename), raw))
+            files.append((name, raw))
     if not files:
-        return _json_error("Nenhum PDF recebido.")
+        return _json_error("Nenhum documento recebido.")
     text, warnings = extract_text_from_uploads(files)
     if not text.strip():
         detail = "; ".join(warnings) if warnings else "Não foi possível extrair texto."
@@ -975,6 +1101,184 @@ def agenda_create():
 def agenda_delete(agenda_id: str):
     ok = db.delete_agenda(g.supabase, g.user_id, agenda_id)
     return _json_ok({"deleted": ok})
+
+
+@app.get("/api/v1/shared-calendars")
+@require_auth
+def shared_calendars_list():
+    from ego_api import shared_calendars as sc
+
+    rows = sc.list_calendars_for_user(g.supabase, g.user_id)
+    return _json_ok({"shared_calendars": rows})
+
+
+@app.post("/api/v1/shared-calendars")
+@require_auth
+def shared_calendars_create():
+    from ego_api import shared_calendars as sc
+
+    data = request.get_json(silent=True) or {}
+    name = str(data.get("name") or "").strip()
+    ok, err, row = sc.create_calendar(g.supabase, g.user_id, name=name)
+    if not ok:
+        return _json_error(err or "Não foi possível criar a agenda compartilhada.")
+    return _json_ok({"calendar": row}, 201)
+
+
+@app.get("/api/v1/shared-calendars/<calendar_id>")
+@require_auth
+def shared_calendars_get(calendar_id: str):
+    from ego_api import shared_calendars as sc
+
+    cal = sc.get_calendar(g.supabase, g.user_id, calendar_id)
+    if not cal:
+        return _json_error("Agenda não encontrada ou sem acesso.", 404)
+    return _json_ok({"calendar": cal})
+
+
+@app.post("/api/v1/shared-calendars/<calendar_id>/members")
+@require_auth
+def shared_calendars_add_member(calendar_id: str):
+    from ego_api import shared_calendars as sc
+
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email") or "").strip()
+    if not email:
+        return _json_error("Informe o e-mail do utilizador.")
+    ok, err, row = sc.add_member_by_email(
+        g.supabase, g.user_id, calendar_id, email
+    )
+    if not ok:
+        return _json_error(err or "Não foi possível adicionar o membro.")
+    return _json_ok({"member": row}, 201)
+
+
+@app.delete("/api/v1/shared-calendars/<calendar_id>/members/<member_id>")
+@require_auth
+def shared_calendars_remove_member(calendar_id: str, member_id: str):
+    from ego_api import shared_calendars as sc
+
+    ok, err = sc.remove_member(g.supabase, g.user_id, calendar_id, member_id)
+    if not ok:
+        return _json_error(err or "Não foi possível remover.", 400)
+    return _json_ok({"removed": True})
+
+
+@app.get("/api/v1/shared-calendars/<calendar_id>/events")
+@require_auth
+def shared_calendars_events_list(calendar_id: str):
+    from ego_api import shared_calendars as sc
+
+    rows = sc.list_events(g.supabase, g.user_id, calendar_id)
+    return _json_ok({"events": rows})
+
+
+@app.post("/api/v1/shared-calendars/<calendar_id>/events")
+@require_auth
+def shared_calendars_events_create(calendar_id: str):
+    from ego_api import shared_calendars as sc
+
+    data = request.get_json(silent=True) or {}
+    title = str(data.get("title") or "").strip()
+    scheduled_at = data.get("scheduled_at")
+    if not title or scheduled_at is None:
+        return _json_error("title e scheduled_at são obrigatórios.")
+    ok, err, row = sc.insert_event(
+        g.supabase,
+        g.user_id,
+        calendar_id,
+        title=title,
+        scheduled_at=scheduled_at,
+        announce=str(data.get("announce") or title),
+    )
+    if not ok:
+        return _json_error(err or "Não foi possível marcar a reunião.")
+    return _json_ok({"event": row}, 201)
+
+
+@app.post("/api/v1/shared-calendars/<calendar_id>/events/<event_id>/dismiss")
+@require_auth
+def shared_calendars_events_dismiss(calendar_id: str, event_id: str):
+    from ego_api import shared_calendars as sc
+
+    ok = sc.dismiss_event(g.supabase, g.user_id, calendar_id, event_id)
+    return _json_ok({"dismissed": ok})
+
+
+@app.post("/api/v1/referrals/validate")
+@rate_limit(30, 60, scope="ip")
+def referrals_validate():
+    from ego_api import referrals
+
+    data = request.get_json(silent=True) or {}
+    code = str(data.get("code") or data.get("referral_code") or "")
+    info, err = referrals.validate_referral_code(code)
+    if err:
+        return _json_error(err, 400)
+    if not info:
+        return _json_ok({"valid": False})
+    return _json_ok({"valid": True, **info})
+
+
+def _require_referral_admin() -> tuple[bool, Any]:
+    from ego_api import referrals
+
+    key = referrals.admin_api_key()
+    if not key:
+        return False, _json_error("Admin de indicações não configurado.", 503)
+    sent = (
+        request.headers.get("X-Admin-Key") or request.args.get("admin_key") or ""
+    ).strip()
+    if sent != key:
+        return False, _json_error("Não autorizado.", 401)
+    return True, None
+
+
+@app.post("/api/v1/admin/referrals/partners")
+def admin_referral_create_partner():
+    ok, err_resp = _require_referral_admin()
+    if not ok:
+        return err_resp
+    from ego_api import referrals
+
+    data = request.get_json(silent=True) or {}
+    partner, err = referrals.create_partner(
+        code=str(data.get("code") or ""),
+        display_name=str(data.get("display_name") or data.get("name") or ""),
+        contact_email=str(data.get("contact_email") or data.get("email") or ""),
+        payout_pix=str(data.get("payout_pix") or data.get("pix") or ""),
+        notes=str(data.get("notes") or ""),
+    )
+    if err:
+        return _json_error(err, 400)
+    link = referrals.partner_signup_link(str(partner.get("code") or ""))
+    return _json_ok({"partner": partner, "signup_link": link})
+
+
+@app.get("/api/v1/admin/referrals/report.csv")
+def admin_referral_report_csv():
+    ok, err_resp = _require_referral_admin()
+    if not ok:
+        return err_resp
+    from datetime import datetime, timezone
+
+    from flask import Response
+
+    from ego_api import referrals
+
+    month = str(request.args.get("month") or "").strip()
+    if not month:
+        month = datetime.now(timezone.utc).strftime("%Y-%m")
+    csv_text, err = referrals.commissions_report_csv(month)
+    if err:
+        return _json_error(err, 400)
+    return Response(
+        csv_text,
+        mimetype="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="ego-indicacoes-{month}.csv"'
+        },
+    )
 
 
 @app.post("/api/v1/auth/logout")

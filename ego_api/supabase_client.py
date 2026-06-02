@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from ego_api.config import supabase_anon_key, supabase_url
+from ego_api.config import read_env, supabase_anon_key, supabase_url
 from ego_api.request_ctx import get_session
 
 if TYPE_CHECKING:
@@ -36,6 +36,18 @@ def supabase_env_status() -> dict[str, bool | int | str]:
 
 def create_anon_client() -> Client | None:
     url, key = supabase_url(), supabase_anon_key()
+    if not url or not key:
+        return None
+    try:
+        return create_client(url, key)
+    except Exception:
+        return None
+
+
+def create_service_client() -> Client | None:
+    """Cliente admin (convites por e-mail). Requer SUPABASE_SERVICE_ROLE_KEY no servidor."""
+    url = supabase_url()
+    key = read_env("SUPABASE_SERVICE_ROLE_KEY")
     if not url or not key:
         return None
     try:

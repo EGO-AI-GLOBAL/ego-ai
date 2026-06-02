@@ -1,4 +1,4 @@
-"""Planos EGO-AI: limites por tier (Essencial, Conexão, Premium, Total)."""
+"""Planos EGO-AI: limites por tier (Essencial, Conexão, Premium, Total, Empresa)."""
 
 from __future__ import annotations
 
@@ -10,12 +10,14 @@ PLAN_ESSENTIAL = "essential"
 PLAN_CONNECTION = "connection"
 PLAN_PREMIUM = "premium"
 PLAN_TOTAL = "total"
+PLAN_ENTERPRISE = "enterprise"
 
 PLAN_TIERS: tuple[str, ...] = (
     PLAN_ESSENTIAL,
     PLAN_CONNECTION,
     PLAN_PREMIUM,
     PLAN_TOTAL,
+    PLAN_ENTERPRISE,
 )
 
 PLAN_LABELS: dict[str, str] = {
@@ -23,6 +25,7 @@ PLAN_LABELS: dict[str, str] = {
     PLAN_CONNECTION: "EGO Conexão",
     PLAN_PREMIUM: "EGO Premium",
     PLAN_TOTAL: "EGO Total",
+    PLAN_ENTERPRISE: "EGO Empresa",
 }
 
 PLAN_PRICES_BRL: dict[str, float] = {
@@ -30,6 +33,7 @@ PLAN_PRICES_BRL: dict[str, float] = {
     PLAN_CONNECTION: 29.90,
     PLAN_PREMIUM: 49.90,
     PLAN_TOTAL: 99.90,
+    PLAN_ENTERPRISE: 199.90,
 }
 
 
@@ -129,6 +133,16 @@ def _limits_for_tier(tier: str) -> PlanLimits:
             audio_speed_multipliers=(1.0, 1.5, 2.0),
             chat_llm_max_turns=40,
         ),
+        PLAN_ENTERPRISE: PlanLimits(
+            monthly_tokens=10_000_000,
+            daily_text_messages=0,
+            daily_voice_messages=0,
+            daily_tts_replies=0,
+            max_agenda_items=0,
+            max_reminders=0,
+            audio_speed_multipliers=(1.0, 1.5, 2.0, 2.5),
+            chat_llm_max_turns=48,
+        ),
     }
     base = defaults[t]
     prefix = t.upper()
@@ -167,6 +181,10 @@ def normalize_plan_tier(raw: str | None) -> str:
         "pro": PLAN_CONNECTION,
         "vip": PLAN_TOTAL,
         "total": PLAN_TOTAL,
+        "empresa": PLAN_ENTERPRISE,
+        "business": PLAN_ENTERPRISE,
+        "enterprise": PLAN_ENTERPRISE,
+        "corporate": PLAN_ENTERPRISE,
     }
     tier = aliases.get(tier, tier)
     if tier in PLAN_TIERS:
@@ -240,7 +258,7 @@ def stripe_price_to_tier(price_id: str) -> str | None:
     pid = (price_id or "").strip()
     if not pid:
         return None
-    for tier in (PLAN_CONNECTION, PLAN_PREMIUM, PLAN_TOTAL):
+    for tier in (PLAN_CONNECTION, PLAN_PREMIUM, PLAN_TOTAL, PLAN_ENTERPRISE):
         env_name = f"STRIPE_PRICE_{tier.upper()}"
         if (os.getenv(env_name) or "").strip() == pid:
             return tier
@@ -252,7 +270,7 @@ def stripe_product_to_tier(product_id: str) -> str | None:
     prod = (product_id or "").strip()
     if not prod:
         return None
-    for tier in (PLAN_CONNECTION, PLAN_PREMIUM, PLAN_TOTAL):
+    for tier in (PLAN_CONNECTION, PLAN_PREMIUM, PLAN_TOTAL, PLAN_ENTERPRISE):
         env_name = f"STRIPE_PRODUCT_{tier.upper()}"
         if (os.getenv(env_name) or "").strip() == prod:
             return tier
@@ -268,6 +286,7 @@ def stripe_checkout_urls() -> dict[str, str | None]:
         PLAN_CONNECTION: _clean_url(os.getenv("STRIPE_CHECKOUT_CONNECTION_URL", "")),
         PLAN_PREMIUM: _clean_url(os.getenv("STRIPE_CHECKOUT_PREMIUM_URL", "")),
         PLAN_TOTAL: _clean_url(os.getenv("STRIPE_CHECKOUT_TOTAL_URL", "")),
+        PLAN_ENTERPRISE: _clean_url(os.getenv("STRIPE_CHECKOUT_ENTERPRISE_URL", "")),
         "monthly_legacy": _clean_url(os.getenv("STRIPE_CHECKOUT_MENSAL_URL", "")),
         "annual_legacy": _clean_url(os.getenv("STRIPE_CHECKOUT_ANUAL_URL", "")),
         "int_connection": _clean_url(os.getenv("STRIPE_CHECKOUT_INT_CONNECTION_URL", "")),
@@ -279,6 +298,7 @@ def stripe_checkout_urls() -> dict[str, str | None]:
         "int_total_annual": _clean_url(
             os.getenv("STRIPE_CHECKOUT_INT_TOTAL_ANNUAL_URL", "")
         ),
+        "int_enterprise": _clean_url(os.getenv("STRIPE_CHECKOUT_INT_ENTERPRISE_URL", "")),
     }
 
 

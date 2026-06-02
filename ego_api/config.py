@@ -10,7 +10,7 @@ try:
 except ImportError:
     pass
 
-GEMINI_MODEL_FLASH = os.getenv("EGO_GEMINI_MODEL_FLASH", "gemini-1.5-flash")
+GEMINI_MODEL_FLASH = os.getenv("EGO_GEMINI_MODEL_FLASH", "gemini-2.0-flash")
 GEMINI_MODEL_PRO = os.getenv("EGO_GEMINI_MODEL_PRO", "gemini-2.5-pro")
 GEMINI_MODEL_IDS = (GEMINI_MODEL_FLASH, GEMINI_MODEL_PRO)
 
@@ -20,6 +20,9 @@ SUPABASE_FEEDBACK_TABLE = "message_feedback"
 SUPABASE_PERSONA_TABLE = "user_personas"
 SUPABASE_REMINDERS_TABLE = "reminders"
 SUPABASE_AGENDA_TABLE = "agenda"
+SUPABASE_SHARED_CALENDARS_TABLE = "shared_calendars"
+SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE = "shared_calendar_members"
+SUPABASE_SHARED_CALENDAR_EVENTS_TABLE = "shared_calendar_events"
 
 AGENDA_HORIZON_DAYS = int(os.getenv("EGO_AGENDA_HORIZON_DAYS", "90"))
 EGO_TRIAL_DAYS = int(os.getenv("EGO_TRIAL_DAYS", "20"))
@@ -58,10 +61,10 @@ def openai_realtime_enabled() -> bool:
 
 
 def openai_realtime_model() -> str:
-    """Modelo Realtime — mini = mais rápido/c barato; gpt-realtime-* = mais capaz."""
+    """Modelo Realtime — gpt-realtime-mini = atual e económico; override com OPENAI_REALTIME_MODEL."""
     return read_env(
         "OPENAI_REALTIME_MODEL",
-        "gpt-4o-mini-realtime-preview-2024-12-17",
+        "gpt-realtime-mini",
     )
 
 
@@ -216,6 +219,26 @@ def beta_unlimited() -> bool:
 def chat_defer_tts_on_voice() -> bool:
     """Voz: devolve texto primeiro; o app pede áudio em /tts (evita timeout)."""
     raw = read_env("EGO_CHAT_DEFER_TTS_ON_VOICE", "1").strip().lower()
+    return raw not in ("0", "false", "no", "nao", "não")
+
+
+def voice_fast_mode() -> bool:
+    """Voz: prompt curto, sem lembretes/agenda no pós-processamento — menor latência."""
+    raw = read_env("EGO_VOICE_FAST", "1").strip().lower()
+    return raw not in ("0", "false", "no", "nao", "não")
+
+
+def voice_max_output_tokens() -> int:
+    raw = read_env("EGO_VOICE_MAX_TOKENS", "200")
+    try:
+        return max(96, min(420, int(raw)))
+    except ValueError:
+        return 200
+
+
+def voice_stream_enabled() -> bool:
+    """Streaming NDJSON em /chat/voice/stream (texto aparece enquanto o Gemini gera)."""
+    raw = read_env("EGO_VOICE_STREAM", "1").strip().lower()
     return raw not in ("0", "false", "no", "nao", "não")
 
 

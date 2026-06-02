@@ -8,6 +8,7 @@ from ego_api import db, gemini
 from ego_api.config import GEMINI_MODEL_FLASH, STRIPE_ANUAL_URL, STRIPE_MENSAL_URL
 from ego_api.plans import (
     PLAN_CONNECTION,
+    PLAN_ENTERPRISE,
     PLAN_ESSENTIAL,
     PLAN_PREMIUM,
     PLAN_TOTAL,
@@ -85,6 +86,7 @@ def login(email: str, password: str) -> tuple[dict | None, str | None]:
         )
         apply_user_auth(client)
         ensure_user_profile(client, uid, email=email_norm)
+        apply_pending_referral_from_auth(client, uid)
         touch_last_login(client, uid)
         return payload, None
     except Exception as e:  # noqa: BLE001
@@ -92,7 +94,10 @@ def login(email: str, password: str) -> tuple[dict | None, str | None]:
 
 
 def signup(
-    email: str, password: str, full_name: str = ""
+    email: str,
+    password: str,
+    full_name: str = "",
+    referral_code: str = "",
 ) -> tuple[dict | None, str | None]:
     client = create_anon_client()
     if not client:
@@ -103,19 +108,44 @@ def signup(
     if not (password or "").strip():
         return None, "Informe a senha."
     display = (full_name or "").strip() or email_norm.split("@")[0] or "Usuário"
+    from ego_api.referrals import normalize_referral_code
+
+    ref_norm = normalize_referral_code(referral_code)
+    if ref_norm:
+        from ego_api.referrals import validate_referral_code
+
+        _, ref_err = validate_referral_code(ref_norm)
+        if ref_err:
+            return None, ref_err
+    user_meta: dict[str, str] = {"full_name": display, "country": "Brasil"}
+    if ref_norm:
+        user_meta["referral_code"] = ref_norm
     try:
         res = client.auth.sign_up(
             {
                 "email": email_norm,
                 "password": password,
-                "options": {"data": {"full_name": display, "country": "Brasil"}},
+                "options": {"data": user_meta},
             }
         )
         payload = _session_payload(res)
         if not payload.get("access_token"):
+            pending_user = getattr(res, "user", None)
+            pending_uid = str(getattr(pending_user, "id", "") or "")
+            if ref_norm and pending_uid:
+                from ego_api.referrals import attach_referral_to_profile
+                from ego_api.supabase_client import create_service_client
+
+                admin = create_service_client() or client
+                attach_referral_to_profile(admin, pending_uid, ref_norm)
             return {
                 "message": "Conta criada. Confirme o e-mail se necessário e faça login.",
-                "user": payload.get("user"),
+                "user": {
+                    "id": pending_uid,
+                    "email": email_norm,
+                }
+                if pending_uid
+                else payload.get("user"),
             }, None
         uid = payload["user"]["id"]
         set_session(
@@ -129,9 +159,54 @@ def signup(
         )
         apply_user_auth(client)
         ensure_user_profile(client, uid, email=email_norm, full_name=display)
+        if ref_norm:
+            from ego_api.referrals import attach_referral_to_profile
+
+            attach_referral_to_profile(client, uid, ref_norm)
         return payload, None
     except Exception as e:  # noqa: BLE001
         return None, format_auth_error(e)
+
+
+def apply_pending_referral_from_auth(
+    supabase: Client | None, user_id: str
+) -> None:
+    """Se o cadastro exigiu confirmação por e-mail, aplica código guardado no Auth metadata."""
+    if not supabase or not user_id:
+        return
+    from ego_api.referrals import attach_referral_to_profile, normalize_referral_code
+
+    prof = db.load_profile(supabase, user_id) or {}
+    if prof.get("referred_by_partner_id"):
+        return
+    try:
+        row = (
+            supabase.table(db.SUPABASE_PROFILES_TABLE)
+            .select("referred_by_partner_id")
+            .eq("id", user_id)
+            .limit(1)
+            .execute()
+        )
+        if row.data and row.data[0].get("referred_by_partner_id"):
+            return
+    except Exception:
+        pass
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+    if not admin:
+        return
+    try:
+        auth_row = admin.auth.admin.get_user_by_id(user_id)
+        user = getattr(auth_row, "user", None) or auth_row
+        meta = getattr(user, "user_metadata", None) or {}
+        if not isinstance(meta, dict):
+            return
+        code = normalize_referral_code(str(meta.get("referral_code") or ""))
+        if code:
+            attach_referral_to_profile(admin, user_id, code)
+    except Exception:
+        return
 
 
 def request_password_reset(email: str, redirect_to: str = "") -> tuple[bool, str | None]:
@@ -191,6 +266,109 @@ def _daily_limit_message(supabase: Client | None, user_id: str) -> str:
     except Exception:
         pass
     return base
+
+
+def _finalize_chat_payload(
+    supabase: Client | None,
+    user_id: str,
+    prof: dict,
+    *,
+    user_display: str,
+    reply: str,
+    lang: str,
+    is_voice_msg: bool,
+    speak_reply: bool,
+    local_ids: bool,
+    mid_u: str | None,
+) -> dict:
+    import uuid
+
+    from ego_api import gemini, tts
+    from ego_api.config import chat_defer_tts_on_voice, voice_fast_mode
+    from ego_api.persona import resolve_tts_voice
+
+    warnings: list[str] = []
+    reminders_saved: list[dict] = []
+    agenda_saved: list[dict] = []
+
+    reply_clean = reply
+    if not (is_voice_msg and voice_fast_mode()):
+        reply_clean, rem_items = gemini.extract_reminders(reply)
+        rem_cap = enforce_reminder_limit(supabase, user_id, prof)
+        for it in rem_items:
+            if rem_cap:
+                warnings.append(rem_cap)
+                break
+            ok, err, row = db.insert_reminder(
+                supabase,
+                user_id,
+                title=str(it.get("title") or "Lembrete"),
+                scheduled_at=it.get("scheduled_at"),
+                announce=str(it.get("announce") or it.get("title") or ""),
+            )
+            if ok and row:
+                reminders_saved.append(row)
+            elif err:
+                warnings.append(f"Lembrete: {err}")
+
+        reply_clean, ag_items = gemini.extract_agenda_markers(reply_clean)
+        ag_cap = enforce_agenda_limit(supabase, user_id, prof)
+        for it in ag_items:
+            if ag_cap:
+                warnings.append(ag_cap)
+                break
+            ok, err, row = db.insert_agenda(
+                supabase,
+                user_id,
+                titulo=str(it.get("titulo") or it.get("title") or ""),
+                horario=it.get("horario") or it.get("time"),
+                dias_da_semana=str(
+                    it.get("dias_da_semana") or it.get("dias") or it.get("weekdays") or ""
+                ),
+            )
+            if ok and row:
+                agenda_saved.append(row)
+            elif err:
+                warnings.append(f"Agenda: {err}")
+
+    if local_ids:
+        mid_a = str(uuid.uuid4())
+        db.increment_daily_message_usage(supabase, user_id, is_voice=is_voice_msg)
+    else:
+        mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_clean)
+    tok_n = gemini.count_tokens_approx(user_display, reply_clean)
+    db.add_tokens_used(supabase, user_id, tok_n, prof)
+
+    payload: dict = {
+        "reply": reply_clean,
+        "user_message_id": mid_u,
+        "assistant_message_id": mid_a,
+        "language": lang,
+        "warnings": warnings,
+        "reminders_saved": reminders_saved,
+        "agenda_saved": agenda_saved,
+        "chat_local_history": local_ids,
+    }
+    if speak_reply and reply_clean.strip():
+        avatar_id, voice_id = ensure_persona_normalized(supabase, user_id)
+        resolved_voice = resolve_tts_voice(voice_id, avatar_id)
+        payload["tts_voice_id"] = resolved_voice
+        defer_tts = is_voice_msg and chat_defer_tts_on_voice()
+        if defer_tts:
+            payload["tts_deferred"] = True
+        else:
+            mp3 = tts.synthesize_speech_mp3(reply_clean, resolved_voice, avatar_id)
+            if mp3:
+                import base64
+
+                db.increment_daily_tts(supabase, user_id)
+                payload["tts_audio_base64"] = base64.b64encode(mp3).decode("ascii")
+                payload["tts_mime"] = "audio/mpeg"
+            else:
+                payload["tts_error"] = (
+                    "Áudio indisponível. No servidor: pip install edge-tts"
+                )
+    return payload
 
 
 def process_chat_message(
@@ -312,94 +490,138 @@ def process_chat_message(
     else:
         mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
 
-    warnings: list[str] = []
-    reminders_saved: list[dict] = []
-    agenda_saved: list[dict] = []
-
-    reply_clean, rem_items = gemini.extract_reminders(reply)
-    rem_cap = enforce_reminder_limit(supabase, user_id, prof)
-    for it in rem_items:
-        if rem_cap:
-            warnings.append(rem_cap)
-            break
-        ok, err, row = db.insert_reminder(
-            supabase,
-            user_id,
-            title=str(it.get("title") or "Lembrete"),
-            scheduled_at=it.get("scheduled_at"),
-            announce=str(it.get("announce") or it.get("title") or ""),
-        )
-        if ok and row:
-            reminders_saved.append(row)
-        elif err:
-            warnings.append(f"Lembrete: {err}")
-
-    reply_clean, ag_items = gemini.extract_agenda_markers(reply_clean)
-    ag_cap = enforce_agenda_limit(supabase, user_id, prof)
-    for it in ag_items:
-        if ag_cap:
-            warnings.append(ag_cap)
-            break
-        ok, err, row = db.insert_agenda(
-            supabase,
-            user_id,
-            titulo=str(it.get("titulo") or it.get("title") or ""),
-            horario=it.get("horario") or it.get("time"),
-            dias_da_semana=str(
-                it.get("dias_da_semana") or it.get("dias") or it.get("weekdays") or ""
-            ),
-        )
-        if ok and row:
-            agenda_saved.append(row)
-        elif err:
-            warnings.append(f"Agenda: {err}")
-
-    if local_ids:
-        mid_a = str(uuid.uuid4())
-        db.increment_daily_message_usage(supabase, user_id, is_voice=is_voice_msg)
-    else:
-        mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_clean)
-    tok_n = gemini.count_tokens_approx(user_display, reply_clean)
-    db.add_tokens_used(supabase, user_id, tok_n, prof)
-
-    payload: dict = {
-        "reply": reply_clean,
-        "user_message_id": mid_u,
-        "assistant_message_id": mid_a,
-        "language": lang,
-        "warnings": warnings,
-        "reminders_saved": reminders_saved,
-        "agenda_saved": agenda_saved,
-        "chat_local_history": local_ids,
-    }
-    if speak_reply and reply_clean.strip():
-        from ego_api.config import chat_defer_tts_on_voice
-        from ego_api.persona import resolve_tts_voice
-
-        avatar_id, voice_id = ensure_persona_normalized(supabase, user_id)
-        resolved_voice = resolve_tts_voice(voice_id, avatar_id)
-        payload["tts_voice_id"] = resolved_voice
-
-        # Voz no Gemini já demora; TTS na mesma requisição estoura 120s no Railway.
-        defer_tts = is_voice_msg and chat_defer_tts_on_voice()
-        if defer_tts:
-            payload["tts_deferred"] = True
-        else:
-            from ego_api import tts
-
-            mp3 = tts.synthesize_speech_mp3(reply_clean, resolved_voice, avatar_id)
-            if mp3:
-                import base64
-
-                db.increment_daily_tts(supabase, user_id)
-                payload["tts_audio_base64"] = base64.b64encode(mp3).decode("ascii")
-                payload["tts_mime"] = "audio/mpeg"
-            else:
-                payload["tts_error"] = (
-                    "Áudio indisponível. No servidor: pip install edge-tts"
-                )
-
+    payload = _finalize_chat_payload(
+        supabase,
+        user_id,
+        prof,
+        user_display=user_display,
+        reply=reply,
+        lang=lang,
+        is_voice_msg=is_voice_msg,
+        speak_reply=speak_reply,
+        local_ids=local_ids,
+        mid_u=mid_u,
+    )
     return payload, None
+
+
+def iter_voice_chat_stream(
+    supabase: Client | None,
+    user_id: str,
+    *,
+    audio_bytes: bytes,
+    audio_mime: str | None,
+    speak_reply: bool = False,
+    client_history: list[dict] | None = None,
+):
+    """NDJSON: delta (texto parcial do Gemini) e done (payload igual a /chat/voice)."""
+    import uuid
+
+    from ego_api import gemini
+    from ego_api.audio_b64 import normalize_audio_mime
+    from ego_api.chat_local import local_history_active, parse_client_history
+    from ego_api.config import chat_local_history_enabled
+    from ego_api.db import VOICE_MESSAGE_MARKER
+    from ego_api.persona import apply_assistant_name_from_avatar, normalize_persona_pair
+
+    sess = get_session()
+    if not sess or sess.user_id != user_id:
+        yield {"type": "error", "error": "Sessão inválida."}
+        return
+
+    if len(audio_bytes) < 128:
+        yield {"type": "error", "error": "Gravação demasiado curta. Fale pelo menos 1 segundo."}
+        return
+
+    audio_mime = normalize_audio_mime(audio_mime, audio_bytes)
+    user_display = VOICE_MESSAGE_MARKER
+
+    prof = db.refresh_test_total_quota(
+        supabase, user_id, db.load_profile(supabase, user_id) or {}
+    )
+    _tier, limits = db.user_plan_limits(prof)
+    ok_access, status = db.check_access(supabase, user_id)
+    if not ok_access:
+        yield {"type": "error", "error": f"Acesso expirado ({status})."}
+        return
+
+    ok_tok, msg_tok, used_tok, lim_tok = db.check_token_allowance(supabase, user_id, prof)
+    if not ok_tok:
+        yield {"type": "error", "error": f"{msg_tok} Uso: {used_tok:,}/{lim_tok:,}."}
+        return
+
+    ok_voice, _voice_used = db.daily_voice_messages_ok(supabase, user_id, limits, prof)
+    if not ok_voice:
+        yield {"type": "error", "error": _daily_limit_message(supabase, user_id)}
+        return
+
+    if speak_reply:
+        ok_tts, _tts_used = db.daily_tts_ok(supabase, user_id, limits, prof)
+        if not ok_tts:
+            yield {"type": "error", "error": _daily_limit_message(supabase, user_id)}
+            return
+
+    stored_a, stored_v = db.load_persona(supabase, user_id)
+    avatar_id, _voice_id = normalize_persona_pair(stored_a, stored_v)
+    apply_assistant_name_from_avatar(avatar_id)
+
+    use_local = local_history_active(client_history)
+    if use_local:
+        history = parse_client_history(client_history)
+    else:
+        history = db.load_chat_history(supabase, user_id)
+    cap = limits.chat_llm_max_turns
+    if cap > 0 and len(history) > cap:
+        history = history[-cap:]
+
+    lang = "pt-BR"
+    history_for_llm = [*history, {"role": "user", "content": user_display}]
+    local_ids = use_local or chat_local_history_enabled()
+    mid_u = str(uuid.uuid4()) if local_ids else None
+    if not local_ids:
+        mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
+
+    yield {"type": "status", "message": "processing"}
+
+    parts: list[str] = []
+    try:
+        for delta in gemini.iter_voice_reply_stream(
+            conversation_messages=history_for_llm,
+            lang_code=lang,
+            audio_bytes=audio_bytes,
+            audio_mime=audio_mime,
+        ):
+            if delta:
+                parts.append(delta)
+                yield {"type": "delta", "text": delta}
+    except Exception as e:  # noqa: BLE001
+        yield {"type": "error", "error": str(e) or "Erro ao gerar resposta."}
+        return
+
+    reply = "".join(parts).strip()
+    if gemini.is_gemini_error_reply(reply):
+        yield {"type": "error", "error": reply}
+        return
+    if reply.startswith("A IA demorou demais"):
+        yield {"type": "error", "error": reply}
+        return
+    if not reply:
+        yield {"type": "error", "error": "Resposta vazia do assistente."}
+        return
+
+    payload = _finalize_chat_payload(
+        supabase,
+        user_id,
+        prof,
+        user_display=user_display,
+        reply=reply,
+        lang=lang,
+        is_voice_msg=True,
+        speak_reply=speak_reply,
+        local_ids=local_ids,
+        mid_u=mid_u,
+    )
+    yield {"type": "done", "result": payload}
 
 
 def process_realtime_voice_turn(
@@ -594,6 +816,15 @@ def enforce_tts_limit(
     )
 
 
+def _list_shared_calendars_safe(supabase: Client | None, user_id: str) -> list:
+    try:
+        from ego_api import shared_calendars as sc
+
+        return sc.list_calendars_for_user(supabase, user_id)
+    except Exception:
+        return []
+
+
 def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
     """Um único payload para o painel (evita vários GET no cliente)."""
     from ego_api.config import (
@@ -620,6 +851,7 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
         "access": {"ok": True, **access},
         "reminders": db.list_reminders(supabase, user_id),
         "agenda": db.list_agenda(supabase, user_id),
+        "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
         "messages": messages,
         "chat_local_history": local,
     }
@@ -663,41 +895,81 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
         "persona_configured": configured,
         "persona": {"avatar_id": avatar_id, "voice_id": voice_id},
         "access": {"allowed": ok_access, "status": status},
-        "stripe_checkout": _stripe_checkout_payload(user_id),
+        "stripe_checkout": _stripe_checkout_payload(user_id, prof),
+        "referral": _referral_status_payload(prof),
     }
 
 
-def _stripe_checkout_payload(user_id: str) -> dict:
+def _referral_status_payload(prof: dict | None) -> dict:
+    from ego_api.referrals import referral_promo_code, user_eligible_for_referral_discount
+
+    eligible = user_eligible_for_referral_discount(prof)
+    return {
+        "discount_eligible": eligible,
+        "discount_percent": 10 if eligible else 0,
+        "promo_configured": bool(referral_promo_code()),
+    }
+
+
+def _stripe_checkout_payload(user_id: str, profile: dict | None = None) -> dict:
     urls = stripe_checkout_urls()
-    legacy_m = _stripe_link(STRIPE_MENSAL_URL, user_id)
-    legacy_a = _stripe_link(STRIPE_ANUAL_URL, user_id)
-    connection = _stripe_link(urls.get(PLAN_CONNECTION) or "", user_id) or legacy_m
-    int_connection = _stripe_link(urls.get("int_connection") or "", user_id)
+    legacy_m = _stripe_link(STRIPE_MENSAL_URL, user_id, profile)
+    legacy_a = _stripe_link(STRIPE_ANUAL_URL, user_id, profile)
+    connection = (
+        _stripe_link(urls.get(PLAN_CONNECTION) or "", user_id, profile) or legacy_m
+    )
+    int_connection = _stripe_link(urls.get("int_connection") or "", user_id, profile)
     return {
         "monthly_url": connection,
         "annual_url": legacy_a,
         "connection_url": connection,
-        "premium_url": _stripe_link(urls.get(PLAN_PREMIUM) or "", user_id),
-        "total_url": _stripe_link(urls.get(PLAN_TOTAL) or "", user_id),
-        "int_connection_url": int_connection,
-        "int_premium_url": _stripe_link(urls.get("int_premium") or "", user_id),
-        "int_premium_annual_url": _stripe_link(
-            urls.get("int_premium_annual") or "", user_id
+        "premium_url": _stripe_link(urls.get(PLAN_PREMIUM) or "", user_id, profile),
+        "total_url": _stripe_link(urls.get(PLAN_TOTAL) or "", user_id, profile),
+        "enterprise_url": _stripe_link(
+            urls.get(PLAN_ENTERPRISE) or "", user_id, profile
         ),
-        "int_total_url": _stripe_link(urls.get("int_total") or "", user_id),
+        "int_connection_url": int_connection,
+        "int_premium_url": _stripe_link(
+            urls.get("int_premium") or "", user_id, profile
+        ),
+        "int_premium_annual_url": _stripe_link(
+            urls.get("int_premium_annual") or "", user_id, profile
+        ),
+        "int_total_url": _stripe_link(urls.get("int_total") or "", user_id, profile),
         "int_total_annual_url": _stripe_link(
-            urls.get("int_total_annual") or "", user_id
+            urls.get("int_total_annual") or "", user_id, profile
+        ),
+        "int_enterprise_url": _stripe_link(
+            urls.get("int_enterprise") or "", user_id, profile
         ),
         "essential": None,
+        "team": _team_stripe_payload(user_id, profile),
     }
 
 
-def _stripe_link(base: str, user_id: str) -> str | None:
+def _team_stripe_payload(user_id: str, profile: dict | None = None) -> dict:
+    from ego_api.team_stripe_checkout import team_checkout_nested
+
+    nested = team_checkout_nested()
+    out: dict = {"br": {}, "int": {}}
+    for market in ("br", "int"):
+        for tier, seats_map in nested.get(market, {}).items():
+            out[market][tier] = {
+                str(seats): _stripe_link(url, user_id, profile) or url
+                for seats, url in seats_map.items()
+            }
+    return out
+
+
+def _stripe_link(base: str, user_id: str, profile: dict | None = None) -> str | None:
+    from ego_api.referrals import append_referral_promo_to_url
+
     base = (base or "").strip()
     if not base or "COLOQUE" in base.upper() or "URL_DO" in base.upper():
         return None
     sep = "&" if "?" in base else "?"
-    return f"{base}{sep}client_reference_id={user_id}"
+    url = f"{base}{sep}client_reference_id={user_id}"
+    return append_referral_promo_to_url(url, profile)
 
 
 def ui_state_from_profile(prof: dict | None) -> dict:
