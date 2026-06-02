@@ -181,43 +181,108 @@ def create_calendar(
         return False, "Dê um nome à agenda compartilhada.", None
     if not apply_user_auth(supabase):
         return False, "Sessão expirada.", None
-    try:
-        from ego_api.supabase_client import insert_returning_rows
 
-        inserted = insert_returning_rows(
-            supabase,
+    from ego_api.supabase_client import create_service_client, insert_returning_rows
+
+    cal_row = {"owner_user_id": user_id, "name": title}
+    last_err = ""
+
+    def _insert_calendar(client) -> list[dict]:
+        return insert_returning_rows(
+            client,
             SUPABASE_SHARED_CALENDARS_TABLE,
-            {"owner_user_id": user_id, "name": title},
+            cal_row,
+            raise_errors=True,
         )
-        cal = inserted[0] if inserted else {}
-        cid = str(cal.get("id") or "")
-        if not cid:
-            return False, "Não foi possível criar a agenda.", None
-        sess_email = ""
-        try:
-            from ego_api.request_ctx import get_session
 
-            sess = get_session()
-            if sess and sess.email:
-                sess_email = sess.email.strip().lower()
+    inserted: list[dict] = []
+    try:
+        inserted = _insert_calendar(supabase)
+    except Exception as exc:
+        last_err = str(exc)
+        if "SyncQueryRequestBuilder" in last_err and "select" in last_err:
+            return (
+                False,
+                "Servidor em atualização. Aguarde 2 minutos e tente de novo.",
+                None,
+            )
+
+    admin = create_service_client()
+    if not inserted and admin:
+        try:
+            inserted = _insert_calendar(admin)
+            last_err = ""
+        except Exception as exc:
+            last_err = str(exc) or last_err
+
+    cal = inserted[0] if inserted else {}
+    cid = str(cal.get("id") or "")
+
+    if not cid and supabase:
+        try:
+            lookup = (
+                supabase.table(SUPABASE_SHARED_CALENDARS_TABLE)
+                .select("id,owner_user_id,name,created_at")
+                .eq("owner_user_id", user_id)
+                .eq("name", title)
+                .order("created_at", desc=True)
+                .limit(1)
+                .execute()
+            )
+            if lookup.data:
+                cal = lookup.data[0]
+                cid = str(cal.get("id") or "")
         except Exception:
             pass
-        if not sess_email:
-            from ego_api import db
 
-            prof = db.load_profile(supabase, user_id) or {}
-            sess_email = str(prof.get("email") or "").strip().lower()
-        owner_row = {
-            "calendar_id": cid,
-            "user_id": user_id,
-            "invited_email": sess_email or f"{user_id}@ego.local",
-            "role": "owner",
-            "status": "active",
-        }
-        supabase.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).insert(owner_row).execute()
-        return True, "", cal
+    if not cid:
+        low = last_err.lower()
+        if "42p01" in low or "does not exist" in low or "shared_calendars" in low:
+            return (
+                False,
+                "Tabela shared_calendars em falta. Execute a migration no Supabase SQL Editor.",
+                None,
+            )
+        return (
+            False,
+            last_err or "Não foi possível criar a agenda. Confirme SUPABASE_SERVICE_ROLE_KEY no Railway.",
+            None,
+        )
+
+    sess_email = ""
+    try:
+        from ego_api.request_ctx import get_session
+
+        sess = get_session()
+        if sess and sess.email:
+            sess_email = sess.email.strip().lower()
+    except Exception:
+        pass
+    if not sess_email:
+        from ego_api import db
+
+        prof = db.load_profile(supabase, user_id) or {}
+        sess_email = str(prof.get("email") or "").strip().lower()
+
+    owner_row = {
+        "calendar_id": cid,
+        "user_id": user_id,
+        "invited_email": sess_email or f"{user_id}@ego.local",
+        "role": "owner",
+        "status": "active",
+    }
+    try:
+        member_client = admin or supabase
+        insert_returning_rows(
+            member_client,
+            SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE,
+            owner_row,
+            raise_errors=True,
+        )
     except Exception as exc:
         return False, str(exc), None
+
+    return True, "", cal
 
 
 def team_seat_limit_for_owner(supabase: Client | None, owner_user_id: str) -> int | None:

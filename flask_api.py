@@ -31,6 +31,7 @@ from ego_api.config import (
     cors_origins,
     gemini_api_key,
     is_production_env,
+    read_env,
     supabase_anon_key,
     supabase_url,
 )
@@ -313,10 +314,12 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
+        "api_build": "2026-06-02-shared-cal-postgrest2",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
             "supabase_key_set": bool(sb.get("key_set")),
+            "service_role_set": bool(read_env("SUPABASE_SERVICE_ROLE_KEY")),
         },
     }
     include_details = os.getenv("EGO_HEALTH_DETAILS", "").lower() in ("1", "true", "yes")

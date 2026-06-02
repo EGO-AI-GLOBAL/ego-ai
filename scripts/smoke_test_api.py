@@ -38,8 +38,15 @@ def main() -> int:
     failed = 0
     code, health = get("/health")
     ok = health.get("ok") is True
-    print(f"GET /health -> {code} ok={ok}")
+    build = health.get("api_build", "?")
+    print(f"GET /health -> {code} ok={ok} api_build={build}")
     if not ok:
+        failed += 1
+    if build != "2026-06-02-shared-cal-postgrest2":
+        print(
+            "  AVISO: Railway ainda sem o deploy novo "
+            f"(esperado 2026-06-02-shared-cal-postgrest2, veio {build!r})."
+        )
         failed += 1
 
     for path in ("/shared-calendars", "/persona"):

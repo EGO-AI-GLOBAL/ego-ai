@@ -56,14 +56,24 @@ def create_service_client() -> Client | None:
         return None
 
 
-def insert_returning_rows(client: Client | None, table: str, row: dict | list) -> list[dict[str, Any]]:
+def insert_returning_rows(
+    client: Client | None,
+    table: str,
+    row: dict | list,
+    *,
+    raise_errors: bool = False,
+) -> list[dict[str, Any]]:
     """INSERT com linhas devolvidas (PostgREST 2.x: não usar .insert().select())."""
     if not client or not table:
+        if raise_errors:
+            raise RuntimeError("Cliente Supabase indisponível.")
         return []
     try:
         res = client.table(table).insert(row).execute()
         return list(res.data or [])
-    except Exception:
+    except Exception as exc:
+        if raise_errors:
+            raise
         return []
 
 
