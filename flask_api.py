@@ -59,6 +59,11 @@ except ImportError:
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 32 * 1024 * 1024
+
+from ego_api.monitoring import init_sentry, register_flask_handlers  # noqa: E402
+
+init_sentry()
+register_flask_handlers(app)
 _sb_boot = supabase_env_status()
 _test_total = (os.getenv("EGO_TEST_TOTAL_EMAILS") or "").strip()
 print(
@@ -316,8 +321,9 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-02-pdf-shared-cal-fix",
+        "api_build": "2026-06-04-monitoring",
         "pdf_extract": True,
+        "monitoring": {},
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -329,6 +335,12 @@ def health():
         payload["deploy_hint"] = (
             "Adicione SUPABASE_SERVICE_ROLE_KEY no Railway e redeploy"
         )
+    try:
+        from ego_api.monitoring import monitoring_status
+
+        payload["monitoring"] = monitoring_status()
+    except Exception:
+        payload["monitoring"] = {"sentry": False}
     include_details = os.getenv("EGO_HEALTH_DETAILS", "").lower() in ("1", "true", "yes")
     if include_details:
         from ego_api import openai_realtime
@@ -346,6 +358,35 @@ def health():
         if err:
             payload["checks"]["supabase_client_error"] = str(err)
     return _json_ok(payload)
+
+
+@app.post("/api/v1/report-error")
+@rate_limit(40, 60, scope="ip")
+def report_client_error():
+    """App mobile envia erros (Sentry + Supabase + webhook)."""
+    from ego_api.monitoring import record_error_report
+
+    data = request.get_json(silent=True) or {}
+    message = str(data.get("message") or "").strip()
+    if not message:
+        return _json_error("message obrigatório.", 400)
+    user_id = str(data.get("user_id") or "").strip() or None
+    if not user_id:
+        sess = get_session()
+        user_id = str(sess.user_id) if sess and sess.user_id else None
+    result = record_error_report(
+        source="app",
+        message=message,
+        level=str(data.get("level") or "error")[:16],
+        stack=str(data.get("stack") or "")[:8000],
+        route=str(data.get("route") or "")[:500],
+        user_id=user_id,
+        app_version=str(data.get("app_version") or "")[:32],
+        platform=str(data.get("platform") or "")[:64],
+        meta=data.get("meta") if isinstance(data.get("meta"), dict) else {},
+        alert=str(data.get("level") or "error") == "error",
+    )
+    return _json_ok(result)
 
 
 @app.get("/api/v1/integrity/status")

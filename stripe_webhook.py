@@ -140,6 +140,49 @@ async def stripe_webhook(
         raise HTTPException(status_code=400, detail="Payload inválido.")
 
     event_type = event.get("type")
+
+    if event_type in ("invoice.paid", "charge.refunded"):
+        obj = event["data"]["object"]
+        try:
+            from ego_api.finance_revenue import (
+                record_charge_refunded,
+                record_invoice_paid,
+            )
+
+            if event_type == "invoice.paid":
+                finance_result = record_invoice_paid(
+                    obj, stripe_event_id=str(event.get("id") or "")
+                )
+            else:
+                finance_result = record_charge_refunded(
+                    obj, stripe_event_id=str(event.get("id") or "")
+                )
+        except Exception as exc:  # noqa: BLE001
+            finance_result = {"recorded": False, "error": str(exc)[:200]}
+
+        referral_result = None
+        if event_type == "invoice.paid":
+            try:
+                from ego_api.finance_revenue import _user_id_from_invoice
+                from ego_api.referrals import record_first_payment_commission
+
+                uid = _user_id_from_invoice(obj)
+                if uid:
+                    supabase = get_supabase_admin()
+                    referral_result = record_first_payment_commission(
+                        supabase,
+                        str(uid),
+                        stripe_session_id=str(obj.get("id") or ""),
+                    )
+            except Exception as exc:  # noqa: BLE001
+                referral_result = {"error": str(exc)[:200]}
+
+        out_fin = {"ok": True, "finance": finance_result, "referral": referral_result}
+        if event_type == "charge.refunded":
+            return out_fin
+        if event_type == "invoice.paid":
+            return out_fin
+
     if event_type not in (
         "checkout.session.completed",
         "customer.subscription.deleted",
@@ -189,6 +232,7 @@ async def stripe_webhook(
     team_seats = _resolve_team_seats_from_session(session)
     try:
         supabase = get_supabase_admin()
+        sub_id = session.get("subscription")
         if session.get("mode") == "subscription" and stripe.api_key:
             try:
                 full = stripe.checkout.Session.retrieve(
@@ -198,6 +242,15 @@ async def stripe_webhook(
                 full_d = dict(full)
                 tier = _resolve_tier_from_session(full_d)
                 team_seats = _resolve_team_seats_from_session(full_d) or team_seats
+                sub_id = sub_id or full_d.get("subscription")
+            except Exception:
+                pass
+        if sub_id and stripe.api_key:
+            try:
+                stripe.Subscription.modify(
+                    str(sub_id),
+                    metadata={"user_id": str(user_id)},
+                )
             except Exception:
                 pass
         result = _apply_plan(
@@ -220,4 +273,12 @@ async def stripe_webhook(
     out = {"ok": True, "user_id": user_id, **result}
     if commission:
         out["referral_commission"] = commission
+    try:
+        from ego_api.finance_revenue import record_checkout_completed
+
+        out["finance"] = record_checkout_completed(
+            session, stripe_event_id=str(event.get("id") or "")
+        )
+    except Exception as exc:  # noqa: BLE001
+        out["finance"] = {"recorded": False, "error": str(exc)[:200]}
     return out

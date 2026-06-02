@@ -177,26 +177,62 @@ def record_first_payment_commission(
         ).eq("id", user_id).execute()
         return {"skipped": "commission_exists"}
 
-    supabase.table("referral_commissions").insert(
-        {
-            "partner_id": partner_id,
-            "referred_user_id": user_id,
-            "stripe_session_id": (stripe_session_id or "")[:200] or None,
-            "amount_cents": COMMISSION_CENTS_BRL,
-            "currency": "brl",
-            "status": "pending",
-            "payout_month": payout_month,
-        }
-    ).execute()
+    ins = (
+        supabase.table("referral_commissions")
+        .insert(
+            {
+                "partner_id": partner_id,
+                "referred_user_id": user_id,
+                "stripe_session_id": (stripe_session_id or "")[:200] or None,
+                "amount_cents": COMMISSION_CENTS_BRL,
+                "currency": "brl",
+                "status": "pending",
+                "payout_month": payout_month,
+            }
+        )
+        .execute()
+    )
+    commission_row = (ins.data or [{}])[0]
+    commission_id = str(commission_row.get("id") or "")
 
     supabase.table("profiles").update(
         {"referral_first_paid_at": now.isoformat()}
     ).eq("id", user_id).execute()
 
+    partner_row = (
+        supabase.table("referral_partners")
+        .select("code, display_name")
+        .eq("id", partner_id)
+        .limit(1)
+        .execute()
+    )
+    partner_info = (partner_row.data or [{}])[0]
+    partner_code = partner_info.get("code") or ""
+    partner_name = partner_info.get("display_name") or partner_code
+
+    finance_expense: dict[str, Any] | None = None
+    try:
+        from ego_api.finance_referrals import record_partner_commission_expense
+
+        finance_expense = record_partner_commission_expense(
+            commission_id=commission_id or f"user-{user_id}",
+            partner_code=partner_code,
+            partner_name=partner_name,
+            amount_brl=COMMISSION_CENTS_BRL / 100.0,
+            payment_date=now.strftime("%Y-%m-%d"),
+            payout_month=payout_month,
+            referred_user_id=str(user_id),
+        )
+    except Exception as exc:  # noqa: BLE001
+        finance_expense = {"recorded": False, "error": str(exc)[:200]}
+
     return {
         "partner_id": str(partner_id),
+        "commission_id": commission_id,
+        "partner_code": partner_code,
         "amount_cents": COMMISSION_CENTS_BRL,
         "payout_month": payout_month,
+        "finance_expense": finance_expense,
     }
 
 
@@ -326,6 +362,49 @@ def commissions_report_csv(month: str) -> tuple[str, str | None]:
         w.writerow([code, f"{total_cents / 100:.2f}", counts.get(code, 0)])
 
     return buf.getvalue(), None
+
+
+def partner_payout_summary(month: str) -> tuple[list[dict[str, Any]], str | None]:
+    """Totais a repassar por parceiro no mês (comissões pending)."""
+    if not re.match(r"^\d{4}-\d{2}$", month or ""):
+        return [], "Mês inválido (use YYYY-MM)."
+    client = get_admin_client()
+    if not client:
+        return [], "Supabase admin não configurado."
+
+    comm = (
+        client.table("referral_commissions")
+        .select(
+            "amount_cents, status, "
+            "partner:referral_partners(code, display_name, contact_email, payout_pix)"
+        )
+        .eq("payout_month", month)
+        .eq("status", "pending")
+        .execute()
+    )
+
+    buckets: dict[str, dict[str, Any]] = {}
+    for r in comm.data or []:
+        partner = r.get("partner") or {}
+        if isinstance(partner, list):
+            partner = partner[0] if partner else {}
+        code = (partner.get("code") or "").strip()
+        if not code:
+            continue
+        if code not in buckets:
+            buckets[code] = {
+                "code": code,
+                "display_name": partner.get("display_name") or code,
+                "contact_email": partner.get("contact_email") or "",
+                "payout_pix": partner.get("payout_pix") or "",
+                "count": 0,
+                "total_brl": 0.0,
+                "status": "pending",
+            }
+        buckets[code]["count"] += 1
+        buckets[code]["total_brl"] += int(r.get("amount_cents") or COMMISSION_CENTS_BRL) / 100.0
+
+    return sorted(buckets.values(), key=lambda x: x["code"]), None
 
 
 def partner_signup_link(code: str, *, app_base: str = "") -> str:
