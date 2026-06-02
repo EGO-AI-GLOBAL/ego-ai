@@ -182,6 +182,28 @@ function mapPdfUploadError(err: unknown): Error {
   return new Error(msg);
 }
 
+/** Fallback JSON base64 quando multipart nativo falha (builds antigos / rede instável). */
+async function extractPdfUploadBase64(
+  files: Array<{ uri: string; name: string }>
+): Promise<PdfExtractResult> {
+  const payload = {
+    files: await Promise.all(
+      files.map(async (f) => {
+        const name = (f.name || "documento.pdf").trim();
+        const content_base64 = await FileSystem.readAsStringAsync(f.uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        return { name, content_base64 };
+      })
+    ),
+  };
+  const res = await api.post("pdf/extract", payload, {
+    timeout: 120_000,
+    headers: { "Content-Type": "application/json" },
+  });
+  return parsePdfExtractResponse(res.data);
+}
+
 /** Android/iOS: upload nativo (axios FormData falha com frequência em produção). */
 async function extractPdfUploadNative(
   uri: string,
@@ -253,7 +275,11 @@ export async function extractPdfUploads(
         warnings,
       };
     } catch (err: unknown) {
-      throw mapPdfUploadError(err);
+      try {
+        return await extractPdfUploadBase64(files);
+      } catch (fallbackErr: unknown) {
+        throw mapPdfUploadError(fallbackErr ?? err);
+      }
     }
   }
 

@@ -372,7 +372,9 @@ def add_member_by_email(
     if not target_uid:
         return (
             False,
-            "Este e-mail ainda não tem conta no EGO-AI. A pessoa precisa criar conta primeiro.",
+            "Este e-mail ainda não tem conta no EGO-AI. "
+            "Peça para a pessoa instalar o app, criar conta com o mesmo e-mail "
+            "e só depois adicioná-la aqui.",
             None,
         )
     if target_uid == owner_user_id:
@@ -432,10 +434,10 @@ def add_member_by_email(
             "role": "member",
             "status": "active",
         }
-        from ego_api.supabase_client import insert_returning_rows
+        from ego_api.supabase_client import insert_with_admin_fallback
 
-        inserted = insert_returning_rows(
-            supabase, SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE, row
+        inserted = insert_with_admin_fallback(
+            supabase, SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE, row, raise_errors=True
         )
         data = inserted[0] if inserted else row
         return True, "", data
@@ -443,6 +445,12 @@ def add_member_by_email(
         low = str(exc).lower()
         if "unique" in low or "duplicate" in low:
             return False, "Este e-mail já está nesta agenda.", None
+        if "SyncQueryRequestBuilder" in str(exc) and "select" in str(exc):
+            return (
+                False,
+                "Servidor em atualização. Aguarde 2 minutos e tente de novo.",
+                None,
+            )
         return False, str(exc), None
 
 
@@ -517,10 +525,10 @@ def insert_event(
         "announce": (announce or title or "")[:2000],
     }
     try:
-        from ego_api.supabase_client import insert_returning_rows
+        from ego_api.supabase_client import insert_with_admin_fallback
 
-        inserted = insert_returning_rows(
-            supabase, SUPABASE_SHARED_CALENDAR_EVENTS_TABLE, row
+        inserted = insert_with_admin_fallback(
+            supabase, SUPABASE_SHARED_CALENDAR_EVENTS_TABLE, row, raise_errors=True
         )
         event = inserted[0] if inserted else row
         try:

@@ -56,6 +56,27 @@ def create_service_client() -> Client | None:
         return None
 
 
+def insert_with_admin_fallback(
+    client: Client | None,
+    table: str,
+    row: dict | list,
+    *,
+    raise_errors: bool = False,
+) -> list[dict[str, Any]]:
+    """INSERT com JWT do utilizador; se falhar, tenta service role."""
+    inserted = insert_returning_rows(client, table, row)
+    if inserted:
+        return inserted
+    admin = create_service_client()
+    if admin:
+        inserted = insert_returning_rows(admin, table, row, raise_errors=raise_errors)
+        if inserted:
+            return inserted
+    if raise_errors:
+        raise RuntimeError("Não foi possível gravar no servidor (verifique RLS ou service role).")
+    return []
+
+
 def insert_returning_rows(
     client: Client | None,
     table: str,

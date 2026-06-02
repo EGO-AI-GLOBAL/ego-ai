@@ -312,19 +312,23 @@ def require_play_integrity(f: Callable) -> Callable:
 @app.get("/api/v1/health")
 def health():
     sb = supabase_env_status()
+    service_role_set = bool(read_env("SUPABASE_SERVICE_ROLE_KEY"))
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-02-login-referrals-fix",
+        "api_build": "2026-06-02-pdf-shared-cal-fix",
         "pdf_extract": True,
-        "deploy_hint": "Adicione SUPABASE_SERVICE_ROLE_KEY no Railway e redeploy",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
             "supabase_key_set": bool(sb.get("key_set")),
-            "service_role_set": bool(read_env("SUPABASE_SERVICE_ROLE_KEY")),
+            "service_role_set": service_role_set,
         },
     }
+    if not service_role_set:
+        payload["deploy_hint"] = (
+            "Adicione SUPABASE_SERVICE_ROLE_KEY no Railway e redeploy"
+        )
     include_details = os.getenv("EGO_HEALTH_DETAILS", "").lower() in ("1", "true", "yes")
     if include_details:
         from ego_api import openai_realtime

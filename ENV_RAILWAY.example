@@ -1,0 +1,20 @@
+# Copiar estas variáveis para Railway → Service → Variables
+# (mesmos nomes do .env da raiz do projeto)
+
+SUPABASE_URL=
+SUPABASE_KEY=
+GOOGLE_API_KEY=
+OPENAI_API_KEY=
+EGO_OPENAI_REALTIME=1
+EGO_REALTIME_WEBRTC=1
+EGO_GEMINI_MODEL_FLASH=gemini-2.5-flash
+EGO_GEMINI_FLASH_ONLY=1
+# Plano Total forçado para testes (vírgula = vários e-mails)
+EGO_TEST_TOTAL_EMAILS=sacolapersonalizada@uol.com.br,reidasacolapersonalizada@uol.com.br
+STRIPE_CHECKOUT_CONNECTION_URL=
+STRIPE_CHECKOUT_PREMIUM_URL=
+STRIPE_CHECKOUT_TOTAL_URL=
+STRIPE_CHECKOUT_MENSAL_URL=
+STRIPE_CHECKOUT_INT_CONNECTION_URL=
+STRIPE_CHECKOUT_INT_PREMIUM_URL=
+STRIPE_CHECKOUT_INT_TOTAL_URL=
