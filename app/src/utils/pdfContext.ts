@@ -1,5 +1,7 @@
+import * as FileSystem from "expo-file-system";
 import { Platform } from "react-native";
-import { api, ApiClientError } from "@/api/client";
+import { API_V1 } from "@/constants/config";
+import { api, ApiClientError, getSession } from "@/api/client";
 
 /** Alinhado ao limite do botão «Carregar PDFs» no Streamlit. */
 export const PDF_STORE_MAX_CHARS = 200_000;
@@ -142,49 +144,7 @@ export function capPdfForStore(text: string): string {
   return t.slice(0, PDF_STORE_MAX_CHARS);
 }
 
-export async function extractPdfUploads(
-  files: Array<{ uri: string; name: string }>
-): Promise<PdfExtractResult> {
-  if (!files.length) {
-    throw new Error("Nenhum ficheiro selecionado.");
-  }
-  const form = new FormData();
-  for (const f of files) {
-    const name = (f.name || "documento.txt").trim();
-    if (!isSupportedDocName(name)) {
-      throw new Error(`Formato não suportado. Use: ${SUPPORTED_DOC_LABEL}.`);
-    }
-    const mime = mimeForFilename(name);
-    if (Platform.OS === "web") {
-      const res = await fetch(f.uri);
-      const blob = await res.blob();
-      form.append("pdf", blob, name);
-    } else {
-      form.append(
-        "pdf",
-        { uri: f.uri, name, type: mime } as unknown as Blob
-      );
-    }
-  }
-  let data: unknown;
-  try {
-    const res = await api.post("pdf/extract", form, {
-      timeout: 120_000,
-      maxBodyLength: Infinity,
-      maxContentLength: Infinity,
-    });
-    data = res.data;
-  } catch (err: unknown) {
-    if (err instanceof ApiClientError && err.status === 404) {
-      throw new Error(
-        "Leitura de documentos indisponível no servidor (API desatualizada). " +
-          "Faça deploy do código novo no Railway."
-      );
-    }
-    const msg =
-      err instanceof Error ? err.message : "Não foi possível enviar o documento.";
-    throw new Error(msg);
-  }
+function parsePdfExtractResponse(data: unknown): PdfExtractResult {
   const body = data as {
     ok?: boolean;
     error?: string;
@@ -204,6 +164,116 @@ export async function extractPdfUploads(
     char_count: body.char_count ?? text.length,
     warnings: Array.isArray(body.warnings) ? body.warnings : [],
   };
+}
+
+function mapPdfUploadError(err: unknown): Error {
+  if (err instanceof ApiClientError && err.status === 404) {
+    return new Error(
+      "Leitura de documentos indisponível no servidor (API desatualizada). " +
+        "Aguarde o deploy no Railway e tente de novo."
+    );
+  }
+  const msg = err instanceof Error ? err.message : "Não foi possível enviar o documento.";
+  if (/Network Error|ERR_NETWORK|timeout|timed out/i.test(msg)) {
+    return new Error(
+      "Falha ao enviar o documento. Use Wi‑Fi estável, PDF até 12 MB, ou tente um ficheiro .txt pequeno para testar."
+    );
+  }
+  return new Error(msg);
+}
+
+/** Android/iOS: upload nativo (axios FormData falha com frequência em produção). */
+async function extractPdfUploadNative(
+  uri: string,
+  name: string
+): Promise<PdfExtractResult> {
+  const session = getSession();
+  const token = session?.access_token?.trim();
+  if (!token) {
+    throw new Error("Sessão expirada. Saia e entre novamente.");
+  }
+  const base = API_V1.endsWith("/") ? API_V1 : `${API_V1}/`;
+  const url = `${base}pdf/extract`;
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  };
+  if (session?.refresh_token) {
+    headers["X-Refresh-Token"] = session.refresh_token;
+  }
+  const res = await FileSystem.uploadAsync(url, uri, {
+    httpMethod: "POST",
+    uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+    fieldName: "pdf",
+    mimeType: mimeForFilename(name),
+    headers,
+  });
+  if (res.status < 200 || res.status >= 300) {
+    let detail = `Erro ${res.status} ao enviar o documento.`;
+    try {
+      const parsed = JSON.parse(res.body) as { error?: string };
+      if (parsed.error) detail = parsed.error;
+    } catch {
+      /* ignore */
+    }
+    throw new Error(detail);
+  }
+  try {
+    return parsePdfExtractResponse(JSON.parse(res.body));
+  } catch {
+    throw new Error("Resposta inválida do servidor ao ler o documento.");
+  }
+}
+
+export async function extractPdfUploads(
+  files: Array<{ uri: string; name: string }>
+): Promise<PdfExtractResult> {
+  if (!files.length) {
+    throw new Error("Nenhum ficheiro selecionado.");
+  }
+  for (const f of files) {
+    const name = (f.name || "documento.txt").trim();
+    if (!isSupportedDocName(name)) {
+      throw new Error(`Formato não suportado. Use: ${SUPPORTED_DOC_LABEL}.`);
+    }
+  }
+
+  if (Platform.OS !== "web") {
+    const warnings: string[] = [];
+    const texts: string[] = [];
+    try {
+      for (const f of files) {
+        const part = await extractPdfUploadNative(f.uri, f.name);
+        texts.push(part.text);
+        warnings.push(...part.warnings);
+      }
+      const text = mergePdfContextParts(...texts);
+      return {
+        text,
+        char_count: text.length,
+        warnings,
+      };
+    } catch (err: unknown) {
+      throw mapPdfUploadError(err);
+    }
+  }
+
+  const form = new FormData();
+  for (const f of files) {
+    const name = (f.name || "documento.txt").trim();
+    const res = await fetch(f.uri);
+    const blob = await res.blob();
+    form.append("pdf", blob, name);
+  }
+  try {
+    const res = await api.post("pdf/extract", form, {
+      timeout: 120_000,
+      maxBodyLength: Infinity,
+      maxContentLength: Infinity,
+    });
+    return parsePdfExtractResponse(res.data);
+  } catch (err: unknown) {
+    throw mapPdfUploadError(err);
+  }
 }
 
 export async function persistPdfContext(

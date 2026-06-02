@@ -42,10 +42,10 @@ def main() -> int:
     print(f"GET /health -> {code} ok={ok} api_build={build}")
     if not ok:
         failed += 1
-    if build != "2026-06-02-shared-cal-postgrest2":
+    if build != "2026-06-02-pdf-upload-fix":
         print(
             "  AVISO: Railway ainda sem o deploy novo "
-            f"(esperado 2026-06-02-shared-cal-postgrest2, veio {build!r})."
+            f"(esperado 2026-06-02-pdf-upload-fix, veio {build!r})."
         )
         failed += 1
 

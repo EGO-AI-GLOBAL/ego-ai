@@ -199,6 +199,7 @@ def require_auth(f: Callable) -> Callable:
             path_tail.endswith("/chat/messages")
             or path_tail.endswith("/chat/voice")
             or path_tail.endswith("/chat/voice/stream")
+            or path_tail.endswith("/pdf/extract")
         )
         if skip_json_body:
             body = {}
@@ -314,7 +315,8 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-02-shared-cal-postgrest2",
+        "api_build": "2026-06-02-pdf-upload-fix",
+        "pdf_extract": True,
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -875,44 +877,58 @@ def access_status():
 @app.post("/api/v1/pdf/extract")
 @require_auth
 def pdf_extract():
-    from ego_api.document_extract import (
-        ALLOWED_SUFFIXES_LABEL,
-        DOC_UPLOAD_MAX_FILES,
-        extract_text_from_uploads,
-        is_allowed_document,
-    )
+    from ego_api.document_extract import ALLOWED_SUFFIXES_LABEL, extract_text_from_uploads
+    from ego_api.pdf_upload import collect_upload_file_bytes, filter_allowed_uploads
 
-    uploads = request.files.getlist("pdf")
-    if not uploads:
-        uploads = request.files.getlist("file")
-    if not uploads:
-        one = request.files.get("pdf") or request.files.get("file")
-        uploads = [one] if one else []
-    files: list[tuple[str, bytes]] = []
-    for up in uploads[:DOC_UPLOAD_MAX_FILES]:
-        if not up or not up.filename:
-            continue
-        name = str(up.filename)
-        if not is_allowed_document(name):
+    try:
+        raw_files, diag = collect_upload_file_bytes(request)
+        if not raw_files:
+            return _json_error(diag or "Nenhum documento recebido.")
+        files, fmt_warnings = filter_allowed_uploads(raw_files)
+        if not files:
             return _json_error(
-                f"Formato não suportado. Envie: {ALLOWED_SUFFIXES_LABEL}."
+                fmt_warnings[0]
+                if fmt_warnings
+                else f"Formato não suportado. Envie: {ALLOWED_SUFFIXES_LABEL}."
             )
-        raw = up.read()
-        if raw:
-            files.append((name, raw))
-    if not files:
-        return _json_error("Nenhum documento recebido.")
-    text, warnings = extract_text_from_uploads(files)
-    if not text.strip():
-        detail = "; ".join(warnings) if warnings else "Não foi possível extrair texto."
-        return _json_error(detail)
-    return _json_ok(
-        {
-            "text": text,
-            "char_count": len(text),
-            "warnings": warnings,
-        }
-    )
+        text, warnings = extract_text_from_uploads(files)
+        warnings = fmt_warnings + list(warnings)
+        if not text.strip():
+            detail = "; ".join(warnings) if warnings else "Não foi possível extrair texto."
+            return _json_error(detail)
+
+        prof = db.load_profile(g.supabase, g.user_id) or {}
+        ui = services.ui_state_from_profile(prof)
+        prev = str(ui.get("pdf_context") or "").strip()
+        from ego_api.document_extract import DOC_UPLOAD_MAX_FILES
+
+        sep = "\n\n---\n\n"
+        merged = sep.join([p for p in [prev, text.strip()] if p])
+        count = int(ui.get("pdf_attachment_count") or 0)
+        if prev:
+            count = max(count, 1) + len(files)
+        else:
+            count = len(files)
+        capped, truncated = services.persist_pdf_context(
+            g.supabase,
+            g.user_id,
+            merged,
+            prof,
+            attachment_count=count,
+        )
+        return _json_ok(
+            {
+                "text": text,
+                "char_count": len(text),
+                "warnings": warnings,
+                "stored": True,
+                "stored_char_count": len(capped),
+                "stored_truncated": truncated,
+                "pdf_attachment_count": min(count, DOC_UPLOAD_MAX_FILES * 24),
+            }
+        )
+    except Exception as exc:  # noqa: BLE001
+        return _json_error(str(exc) or "Falha ao processar documento.", 500)
 
 
 @app.get("/api/v1/profile")

@@ -990,7 +990,12 @@ def ui_state_from_profile(prof: dict | None) -> dict:
 
 
 def persist_pdf_context(
-    supabase: Client | None, user_id: str, pdf_context: str, profile: dict | None = None
+    supabase: Client | None,
+    user_id: str,
+    pdf_context: str,
+    profile: dict | None = None,
+    *,
+    attachment_count: int | None = None,
 ) -> tuple[str, bool]:
     """Guarda texto de PDF em profiles.ui_state (sincroniza com Streamlit e app)."""
     from ego_api.pdf_extract import cap_pdf_context_for_profile
@@ -999,11 +1004,20 @@ def persist_pdf_context(
     if not supabase or not user_id:
         return capped, truncated
     ui = ui_state_from_profile(profile)
-    if ui.get("pdf_context") == capped:
-        return capped, truncated
     merged = dict(ui)
     merged["pdf_context"] = capped
     merged["pdf_truncated"] = truncated
+    if attachment_count is not None:
+        merged["pdf_attachment_count"] = max(0, int(attachment_count))
+    if (
+        ui.get("pdf_context") == capped
+        and ui.get("pdf_truncated") == truncated
+        and (
+            attachment_count is None
+            or ui.get("pdf_attachment_count") == merged.get("pdf_attachment_count")
+        )
+    ):
+        return capped, truncated
     db.update_profile_fields(supabase, user_id, {"ui_state": merged})
     sess = get_session()
     if sess:

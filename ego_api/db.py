@@ -893,11 +893,24 @@ def update_profile_fields(
     if not payload:
         return False, "Nenhum campo válido para atualizar."
     apply_user_auth(supabase)
+    user_err = ""
     try:
         supabase.table(SUPABASE_PROFILES_TABLE).update(payload).eq("id", user_id).execute()
         return True, ""
     except Exception as exc:
-        return False, str(exc)
+        user_err = str(exc)
+
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+    if admin:
+        try:
+            admin.table(SUPABASE_PROFILES_TABLE).update(payload).eq("id", user_id).execute()
+            return True, ""
+        except Exception as exc:
+            return False, str(exc) or user_err
+
+    return False, user_err or "Não foi possível atualizar o perfil."
 
 
 # --- Lembretes / agenda (lógica espelhada de app.py) ---
