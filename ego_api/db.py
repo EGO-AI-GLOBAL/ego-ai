@@ -794,10 +794,25 @@ def _read_persona_from_client(client: Client | None, user_id: str) -> tuple[str,
         return None
 
 
-def _read_persona_from_profile_ui(
-    supabase: Client | None, user_id: str
-) -> tuple[str, str] | None:
-    prof = load_profile(supabase, user_id) if supabase and user_id else None
+def _load_profile_raw(client: Client | None, user_id: str) -> dict | None:
+    """Perfil sem JWT do utilizador (service role)."""
+    if not client or not user_id:
+        return None
+    try:
+        res = (
+            client.table(SUPABASE_PROFILES_TABLE)
+            .select("*")
+            .eq("id", user_id)
+            .limit(1)
+            .execute()
+        )
+        rows = res.data or []
+        return rows[0] if rows else None
+    except Exception:
+        return None
+
+
+def _persona_pair_from_profile(prof: dict | None) -> tuple[str, str] | None:
     if not prof:
         return None
     ui = _parse_ui_state(prof)
@@ -808,26 +823,36 @@ def _read_persona_from_profile_ui(
     return aid, vid
 
 
+def _read_persona_from_profile_ui(
+    supabase: Client | None, user_id: str
+) -> tuple[str, str] | None:
+    prof = load_profile(supabase, user_id) if supabase and user_id else None
+    return _persona_pair_from_profile(prof)
+
+
 def load_persona(supabase: Client | None, user_id: str) -> tuple[str, str]:
+    """Lê persona: ui_state no perfil primeiro (espelho da escolha), depois user_personas."""
     if not user_id:
         return "f1", "vf1"
-
-    if supabase and apply_user_auth(supabase):
-        pair = _read_persona_from_client(supabase, user_id)
-        if pair:
-            return pair
 
     from ego_api.supabase_client import create_service_client
 
     admin = create_service_client()
     if admin:
+        pair = _persona_pair_from_profile(_load_profile_raw(admin, user_id))
+        if pair:
+            return pair
         pair = _read_persona_from_client(admin, user_id)
         if pair:
             return pair
 
-    pair = _read_persona_from_profile_ui(supabase, user_id)
-    if pair:
-        return pair
+    if supabase and apply_user_auth(supabase):
+        pair = _read_persona_from_profile_ui(supabase, user_id)
+        if pair:
+            return pair
+        pair = _read_persona_from_client(supabase, user_id)
+        if pair:
+            return pair
 
     return "f1", "vf1"
 
@@ -858,13 +883,18 @@ def _upsert_persona_row(client: Client, row: dict) -> bool:
 
 def _mirror_persona_to_profile(
     supabase: Client | None, user_id: str, avatar_id: str, voice_id: str
-) -> None:
-    """Cópia em profiles.ui_state — leitura de fallback se RLS falhar em user_personas."""
+) -> bool:
+    """Cópia em profiles.ui_state — fonte de leitura se RLS bloquear user_personas."""
     if not supabase or not user_id:
-        return
+        return False
     from ego_api.persona import assistant_display_name_for_avatar
+    from ego_api.supabase_client import create_service_client
 
-    prof = load_profile(supabase, user_id) or {}
+    admin = create_service_client()
+    if admin is supabase:
+        prof = _load_profile_raw(supabase, user_id) or {}
+    else:
+        prof = load_profile(supabase, user_id) or {}
     ui = _parse_ui_state(prof)
     name = assistant_display_name_for_avatar(avatar_id)
     merged = {
@@ -873,7 +903,8 @@ def _mirror_persona_to_profile(
         "voice_id": voice_id,
         "ego_assistant_display_name": name,
     }
-    update_profile_fields(supabase, user_id, {"ui_state": merged})
+    ok, _ = update_profile_fields(supabase, user_id, {"ui_state": merged})
+    return ok
 
 
 def save_persona(
@@ -891,20 +922,23 @@ def save_persona(
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
     row = {"user_id": user_id, "avatar_id": aid, "voice_id": vid, "updated_at": now}
     user_err = ""
-    saved = False
-    try:
-        if _upsert_persona_row(supabase, row):
-            saved = True
-    except Exception as exc:
-        user_err = str(exc)
-        err = user_err.lower()
-        if "user_personas" in err or "42p01" in err or "does not exist" in err:
-            return False, "Tabela user_personas em falta. Execute supabase/bootstrap_ego_schema.sql."
 
     from ego_api.supabase_client import create_service_client
 
     admin = create_service_client()
-    if not saved and admin:
+
+    mirrored = False
+    for client in (admin, supabase):
+        if not client:
+            continue
+        try:
+            if _mirror_persona_to_profile(client, user_id, aid, vid):
+                mirrored = True
+        except Exception:
+            pass
+
+    saved = False
+    if admin:
         try:
             if _upsert_persona_row(admin, row):
                 saved = True
@@ -912,15 +946,37 @@ def save_persona(
             err = str(exc).lower()
             if "user_personas" in err or "42p01" in err or "does not exist" in err:
                 return False, "Tabela user_personas em falta. Execute supabase/bootstrap_ego_schema.sql."
-            return False, str(exc)
+            if not mirrored:
+                user_err = str(exc)
 
-    if saved:
-        _mirror_persona_to_profile(supabase, user_id, aid, vid)
+    if not saved:
+        try:
+            if _upsert_persona_row(supabase, row):
+                saved = True
+        except Exception as exc:
+            user_err = str(exc) or user_err
+            err = user_err.lower()
+            if "user_personas" in err or "42p01" in err or "does not exist" in err:
+                return False, "Tabela user_personas em falta. Execute supabase/bootstrap_ego_schema.sql."
+
+    if not saved and not mirrored:
+        return (
+            False,
+            user_err
+            or "Não foi possível guardar avatar/voz. Adicione SUPABASE_SERVICE_ROLE_KEY no Railway.",
+        )
+
+    loaded_a, loaded_v = load_persona(supabase, user_id)
+    if loaded_a == aid and loaded_v == vid:
+        return True, ""
+
+    if mirrored:
         return True, ""
 
     return (
         False,
-        user_err or "Não foi possível guardar avatar/voz. Verifique a tabela user_personas.",
+        f"A escolha não ficou guardada (servidor devolveu {loaded_a}). "
+        "Configure SUPABASE_SERVICE_ROLE_KEY no Railway e faça redeploy.",
     )
 
 

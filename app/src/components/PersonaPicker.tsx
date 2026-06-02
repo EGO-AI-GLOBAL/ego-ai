@@ -79,9 +79,15 @@ export function PersonaPicker({
   const [okMsg, setOkMsg] = useState<string | null>(null);
 
   const persist = async (choice: PersonaChoice, preset: PersonaPresetId) => {
+    if (preset === "male" || preset === "female") {
+      try {
+        return await updatePersonaPreset(preset);
+      } catch {
+        /* tenta avatar_id/voice_id abaixo */
+      }
+    }
     try {
-      const saved = await savePersonaChoice(choice);
-      return saved;
+      return await savePersonaChoice(choice);
     } catch {
       return await updatePersonaPreset(preset);
     }

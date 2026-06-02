@@ -72,13 +72,8 @@ export default function ChatScreen() {
         await markPersonaConfiguredLocal(userId);
         await saveLocalPersonaChoice(userId, choice);
       }
-      try {
-        await refresh();
-      } catch {
-        /* mantém Leo/Luna local se a rede falhar no refresh */
-      }
     },
-    [refresh, setPersona, userId]
+    [setPersona, userId]
   );
   const [chatInput, setChatInput] = useState("");
   const [sending, setSending] = useState(false);

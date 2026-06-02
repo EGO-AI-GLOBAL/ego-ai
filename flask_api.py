@@ -315,7 +315,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-02-bootstrap-500-fix",
+        "api_build": "2026-06-02-persona-leo-load-fix",
         "pdf_extract": True,
         "deploy_hint": "Adicione SUPABASE_SERVICE_ROLE_KEY no Railway e redeploy",
         "checks": {
@@ -1058,6 +1058,8 @@ def persona_put():
     services.persist_assistant_name_for_persona(
         g.supabase, g.user_id, prof, avatar_id
     )
+    avatar_id, voice_id = db.load_persona(g.supabase, g.user_id)
+    avatar_id, voice_id = normalize_persona_pair(avatar_id, voice_id)
     return _json_ok({"saved": True, "avatar_id": avatar_id, "voice_id": voice_id})
 
 
