@@ -31,7 +31,10 @@ import { findAvatarInCatalog } from "@/constants/avatarCatalog";
 import { accountPersona, isMaleAvatar } from "@/constants/personas";
 import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
-import { markPersonaConfiguredLocal } from "@/storage/personaPrefs";
+import {
+  markPersonaConfiguredLocal,
+  saveLocalPersonaChoice,
+} from "@/storage/personaPrefs";
 import { useLocalChatHistory } from "@/hooks/useLocalChatHistory";
 import type { AudioPlaybackSpeed } from "@/constants/audioSpeed";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
@@ -65,7 +68,10 @@ export default function ChatScreen() {
   const onPersonaSaved = useCallback(
     async (choice: { avatar_id: string; voice_id: string }) => {
       setPersona(choice.avatar_id, choice.voice_id);
-      if (userId) await markPersonaConfiguredLocal(userId);
+      if (userId) {
+        await markPersonaConfiguredLocal(userId);
+        await saveLocalPersonaChoice(userId, choice);
+      }
       try {
         await refresh();
       } catch {

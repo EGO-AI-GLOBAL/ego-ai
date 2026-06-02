@@ -6,7 +6,10 @@ import { PersonaPicker } from "@/components/PersonaPicker";
 import { DEFAULT_PERSONA } from "@/constants/personas";
 import type { PersonaChoice } from "@/constants/personas";
 import { useDashboard } from "@/hooks/useDashboard";
-import { markPersonaConfiguredLocal } from "@/storage/personaPrefs";
+import {
+  markPersonaConfiguredLocal,
+  saveLocalPersonaChoice,
+} from "@/storage/personaPrefs";
 import { useColors } from "@/theme/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 
@@ -24,7 +27,10 @@ export default function ChooseAvatarScreen() {
     const choice = savedChoiceRef.current;
     setPersona(choice.avatar_id, choice.voice_id);
     const uid = session?.user?.id?.trim();
-    if (uid) void markPersonaConfiguredLocal(uid);
+    if (uid) {
+      void markPersonaConfiguredLocal(uid);
+      void saveLocalPersonaChoice(uid, choice);
+    }
     router.replace("/(main)/chat");
     try {
       await refresh();

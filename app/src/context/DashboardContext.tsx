@@ -20,8 +20,10 @@ import {
   syncSharedCalendarLocalNotifications,
 } from "@/utils/sharedCalendarNotifications";
 import {
+  getLocalPersonaChoice,
   isPersonaConfiguredLocal,
   markPersonaConfiguredLocal,
+  saveLocalPersonaChoice,
 } from "@/storage/personaPrefs";
 
 const empty: DashboardData = {
@@ -70,9 +72,26 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }
     setError(null);
     try {
-      const dashboard = await fetchDashboard();
-      setData(dashboard);
+      let dashboard = await fetchDashboard();
       const uid = dashboard.me?.user_id ?? "";
+      const localChoice = uid ? await getLocalPersonaChoice(uid) : null;
+      if (localChoice && dashboard.me) {
+        const server = dashboard.me.persona;
+        const serverAid = (server?.avatar_id || "f1").toLowerCase();
+        const localAid = localChoice.avatar_id.toLowerCase();
+        if (serverAid !== localAid) {
+          const persona = accountPersona(localChoice);
+          dashboard = {
+            ...dashboard,
+            me: {
+              ...dashboard.me,
+              persona,
+              persona_configured: true,
+            },
+          };
+        }
+      }
+      setData(dashboard);
       if (dashboard.me?.persona_configured === true && uid) {
         setPersonaLocalOk(true);
         void markPersonaConfiguredLocal(uid);
@@ -120,7 +139,10 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     const persona = accountPersona({ avatar_id: avatarId, voice_id: voiceId });
     setPersonaLocalOk(true);
     const uid = data.me?.user_id;
-    if (uid) void markPersonaConfiguredLocal(uid);
+    if (uid) {
+      void markPersonaConfiguredLocal(uid);
+      void saveLocalPersonaChoice(uid, persona);
+    }
     setData((prev) => ({
       ...prev,
       me: prev.me

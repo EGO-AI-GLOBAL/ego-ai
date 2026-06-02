@@ -770,13 +770,12 @@ def persona_is_configured(supabase: Client | None, user_id: str) -> bool:
     return _persona_row_exists(admin, user_id)
 
 
-def load_persona(supabase: Client | None, user_id: str) -> tuple[str, str]:
-    if not supabase or not user_id:
-        return "f1", "vf1"
-    apply_user_auth(supabase)
+def _read_persona_from_client(client: Client | None, user_id: str) -> tuple[str, str] | None:
+    if not client or not user_id:
+        return None
     try:
         res = (
-            supabase.table(SUPABASE_PERSONA_TABLE)
+            client.table(SUPABASE_PERSONA_TABLE)
             .select("avatar_id,voice_id")
             .eq("user_id", user_id)
             .limit(1)
@@ -784,36 +783,100 @@ def load_persona(supabase: Client | None, user_id: str) -> tuple[str, str]:
         )
         rows = res.data or []
         if not rows:
-            return "f1", "vf1"
+            return None
         data = rows[0]
-        return data.get("avatar_id", "f1"), data.get("voice_id", "vf1")
+        aid = str(data.get("avatar_id") or "").strip()
+        if not aid:
+            return None
+        vid = str(data.get("voice_id") or "").strip() or "vf1"
+        return aid, vid
     except Exception:
+        return None
+
+
+def _read_persona_from_profile_ui(
+    supabase: Client | None, user_id: str
+) -> tuple[str, str] | None:
+    prof = load_profile(supabase, user_id) if supabase and user_id else None
+    if not prof:
+        return None
+    from ego_api.services import ui_state_from_profile
+
+    ui = ui_state_from_profile(prof)
+    aid = str(ui.get("avatar_id") or "").strip()
+    if not aid:
+        return None
+    vid = str(ui.get("voice_id") or "").strip() or "vf1"
+    return aid, vid
+
+
+def load_persona(supabase: Client | None, user_id: str) -> tuple[str, str]:
+    if not user_id:
         return "f1", "vf1"
+
+    if supabase and apply_user_auth(supabase):
+        pair = _read_persona_from_client(supabase, user_id)
+        if pair:
+            return pair
+
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+    if admin:
+        pair = _read_persona_from_client(admin, user_id)
+        if pair:
+            return pair
+
+    pair = _read_persona_from_profile_ui(supabase, user_id)
+    if pair:
+        return pair
+
+    return "f1", "vf1"
 
 
 def _upsert_persona_row(client: Client, row: dict) -> bool:
+    uid = row.get("user_id")
+    aid = row.get("avatar_id")
+    if not uid or not aid:
+        return False
     try:
-        res = (
-            client.table(SUPABASE_PERSONA_TABLE)
-            .upsert(row, on_conflict="user_id")
-            .execute()
-        )
-        if res.data:
-            return True
-        uid = row.get("user_id")
-        aid = row.get("avatar_id")
-        if not uid:
-            return False
+        client.table(SUPABASE_PERSONA_TABLE).upsert(
+            row, on_conflict="user_id"
+        ).execute()
         chk = (
             client.table(SUPABASE_PERSONA_TABLE)
-            .select("avatar_id")
+            .select("avatar_id,voice_id")
             .eq("user_id", uid)
             .limit(1)
             .execute()
         )
-        return bool(chk.data) and chk.data[0].get("avatar_id") == aid
+        if not chk.data:
+            return False
+        got = str(chk.data[0].get("avatar_id") or "").strip()
+        return got == str(aid).strip()
     except Exception:
         return False
+
+
+def _mirror_persona_to_profile(
+    supabase: Client | None, user_id: str, avatar_id: str, voice_id: str
+) -> None:
+    """Cópia em profiles.ui_state — leitura de fallback se RLS falhar em user_personas."""
+    if not supabase or not user_id:
+        return
+    from ego_api.persona import assistant_display_name_for_avatar
+    from ego_api.services import ui_state_from_profile
+
+    prof = load_profile(supabase, user_id) or {}
+    ui = ui_state_from_profile(prof)
+    name = assistant_display_name_for_avatar(avatar_id)
+    merged = {
+        **ui,
+        "avatar_id": avatar_id,
+        "voice_id": voice_id,
+        "ego_assistant_display_name": name,
+    }
+    update_profile_fields(supabase, user_id, {"ui_state": merged})
 
 
 def save_persona(
@@ -831,9 +894,10 @@ def save_persona(
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
     row = {"user_id": user_id, "avatar_id": aid, "voice_id": vid, "updated_at": now}
     user_err = ""
+    saved = False
     try:
         if _upsert_persona_row(supabase, row):
-            return True, ""
+            saved = True
     except Exception as exc:
         user_err = str(exc)
         err = user_err.lower()
@@ -843,15 +907,19 @@ def save_persona(
     from ego_api.supabase_client import create_service_client
 
     admin = create_service_client()
-    if admin:
+    if not saved and admin:
         try:
             if _upsert_persona_row(admin, row):
-                return True, ""
+                saved = True
         except Exception as exc:
             err = str(exc).lower()
             if "user_personas" in err or "42p01" in err or "does not exist" in err:
                 return False, "Tabela user_personas em falta. Execute supabase/bootstrap_ego_schema.sql."
             return False, str(exc)
+
+    if saved:
+        _mirror_persona_to_profile(supabase, user_id, aid, vid)
+        return True, ""
 
     return (
         False,
