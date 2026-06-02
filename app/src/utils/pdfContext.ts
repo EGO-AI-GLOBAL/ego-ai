@@ -260,23 +260,40 @@ export async function extractPdfUploads(
   }
 
   if (Platform.OS !== "web") {
-    const warnings: string[] = [];
-    const texts: string[] = [];
-    try {
-      for (const f of files) {
-        const part = await extractPdfUploadNative(f.uri, f.name);
-        texts.push(part.text);
-        warnings.push(...part.warnings);
-      }
-      const text = mergePdfContextParts(...texts);
-      return {
-        text,
-        char_count: text.length,
-        warnings,
-      };
-    } catch (err: unknown) {
+    const maxBytes = 12 * 1024 * 1024;
+    for (const f of files) {
       try {
-        return await extractPdfUploadBase64(files);
+        const info = await FileSystem.getInfoAsync(f.uri, { size: true });
+        const size =
+          info.exists && "size" in info && typeof info.size === "number"
+            ? info.size
+            : null;
+        if (size != null && size > maxBytes) {
+          throw new Error(
+            `${f.name}: ficheiro demasiado grande (máx. 12 MB).`
+          );
+        }
+      } catch (e) {
+        if (e instanceof Error && /demasiado grande/i.test(e.message)) throw e;
+      }
+    }
+    try {
+      return await extractPdfUploadBase64(files);
+    } catch (err: unknown) {
+      const warnings: string[] = [];
+      const texts: string[] = [];
+      try {
+        for (const f of files) {
+          const part = await extractPdfUploadNative(f.uri, f.name);
+          texts.push(part.text);
+          warnings.push(...part.warnings);
+        }
+        const text = mergePdfContextParts(...texts);
+        return {
+          text,
+          char_count: text.length,
+          warnings,
+        };
       } catch (fallbackErr: unknown) {
         throw mapPdfUploadError(fallbackErr ?? err);
       }
