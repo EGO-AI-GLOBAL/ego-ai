@@ -182,13 +182,14 @@ def create_calendar(
     if not apply_user_auth(supabase):
         return False, "Sessão expirada.", None
     try:
-        res = (
-            supabase.table(SUPABASE_SHARED_CALENDARS_TABLE)
-            .insert({"owner_user_id": user_id, "name": title})
-            .select("*")
-            .execute()
+        from ego_api.supabase_client import insert_returning_rows
+
+        inserted = insert_returning_rows(
+            supabase,
+            SUPABASE_SHARED_CALENDARS_TABLE,
+            {"owner_user_id": user_id, "name": title},
         )
-        cal = (res.data or [{}])[0]
+        cal = inserted[0] if inserted else {}
         cid = str(cal.get("id") or "")
         if not cid:
             return False, "Não foi possível criar a agenda.", None
@@ -366,13 +367,12 @@ def add_member_by_email(
             "role": "member",
             "status": "active",
         }
-        res = (
-            supabase.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
-            .insert(row)
-            .select("*")
-            .execute()
+        from ego_api.supabase_client import insert_returning_rows
+
+        inserted = insert_returning_rows(
+            supabase, SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE, row
         )
-        data = (res.data or [{}])[0]
+        data = inserted[0] if inserted else row
         return True, "", data
     except Exception as exc:
         low = str(exc).lower()
@@ -452,13 +452,12 @@ def insert_event(
         "announce": (announce or title or "")[:2000],
     }
     try:
-        res = (
-            supabase.table(SUPABASE_SHARED_CALENDAR_EVENTS_TABLE)
-            .insert(row)
-            .select("*")
-            .execute()
+        from ego_api.supabase_client import insert_returning_rows
+
+        inserted = insert_returning_rows(
+            supabase, SUPABASE_SHARED_CALENDAR_EVENTS_TABLE, row
         )
-        event = (res.data or [{}])[0]
+        event = inserted[0] if inserted else row
         try:
             from ego_api.shared_calendar_notify import (
                 calendar_name_by_id,

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from ego_api.config import read_env, supabase_anon_key, supabase_url
 from ego_api.request_ctx import get_session
@@ -54,6 +54,17 @@ def create_service_client() -> Client | None:
         return create_client(url, key)
     except Exception:
         return None
+
+
+def insert_returning_rows(client: Client | None, table: str, row: dict | list) -> list[dict[str, Any]]:
+    """INSERT com linhas devolvidas (PostgREST 2.x: não usar .insert().select())."""
+    if not client or not table:
+        return []
+    try:
+        res = client.table(table).insert(row).execute()
+        return list(res.data or [])
+    except Exception:
+        return []
 
 
 def apply_user_auth(client: Client | None) -> bool:

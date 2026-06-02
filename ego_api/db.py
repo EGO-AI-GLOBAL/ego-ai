@@ -743,13 +743,12 @@ def list_agenda(supabase: Client | None, user_id: str) -> list[dict]:
         return []
 
 
-def persona_is_configured(supabase: Client | None, user_id: str) -> bool:
-    if not supabase or not user_id:
+def _persona_row_exists(client: Client | None, user_id: str) -> bool:
+    if not client or not user_id:
         return False
-    apply_user_auth(supabase)
     try:
         res = (
-            supabase.table(SUPABASE_PERSONA_TABLE)
+            client.table(SUPABASE_PERSONA_TABLE)
             .select("user_id")
             .eq("user_id", user_id)
             .limit(1)
@@ -758,6 +757,17 @@ def persona_is_configured(supabase: Client | None, user_id: str) -> bool:
         return bool(res.data)
     except Exception:
         return False
+
+
+def persona_is_configured(supabase: Client | None, user_id: str) -> bool:
+    if not user_id:
+        return False
+    if supabase and apply_user_auth(supabase) and _persona_row_exists(supabase, user_id):
+        return True
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+    return _persona_row_exists(admin, user_id)
 
 
 def load_persona(supabase: Client | None, user_id: str) -> tuple[str, str]:
@@ -781,6 +791,31 @@ def load_persona(supabase: Client | None, user_id: str) -> tuple[str, str]:
         return "f1", "vf1"
 
 
+def _upsert_persona_row(client: Client, row: dict) -> bool:
+    try:
+        res = (
+            client.table(SUPABASE_PERSONA_TABLE)
+            .upsert(row, on_conflict="user_id")
+            .execute()
+        )
+        if res.data:
+            return True
+        uid = row.get("user_id")
+        aid = row.get("avatar_id")
+        if not uid:
+            return False
+        chk = (
+            client.table(SUPABASE_PERSONA_TABLE)
+            .select("avatar_id")
+            .eq("user_id", uid)
+            .limit(1)
+            .execute()
+        )
+        return bool(chk.data) and chk.data[0].get("avatar_id") == aid
+    except Exception:
+        return False
+
+
 def save_persona(
     supabase: Client | None,
     user_id: str,
@@ -795,29 +830,33 @@ def save_persona(
     vid = (voice_id or "vf1").strip()[:32]
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
     row = {"user_id": user_id, "avatar_id": aid, "voice_id": vid, "updated_at": now}
+    user_err = ""
     try:
-        res = (
-            supabase.table(SUPABASE_PERSONA_TABLE)
-            .upsert(row, on_conflict="user_id")
-            .execute()
-        )
-        if res.data:
+        if _upsert_persona_row(supabase, row):
             return True, ""
-        chk = (
-            supabase.table(SUPABASE_PERSONA_TABLE)
-            .select("avatar_id,voice_id")
-            .eq("user_id", user_id)
-            .limit(1)
-            .execute()
-        )
-        if chk.data and chk.data[0].get("avatar_id") == aid:
-            return True, ""
-        return False, "Não foi possível guardar avatar/voz. Verifique a tabela user_personas."
     except Exception as exc:
-        err = str(exc).lower()
+        user_err = str(exc)
+        err = user_err.lower()
         if "user_personas" in err or "42p01" in err or "does not exist" in err:
             return False, "Tabela user_personas em falta. Execute supabase/bootstrap_ego_schema.sql."
-        return False, str(exc)
+
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+    if admin:
+        try:
+            if _upsert_persona_row(admin, row):
+                return True, ""
+        except Exception as exc:
+            err = str(exc).lower()
+            if "user_personas" in err or "42p01" in err or "does not exist" in err:
+                return False, "Tabela user_personas em falta. Execute supabase/bootstrap_ego_schema.sql."
+            return False, str(exc)
+
+    return (
+        False,
+        user_err or "Não foi possível guardar avatar/voz. Verifique a tabela user_personas.",
+    )
 
 
 def save_feedback(
@@ -924,8 +963,10 @@ def insert_reminder(
         "announce": (announce or title or "")[:2000],
     }
     try:
-        res = supabase.table(SUPABASE_REMINDERS_TABLE).insert(row).select("*").execute()
-        data = (res.data or [{}])[0]
+        from ego_api.supabase_client import insert_returning_rows
+
+        inserted = insert_returning_rows(supabase, SUPABASE_REMINDERS_TABLE, row)
+        data = inserted[0] if inserted else row
         return True, "", data
     except Exception as e:
         return False, str(e), None
@@ -1030,8 +1071,11 @@ def insert_agenda(
         "dias_da_semana": dias_ok[:500],
     }
     try:
-        res = supabase.table(SUPABASE_AGENDA_TABLE).insert(row).select("*").execute()
-        return True, "", (res.data or [{}])[0]
+        from ego_api.supabase_client import insert_returning_rows
+
+        inserted = insert_returning_rows(supabase, SUPABASE_AGENDA_TABLE, row)
+        data = inserted[0] if inserted else row
+        return True, "", data
     except Exception as e:
         return False, str(e), None
 
