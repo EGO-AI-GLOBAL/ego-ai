@@ -1,31 +1,44 @@
-@echo off
-setlocal
-cd /d "%~dp0app"
-if errorlevel 1 (
-  echo ERRO: nao foi possivel entrar na pasta app.
-  pause
-  exit /b 1
-)
-echo.
-echo === Build Android production (.aab) v1.0.3 ===
-echo Pasta: %CD%
-echo.
-echo Validando projeto...
-call npx expo config --json >nul
-if errorlevel 1 (
-  echo ERRO: expo config falhou.
-  echo Corra: cd app ^&^& npx expo config
-  pause
-  exit /b 1
-)
-echo OK.
-echo.
-echo Se pedir login: eas login
-call eas build --platform android --profile production
-if errorlevel 1 (
-  echo Build falhou.
-  pause
-  exit /b 1
-)
-echo Download: https://expo.dev
-pause
+@echo off
+
+echo.
+
+echo ============================================
+
+echo   ATENCAO: use a pasta COPIA para o build
+
+echo ============================================
+
+echo.
+
+echo O app Android completo esta em:
+
+echo   EGO-AI-APP - Copia
+
+echo.
+
+echo Esta pasta (EGO-AI-APP) e o GitHub: API + SQL.
+
+echo.
+
+set /p GO="Abrir build na Copia agora? (S/N): "
+
+if /I "%GO%"=="S" (
+
+  cd /d "%~dp0..\EGO-AI-APP - Copia"
+
+  call 6-eas-build.bat
+
+) else (
+
+  echo.
+
+  echo Copie e cole no PowerShell:
+
+  echo   cd "C:\Users\Iury\OneDrive\Área de Trabalho\EGO-AI-APP - Copia"
+
+  echo   .\6-eas-build.bat
+
+  pause
+
+)
+
