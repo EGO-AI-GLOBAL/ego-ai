@@ -10,7 +10,7 @@ try:
 except ImportError:
     pass
 
-GEMINI_MODEL_FLASH = os.getenv("EGO_GEMINI_MODEL_FLASH", "gemini-1.5-flash")
+GEMINI_MODEL_FLASH = os.getenv("EGO_GEMINI_MODEL_FLASH", "gemini-2.0-flash")
 GEMINI_MODEL_PRO = os.getenv("EGO_GEMINI_MODEL_PRO", "gemini-2.5-pro")
 GEMINI_MODEL_IDS = (GEMINI_MODEL_FLASH, GEMINI_MODEL_PRO)
 
@@ -49,6 +49,83 @@ def gemini_api_key() -> str:
     return read_env("GOOGLE_API_KEY") or read_env("GEMINI_API_KEY")
 
 
+def openai_api_key() -> str:
+    return read_env("OPENAI_API_KEY")
+
+
+def openai_realtime_enabled() -> bool:
+    """Voz em tempo real (OpenAI Realtime) — requer OPENAI_API_KEY no servidor."""
+    if read_env("EGO_OPENAI_REALTIME", "1").lower() in ("0", "false", "no", "nao", "não"):
+        return False
+    return bool(openai_api_key())
+
+
+def openai_realtime_model() -> str:
+    """Modelo Realtime — gpt-realtime-mini = atual e económico; override com OPENAI_REALTIME_MODEL."""
+    return read_env(
+        "OPENAI_REALTIME_MODEL",
+        "gpt-realtime-mini",
+    )
+
+
+def openai_realtime_phone_fast() -> bool:
+    """Respostas curtas + VAD agressivo — menor latência (Chamada ao vivo turbo)."""
+    return read_env("EGO_REALTIME_PHONE_FAST", "1").lower() not in (
+        "0",
+        "false",
+        "no",
+        "nao",
+        "não",
+    )
+
+
+def openai_realtime_max_output_tokens_phone() -> int:
+    default = "96" if openai_realtime_phone_fast() else "220"
+    raw = read_env("EGO_REALTIME_MAX_TOKENS_PHONE", default)
+    try:
+        return max(48, min(400, int(raw)))
+    except ValueError:
+        return 96 if openai_realtime_phone_fast() else 220
+
+
+def openai_realtime_vad_eagerness() -> str:
+    """semantic_vad: auto | low | medium | high — high = responde mais cedo."""
+    if openai_realtime_phone_fast():
+        return "high"
+    raw = read_env("EGO_REALTIME_VAD_EAGERNESS", "auto").lower()
+    if raw in ("low", "medium", "high", "auto"):
+        return raw
+    return "auto"
+
+
+def openai_realtime_use_webrtc() -> bool:
+    return read_env("EGO_REALTIME_WEBRTC", "1").lower() not in (
+        "0",
+        "false",
+        "no",
+        "nao",
+        "não",
+    )
+
+
+def openai_realtime_voice_male() -> str:
+    return read_env("OPENAI_REALTIME_VOICE_MALE", "echo")
+
+
+def openai_realtime_voice_female() -> str:
+    return read_env("OPENAI_REALTIME_VOICE_FEMALE", "coral")
+
+
+def openai_realtime_vad_silence_ms() -> int:
+    """Pausa (ms) após falar para a IA responder — menor = mais rápido, mais sensível."""
+    default = "200" if openai_realtime_phone_fast() else "280"
+    raw = read_env("EGO_REALTIME_VAD_SILENCE_MS", default)
+    try:
+        return max(160, min(800, int(raw)))
+    except ValueError:
+        return 200 if openai_realtime_phone_fast() else 280
+
+
 def supabase_url() -> str:
     return read_env("SUPABASE_URL")
 
@@ -79,6 +156,16 @@ def cors_origins() -> list[str]:
         "http://127.0.0.1:8081",
         "http://localhost:8083",
         "http://127.0.0.1:8083",
+        "http://localhost:8084",
+        "http://127.0.0.1:8084",
+        "http://localhost:8085",
+        "http://127.0.0.1:8085",
+        "http://localhost:8086",
+        "http://127.0.0.1:8086",
+        "http://localhost:8087",
+        "http://127.0.0.1:8087",
+        "http://localhost:8088",
+        "http://127.0.0.1:8088",
         "http://localhost",
         "http://127.0.0.1",
         "capacitor://localhost",
@@ -127,6 +214,38 @@ def beta_unlimited() -> bool:
     if read_env("EGO_BETA_SEM_LIMITE", "").lower() in ("1", "true", "yes", "sim"):
         return True
     return False
+
+
+def chat_defer_tts_on_voice() -> bool:
+    """Voz: devolve texto primeiro; o app pede áudio em /tts (evita timeout)."""
+    raw = read_env("EGO_CHAT_DEFER_TTS_ON_VOICE", "1").strip().lower()
+    return raw not in ("0", "false", "no", "nao", "não")
+
+
+def voice_fast_mode() -> bool:
+    """Voz: prompt curto, sem lembretes/agenda no pós-processamento — menor latência."""
+    raw = read_env("EGO_VOICE_FAST", "1").strip().lower()
+    return raw not in ("0", "false", "no", "nao", "não")
+
+
+def voice_max_output_tokens() -> int:
+    raw = read_env("EGO_VOICE_MAX_TOKENS", "200")
+    try:
+        return max(96, min(420, int(raw)))
+    except ValueError:
+        return 200
+
+
+def voice_stream_enabled() -> bool:
+    """Streaming NDJSON em /chat/voice/stream (texto aparece enquanto o Gemini gera)."""
+    raw = read_env("EGO_VOICE_STREAM", "1").strip().lower()
+    return raw not in ("0", "false", "no", "nao", "não")
+
+
+def chat_local_history_enabled() -> bool:
+    """Conversas no aparelho; servidor não grava chat_history."""
+    raw = read_env("EGO_CHAT_LOCAL_HISTORY", "1").strip().lower()
+    return raw not in ("0", "false", "no", "nao", "não")
 
 
 def monthly_token_limit(is_pro: bool) -> int:

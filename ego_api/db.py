@@ -225,19 +225,84 @@ def _ensure_token_period(supabase: Client, user_id: str, prof: dict) -> dict:
 
 
 def user_plan_limits(profile: dict | None) -> tuple[str, PlanLimits]:
+    prof = _profile_with_session_email(profile)
+    tier = resolve_plan_tier(prof)
+    return tier, plan_limits(tier)
+
+
+def _profile_with_session_email(profile: dict | None) -> dict:
     prof = dict(profile) if profile else {}
     if not str(prof.get("email") or "").strip():
         sess = get_session()
         if sess and str(sess.email or "").strip():
             prof["email"] = str(sess.email).strip()
-    tier = resolve_plan_tier(prof)
-    return tier, plan_limits(tier)
+    return prof
+
+
+def refresh_test_total_quota(
+    supabase: Client | None, user_id: str, profile: dict | None = None
+) -> dict:
+    """Conta EGO_TEST_TOTAL_EMAILS: zera contadores se bateu limite (só dev/teste)."""
+    from ego_api.plans import is_test_total_email
+
+    if not supabase or not user_id:
+        return profile or {}
+    prof = _profile_with_session_email(profile if profile is not None else load_profile(supabase, user_id))
+    if not is_test_total_email(str(prof.get("email") or "")):
+        return prof
+
+    tier, limits = user_plan_limits(prof)
+    prof = _ensure_token_period(supabase, user_id, prof)
+    used = int(prof.get("monthly_tokens_used") or 0)
+    text_used, voice_used = daily_message_counts_from_profile(prof)
+
+    over_tokens = limits.monthly_tokens > 0 and used >= int(limits.monthly_tokens * 0.85)
+    over_voice = (
+        not limits.unlimited_daily_voice()
+        and limits.daily_voice_messages > 0
+        and voice_used >= limits.daily_voice_messages
+    )
+    over_text = (
+        not limits.unlimited_daily_text()
+        and limits.daily_text_messages > 0
+        and text_used >= limits.daily_text_messages
+    )
+    if not over_tokens and not over_voice and not over_text:
+        return prof
+
+    ui = _parse_ui_state(prof)
+    ui.pop("daily_messages", None)
+    hoje = _today_iso()
+    patch: dict = {
+        "plan_tier": tier,
+        "is_pro": True,
+        "monthly_tokens_used": 0,
+        "monthly_tokens_period": _current_token_period_utc(),
+        "daily_tts_count": 0,
+        "daily_usage_date": hoje,
+        "ui_state": ui,
+    }
+    try:
+        supabase.table(SUPABASE_PROFILES_TABLE).update(patch).eq("id", user_id).execute()
+    except Exception:
+        return prof
+    prof.update(patch)
+    return prof
 
 
 def check_token_allowance(
     supabase: Client | None, user_id: str, profile: dict | None = None
 ) -> tuple[bool, str, int, int]:
-    prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
+    prof = _profile_with_session_email(
+        profile if profile is not None else (load_profile(supabase, user_id) or {})
+    )
+    from ego_api.plans import is_test_total_email
+
+    if is_test_total_email(str(prof.get("email") or "")):
+        _, limits = user_plan_limits(prof)
+        used = int(prof.get("monthly_tokens_used") or 0)
+        return True, "", used, limits.monthly_tokens
+
     _, limits = user_plan_limits(prof)
     lim = limits.monthly_tokens
     if lim <= 0 or not supabase or not user_id:
@@ -303,19 +368,80 @@ def _today_start_utc_iso() -> str:
     return start_utc.isoformat().replace("+00:00", "Z")
 
 
+def _parse_ui_state(prof: dict) -> dict:
+    raw = prof.get("ui_state")
+    if isinstance(raw, dict):
+        return dict(raw)
+    if isinstance(raw, str) and raw.strip():
+        try:
+            parsed = json.loads(raw)
+            if isinstance(parsed, dict):
+                return parsed
+        except Exception:
+            pass
+    return {}
+
+
+def daily_message_counts_from_profile(prof: dict) -> tuple[int, int]:
+    """Contadores diários (texto, voz) quando o histórico é só no aparelho."""
+    hoje = _today_iso()
+    ui = _parse_ui_state(prof)
+    du = ui.get("daily_messages")
+    if not isinstance(du, dict) or (du.get("date") or "").strip() != hoje:
+        return 0, 0
+    return int(du.get("text") or 0), int(du.get("voice") or 0)
+
+
+def increment_daily_message_usage(
+    supabase: Client | None, user_id: str, *, is_voice: bool
+) -> None:
+    if not supabase or not user_id:
+        return
+    prof = load_profile(supabase, user_id) or {}
+    prof = _ensure_daily_usage(supabase, user_id, prof)
+    hoje = _today_iso()
+    ui = _parse_ui_state(prof)
+    du = ui.get("daily_messages")
+    if not isinstance(du, dict) or (du.get("date") or "").strip() != hoje:
+        du = {"date": hoje, "text": 0, "voice": 0}
+    else:
+        du = dict(du)
+    if is_voice:
+        du["voice"] = int(du.get("voice") or 0) + 1
+    else:
+        du["text"] = int(du.get("text") or 0) + 1
+    du["date"] = hoje
+    ui = dict(ui)
+    ui["daily_messages"] = du
+    try:
+        supabase.table(SUPABASE_PROFILES_TABLE).update({"ui_state": ui}).eq(
+            "id", user_id
+        ).execute()
+    except Exception:
+        pass
+
+
 def _ensure_daily_usage(supabase: Client, user_id: str, prof: dict) -> dict:
     hoje = _today_iso()
     if (prof.get("daily_usage_date") or "").strip() == hoje:
         return prof
+    ui = _parse_ui_state(prof)
+    ui.pop("daily_messages", None)
     try:
         supabase.table(SUPABASE_PROFILES_TABLE).update(
-            {"daily_tts_count": 0, "daily_usage_date": hoje}
+            {
+                "daily_tts_count": 0,
+                "daily_usage_date": hoje,
+                "ui_state": ui,
+            }
         ).eq("id", user_id).execute()
     except Exception:
         return prof
     prof = dict(prof)
     prof["daily_tts_count"] = 0
     prof["daily_usage_date"] = hoje
+    if isinstance(prof.get("ui_state"), dict):
+        prof["ui_state"] = ui
     return prof
 
 
@@ -340,10 +466,22 @@ def _count_user_messages_today(
 
 
 def daily_text_messages_ok(
-    supabase: Client | None, user_id: str, limits: PlanLimits
+    supabase: Client | None,
+    user_id: str,
+    limits: PlanLimits,
+    profile: dict | None = None,
 ) -> tuple[bool, int]:
     if not supabase or not user_id:
         return True, 0
+    from ego_api.config import chat_local_history_enabled
+
+    if chat_local_history_enabled():
+        prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
+        prof = _ensure_daily_usage(supabase, user_id, prof)
+        text_used, _voice_used = daily_message_counts_from_profile(prof)
+        if limits.unlimited_daily_text() or beta_unlimited():
+            return True, text_used
+        return text_used < limits.daily_text_messages, text_used
     uso = _count_user_messages_today(supabase, user_id, voice_only=False)
     voice = _count_user_messages_today(supabase, user_id, voice_only=True)
     text_used = max(0, uso - voice)
@@ -353,10 +491,22 @@ def daily_text_messages_ok(
 
 
 def daily_voice_messages_ok(
-    supabase: Client | None, user_id: str, limits: PlanLimits
+    supabase: Client | None,
+    user_id: str,
+    limits: PlanLimits,
+    profile: dict | None = None,
 ) -> tuple[bool, int]:
     if not supabase or not user_id:
         return True, 0
+    from ego_api.config import chat_local_history_enabled
+
+    if chat_local_history_enabled():
+        prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
+        prof = _ensure_daily_usage(supabase, user_id, prof)
+        _text_used, voice_used = daily_message_counts_from_profile(prof)
+        if limits.unlimited_daily_voice() or beta_unlimited():
+            return True, voice_used
+        return voice_used < limits.daily_voice_messages, voice_used
     uso = _count_user_messages_today(supabase, user_id, voice_only=True)
     if limits.unlimited_daily_voice() or beta_unlimited():
         return True, uso
@@ -432,11 +582,13 @@ def build_plan_access_payload(
     supabase: Client | None, user_id: str, profile: dict | None = None
 ) -> dict:
     prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
+    prof = refresh_test_total_quota(supabase, user_id, prof)
+    prof = _profile_with_session_email(prof)
     tier, limits = user_plan_limits(prof)
     ok_access, status = check_access(supabase, user_id)
     ok_tok, msg_tok, used_tok, lim_tok = check_token_allowance(supabase, user_id, prof)
-    ok_txt, txt_used = daily_text_messages_ok(supabase, user_id, limits)
-    ok_voice, voice_used = daily_voice_messages_ok(supabase, user_id, limits)
+    ok_txt, txt_used = daily_text_messages_ok(supabase, user_id, limits, prof)
+    ok_voice, voice_used = daily_voice_messages_ok(supabase, user_id, limits, prof)
     ok_tts, tts_used = daily_tts_ok(supabase, user_id, limits, prof)
     ag_ok, ag_n = agenda_limit_ok(supabase, user_id, limits)
     rem_ok, rem_n = reminders_limit_ok(supabase, user_id, limits)
@@ -472,7 +624,28 @@ def build_plan_access_payload(
         "reminders_limit": limits.max_reminders,
         "audio_speed_allowed": list(limits.audio_speed_multipliers),
         "chat_max_turns": limits.chat_llm_max_turns,
+        "chat_local_history": chat_local_history_enabled(),
+        "team_seats": _team_seats_from_profile(prof),
+        "plan_type": _plan_type_from_profile(prof),
     }
+
+
+def _team_seats_from_profile(prof: dict) -> int | None:
+    from ego_api.team_stripe_checkout import parse_team_seats
+
+    ui = _parse_ui_state(prof)
+    return parse_team_seats(ui.get("team_seats"))
+
+
+def _plan_type_from_profile(prof: dict) -> str:
+    ui = _parse_ui_state(prof)
+    return str(ui.get("plan_type") or "individual").strip() or "individual"
+
+
+def chat_local_history_enabled() -> bool:
+    from ego_api.config import chat_local_history_enabled as _enabled
+
+    return _enabled()
 
 
 def _parse_ts_iso(value: str | None) -> datetime.datetime | None:
@@ -570,13 +743,12 @@ def list_agenda(supabase: Client | None, user_id: str) -> list[dict]:
         return []
 
 
-def persona_is_configured(supabase: Client | None, user_id: str) -> bool:
-    if not supabase or not user_id:
+def _persona_row_exists(client: Client | None, user_id: str) -> bool:
+    if not client or not user_id:
         return False
-    apply_user_auth(supabase)
     try:
         res = (
-            supabase.table(SUPABASE_PERSONA_TABLE)
+            client.table(SUPABASE_PERSONA_TABLE)
             .select("user_id")
             .eq("user_id", user_id)
             .limit(1)
@@ -587,13 +759,23 @@ def persona_is_configured(supabase: Client | None, user_id: str) -> bool:
         return False
 
 
-def load_persona(supabase: Client | None, user_id: str) -> tuple[str, str]:
-    if not supabase or not user_id:
-        return "f1", "vf1"
-    apply_user_auth(supabase)
+def persona_is_configured(supabase: Client | None, user_id: str) -> bool:
+    if not user_id:
+        return False
+    if supabase and apply_user_auth(supabase) and _persona_row_exists(supabase, user_id):
+        return True
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+    return _persona_row_exists(admin, user_id)
+
+
+def _read_persona_from_client(client: Client | None, user_id: str) -> tuple[str, str] | None:
+    if not client or not user_id:
+        return None
     try:
         res = (
-            supabase.table(SUPABASE_PERSONA_TABLE)
+            client.table(SUPABASE_PERSONA_TABLE)
             .select("avatar_id,voice_id")
             .eq("user_id", user_id)
             .limit(1)
@@ -601,11 +783,128 @@ def load_persona(supabase: Client | None, user_id: str) -> tuple[str, str]:
         )
         rows = res.data or []
         if not rows:
-            return "f1", "vf1"
+            return None
         data = rows[0]
-        return data.get("avatar_id", "f1"), data.get("voice_id", "vf1")
+        aid = str(data.get("avatar_id") or "").strip()
+        if not aid:
+            return None
+        vid = str(data.get("voice_id") or "").strip() or "vf1"
+        return aid, vid
     except Exception:
+        return None
+
+
+def _load_profile_raw(client: Client | None, user_id: str) -> dict | None:
+    """Perfil sem JWT do utilizador (service role)."""
+    if not client or not user_id:
+        return None
+    try:
+        res = (
+            client.table(SUPABASE_PROFILES_TABLE)
+            .select("*")
+            .eq("id", user_id)
+            .limit(1)
+            .execute()
+        )
+        rows = res.data or []
+        return rows[0] if rows else None
+    except Exception:
+        return None
+
+
+def _persona_pair_from_profile(prof: dict | None) -> tuple[str, str] | None:
+    if not prof:
+        return None
+    ui = _parse_ui_state(prof)
+    aid = str(ui.get("avatar_id") or "").strip()
+    if not aid:
+        return None
+    vid = str(ui.get("voice_id") or "").strip() or "vf1"
+    return aid, vid
+
+
+def _read_persona_from_profile_ui(
+    supabase: Client | None, user_id: str
+) -> tuple[str, str] | None:
+    prof = load_profile(supabase, user_id) if supabase and user_id else None
+    return _persona_pair_from_profile(prof)
+
+
+def load_persona(supabase: Client | None, user_id: str) -> tuple[str, str]:
+    """Lê persona: ui_state no perfil primeiro (espelho da escolha), depois user_personas."""
+    if not user_id:
         return "f1", "vf1"
+
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+    if admin:
+        pair = _persona_pair_from_profile(_load_profile_raw(admin, user_id))
+        if pair:
+            return pair
+        pair = _read_persona_from_client(admin, user_id)
+        if pair:
+            return pair
+
+    if supabase and apply_user_auth(supabase):
+        pair = _read_persona_from_profile_ui(supabase, user_id)
+        if pair:
+            return pair
+        pair = _read_persona_from_client(supabase, user_id)
+        if pair:
+            return pair
+
+    return "f1", "vf1"
+
+
+def _upsert_persona_row(client: Client, row: dict) -> bool:
+    uid = row.get("user_id")
+    aid = row.get("avatar_id")
+    if not uid or not aid:
+        return False
+    try:
+        client.table(SUPABASE_PERSONA_TABLE).upsert(
+            row, on_conflict="user_id"
+        ).execute()
+        chk = (
+            client.table(SUPABASE_PERSONA_TABLE)
+            .select("avatar_id,voice_id")
+            .eq("user_id", uid)
+            .limit(1)
+            .execute()
+        )
+        if not chk.data:
+            return False
+        got = str(chk.data[0].get("avatar_id") or "").strip()
+        return got == str(aid).strip()
+    except Exception:
+        return False
+
+
+def _mirror_persona_to_profile(
+    supabase: Client | None, user_id: str, avatar_id: str, voice_id: str
+) -> bool:
+    """Cópia em profiles.ui_state — fonte de leitura se RLS bloquear user_personas."""
+    if not supabase or not user_id:
+        return False
+    from ego_api.persona import assistant_display_name_for_avatar
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+    if admin is supabase:
+        prof = _load_profile_raw(supabase, user_id) or {}
+    else:
+        prof = load_profile(supabase, user_id) or {}
+    ui = _parse_ui_state(prof)
+    name = assistant_display_name_for_avatar(avatar_id)
+    merged = {
+        **ui,
+        "avatar_id": avatar_id,
+        "voice_id": voice_id,
+        "ego_assistant_display_name": name,
+    }
+    ok, _ = update_profile_fields(supabase, user_id, {"ui_state": merged})
+    return ok
 
 
 def save_persona(
@@ -622,29 +921,63 @@ def save_persona(
     vid = (voice_id or "vf1").strip()[:32]
     now = datetime.datetime.now(datetime.timezone.utc).isoformat()
     row = {"user_id": user_id, "avatar_id": aid, "voice_id": vid, "updated_at": now}
-    try:
-        res = (
-            supabase.table(SUPABASE_PERSONA_TABLE)
-            .upsert(row, on_conflict="user_id")
-            .execute()
+    user_err = ""
+
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+
+    mirrored = False
+    for client in (admin, supabase):
+        if not client:
+            continue
+        try:
+            if _mirror_persona_to_profile(client, user_id, aid, vid):
+                mirrored = True
+        except Exception:
+            pass
+
+    saved = False
+    if admin:
+        try:
+            if _upsert_persona_row(admin, row):
+                saved = True
+        except Exception as exc:
+            err = str(exc).lower()
+            if "user_personas" in err or "42p01" in err or "does not exist" in err:
+                return False, "Tabela user_personas em falta. Execute supabase/bootstrap_ego_schema.sql."
+            if not mirrored:
+                user_err = str(exc)
+
+    if not saved:
+        try:
+            if _upsert_persona_row(supabase, row):
+                saved = True
+        except Exception as exc:
+            user_err = str(exc) or user_err
+            err = user_err.lower()
+            if "user_personas" in err or "42p01" in err or "does not exist" in err:
+                return False, "Tabela user_personas em falta. Execute supabase/bootstrap_ego_schema.sql."
+
+    if not saved and not mirrored:
+        return (
+            False,
+            user_err
+            or "Não foi possível guardar avatar/voz. Adicione SUPABASE_SERVICE_ROLE_KEY no Railway.",
         )
-        if res.data:
-            return True, ""
-        chk = (
-            supabase.table(SUPABASE_PERSONA_TABLE)
-            .select("avatar_id,voice_id")
-            .eq("user_id", user_id)
-            .limit(1)
-            .execute()
-        )
-        if chk.data and chk.data[0].get("avatar_id") == aid:
-            return True, ""
-        return False, "Não foi possível guardar avatar/voz. Verifique a tabela user_personas."
-    except Exception as exc:
-        err = str(exc).lower()
-        if "user_personas" in err or "42p01" in err or "does not exist" in err:
-            return False, "Tabela user_personas em falta. Execute supabase/bootstrap_ego_schema.sql."
-        return False, str(exc)
+
+    loaded_a, loaded_v = load_persona(supabase, user_id)
+    if loaded_a == aid and loaded_v == vid:
+        return True, ""
+
+    if mirrored:
+        return True, ""
+
+    return (
+        False,
+        f"A escolha não ficou guardada (servidor devolveu {loaded_a}). "
+        "Configure SUPABASE_SERVICE_ROLE_KEY no Railway e faça redeploy.",
+    )
 
 
 def save_feedback(
@@ -681,11 +1014,24 @@ def update_profile_fields(
     if not payload:
         return False, "Nenhum campo válido para atualizar."
     apply_user_auth(supabase)
+    user_err = ""
     try:
         supabase.table(SUPABASE_PROFILES_TABLE).update(payload).eq("id", user_id).execute()
         return True, ""
     except Exception as exc:
-        return False, str(exc)
+        user_err = str(exc)
+
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+    if admin:
+        try:
+            admin.table(SUPABASE_PROFILES_TABLE).update(payload).eq("id", user_id).execute()
+            return True, ""
+        except Exception as exc:
+            return False, str(exc) or user_err
+
+    return False, user_err or "Não foi possível atualizar o perfil."
 
 
 # --- Lembretes / agenda (lógica espelhada de app.py) ---
@@ -751,8 +1097,10 @@ def insert_reminder(
         "announce": (announce or title or "")[:2000],
     }
     try:
-        res = supabase.table(SUPABASE_REMINDERS_TABLE).insert(row).select("*").execute()
-        data = (res.data or [{}])[0]
+        from ego_api.supabase_client import insert_returning_rows
+
+        inserted = insert_returning_rows(supabase, SUPABASE_REMINDERS_TABLE, row)
+        data = inserted[0] if inserted else row
         return True, "", data
     except Exception as e:
         return False, str(e), None
@@ -857,8 +1205,11 @@ def insert_agenda(
         "dias_da_semana": dias_ok[:500],
     }
     try:
-        res = supabase.table(SUPABASE_AGENDA_TABLE).insert(row).select("*").execute()
-        return True, "", (res.data or [{}])[0]
+        from ego_api.supabase_client import insert_returning_rows
+
+        inserted = insert_returning_rows(supabase, SUPABASE_AGENDA_TABLE, row)
+        data = inserted[0] if inserted else row
+        return True, "", data
     except Exception as e:
         return False, str(e), None
 

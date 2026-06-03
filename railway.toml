@@ -1,7 +1,11 @@
-# Docker leve — evita Nixpacks + script .sh com CRLF no Windows
+# API Flask (mobile / ego-ai-production). Streamlit: serviço separado com Dockerfile.streamlit.
 [build]
 builder = "DOCKERFILE"
-dockerfilePath = "Dockerfile.streamlit"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-restartPolicyType = "on_failure"
+preDeployCommand = "echo ok"
+healthcheckPath = "/api/v1/health"
+healthcheckTimeout = 120
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10

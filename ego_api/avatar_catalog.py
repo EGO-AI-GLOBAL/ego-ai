@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from ego_api.plans import (
     PLAN_CONNECTION,
+    PLAN_ENTERPRISE,
     PLAN_ESSENTIAL,
     PLAN_PREMIUM,
     PLAN_TOTAL,
@@ -15,6 +16,7 @@ TIER_RANK = {
     PLAN_CONNECTION: 1,
     PLAN_PREMIUM: 2,
     PLAN_TOTAL: 3,
+    PLAN_ENTERPRISE: 4,
 }
 
 PLAN_LABELS_PT = {
@@ -22,6 +24,7 @@ PLAN_LABELS_PT = {
     PLAN_CONNECTION: "Plano Conexão",
     PLAN_PREMIUM: "Plano Premium",
     PLAN_TOTAL: "Plano Total",
+    PLAN_ENTERPRISE: "Plano Empresa",
 }
 
 AVATAR_CATALOG: list[dict] = [

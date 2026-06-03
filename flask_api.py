@@ -57,6 +57,10 @@ except ImportError:
 
 
 app = Flask(__name__)
+from ego_api.monitoring import init_sentry, register_flask_handlers  # noqa: E402
+
+init_sentry()
+register_flask_handlers(app)
 _sb_boot = supabase_env_status()
 print(
     "EGO_BOOT",
@@ -72,7 +76,7 @@ CORS(
     app,
     resources={r"/api/*": {"origins": cors_origins()}},
     supports_credentials=False,
-    allow_headers=["Content-Type", "Authorization", "X-Refresh-Token"],
+    allow_headers=["Content-Type", "Authorization", "X-Refresh-Token", "X-Play-Integrity"],
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 )
 
@@ -280,6 +284,12 @@ def health():
         payload["deploy_hint"] = (
             "Adicione SUPABASE_SERVICE_ROLE_KEY no Railway e redeploy"
         )
+    try:
+        from ego_api.monitoring import monitoring_status
+
+        payload["monitoring"] = monitoring_status()
+    except Exception:
+        payload["monitoring"] = {"sentry": False}
     include_details = os.getenv("EGO_HEALTH_DETAILS", "").lower() in ("1", "true", "yes")
     if include_details:
         payload["checks"].update(

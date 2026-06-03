@@ -13,6 +13,36 @@ import os
 import re
 from io import BytesIO
 from pathlib import Path
+
+_APP_ROOT = Path(__file__).resolve().parent
+EGO_UI_BUILD = "2026-05-20-menu-claro-v2"
+_PRAKTICA_AVATAR_PATH = _APP_ROOT / "assets" / "avatar.png"
+_AVATAR_FILES: dict[str, Path] = {
+    "f1": _APP_ROOT / "assets" / "avatar-f1.png",
+    "m1": _APP_ROOT / "assets" / "avatar-m1.png",
+}
+
+
+def _avatar_image_path(avatar_id: str | None = None) -> Path:
+    """Resolve imagem do avatar (f1 feminino, m1 masculino)."""
+    aid = str(avatar_id or "").strip().lower()
+    if not aid:
+        try:
+            aid = str(st.session_state.get("assistant_avatar_id") or "f1").strip().lower()
+        except Exception:
+            aid = "f1"
+    if aid in _AVATAR_FILES and _AVATAR_FILES[aid].is_file():
+        return _AVATAR_FILES[aid]
+    if aid.startswith("m") or aid.startswith("pm"):
+        p = _AVATAR_FILES.get("m1")
+        if p and p.is_file():
+            return p
+    p = _AVATAR_FILES.get("f1")
+    if p and p.is_file():
+        return p
+    if _PRAKTICA_AVATAR_PATH.is_file():
+        return _PRAKTICA_AVATAR_PATH
+    return _AVATAR_FILES.get("f1", _PRAKTICA_AVATAR_PATH)
 from urllib.parse import parse_qsl, quote, unquote, urlencode, urlparse, urlunparse
 
 try:
@@ -92,20 +122,16 @@ médico/legal definitivo; encaminhe a profissionais quando necessário).
 AGENDA_HORIZON_DAYS = int(os.getenv("EGO_AGENDA_HORIZON_DAYS", "90"))
 AGENDA_HORIZON_HOURS = AGENDA_HORIZON_DAYS * 24
 
-REMINDER_LLM_INSTRUCTION = f"""
-REMINDERS / ALARMS: If the user asks for a reminder, alarm, meeting, or important call at a specific time,
-you may register it by adding EXACTLY ONE line at the very END of your reply (after your normal answer), with this format:
-[[EGO_REMINDER:{{"title":"short title","scheduled_at":"ISO-8601 datetime WITH timezone offset","announce":"what to say at the first alarm (10 min before)"}}]]
-- scheduled_at is the moment the event happens (e.g. time of the call), NOT the first alarm time.
-- The app notifies starting 10 minutes before, then every 5 minutes until that moment.
-- Agenda window: only schedule between now and the next {AGENDA_HORIZON_DAYS} days (reject beyond that).
-- If the user omits the year, use the current calendar year; if that date/time already passed, use the next year.
-- If the user omits the month, use the current month.
-- Always output scheduled_at as full ISO-8601 with timezone offset after resolving year/month/day/time.
-- If date/time is still ambiguous, do NOT add the line; ask one short clarifying question instead.
-- When the user clearly wants a reminder/alarm at a known time, you MUST output the [[EGO_REMINDER:...]] line automatically.
-  Do NOT ask whether to turn on the alarm, wait for confirmation, or offer to "activate" it — the app registers the line as soon as you send it.
-"""
+from ego_api.reminder_schedule import (
+    REMINDER_PAST_GRACE,
+    reminder_alarm_html,
+    reminder_current_window,
+    reminder_llm_instruction_block,
+    reminder_slot_windows,
+    reminder_speech_text,
+)
+
+REMINDER_LLM_INSTRUCTION = reminder_llm_instruction_block(AGENDA_HORIZON_DAYS)
 
 AGENDA_RECURRING_LLM_INSTRUCTION = """
 AGENDA / MEETINGS (Supabase — each user only sees their own rows via user_id):
@@ -167,9 +193,6 @@ EGO_SCHEMA_TABLE_SPECS: tuple[tuple[str, str], ...] = (
 )
 VALID_AGENDA_DOW = frozenset({"seg", "ter", "qua", "qui", "sex", "sab", "dom"})
 DOW_PT_ORDER = ("seg", "ter", "qua", "qui", "sex", "sab", "dom")
-REMINDER_MINUTES_BEFORE = 10
-REMINDER_NUDGE_MINUTES = 5
-REMINDER_PAST_GRACE = datetime.timedelta(minutes=5)
 STRIPE_MENSAL_URL = os.getenv("STRIPE_CHECKOUT_MENSAL_URL", "URL_DO_STRIPE_MENSAL")
 STRIPE_ANUAL_URL = os.getenv("STRIPE_CHECKOUT_ANUAL_URL", "URL_DO_STRIPE_ANUAL")
 # Trial: dias após created_at em profiles (ajuste com EGO_TRIAL_DAYS). Beta: EGO_BETA_DEADLINE ISO libera todos não-Pro até a data.
@@ -179,6 +202,8 @@ PAYWALL_PRECO_ANUAL = os.getenv("EGO_PAYWALL_ANUAL_LABEL", "R$ 299,00")
 # Tokens mensais (tiktoken, aprox.): 0 = ilimitado. Contagem por turno (pergunta + resposta).
 EGO_MONTHLY_TOKEN_LIMIT_FREE = int(os.getenv("EGO_MONTHLY_TOKEN_LIMIT_FREE", "500000"))
 EGO_MONTHLY_TOKEN_LIMIT_PRO = int(os.getenv("EGO_MONTHLY_TOKEN_LIMIT_PRO", "10000000"))
+# 0 = chat ilimitado (recomendado: free sem teto diário; Pro vende extras, não msgs/dia)
+EGO_DAILY_MESSAGE_LIMIT = int(os.getenv("EGO_DAILY_MESSAGE_LIMIT", "0"))
 EGO_APP_VERSION = os.getenv("EGO_APP_VERSION", "v1.5.0 — Global Stable")
 CHAT_LLM_MAX_TURNS = int(os.getenv("EGO_CHAT_LLM_MAX_TURNS", "24"))
 LOCAL_AUTH_VERSION = 1
@@ -190,13 +215,25 @@ UI_STATE_VERSION = 1
 UI_STATE_PDF_MAX_CHARS = int(os.getenv("EGO_UI_STATE_PDF_MAX_CHARS", "800000"))
 ALLOWED_EGO_NAV_VALUES = frozenset(
     {
+        "Home",
         "Chat",
+        "Agenda",
         "Políticas",
-        "Agenda e lembretes",
         "Meu Perfil",
         "Meu Avatar",
+        "Agenda e lembretes",
     }
 )
+EGO_NAV_MAIN = ("Home", "Chat", "Agenda")
+
+
+def _normalize_ego_nav(nav: str) -> str:
+    n = (nav or "").strip()
+    if n == "Agenda e lembretes":
+        return "Agenda"
+    if n in ALLOWED_EGO_NAV_VALUES:
+        return n
+    return "Home"
 
 
 def _ego_read_secret(name: str) -> str:
@@ -346,6 +383,93 @@ EDGE_TTS_VOICE_MAP: dict[str, str] = {
     "pvf1": "en-US-AmberNeural",
 }
 DEFAULT_EDGE_TTS_VOICE = "pt-BR-FranciscaNeural"
+
+
+def inject_light_app_styles() -> None:
+    if st.session_state.get("_ego_light_styles_injected"):
+        return
+    st.session_state["_ego_light_styles_injected"] = True
+    st.markdown(
+        """
+        <style>
+            .stApp:has(.ego-light-app) {
+                background-color: #F7F7F9 !important;
+                color: #1e1e1e !important;
+            }
+            .stApp:has(.ego-light-app) [data-testid="stSidebar"] {
+                background-color: #ffffff !important;
+                border-right: 1px solid #eef0f3 !important;
+            }
+            .stApp:has(.ego-light-app) [data-testid="stSidebar"] p,
+            .stApp:has(.ego-light-app) [data-testid="stSidebar"] label,
+            .stApp:has(.ego-light-app) [data-testid="stSidebar"] span {
+                color: #1e1e1e !important;
+            }
+            .stApp:has(.ego-light-app) .block-container {
+                color: #1e1e1e;
+            }
+            .stApp:has(.ego-light-app) .ego-hero {
+                background: linear-gradient(135deg, #ffffff 0%, #f7f7f9 55%, #ede9fe 100%) !important;
+                border: 1px solid #eef0f3 !important;
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06) !important;
+            }
+            .stApp:has(.ego-light-app) .ego-hero h1 {
+                background: none !important;
+                -webkit-text-fill-color: #1e1e1e !important;
+                color: #1e1e1e !important;
+            }
+            .stApp:has(.ego-light-app) .ego-hero p {
+                color: #626264 !important;
+            }
+            .stApp:has(.ego-light-app) .ego-card {
+                background: #ffffff !important;
+                border: 1px solid #eef0f3 !important;
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05) !important;
+            }
+            .stApp:has(.ego-light-app) .ego-card ul,
+            .stApp:has(.ego-light-app) .ego-card p {
+                color: #3f3f46 !important;
+            }
+            .stApp:has(.ego-light-app) .ego-card-title {
+                color: #7B2CBF !important;
+            }
+            .stApp:has(.ego-light-app) .ego-page-hero {
+                background: #ffffff !important;
+                border: 1px solid #eef0f3 !important;
+            }
+            .stApp:has(.ego-light-app) .ego-page-hero h1 {
+                color: #1e1e1e !important;
+            }
+            .stApp:has(.ego-light-app) .ego-page-hero p {
+                color: #626264 !important;
+            }
+            .stApp:has(.ego-light-app) .ego-glass-panel,
+            .stApp:has(.ego-light-app) .ego-form-shell {
+                background: #ffffff !important;
+                border: 1px solid #eef0f3 !important;
+                color: #1e1e1e !important;
+            }
+            .stApp:has(.ego-light-app) .ego-trust-footer-glass {
+                background: #ffffff !important;
+                border: 1px solid #eef0f3 !important;
+            }
+            .stApp:has(.ego-light-app) .ego-footer-copy {
+                color: #626264 !important;
+            }
+            .stApp:has(.ego-light-app) div[data-testid="stRadio"] label {
+                color: #1e1e1e !important;
+            }
+            .stApp:has(.ego-light-app) .ego-top-nav + div[data-testid="stRadio"] > div {
+                background: #ffffff;
+                border: 1px solid #eef0f3;
+                border-radius: 14px;
+                padding: 6px 8px;
+                margin-bottom: 0.5rem;
+            }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def inject_styles() -> None:
@@ -798,7 +922,7 @@ def init_session() -> None:
     st.session_state.setdefault("auth_user_id", "")
     st.session_state.setdefault("history_loaded", False)
     st.session_state.setdefault("user", None)
-    st.session_state.setdefault("ego_nav", "Chat")
+    st.session_state.setdefault("ego_nav", "Home")
     if st.session_state.get("ego_nav") == "Jurídico":
         st.session_state["ego_nav"] = "Políticas"
     _legacy_nav = {
@@ -810,7 +934,8 @@ def init_session() -> None:
         "Conexões (e-mail, redes, CRM)",
     }
     if st.session_state.get("ego_nav") in _legacy_nav:
-        st.session_state["ego_nav"] = "Chat"
+        st.session_state["ego_nav"] = "Home"
+    st.session_state["ego_nav"] = _normalize_ego_nav(str(st.session_state.get("ego_nav") or "Home"))
     st.session_state.setdefault("supabase_url_input", "")
     st.session_state.setdefault("supabase_key_input", "")
     st.session_state.setdefault("local_mode", False)
@@ -1607,8 +1732,23 @@ def render_trust_footer(*, authenticated: bool) -> None:
     st.markdown("</div>", unsafe_allow_html=True)
 
 
+_EMOJI_FOR_SPEECH = re.compile(
+    "["
+    "\U0001F600-\U0001F64F"
+    "\U0001F300-\U0001F5FF"
+    "\U0001F680-\U0001F6FF"
+    "\U0001F1E0-\U0001F1FF"
+    "\U0001F900-\U0001F9FF"
+    "\U00002600-\U000026FF"
+    "\u200d"
+    "\ufe0f"
+    "]+",
+    flags=re.UNICODE,
+)
+
+
 def _plain_text_for_speech(md: str) -> str:
-    """Remove markdown ruidoso para TTS (não precisa ser perfeito)."""
+    """Remove markdown, emojis e marcadores EGO para TTS."""
     t = (md or "").strip()
     if not t:
         return ""
@@ -1617,6 +1757,8 @@ def _plain_text_for_speech(md: str) -> str:
     t = re.sub(r"`([^`]+)`", r"\1", t)
     t = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", t)
     t = re.sub(r"[*_#>|]+", " ", t)
+    t = _EMOJI_FOR_SPEECH.sub("", t)
+    t = re.sub(r"[\u2600-\u27BF]", "", t)
     t = re.sub(r"\s+", " ", t).strip()
     return t[:4000]
 
@@ -1625,7 +1767,7 @@ def render_chat_messages_with_feedback(supabase: Client | None, user_id: str) ->
     msgs = st.session_state.get("messages") or []
     play_idx = st.session_state.pop("_ego_tts_play_index", None)
     if not msgs:
-        st.caption("Escreva abaixo para começar a conversar com a IA.")
+        st.caption("A conversa aparece aqui. Usa o campo de texto ou o microfone abaixo.")
         return
     provider = "Gemini"
     show_fb = st.session_state.get("ego_show_msg_feedback", False)
@@ -2332,10 +2474,28 @@ def language_instruction(code: str) -> str:
     )
 
 
-def verificar_limite_diario(supabase: Client | None, user_id: str, limite: int = 20) -> tuple[bool, int]:
-    """Conta mensagens de usuário enviadas hoje e informa se ainda pode enviar."""
-    if _ego_beta_sem_limite():
-        return True, 0
+def verificar_limite_diario(
+    supabase: Client | None, user_id: str, limite: int | None = None
+) -> tuple[bool, int]:
+    """Conta mensagens de usuário enviadas hoje. limite <= 0 = ilimitado."""
+    if limite is None:
+        limite = EGO_DAILY_MESSAGE_LIMIT
+    if limite <= 0 or _ego_beta_sem_limite():
+        if not supabase:
+            return True, 0
+        try:
+            hoje = datetime.date.today().isoformat()
+            res = (
+                supabase.table(SUPABASE_HISTORY_TABLE)
+                .select("*", count="exact")
+                .eq("user_id", user_id)
+                .eq("role", "user")
+                .gte("created_at", hoje)
+                .execute()
+            )
+            return True, res.count or 0
+        except Exception:
+            return True, 0
     if not supabase:
         return True, 0
     try:
@@ -2528,9 +2688,7 @@ def build_ui_state_payload() -> dict:
     if len(pdf) > UI_STATE_PDF_MAX_CHARS:
         pdf = pdf[:UI_STATE_PDF_MAX_CHARS]
         truncated = True
-    nav = str(st.session_state.get("ego_nav") or "Chat").strip()
-    if nav not in ALLOWED_EGO_NAV_VALUES:
-        nav = "Chat"
+    nav = _normalize_ego_nav(str(st.session_state.get("ego_nav") or "Home"))
     pref = st.session_state.get("gemini_model_preference") or GEMINI_MODEL_FLASH
     if pref not in GEMINI_MODEL_IDS:
         pref = GEMINI_MODEL_FLASH
@@ -2575,8 +2733,8 @@ def merge_ui_state_from_profile(supabase: Client | None, user_id: str) -> None:
             return
         if int(state.get("v") or 0) > UI_STATE_VERSION:
             return
-        nav = str(state.get("ego_nav") or "").strip()
-        if nav in ALLOWED_EGO_NAV_VALUES:
+        nav = _normalize_ego_nav(str(state.get("ego_nav") or ""))
+        if nav:
             st.session_state["ego_nav"] = nav
         if "pdf_context" in state and isinstance(state["pdf_context"], str):
             st.session_state["pdf_context"] = state["pdf_context"]
@@ -3086,39 +3244,6 @@ def extract_ego_reminders_from_reply(text: str) -> tuple[str, list[dict]]:
     return text, []
 
 
-def reminder_slot_windows(
-    scheduled_at: datetime.datetime,
-) -> list[tuple[datetime.datetime, datetime.datetime, str]]:
-    """Janelas [início, fim) para T-10, T-5 e hora T (última com margem curta)."""
-    if scheduled_at.tzinfo is None:
-        scheduled_at = scheduled_at.replace(tzinfo=datetime.timezone.utc)
-    t0 = scheduled_at - datetime.timedelta(minutes=REMINDER_MINUTES_BEFORE)
-    return [
-        (t0, t0 + datetime.timedelta(minutes=REMINDER_NUDGE_MINUTES), "first"),
-        (
-            t0 + datetime.timedelta(minutes=REMINDER_NUDGE_MINUTES),
-            scheduled_at,
-            "mid",
-        ),
-        (
-            scheduled_at,
-            scheduled_at + datetime.timedelta(minutes=3),
-            "final",
-        ),
-    ]
-
-
-def reminder_current_window(
-    now: datetime.datetime, scheduled_at: datetime.datetime
-) -> tuple[datetime.datetime, datetime.datetime, str] | None:
-    if now.tzinfo is None:
-        now = now.replace(tzinfo=datetime.timezone.utc)
-    for a, b, tag in reminder_slot_windows(scheduled_at):
-        if a <= now < b:
-            return (a, b, tag)
-    return None
-
-
 def list_upcoming_reminders(
     supabase: Client | None,
     user_id: str,
@@ -3152,7 +3277,7 @@ def list_upcoming_reminders(
 def list_reminders_for_alarm_tick(
     supabase: Client | None, user_id: str
 ) -> list[dict]:
-    """Lembretes ativos num intervalo largo; a janela exata (T-10 … T) filtra em Python."""
+    """Lembretes ativos num intervalo largo; janelas 1 h / 30 min / 10 min filtram em Python."""
     if not supabase or not user_id:
         return []
     now = datetime.datetime.now(datetime.timezone.utc)
@@ -3214,7 +3339,7 @@ def insert_reminder_row(
     if not ensure_supabase_auth_client(supabase):
         return False, "Sessão expirada. Saia e entre de novo para gravar lembretes/reuniões."
     try:
-        res = supabase.table(SUPABASE_REMINDERS_TABLE).insert(row).select("id").execute()
+        res = supabase.table(SUPABASE_REMINDERS_TABLE).insert(row).execute()
         if not (res.data or []):
             return False, "O lembrete não foi confirmado pelo Supabase (resposta vazia)."
         return True, ""
@@ -3401,7 +3526,7 @@ def insert_agenda_row(
     if not ensure_supabase_auth_client(supabase):
         return False, "Sessão expirada. Saia e entre de novo para gravar na agenda."
     try:
-        res = supabase.table(SUPABASE_AGENDA_TABLE).insert(row).select("id").execute()
+        res = supabase.table(SUPABASE_AGENDA_TABLE).insert(row).execute()
         if not (res.data or []):
             return False, "A agenda não confirmou a gravação (resposta vazia do Supabase)."
         return True, ""
@@ -3611,30 +3736,6 @@ def _agenda_card_html(row: dict) -> str:
         f'<div class="ego-a-row">'
         f'<span class="ego-pill recurring">{hor}</span>{chips}'
         f"</div></div>"
-    )
-
-
-def _reminder_alarm_html(tag: str, title: str, announce: str, when_local: str) -> str:
-    title_e = html.escape(title or "Lembrete")
-    when_e = html.escape(when_local)
-    if tag == "first":
-        tag_label = "10 min antes"
-        sub = html.escape((announce or title or "").strip())
-        detail = f"Compromisso às <strong>{when_e}</strong>"
-    elif tag == "final":
-        tag_label = "Agora"
-        sub = title_e
-        detail = f"<strong>{when_e}</strong>"
-    else:
-        tag_label = "Em breve"
-        sub = title_e
-        detail = f"Faltam poucos minutos para <strong>{when_e}</strong>"
-    return (
-        f'<div class="ego-alarm-banner">'
-        f'<div class="ego-alarm-tag">{html.escape(tag_label)}</div>'
-        f'<p class="ego-alarm-title">{sub}</p>'
-        f'<p class="ego-alarm-sub">{detail}</p>'
-        f"</div>"
     )
 
 
@@ -3973,7 +4074,7 @@ def try_speech_reminder(text: str, html_key: str) -> None:
 
 
 def render_reminder_alarm_fragment(supabase: Client | None, user_id: str) -> None:
-    """Reexecuta em intervalo fixo para avisos T-10 / a cada 5 min até T."""
+    """Reexecuta em intervalo fixo para avisos 1 h, 30 min e 10 min antes."""
     if not supabase or not user_id:
         return
 
@@ -4005,14 +4106,10 @@ def render_reminder_alarm_fragment(supabase: Client | None, user_id: str) -> Non
             title = row.get("title") or "Lembrete"
             announce = (row.get("announce") or title or "").strip()
             when_local = sch.astimezone().strftime("%H:%M")
-            if tag == "first":
-                try_speech_reminder(announce, f"{rid}-first")
-            elif tag == "final":
-                try_speech_reminder(f"Hora do compromisso: {title}", f"{rid}-final")
-            else:
-                try_speech_reminder(f"Lembrete: {title}. Em breve às {when_local}.", f"{rid}-mid")
+            speech = reminder_speech_text(tag, str(title), announce, when_local)
+            try_speech_reminder(speech, f"{rid}-{tag}")
             st.markdown(
-                _reminder_alarm_html(tag, str(title), announce, when_local),
+                reminder_alarm_html(tag, str(title), announce, when_local),
                 unsafe_allow_html=True,
             )
             c1, c2, c3 = st.columns(3)
@@ -4032,7 +4129,10 @@ def render_reminder_alarm_fragment(supabase: Client | None, user_id: str) -> Non
                 if st.button(
                     "Ouvir de novo", key=f"rp_{rid}_{safe_a}", use_container_width=True
                 ):
-                    try_speech_reminder(announce if tag == "first" else title, f"{rid}-replay")
+                    try_speech_reminder(
+                        reminder_speech_text(tag, str(title), announce, when_local),
+                        f"{rid}-replay",
+                    )
 
     _tick()
 
@@ -4044,7 +4144,7 @@ def render_agenda_reminders_page(supabase: Client | None, user_id: str) -> None:
             <span class="ego-version-badge">Agenda</span>
             <h1>Agenda e lembretes</h1>
             <p>Reuniões com data ficam nos lembretes; hábitos da semana na agenda recorrente.
-            Avisos automáticos 10 min antes e a cada 5 min até a hora marcada.</p>
+            Avisos automáticos 1 hora, 30 min e 10 min antes do compromisso.</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -4125,7 +4225,7 @@ def render_agenda_reminders_page(supabase: Client | None, user_id: str) -> None:
                 value=_default_time_for_agenda_date(d_val),
             )
         ann = st.text_input(
-            "O que falar no primeiro aviso (10 min antes)",
+            "O que falar no aviso de 10 min antes",
             placeholder="Sua reunião começa em dez minutos",
         )
         if st.form_submit_button("Salvar reunião / lembrete", use_container_width=True):
@@ -4399,6 +4499,47 @@ def render_sidebar_support_and_version() -> None:
     st.sidebar.divider()
 
 
+def render_top_navigation() -> str:
+    """Menu principal sempre visível no conteúdo (não depende da sidebar)."""
+    st.markdown(
+        f'<div class="ego-top-nav" data-build="{html.escape(EGO_UI_BUILD)}"></div>',
+        unsafe_allow_html=True,
+    )
+    current = _normalize_ego_nav(str(st.session_state.get("ego_nav") or "Home"))
+    try:
+        nav_idx = EGO_NAV_MAIN.index(current) if current in EGO_NAV_MAIN else 0
+    except ValueError:
+        nav_idx = 0
+    picked = st.radio(
+        "Menu",
+        list(EGO_NAV_MAIN),
+        index=nav_idx,
+        horizontal=True,
+        key="ego_top_nav",
+        label_visibility="collapsed",
+    )
+    st.session_state["ego_nav"] = picked
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        if st.button("Perfil", use_container_width=True):
+            st.session_state["ego_nav"] = "Meu Perfil"
+            st.rerun()
+    with c2:
+        if st.button("Avatar", use_container_width=True):
+            st.session_state["ego_nav"] = "Meu Avatar"
+            st.rerun()
+    with c3:
+        if st.button("Agenda+", use_container_width=True):
+            st.session_state["ego_nav"] = "Agenda"
+            st.rerun()
+    with c4:
+        if st.button("Políticas", use_container_width=True):
+            st.session_state["ego_nav"] = "Políticas"
+            st.rerun()
+    st.divider()
+    return str(st.session_state["ego_nav"])
+
+
 def sidebar_settings() -> None:
     render_sidebar_support_and_version()
     if st.session_state.get("user_logged"):
@@ -4407,17 +4548,7 @@ def sidebar_settings() -> None:
         user_obj = st.session_state.get("user")
         if user_obj and getattr(user_obj, "email", None):
             st.sidebar.caption(user_obj.email)
-        st.sidebar.radio(
-            "Ir para",
-            [
-                "Chat",
-                "Políticas",
-                "Agenda e lembretes",
-                "Meu Perfil",
-                "Meu Avatar",
-            ],
-            key="ego_nav",
-        )
+        st.sidebar.caption(f"Build UI: {EGO_UI_BUILD}")
         render_sidebar_agenda_panel(get_supabase_client(), obter_user_id_logado())
         if st.sidebar.button("Sair", use_container_width=True):
             supabase = get_supabase_client()
@@ -4535,10 +4666,13 @@ def render_profile(supabase: Client | None, user_id: str) -> None:
             st.info(f"**Documento:** {doc_tipo}")
 
     pode, total = verificar_limite_diario(supabase, user_id)
-    if _ego_beta_sem_limite():
-        st.metric("Mensagens hoje (beta)", "ilimitado")
+    if EGO_DAILY_MESSAGE_LIMIT <= 0 or _ego_beta_sem_limite():
+        st.metric("Mensagens hoje", f"{total} · ilimitado")
     else:
-        st.metric("Mensagens enviadas hoje", f"{total} / 20")
+        st.metric(
+            "Mensagens enviadas hoje",
+            f"{total} / {EGO_DAILY_MESSAGE_LIMIT}",
+        )
         if not pode:
             st.error("Você atingiu o limite diário gratuito.")
     is_pro_pf = bool(perfil.get("is_pro"))
@@ -4565,6 +4699,26 @@ def render_avatar_page(supabase: Client | None, user_id: str) -> None:
     if not is_pro:
         st.info("Itens Premium exigem plano Pro.")
 
+    st.markdown("**Atalho — par avatar + voz**")
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("Assistente feminina (Luna + Ana)", use_container_width=True):
+            st.session_state.assistant_avatar_id = "f1"
+            st.session_state.assistant_voice_id = "vf1"
+            save_user_persona(supabase, user_id, "f1", "vf1")
+            st.rerun()
+    with c2:
+        if st.button("Assistente masculino (Leo + Bruno)", use_container_width=True):
+            st.session_state.assistant_avatar_id = "m1"
+            st.session_state.assistant_voice_id = "vm1"
+            save_user_persona(supabase, user_id, "m1", "vm1")
+            st.rerun()
+
+    curr_preview = st.session_state.get("assistant_avatar_id", "f1")
+    preview_path = _avatar_image_path(curr_preview)
+    if preview_path.is_file():
+        st.image(preview_path.read_bytes(), width=220, caption="Pré-visualização")
+
     avatar_labels = [
         f"{a['name']} ({a['group']}){' [Premium]' if a['premium'] else ''}" for a in AVATAR_OPTIONS
     ]
@@ -4581,6 +4735,14 @@ def render_avatar_page(supabase: Client | None, user_id: str) -> None:
     selected_voice_label = st.selectbox("Voz", voice_labels, index=idx_voice)
     selected_avatar = AVATAR_OPTIONS[avatar_labels.index(selected_avatar_label)]
     selected_voice = VOICE_OPTIONS[voice_labels.index(selected_voice_label)]
+
+    # Alinha voz ao género do avatar se o utilizador mudou só o avatar
+    if selected_avatar["id"].startswith("m") and not str(selected_voice["id"]).startswith("vm"):
+        st.caption("Voz ajustada automaticamente para masculina (Bruno PT-BR).")
+        selected_voice = next(v for v in VOICE_OPTIONS if v["id"] == "vm1")
+    elif selected_avatar["id"].startswith("f") and str(selected_voice["id"]).startswith("vm"):
+        st.caption("Voz ajustada automaticamente para feminina (Ana PT-BR).")
+        selected_voice = next(v for v in VOICE_OPTIONS if v["id"] == "vf1")
 
     if st.button("Salvar avatar e voz", use_container_width=True):
         if (selected_avatar["premium"] or selected_voice["premium"]) and not is_pro:
@@ -5215,31 +5377,263 @@ def maybe_ego_name_onboarding(supabase: Client | None, user_id: str | None) -> N
     _ego_name_onboarding_dialog(supabase, user_id)
 
 
-def render_chat(supabase: Client | None, user_id: str) -> None:
-    asst = _resolved_assistant_display_name()
+def _praktika_avatar_fallback_html() -> str:
+    svg = (
+        '<svg xmlns="http://www.w3.org/2000/svg" width="380" height="380" viewBox="0 0 380 380">'
+        '<rect fill="#ede9fe" width="380" height="380" rx="24"/>'
+        '<circle cx="190" cy="150" r="72" fill="#7B2CBF"/>'
+        '<rect x="95" y="240" width="190" height="100" rx="40" fill="#7B2CBF"/>'
+        "</svg>"
+    )
+    return (
+        '<div class="ego-praktika-avatar-wrap">'
+        f'<img src="data:image/svg+xml,{quote(svg)}" alt="Avatar" />'
+        "</div>"
+    )
+
+
+def inject_praktika_chat_styles() -> None:
+    if st.session_state.get("_ego_praktika_styles_injected"):
+        return
+    st.session_state["_ego_praktika_styles_injected"] = True
     st.markdown(
-        f'<p class="ego-brand-min">{html.escape(asst)}</p>',
+        """
+        <style>
+            /* Tema Praktika — só na vista Chat (.ego-praktika-layout) */
+            .stApp:has(.ego-praktika-layout) {
+                background-color: #F7F7F9 !important;
+                color: #1e1e1e !important;
+            }
+            .stApp:has(.ego-praktika-layout) #MainMenu,
+            .stApp:has(.ego-praktika-layout) footer {
+                visibility: hidden !important;
+            }
+            .stApp:has(.ego-praktika-layout) [data-testid="stSidebar"] {
+                display: block !important;
+            }
+            .stApp:has(.ego-praktika-layout) [data-testid="stSidebar"] {
+                background-color: #ffffff !important;
+                border-right: 1px solid #eef0f3 !important;
+            }
+            .stApp:has(.ego-praktika-layout) section.main > div.block-container {
+                padding: 0.35rem 0.85rem 7.5rem !important;
+                max-width: 520px !important;
+                margin: 0 auto !important;
+            }
+            .stApp:has(.ego-praktika-layout) .ego-praktika-top {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 0.5rem 0 0.75rem;
+                margin: 0 auto;
+                max-width: 360px;
+            }
+            .stApp:has(.ego-praktika-layout) [data-testid="stImage"] img,
+            .stApp:has(.ego-praktika-layout) .ego-praktika-avatar-wrap img {
+                width: 100% !important;
+                max-width: 300px !important;
+                max-height: 320px !important;
+                border-radius: 28px !important;
+                object-fit: cover !important;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
+                display: block !important;
+                margin: 0.25rem auto 0.75rem !important;
+            }
+            .stApp:has(.ego-praktika-layout) [data-testid="stImage"] {
+                display: flex !important;
+                justify-content: center !important;
+                width: 100% !important;
+            }
+            .stApp:has(.ego-praktika-layout) .ego-praktika-mid {
+                min-height: 200px;
+                margin: 0 0 0.5rem;
+            }
+            .stApp:has(.ego-praktika-layout) [data-testid="stChatMessage"] {
+                background-color: #ffffff !important;
+                border: 1px solid #eef0f3 !important;
+                border-radius: 18px !important;
+                color: #1e1e1e !important;
+                padding: 12px 14px !important;
+            }
+            .stApp:has(.ego-praktika-layout) [data-testid="stChatMessageUser"] {
+                background-color: #ede9fe !important;
+                border-color: #ddd6fe !important;
+            }
+            .stApp:has(.ego-praktika-layout) [data-testid="stChatMessageAssistant"] {
+                background-color: #f7f7f9 !important;
+            }
+            .stApp:has(.ego-praktika-layout) [data-testid="stChatMessage"] p,
+            .stApp:has(.ego-praktika-layout) [data-testid="stChatMessage"] li {
+                color: #1e1e1e !important;
+            }
+            /* Barra inferior: texto (esquerda, largo) + microfone (direita, quadrado) */
+            .stApp:has(.ego-praktika-layout) .ego-praktika-input-bar
+                + div[data-testid="stHorizontalBlock"] {
+                position: fixed !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                z-index: 999 !important;
+                background: #F7F7F9 !important;
+                border-top: 1px solid #eef0f3 !important;
+                padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px)) !important;
+                margin: 0 !important;
+                max-width: 520px;
+                margin-left: auto !important;
+                margin-right: auto !important;
+                align-items: flex-end !important;
+                gap: 10px !important;
+            }
+            .stApp:has(.ego-praktika-layout) .ego-praktika-input-bar
+                + div[data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child {
+                flex: 1 1 auto !important;
+                min-width: 0 !important;
+            }
+            .stApp:has(.ego-praktika-layout) .ego-praktika-input-bar
+                + div[data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child {
+                flex: 0 0 72px !important;
+                width: 72px !important;
+                max-width: 72px !important;
+            }
+            .stApp:has(.ego-praktika-layout) .ego-praktika-input-bar
+                + div[data-testid="stHorizontalBlock"] [data-testid="stChatInput"] {
+                background: #ffffff !important;
+                border: 1px solid #dde1e6 !important;
+                border-radius: 22px !important;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+            }
+            .stApp:has(.ego-praktika-layout) .ego-praktika-input-bar
+                + div[data-testid="stHorizontalBlock"] [data-testid="stChatInput"] textarea {
+                color: #1e1e1e !important;
+                min-height: 44px !important;
+            }
+            .stApp:has(.ego-praktika-layout) .ego-praktika-input-bar
+                + div[data-testid="stHorizontalBlock"] [data-testid="stAudioInput"] {
+                display: flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                margin: 0 !important;
+            }
+            .stApp:has(.ego-praktika-layout) .ego-praktika-input-bar
+                + div[data-testid="stHorizontalBlock"] [data-testid="stAudioInput"] label {
+                display: none !important;
+            }
+            .stApp:has(.ego-praktika-layout) .ego-praktika-input-bar
+                + div[data-testid="stHorizontalBlock"] [data-testid="stAudioInput"] button {
+                background-color: #7B2CBF !important;
+                color: #ffffff !important;
+                border: none !important;
+                border-radius: 16px !important;
+                width: 64px !important;
+                min-width: 64px !important;
+                height: 64px !important;
+                min-height: 64px !important;
+                box-shadow: 0 4px 12px rgba(123, 44, 191, 0.35) !important;
+            }
+            /* chat_input fora da coluna (dock nativo do Streamlit) */
+            .stApp:has(.ego-praktika-layout) [data-testid="stBottom"] [data-testid="stChatInput"] {
+                background: #ffffff !important;
+                border: 1px solid #dde1e6 !important;
+                border-radius: 22px !important;
+                max-width: calc(100% - 88px) !important;
+                margin-right: 78px !important;
+            }
+            .stApp:has(.ego-praktika-layout) .ego-praktika-greet {
+                text-align: center;
+                color: #626264;
+                font-size: 14px;
+                margin: 0 0 0.5rem;
+            }
+            .stApp:has(.ego-praktika-layout) .ego-praktika-options-wrap {
+                margin: 0 0 0.35rem;
+            }
+        </style>
+        """,
         unsafe_allow_html=True,
     )
+
+
+def _render_praktika_avatar() -> None:
+    avatar_path = _avatar_image_path().resolve()
+    with st.container(border=True):
+        st.markdown(
+            '<p style="text-align:center;margin:0 0 0.5rem;color:#626264;font-size:14px;">'
+            "O teu assistente</p>",
+            unsafe_allow_html=True,
+        )
+        if avatar_path.is_file():
+            st.image(avatar_path.read_bytes(), width=280)
+        else:
+            st.markdown(_praktika_avatar_fallback_html(), unsafe_allow_html=True)
+            st.warning(f"Ficheiro em falta: {avatar_path}")
+
+
+def _praktika_process_voice_and_text(
+    supabase: Client | None,
+    user_id: str,
+    audio_rec,
+    prompt: str | None,
+) -> None:
+    voice_buf: bytes | None = None
+    voice_mime: str | None = None
+    if audio_rec is not None:
+        voice_buf = audio_rec.getvalue()
+        voice_mime = getattr(audio_rec, "type", None) or "audio/wav"
+    if audio_rec is not None and voice_buf and not effective_gemini_api_key():
+        st.caption("Configura `GOOGLE_API_KEY` nos secrets para usar a mensagem de voz.")
+    voice_sig = hash(voice_buf) if voice_buf else None
+    voice_pending = bool(
+        voice_buf
+        and effective_gemini_api_key()
+        and voice_sig is not None
+        and st.session_state.get("_ego_voice_done_sig") != voice_sig
+    )
+    if voice_pending:
+        _ego_process_chat_turn(
+            supabase,
+            user_id,
+            "(mensagem de voz)",
+            audio_bytes=voice_buf,
+            audio_mime=voice_mime,
+            mark_voice_sig=voice_sig,
+        )
+        return
+    if prompt and prompt.strip():
+        _ego_process_chat_turn(supabase, user_id, prompt.strip())
+
+
+def render_chat(supabase: Client | None, user_id: str) -> None:
+    inject_praktika_chat_styles()
+    st.markdown('<div class="ego-praktika-layout" aria-hidden="true"></div>', unsafe_allow_html=True)
+
+    asst = _resolved_assistant_display_name()
     who = _resolved_user_display_name()
-    if who:
-        st.caption(f"Aqui por ti, «{who}» — estou aqui como «{asst}».")
-    else:
-        st.caption(f"Fala com «{asst}» quando quiseres.")
+    msgs = st.session_state.get("messages") or []
+
+    # --- Topo: avatar centralizado (esboço) ---
+    _render_praktika_avatar()
+    greet_name = html.escape(who) if who else "você"
+    st.markdown(
+        f'<p class="ego-praktika-greet">Olá, <b>{greet_name}</b> · conversa com <b>{html.escape(asst)}</b></p>',
+        unsafe_allow_html=True,
+    )
+
     reminder_warn = st.session_state.pop("_ego_reminder_warn", None)
     if reminder_warn:
         st.warning(str(reminder_warn))
-    st.toggle(
-        f"Ouvir {asst} (voz no browser)",
-        key="ego_voice_replies",
-        help="Desliga em sítios em silêncio: só vês a resposta escrita. Ligado = texto + leitura em voz.",
-    )
-    render_tts_controls()
-    msgs = st.session_state.get("messages") or []
-    with st.expander("Exportar conversa", expanded=False):
+
+    with st.expander("Voz, exportar e opções", expanded=False):
+        st.markdown('<div class="ego-praktika-options-wrap"></div>', unsafe_allow_html=True)
+        st.toggle(
+            f"Ouvir {asst} (voz no browser)",
+            key="ego_voice_replies",
+            help="Desliga em sítios em silêncio: só vês a resposta escrita.",
+        )
+        render_tts_controls()
         if msgs:
             st.download_button(
-                "TXT",
+                "Exportar conversa (TXT)",
                 data=build_chat_export_txt(msgs),
                 file_name=f"ego_chat_{datetime.date.today().isoformat()}.txt",
                 mime="text/plain; charset=utf-8",
@@ -5248,10 +5642,12 @@ def render_chat(supabase: Client | None, user_id: str) -> None:
         else:
             st.caption("Sem mensagens ainda.")
         if not effective_gemini_api_key():
-            st.caption("Configura `GOOGLE_API_KEY` nos secrets do Streamlit Cloud ou no `.env`.")
+            st.caption("Configura `GOOGLE_API_KEY` nos secrets ou no `.env`.")
 
+    # --- Meio: histórico de mensagens ---
+    st.markdown('<div class="ego-praktika-mid"></div>', unsafe_allow_html=True)
     try:
-        with st.container(height=520, border=False):
+        with st.container(height=420, border=False):
             render_chat_messages_with_feedback(supabase, user_id)
     except TypeError:
         render_chat_messages_with_feedback(supabase, user_id)
@@ -5279,44 +5675,37 @@ def render_chat(supabase: Client | None, user_id: str) -> None:
         st.stop()
 
     pode_enviar, total_hoje = limite_diario_cached(supabase, user_id)
-    if not pode_enviar:
+    if EGO_DAILY_MESSAGE_LIMIT > 0 and not pode_enviar:
         st.error("Limite diário atingido. Volte amanhã ou assine o Pro.")
-        st.caption(f"Hoje: {total_hoje} / 20 mensagens.")
-        return
-
-    audio_rec = None
-    if hasattr(st, "audio_input"):
-        audio_rec = st.audio_input("Mensagem de voz", key="ego_voice_in")
-    voice_buf: bytes | None = None
-    voice_mime: str | None = None
-    if audio_rec is not None:
-        voice_buf = audio_rec.getvalue()
-        voice_mime = getattr(audio_rec, "type", None) or "audio/wav"
-    if audio_rec is not None and voice_buf and not effective_gemini_api_key():
-        st.caption("Configura `GOOGLE_API_KEY` nos secrets para usar a mensagem de voz.")
-    voice_sig = hash(voice_buf) if voice_buf else None
-    voice_pending = bool(
-        voice_buf
-        and effective_gemini_api_key()
-        and voice_sig is not None
-        and st.session_state.get("_ego_voice_done_sig") != voice_sig
-    )
-
-    prompt = st.chat_input("Escreve ou grava no microfone…")
-
-    if voice_pending:
-        _ego_process_chat_turn(
-            supabase,
-            user_id,
-            "(mensagem de voz)",
-            audio_bytes=voice_buf,
-            audio_mime=voice_mime,
-            mark_voice_sig=voice_sig,
+        st.caption(
+            f"Hoje: {total_hoje} / {EGO_DAILY_MESSAGE_LIMIT} mensagens."
         )
         return
 
-    if prompt and prompt.strip():
-        _ego_process_chat_turn(supabase, user_id, prompt.strip())
+    # --- Base: texto (esquerda, largo) + microfone (direita, quadrado) ---
+    st.markdown('<div class="ego-praktika-input-bar" aria-hidden="true"></div>', unsafe_allow_html=True)
+    col_text, col_mic = st.columns([5, 1], gap="small")
+    audio_rec = None
+    prompt: str | None = None
+    with col_text:
+        prompt = st.chat_input("Escreve a tua mensagem…")
+    with col_mic:
+        if hasattr(st, "audio_input"):
+            audio_rec = st.audio_input(
+                "Gravar",
+                key="ego_voice_in",
+                label_visibility="collapsed",
+            )
+
+    _praktika_process_voice_and_text(supabase, user_id, audio_rec, prompt)
+
+
+def _ego_build_banner() -> None:
+    avatar_ok = _PRAKTICA_AVATAR_PATH.is_file()
+    st.success(
+        f"**EGO-AI carregado** · build `{EGO_UI_BUILD}` · "
+        f"pasta `{_APP_ROOT}` · avatar: {'OK' if avatar_ok else 'FALTA assets/avatar.png'}"
+    )
 
 
 def main() -> None:
@@ -5324,8 +5713,9 @@ def main() -> None:
         page_title="EGO-AI Global",
         page_icon="🤖",
         layout="centered",
-        initial_sidebar_state="collapsed",
+        initial_sidebar_state="expanded",
     )
+    _ego_build_banner()
     init_session()
     inject_styles()
     supabase = get_supabase_client()
@@ -5364,7 +5754,10 @@ def main() -> None:
     perfil_nav = get_profile_cached(supabase, uid) if uid and supabase else None
     is_pro_nav = bool((perfil_nav or {}).get("is_pro", False))
     clamp_persona_para_plano_nao_pro(supabase, uid or "", is_pro=is_pro_nav)
+    st.markdown('<div class="ego-light-app" aria-hidden="true"></div>', unsafe_allow_html=True)
+    inject_light_app_styles()
     sidebar_settings()
+    render_top_navigation()
     acesso_liberado, status = get_access_cached(supabase, uid) if uid else (False, "Expirado")
     if acesso_liberado:
         st.sidebar.success(f"Status da Conta: {status}")
@@ -5376,23 +5769,27 @@ def main() -> None:
         )
     if uid and supabase:
         render_recurring_agenda_banner(supabase, uid)
-    nav = st.session_state.get("ego_nav") or "Chat"
-    if nav in ("Chat", "Agenda e lembretes") and uid and supabase:
+    nav = _normalize_ego_nav(str(st.session_state.get("ego_nav") or "Home"))
+    if nav in ("Chat", "Agenda") and uid and supabase:
         render_reminder_alarm_fragment(supabase, uid)
-    if nav == "Políticas":
-        render_policies_page(for_public_login=False)
-    elif nav == "Agenda e lembretes":
+    if nav == "Home":
+        render_dashboard(supabase, uid)
+    elif nav == "Agenda":
         render_agenda_reminders_page(supabase, uid)
+    elif nav == "Chat":
+        render_chat(supabase, uid)
+    elif nav == "Políticas":
+        render_policies_page(for_public_login=False)
     elif nav == "Meu Perfil":
         render_profile(supabase, uid)
     elif nav == "Meu Avatar":
         render_avatar_page(supabase, uid)
     else:
-        render_chat(supabase, uid)
+        render_dashboard(supabase, uid)
     if uid and supabase:
         maybe_autosave_ui_state(supabase, uid)
     render_trust_footer(authenticated=True)
 
 
-if __name__ == "__main__":
-    main()
+# Streamlit executa este ficheiro sem garantir __name__ == "__main__".
+main()
