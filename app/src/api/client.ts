@@ -1,6 +1,7 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
 import { API_V1 } from "@/constants/config";
 import { resolveSpeechVoiceId } from "@/constants/personas";
+import { getPlayIntegrityToken } from "@/security/playIntegrity";
 import type {
   AccessInfo,
   ApiErr,
@@ -9,7 +10,12 @@ import type {
   HealthInfo,
   MeData,
   PlanCatalogItem,
+  ChatHistoryPayload,
+  Reminder,
   SendChatResult,
+  SharedCalendar,
+  SharedCalendarEvent,
+  SharedCalendarMember,
 } from "./types";
 
 const STORAGE_KEY = "ego_auth_session";
@@ -56,11 +62,13 @@ function applyAuthHeaders(
 
 export class ApiClientError extends Error {
   status?: number;
+  code?: string;
 
-  constructor(message: string, status?: number) {
+  constructor(message: string, status?: number, code?: string) {
     super(message);
     this.name = "ApiClientError";
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -74,7 +82,22 @@ function unwrap<T>(data: unknown): T {
 
 const TIMEOUT_DEFAULT_MS = 60_000;
 const TIMEOUT_CHAT_MS = 120_000;
+/** Voz: Gemini com áudio demora mais que texto. */
+const TIMEOUT_VOICE_MS = 180_000;
 const TIMEOUT_BOOTSTRAP_MS = 90_000;
+
+const INTEGRITY_PATH_PREFIXES = [
+  "chat/messages",
+  "chat/voice",
+  "voice/realtime/client-secret",
+  "voice/realtime/webrtc",
+  "voice/realtime/finish",
+];
+
+function needsPlayIntegrityHeader(url: string | undefined): boolean {
+  const path = (url || "").replace(/^\//, "");
+  return INTEGRITY_PATH_PREFIXES.some((p) => path.startsWith(p));
+}
 
 export const api: AxiosInstance = axios.create({
   baseURL: apiBase,
@@ -82,8 +105,15 @@ export const api: AxiosInstance = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   applyAuthHeaders(config.headers);
+  if (needsPlayIntegrityHeader(config.url)) {
+    const integrityToken = await getPlayIntegrityToken();
+    if (integrityToken && config.headers) {
+      const h = config.headers as Record<string, string>;
+      h["X-Play-Integrity"] = integrityToken;
+    }
+  }
   // FormData precisa do boundary automático do browser (não application/json).
   if (typeof FormData !== "undefined" && config.data instanceof FormData) {
     const h = config.headers as Record<string, unknown>;
@@ -128,6 +158,7 @@ api.interceptors.response.use(
 
     const timedOut =
       err.code === "ECONNABORTED" || err.code === "ETIMEDOUT";
+    const isVoiceReq = Boolean(original?.url?.includes("chat/voice"));
     const networkFailed =
       !err.response &&
       (err.message === "Network Error" ||
@@ -139,19 +170,25 @@ api.interceptors.response.use(
     const apiHint = apiBase.startsWith("http")
       ? apiBase.replace(/\/api\/v1\/?$/, "")
       : webOrigin || "http://SEU_IP:8081";
+    const apiCode =
+      typeof err.response?.data === "object" && err.response?.data
+        ? (err.response.data as ApiErr).code
+        : undefined;
     const msg =
       err.response?.data?.error ||
       (timedOut
-        ? isProdApi
-          ? "O servidor demorou demais para responder. Tente novamente em instantes."
-          : "O servidor demorou demais (IA ou rede). Verifique se python flask_api.py está a correr e se EXPO_PUBLIC_API_URL aponta para o PC (telefone: use o IP da rede, não localhost). Tente de novo."
+        ? isVoiceReq
+          ? "O Gemini demorou mais de 2 minutos a ouvir o áudio. Grave só 3–5 segundos e tente outra vez, ou escreva em texto."
+          : isProdApi
+            ? "O servidor demorou demais (mensagens de voz demoram mais). Aguarde 10s e tente de novo; se persistir, use texto ou mensagem de voz mais curta."
+            : "O servidor demorou demais (IA ou rede). Verifique se python flask_api.py está a correr e se EXPO_PUBLIC_API_URL aponta para o PC (telefone: use o IP da rede, não localhost). Tente de novo."
         : networkFailed
           ? isProdApi
             ? "Sem ligação ao servidor. Verifique sua internet e tente novamente."
-            : `Sem ligação à API. Confirme: (1) python flask_api.py no PC, (2) mesma Wi‑Fi, (3) no telefone abra ${apiHint} (não use :5000). No PC: http://localhost:8081.`
+            : `Sem ligação à API. Confirme: (1) python flask_api.py no PC, (2) Flask a correr na porta 5000, (3) no PC use ${webOrigin || "http://localhost:8081"} (não :5000 no browser). Telefone: mesma Wi‑Fi e ${apiHint}.`
           : err.message) ||
       "Não foi possível contactar o servidor. Verifique a internet e a URL da API.";
-    return Promise.reject(new ApiClientError(msg, status));
+    return Promise.reject(new ApiClientError(msg, status, apiCode));
   }
 );
 
@@ -163,7 +200,9 @@ function parseDashboard(data: unknown): DashboardData {
     access: body.access ?? null,
     reminders: body.reminders ?? [],
     agenda: body.agenda ?? [],
+    shared_calendars: body.shared_calendars ?? [],
     messages: body.messages ?? [],
+    chat_local_history: Boolean(body.chat_local_history),
   };
 }
 
@@ -172,13 +211,15 @@ async function fetchDashboardLegacy(): Promise<DashboardData> {
     .get<HealthInfo>(`${apiBase}health`, { timeout: 8000 })
     .catch(() => null);
 
-  const [healthRes, meRes, accessRes, remRes, agRes, chatRes] = await Promise.all([
+  const [healthRes, meRes, accessRes, remRes, agRes, chatRes, sharedRes] =
+    await Promise.all([
     healthReq,
     api.get("me"),
     api.get("access"),
     api.get("reminders"),
     api.get("agenda"),
     api.get("chat/messages"),
+    api.get("shared-calendars").catch(() => null),
   ]);
 
   const meBody = unwrap<MeData & { ok?: boolean }>(meRes.data);
@@ -186,6 +227,9 @@ async function fetchDashboardLegacy(): Promise<DashboardData> {
   const remBody = unwrap<{ reminders: DashboardData["reminders"] }>(remRes.data);
   const agBody = unwrap<{ agenda: DashboardData["agenda"] }>(agRes.data);
   const chatBody = unwrap<{ messages: DashboardData["messages"] }>(chatRes.data);
+  const sharedBody = sharedRes
+    ? unwrap<{ shared_calendars: SharedCalendar[] }>(sharedRes.data)
+    : { shared_calendars: [] as SharedCalendar[] };
 
   return {
     health: healthRes ? unwrap<HealthInfo>(healthRes.data) : null,
@@ -193,6 +237,7 @@ async function fetchDashboardLegacy(): Promise<DashboardData> {
     access: accessBody,
     reminders: remBody.reminders ?? [],
     agenda: agBody.agenda ?? [],
+    shared_calendars: sharedBody.shared_calendars ?? [],
     messages: chatBody.messages ?? [],
   };
 }
@@ -323,13 +368,151 @@ export async function dismissReminder(reminderId: string): Promise<void> {
   await api.post(`reminders/${reminderId}/dismiss`);
 }
 
+export async function createPersonalReminder(payload: {
+  title: string;
+  scheduled_at: string;
+  announce?: string;
+}): Promise<Reminder> {
+  const { data } = await api.post("reminders", payload);
+  const body = unwrap<{ reminder: Reminder }>(data);
+  if (!body.reminder?.id) {
+    throw new Error("Não foi possível guardar na agenda pessoal.");
+  }
+  return body.reminder;
+}
+
+function sharedCalendarFriendlyError(err: unknown, fallback: string): string {
+  if (err instanceof ApiClientError && err.status === 404) {
+    if (err.code === "email_no_account" || err.message.includes("não tem conta no EGO-AI")) {
+      return err.message;
+    }
+    return (
+      "Agendas compartilhadas ainda não estão no servidor (API desatualizada). " +
+      "Faça deploy do código novo no Railway e execute a migration SQL no Supabase."
+    );
+  }
+  if (err instanceof Error && err.message) return err.message;
+  return fallback;
+}
+
+export function isSharedCalendarEmailNoAccountError(err: unknown): boolean {
+  return (
+    err instanceof ApiClientError &&
+    (err.code === "email_no_account" || err.message.includes("não tem conta no EGO-AI"))
+  );
+}
+
+export async function fetchSharedCalendars(): Promise<SharedCalendar[]> {
+  try {
+    const { data } = await api.get("shared-calendars");
+    const body = unwrap<{ shared_calendars: SharedCalendar[] }>(data);
+    return body.shared_calendars ?? [];
+  } catch (e) {
+    throw new Error(sharedCalendarFriendlyError(e, "Erro ao carregar agendas."));
+  }
+}
+
+export async function createSharedCalendar(name: string): Promise<SharedCalendar> {
+  try {
+    const { data } = await api.post("shared-calendars", { name });
+    const body = unwrap<{ calendar: SharedCalendar }>(data);
+    if (!body.calendar?.id) {
+      throw new Error("Não foi possível criar a agenda compartilhada.");
+    }
+    return body.calendar;
+  } catch (e) {
+    throw new Error(sharedCalendarFriendlyError(e, "Não foi possível criar a agenda."));
+  }
+}
+
+export async function fetchSharedCalendar(calendarId: string): Promise<SharedCalendar> {
+  const { data } = await api.get(`shared-calendars/${calendarId}`);
+  const body = unwrap<{ calendar: SharedCalendar }>(data);
+  if (!body.calendar?.id) {
+    throw new Error("Agenda não encontrada.");
+  }
+  return body.calendar;
+}
+
+export async function deleteSharedCalendar(calendarId: string): Promise<void> {
+  try {
+    await api.delete(`shared-calendars/${calendarId}`);
+  } catch (e) {
+    throw new Error(
+      sharedCalendarFriendlyError(e, "Não foi possível apagar a agenda compartilhada.")
+    );
+  }
+}
+
+export async function addSharedCalendarMember(
+  calendarId: string,
+  email: string
+): Promise<SharedCalendarMember> {
+  try {
+    const { data } = await api.post(`shared-calendars/${calendarId}/members`, {
+      email: email.trim(),
+    });
+    const body = unwrap<{ member: SharedCalendarMember }>(data);
+    return body.member;
+  } catch (e) {
+    if (e instanceof ApiClientError) {
+      throw e;
+    }
+    throw new Error(
+      sharedCalendarFriendlyError(e, "Não foi possível adicionar este e-mail.")
+    );
+  }
+}
+
+export async function removeSharedCalendarMember(
+  calendarId: string,
+  memberId: string
+): Promise<void> {
+  await api.delete(`shared-calendars/${calendarId}/members/${memberId}`);
+}
+
+export async function createSharedCalendarEvent(
+  calendarId: string,
+  payload: { title: string; scheduled_at: string; announce?: string }
+): Promise<SharedCalendarEvent> {
+  const { data } = await api.post(`shared-calendars/${calendarId}/events`, payload);
+  const body = unwrap<{ event: SharedCalendarEvent }>(data);
+  if (!body.event?.id) {
+    throw new Error("Não foi possível marcar a reunião.");
+  }
+  return body.event;
+}
+
+export async function dismissSharedCalendarEvent(
+  calendarId: string,
+  eventId: string
+): Promise<void> {
+  await api.post(`shared-calendars/${calendarId}/events/${eventId}/dismiss`);
+}
+
+/** Converte DD/MM/AAAA + HH:MM para ISO com fuso local. */
+export function localDateTimeToIso(dateBr: string, timeBr: string): string | null {
+  const dm = dateBr.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  const tm = timeBr.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!dm || !tm) return null;
+  const day = Number(dm[1]);
+  const month = Number(dm[2]) - 1;
+  const year = Number(dm[3]);
+  const hour = Number(tm[1]);
+  const minute = Number(tm[2]);
+  const d = new Date(year, month, day, hour, minute, 0, 0);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
+
 export async function sendChatMessage(
   message: string,
-  speak = true
+  speak = true,
+  history: ChatHistoryPayload = []
 ): Promise<SendChatResult> {
   const { data } = await api.post(
     "chat/messages",
-    { message, speak: speak },
+    { message, speak, history },
     { timeout: TIMEOUT_CHAT_MS }
   );
   const body = unwrap<SendChatResult>(data);
@@ -339,24 +522,53 @@ export async function sendChatMessage(
   return body;
 }
 
-/** Envio de voz no browser (Safari) — ficheiro binário, sem base64 no JSON. */
+function voiceUploadFile(blob: Blob, mime: string): Blob | File {
+  const audio_mime = mime.includes("webm")
+    ? "audio/webm"
+    : mime.includes("mp4") || mime.includes("m4a")
+      ? "audio/mp4"
+      : mime.includes("wav")
+        ? "audio/wav"
+        : mime;
+  const ext = audio_mime.includes("webm") ? "webm" : audio_mime.includes("wav") ? "wav" : "m4a";
+  if (typeof File !== "undefined") {
+    return new File([blob], `voice.${ext}`, { type: audio_mime });
+  }
+  return blob;
+}
+
+/** Envio de voz (browser) — ficheiro + endpoint /chat/voice (axios, timeout 90s). */
 export async function sendChatVoiceBlob(opts: {
   blob: Blob;
+  audioMime?: string;
   speak?: boolean;
+  history?: ChatHistoryPayload;
 }): Promise<SendChatResult> {
   if (!opts.blob || opts.blob.size < 256) {
     throw new Error("Gravação demasiado curta. Fale pelo menos 1 segundo.");
   }
-  const mime = (opts.blob.type || "audio/mp4").toLowerCase();
-  const ext = mime.includes("webm") ? "webm" : "m4a";
-  const form = new FormData();
-  form.append("audio", opts.blob, `voice.${ext}`);
-  form.append("message", "");
-  form.append("audio_mime", mime.includes("mp4") || mime.includes("m4a") ? "audio/mp4" : mime);
-  form.append("speak", opts.speak !== false ? "true" : "false");
 
-  const { data } = await api.post("chat/messages", form, {
-    timeout: TIMEOUT_CHAT_MS,
+  const mime = (opts.audioMime || opts.blob.type || "audio/webm").toLowerCase();
+  const audio_mime = mime.includes("webm")
+    ? "audio/webm"
+    : mime.includes("mp4") || mime.includes("m4a")
+      ? "audio/mp4"
+      : mime.includes("wav")
+        ? "audio/wav"
+        : mime;
+
+  const form = new FormData();
+  form.append("audio", voiceUploadFile(opts.blob, audio_mime));
+  form.append("audio_mime", audio_mime);
+  form.append("speak", opts.speak !== false ? "true" : "false");
+  if (opts.history?.length) {
+    form.append("history", JSON.stringify(opts.history));
+  }
+
+  const { data } = await api.post("chat/voice", form, {
+    timeout: 150_000,
+    maxBodyLength: Infinity,
+    maxContentLength: Infinity,
   });
   const body = unwrap<SendChatResult>(data);
   if (!body.reply) {
@@ -369,6 +581,7 @@ export async function sendChatVoiceMessage(opts: {
   audioBase64: string;
   audioMime?: string;
   speak?: boolean;
+  history?: ChatHistoryPayload;
 }): Promise<SendChatResult> {
   const audioBase64 = (opts.audioBase64 || "").trim();
   if (!audioBase64 || audioBase64.length < 400) {
@@ -390,8 +603,13 @@ export async function sendChatVoiceMessage(opts: {
       audio_base64: audioBase64,
       audio_mime,
       speak: opts.speak !== false,
+      history: opts.history ?? [],
     },
-    { timeout: TIMEOUT_CHAT_MS }
+    {
+      timeout: TIMEOUT_VOICE_MS,
+      maxBodyLength: Infinity,
+      maxContentLength: Infinity,
+    }
   );
   const body = unwrap<SendChatResult>(data);
   if (!body.reply) {

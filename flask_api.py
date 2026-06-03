@@ -19,7 +19,10 @@ import time
 from functools import wraps
 from typing import Any, Callable
 
-from flask import Flask, g, jsonify, request
+import html as html_lib
+import re
+
+from flask import Flask, Response, g, jsonify, request
 from flask_cors import CORS
 
 from ego_api.config import (
@@ -27,6 +30,7 @@ from ego_api.config import (
     cors_origins,
     gemini_api_key,
     is_production_env,
+    read_env,
     supabase_anon_key,
     supabase_url,
 )
@@ -234,7 +238,11 @@ def require_auth(f: Callable) -> Callable:
             sess.timezone = str(body.get("timezone") or ui.get("ego_client_timezone") or "")[
                 :120
             ]
-            sess.tz_offset_min = body.get("tz_offset_min", ui.get("ego_client_tz_offset_min"))
+            raw_tz = body.get("tz_offset_min", ui.get("ego_client_tz_offset_min"))
+            try:
+                sess.tz_offset_min = int(raw_tz) if raw_tz is not None else None
+            except (TypeError, ValueError):
+                sess.tz_offset_min = None
             sess.pdf_context = str(body.get("pdf_context") or ui.get("pdf_context") or "")
             sess.gemini_model_preference = str(
                 body.get("gemini_model")
@@ -255,15 +263,23 @@ def require_auth(f: Callable) -> Callable:
 @app.get("/api/v1/health")
 def health():
     sb = supabase_env_status()
+    service_role_set = bool(read_env("SUPABASE_SERVICE_ROLE_KEY"))
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
+        "api_build": "2026-06-03-shared-calendars",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
             "supabase_key_set": bool(sb.get("key_set")),
+            "service_role_set": service_role_set,
+            "shared_calendars_api": True,
         },
     }
+    if not service_role_set:
+        payload["deploy_hint"] = (
+            "Adicione SUPABASE_SERVICE_ROLE_KEY no Railway e redeploy"
+        )
     include_details = os.getenv("EGO_HEALTH_DETAILS", "").lower() in ("1", "true", "yes")
     if include_details:
         payload["checks"].update(
@@ -333,6 +349,60 @@ def auth_refresh():
     return _json_ok({"session": payload})
 
 
+def _markdown_to_html_body(md: str) -> str:
+    out: list[str] = []
+    for raw in (md or "").splitlines():
+        line = raw.rstrip()
+        if not line.strip():
+            out.append("<p>&nbsp;</p>")
+            continue
+        if line.startswith("### "):
+            out.append(f"<h3>{html_lib.escape(line[4:].strip())}</h3>")
+        elif line.startswith("## "):
+            out.append(f"<h2>{html_lib.escape(line[3:].strip())}</h2>")
+        elif line.startswith("# "):
+            out.append(f"<h1>{html_lib.escape(line[2:].strip())}</h1>")
+        elif line.startswith("- "):
+            out.append(f"<li>{html_lib.escape(line[2:].strip())}</li>")
+        else:
+            text = html_lib.escape(line)
+            text = re.sub(r"\*\*(.+?)\*\*", r"<strong>\1</strong>", text)
+            out.append(f"<p>{text}</p>")
+    return "\n".join(out)
+
+
+def _legal_html_page(title: str, markdown_text: str) -> Response:
+    body = _markdown_to_html_body(markdown_text)
+    page = f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{html_lib.escape(title)} — EGO-AI</title>
+</head>
+<body>
+  <article style="max-width:720px;margin:2rem auto;padding:0 1rem;font-family:system-ui,sans-serif;line-height:1.55;color:#111">
+    <h1>{html_lib.escape(title)}</h1>
+    {body}
+  </article>
+</body>
+</html>"""
+    return Response(page, mimetype="text/html; charset=utf-8")
+
+
+@app.get("/privacy")
+@app.get("/privacidade")
+@app.get("/politica-de-privacidade")
+def privacy_policy_page():
+    return _legal_html_page("Política de Privacidade", privacy_policy_markdown())
+
+
+@app.get("/terms")
+@app.get("/termos")
+def terms_page():
+    return _legal_html_page("Termos de Uso", terms_of_use_markdown())
+
+
 @app.get("/api/v1/legal/<doc>")
 def legal(doc: str):
     docs = {
@@ -343,6 +413,14 @@ def legal(doc: str):
     entry = docs.get(doc.lower())
     if not entry:
         return _json_error("Documento não encontrado. Use terms, privacy ou refund.", 404)
+    accept = (request.headers.get("Accept") or "").lower()
+    if "text/html" in accept and doc.lower() in ("privacy", "terms", "refund"):
+        titles = {
+            "privacy": "Política de Privacidade",
+            "terms": "Termos de Uso",
+            "refund": "Política de Reembolso",
+        }
+        return _legal_html_page(titles[doc.lower()], entry[1]())
     return _json_ok({"document": entry[0], "markdown": entry[1]()})
 
 
@@ -350,13 +428,42 @@ def legal(doc: str):
 
 
 def _dashboard_payload():
-    return _json_ok(services.bootstrap_payload(g.supabase, g.user_id))
+    try:
+        return _json_ok(services.bootstrap_payload(g.supabase, g.user_id))
+    except Exception as exc:  # noqa: BLE001
+        import traceback
+
+        print(f"[EGO] bootstrap error user={getattr(g, 'user_id', '')}: {exc}", flush=True)
+        traceback.print_exc()
+        return _json_error(
+            "Não foi possível carregar a agenda. Confirme SUPABASE_SERVICE_ROLE_KEY no Railway "
+            "e as tabelas no Supabase (shared_calendars).",
+            500,
+        )
 
 
 @app.post("/api/v1/app/bootstrap")
 @require_auth
 def app_bootstrap():
     """Carrega painel inteiro num único pedido (substitui vários GET no cliente)."""
+    body = request.get_json(silent=True) or {}
+    tz_off = body.get("tz_offset_min")
+    tz_name = body.get("timezone")
+    if tz_off is not None or tz_name:
+        try:
+            prof = db.load_profile(g.supabase, g.user_id) or {}
+            ui = dict(services.ui_state_from_profile(prof))
+            changed = False
+            if tz_off is not None:
+                ui["ego_client_tz_offset_min"] = int(tz_off)
+                changed = True
+            if tz_name:
+                ui["ego_client_timezone"] = str(tz_name)[:120]
+                changed = True
+            if changed:
+                db.update_profile_fields(g.supabase, g.user_id, {"ui_state": ui})
+        except Exception:
+            pass
     return _dashboard_payload()
 
 
@@ -685,6 +792,121 @@ def agenda_create():
 def agenda_delete(agenda_id: str):
     ok = db.delete_agenda(g.supabase, g.user_id, agenda_id)
     return _json_ok({"deleted": ok})
+
+
+@app.get("/api/v1/shared-calendars")
+@require_auth
+def shared_calendars_list():
+    from ego_api import shared_calendars as sc
+
+    rows = sc.list_calendars_for_user(g.supabase, g.user_id)
+    return _json_ok({"shared_calendars": rows})
+
+
+@app.post("/api/v1/shared-calendars")
+@require_auth
+def shared_calendars_create():
+    from ego_api import shared_calendars as sc
+
+    data = request.get_json(silent=True) or {}
+    name = str(data.get("name") or "").strip()
+    ok, err, row = sc.create_calendar(g.supabase, g.user_id, name=name)
+    if not ok:
+        return _json_error(err or "Não foi possível criar a agenda compartilhada.")
+    return _json_ok({"calendar": row}, 201)
+
+
+@app.get("/api/v1/shared-calendars/<calendar_id>")
+@require_auth
+def shared_calendars_get(calendar_id: str):
+    from ego_api import shared_calendars as sc
+
+    cal = sc.get_calendar(g.supabase, g.user_id, calendar_id)
+    if not cal:
+        return _json_error("Agenda não encontrada ou sem acesso.", 404)
+    return _json_ok({"calendar": cal})
+
+
+@app.delete("/api/v1/shared-calendars/<calendar_id>")
+@require_auth
+def shared_calendars_delete(calendar_id: str):
+    from ego_api import shared_calendars as sc
+
+    ok, err = sc.delete_calendar(g.supabase, g.user_id, calendar_id)
+    if not ok:
+        return _json_error(err or "Não foi possível apagar a agenda.", 400)
+    return _json_ok({"deleted": True})
+
+
+@app.post("/api/v1/shared-calendars/<calendar_id>/members")
+@require_auth
+def shared_calendars_add_member(calendar_id: str):
+    from ego_api import shared_calendars as sc
+
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email") or "").strip()
+    if not email:
+        return _json_error("Informe o e-mail do utilizador.")
+    ok, err, row = sc.add_member_by_email(
+        g.supabase, g.user_id, calendar_id, email
+    )
+    if not ok:
+        if err == sc.EMAIL_NO_ACCOUNT_MSG:
+            return _json_error(err, 404, code="email_no_account")
+        return _json_error(err or "Não foi possível adicionar o membro.")
+    return _json_ok({"member": row}, 201)
+
+
+@app.delete("/api/v1/shared-calendars/<calendar_id>/members/<member_id>")
+@require_auth
+def shared_calendars_remove_member(calendar_id: str, member_id: str):
+    from ego_api import shared_calendars as sc
+
+    ok, err = sc.remove_member(g.supabase, g.user_id, calendar_id, member_id)
+    if not ok:
+        return _json_error(err or "Não foi possível remover.", 400)
+    return _json_ok({"removed": True})
+
+
+@app.get("/api/v1/shared-calendars/<calendar_id>/events")
+@require_auth
+def shared_calendars_events_list(calendar_id: str):
+    from ego_api import shared_calendars as sc
+
+    rows = sc.list_events(g.supabase, g.user_id, calendar_id)
+    return _json_ok({"events": rows})
+
+
+@app.post("/api/v1/shared-calendars/<calendar_id>/events")
+@require_auth
+def shared_calendars_events_create(calendar_id: str):
+    from ego_api import shared_calendars as sc
+
+    data = request.get_json(silent=True) or {}
+    title = str(data.get("title") or "").strip()
+    scheduled_at = data.get("scheduled_at")
+    if not title or scheduled_at is None:
+        return _json_error("title e scheduled_at são obrigatórios.")
+    ok, err, row = sc.insert_event(
+        g.supabase,
+        g.user_id,
+        calendar_id,
+        title=title,
+        scheduled_at=scheduled_at,
+        announce=str(data.get("announce") or title),
+    )
+    if not ok:
+        return _json_error(err or "Não foi possível marcar a reunião.")
+    return _json_ok({"event": row}, 201)
+
+
+@app.post("/api/v1/shared-calendars/<calendar_id>/events/<event_id>/dismiss")
+@require_auth
+def shared_calendars_events_dismiss(calendar_id: str, event_id: str):
+    from ego_api import shared_calendars as sc
+
+    ok = sc.dismiss_event(g.supabase, g.user_id, calendar_id, event_id)
+    return _json_ok({"dismissed": ok})
 
 
 @app.post("/api/v1/auth/logout")

@@ -20,6 +20,9 @@ SUPABASE_FEEDBACK_TABLE = "message_feedback"
 SUPABASE_PERSONA_TABLE = "user_personas"
 SUPABASE_REMINDERS_TABLE = "reminders"
 SUPABASE_AGENDA_TABLE = "agenda"
+SUPABASE_SHARED_CALENDARS_TABLE = "shared_calendars"
+SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE = "shared_calendar_members"
+SUPABASE_SHARED_CALENDAR_EVENTS_TABLE = "shared_calendar_events"
 
 AGENDA_HORIZON_DAYS = int(os.getenv("EGO_AGENDA_HORIZON_DAYS", "90"))
 EGO_TRIAL_DAYS = int(os.getenv("EGO_TRIAL_DAYS", "20"))

@@ -266,15 +266,32 @@ def process_chat_message(
     lang, _conf = gemini.detect_language(user_display)
     history_for_llm = [*history, {"role": "user", "content": user_display}]
 
+    from ego_api import chat_schedule as cs
+
+    schedule = cs.load_chat_schedule(prof)
+    scope_hint = cs.detect_scope_from_user_text(user_display)
+    if scope_hint:
+        schedule = cs.merge_schedule_draft(schedule, {"draft": {"scope": scope_hint}})
+        if scope_hint == "shared":
+            schedule["step"] = "collect_shared"
+        elif scope_hint == "personal":
+            schedule["step"] = "collect_personal"
+
     agenda_ctx = db.build_agenda_context_for_llm(supabase, user_id)
-    reply = gemini.generate_reply(
-        user_display if not audio_bytes else "",
-        conversation_messages=history_for_llm,
-        lang_code=lang,
-        agenda_context=agenda_ctx,
-        audio_bytes=audio_bytes,
-        audio_mime=audio_mime,
-    )
+    agenda_ctx += cs.build_shared_calendars_context(supabase, user_id)
+    agenda_ctx += cs.build_schedule_wizard_context(schedule, user_display)
+
+    if cs.looks_like_today_agenda_query(user_display):
+        reply = cs.build_today_commitments_reply(supabase, user_id)
+    else:
+        reply = gemini.generate_reply(
+            user_display if not audio_bytes else "",
+            conversation_messages=history_for_llm,
+            lang_code=lang,
+            agenda_context=agenda_ctx,
+            audio_bytes=audio_bytes,
+            audio_mime=audio_mime,
+        )
 
     if gemini.is_gemini_error_reply(reply):
         return None, str(reply or "Erro ao chamar o Gemini.").strip()
@@ -284,8 +301,51 @@ def process_chat_message(
     warnings: list[str] = []
     reminders_saved: list[dict] = []
     agenda_saved: list[dict] = []
+    shared_calendars_saved: list[dict] = []
+    shared_events_saved: list[dict] = []
+    shared_invite_payload: dict | None = None
 
-    reply_clean, rem_items = gemini.extract_reminders(reply)
+    reply_clean = reply
+    reply_clean, draft_patch = cs.extract_schedule_draft(reply_clean)
+    if draft_patch:
+        schedule = cs.merge_schedule_draft(schedule, draft_patch)
+
+    reply_clean, shared_setup = cs.extract_shared_setup(reply_clean)
+    if shared_setup:
+        cals, evs, shared_warns = cs.process_shared_setup(
+            supabase, user_id, shared_setup
+        )
+        shared_calendars_saved.extend(cals)
+        shared_events_saved.extend(evs)
+        warnings.extend(shared_warns)
+        schedule = {"step": "", "draft": {}}
+
+    reply_clean, shared_invite = cs.extract_shared_invite(reply_clean)
+    if shared_invite:
+        shared_invite_payload = shared_invite
+        invited_cal, invite_warns = cs.process_shared_invite(
+            supabase, user_id, shared_invite
+        )
+        if invited_cal:
+            shared_calendars_saved.append(invited_cal)
+        warnings.extend(invite_warns)
+        schedule = {"step": "", "draft": {}}
+
+    reply_clean, shared_event = cs.extract_shared_event(reply_clean)
+    if shared_event:
+        evs, shared_warns = cs.process_shared_event(
+            supabase, user_id, shared_event
+        )
+        shared_events_saved.extend(evs)
+        warnings.extend(shared_warns)
+        schedule = {"step": "", "draft": {}}
+
+    draft_scope = (schedule.get("draft") or {}).get("scope")
+    block_personal_reminder = draft_scope == "shared" and not shared_events_saved
+
+    reply_clean, rem_items = gemini.extract_reminders(reply_clean)
+    if block_personal_reminder:
+        rem_items = []
     rem_cap = enforce_reminder_limit(supabase, user_id, prof)
     for it in rem_items:
         if rem_cap:
@@ -300,6 +360,7 @@ def process_chat_message(
         )
         if ok and row:
             reminders_saved.append(row)
+            schedule = {"step": "", "draft": {}}
         elif err:
             warnings.append(f"Lembrete: {err}")
 
@@ -323,6 +384,30 @@ def process_chat_message(
         elif err:
             warnings.append(f"Agenda: {err}")
 
+    from ego_api.chat_reply import ensure_visible_chat_reply
+
+    reply_clean = ensure_visible_chat_reply(
+        reply_clean,
+        reminders_saved=reminders_saved,
+        agenda_saved=agenda_saved,
+        rem_items=rem_items,
+        ag_items=ag_items,
+        warnings=warnings,
+        shared_calendars_saved=shared_calendars_saved,
+        shared_events_saved=shared_events_saved,
+        shared_setup=shared_setup,
+        shared_invite=shared_invite_payload,
+    )
+
+    cs.save_chat_schedule(
+        supabase,
+        user_id,
+        prof,
+        schedule
+        if (schedule.get("step") or (schedule.get("draft") or {}))
+        else None,
+    )
+
     mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_clean)
     tok_n = gemini.count_tokens_approx(user_display, reply_clean)
     db.add_tokens_used(supabase, user_id, tok_n, prof)
@@ -335,6 +420,8 @@ def process_chat_message(
         "warnings": warnings,
         "reminders_saved": reminders_saved,
         "agenda_saved": agenda_saved,
+        "shared_calendars_saved": shared_calendars_saved,
+        "shared_events_saved": shared_events_saved,
     }
     if speak_reply and reply_clean.strip():
         from ego_api import tts
@@ -400,6 +487,16 @@ def enforce_tts_limit(
     )
 
 
+def _list_shared_calendars_safe(supabase: Client | None, user_id: str) -> list:
+    try:
+        from ego_api import shared_calendars as sc
+
+        return sc.list_calendars_for_user(supabase, user_id)
+    except Exception as exc:
+        print(f"[EGO] bootstrap shared_calendars error user={user_id}: {exc}", flush=True)
+        return []
+
+
 def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
     """Um único payload para o painel (evita vários GET no cliente)."""
     from ego_api.config import gemini_api_key, supabase_anon_key, supabase_url
@@ -416,6 +513,7 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
         "access": {"ok": True, **access},
         "reminders": db.list_reminders(supabase, user_id),
         "agenda": db.list_agenda(supabase, user_id),
+        "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
         "messages": db.load_chat_history(supabase, user_id),
     }
 
