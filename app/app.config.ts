@@ -17,7 +17,7 @@ if (isProd && apiUrl && !apiUrl.startsWith("https://")) {
 const config: ExpoConfig = {
   name: "EGO-AI",
   slug: "ego-ai",
-  version: "1.0.3",
+  version: "1.0.4",
   orientation: "portrait",
   scheme: "egoai",
   userInterfaceStyle: "automatic",
@@ -52,10 +52,13 @@ const config: ExpoConfig = {
       "RECORD_AUDIO",
       "MODIFY_AUDIO_SETTINGS",
       "POST_NOTIFICATIONS",
-      "SCHEDULE_EXACT_ALARM",
-      "USE_EXACT_ALARM",
       "CAMERA",
       "READ_MEDIA_IMAGES",
+    ],
+    /** Play Store: USE_EXACT_ALARM só para apps cujo foco é despertador/agenda. EGO-AI é assistente IA. */
+    blockedPermissions: [
+      "android.permission.USE_EXACT_ALARM",
+      "android.permission.SCHEDULE_EXACT_ALARM",
     ],
     /** Evita o teclado tapar a caixa de mensagem no chat. */
     softwareKeyboardLayoutMode: "resize",
