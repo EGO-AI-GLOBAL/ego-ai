@@ -1,12 +1,37 @@
-@echo off
-cd /d "%~dp0app"
-echo.
-echo === Build Android production (.aab) - agenda compartilhada v1.0.3 ===
-echo.
-call eas env:create --name EXPO_PUBLIC_API_URL --value https://ego-ai-production-a2c2.up.railway.app --environment production --scope project --force --non-interactive
-echo.
-echo === Build production - pode demorar 20-40 min ===
-call eas build --platform android --profile production --non-interactive
-echo.
-echo Download do .aab em: https://expo.dev
-pause
+@echo off
+setlocal
+cd /d "%~dp0app"
+if errorlevel 1 (
+  echo ERRO: nao foi possivel entrar na pasta app.
+  pause
+  exit /b 1
+)
+if not exist package.json (
+  echo ERRO: falta app\package.json nesta pasta.
+  echo Pasta atual: %CD%
+  pause
+  exit /b 1
+)
+if not exist eas.json (
+  echo ERRO: falta app\eas.json nesta pasta.
+  echo Pasta atual: %CD%
+  pause
+  exit /b 1
+)
+echo.
+echo === Build Android production (.aab) v1.0.3 ===
+echo Pasta: %CD%
+echo.
+echo A URL da API ja esta no eas.json (profile production).
+echo Se pedir login: eas login
+echo.
+call eas build --platform android --profile production
+if errorlevel 1 (
+  echo.
+  echo Build falhou. Veja a mensagem acima.
+  pause
+  exit /b 1
+)
+echo.
+echo Download do .aab em: https://expo.dev
+pause

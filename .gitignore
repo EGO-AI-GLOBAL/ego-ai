@@ -27,3 +27,17 @@ mobile/android/
 mobile/ios/
 mobile/.capacitor/
 mobile/.env
+
+# Expo app (app/)
+app/node_modules/
+app/.expo/
+app/dist/
+app/.env
+app/.env.local
+app/expo-env.d.ts
+app/android/
+app/ios/
+app/*.jks
+app/*.keystore
+app/play-store-service-account.json
+app/google-services.json
