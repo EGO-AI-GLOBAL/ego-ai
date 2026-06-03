@@ -1,0 +1,267 @@
+import { useLocalSearchParams, useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { fetchSharedCalendar, removeSharedCalendarMember } from "@/api/client";
+import { markSharedCalendarEventsSeen } from "@/utils/sharedCalendarNotifications";
+import type { SharedCalendar, SharedCalendarEvent } from "@/api/types";
+import { ScreenShell } from "@/components/ScreenShell";
+import { useAuth } from "@/context/AuthContext";
+import { useDashboard } from "@/hooks/useDashboard";
+import { useColors } from "@/theme/ThemeContext";
+import type { AppColors } from "@/theme/colors";
+
+function formatWhen(iso?: string) {
+  if (!iso) return "—";
+  try {
+    const d = new Date(iso);
+    return d.toLocaleString("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } catch {
+    return iso.slice(0, 16).replace("T", " ");
+  }
+}
+
+function sortEvents(events: SharedCalendarEvent[]) {
+  return [...events].sort((a, b) => {
+    const ta = a.scheduled_at ? new Date(a.scheduled_at).getTime() : 0;
+    const tb = b.scheduled_at ? new Date(b.scheduled_at).getTime() : 0;
+    return ta - tb;
+  });
+}
+
+function ChatHint({ colors, onPress }: { colors: AppColors; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.chatHint,
+        {
+          borderColor: colors.primary,
+          backgroundColor: colors.bgCard,
+          opacity: pressed ? 0.88 : 1,
+        },
+      ]}
+    >
+      <Text style={[styles.chatHintTitle, { color: colors.primary }]}>
+        Marcar, criar ou convidar
+      </Text>
+      <Text style={[styles.chatHintBody, { color: colors.textMuted }]}>
+        Peça no chat ao avatar: marcar compromisso, convidar e-mail ou criar agenda.
+      </Text>
+      <Text style={[styles.chatHintLink, { color: colors.primary }]}>Ir para o chat →</Text>
+    </Pressable>
+  );
+}
+
+export default function SharedCalendarDetailScreen() {
+  const { id } = useLocalSearchParams<{ id: string }>();
+  const calendarId = String(id || "");
+  const colors = useColors();
+  const router = useRouter();
+  const { session } = useAuth();
+  const { refresh: refreshDashboard } = useDashboard();
+  const [cal, setCal] = useState<SharedCalendar | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!session || !calendarId) return;
+    setError(null);
+    try {
+      const row = await fetchSharedCalendar(calendarId);
+      setCal(row);
+      if (row) {
+        await markSharedCalendarEventsSeen([row]);
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Erro ao carregar agenda.");
+    }
+  }, [session, calendarId]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      load().finally(() => setLoading(false));
+    }, [load])
+  );
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await load();
+    await refreshDashboard();
+    setRefreshing(false);
+  };
+
+  const onRemoveMember = (memberId: string, email: string, isMe: boolean) => {
+    Alert.alert(
+      isMe ? "Sair da agenda" : "Remover membro",
+      isMe
+        ? `Sair da agenda «${cal?.name?.trim() || "compartilhada"}»?`
+        : `Remover ${email} desta agenda?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: isMe ? "Sair" : "Remover",
+          style: "destructive",
+          onPress: async () => {
+            setBusyId(memberId);
+            try {
+              await removeSharedCalendarMember(calendarId, memberId);
+              await load();
+              await refreshDashboard();
+              if (isMe) {
+                router.back();
+              }
+            } catch (e) {
+              Alert.alert("Erro", e instanceof Error ? e.message : "Falha ao remover.");
+            } finally {
+              setBusyId(null);
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const isOwner = Boolean(cal?.is_owner);
+  const myUserId = session?.user?.id || "";
+  const events = sortEvents((cal?.events ?? []).filter((ev) => !ev.dismissed));
+  const members = cal?.members ?? [];
+  const calName = cal?.name?.trim() || "Agenda compartilhada";
+
+  return (
+    <ScreenShell title={calName} subtitle="Consulta · só leitura">
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.primary}
+          />
+        }
+      >
+        <ChatHint colors={colors} onPress={() => router.push("/(main)/chat")} />
+
+        {loading && !refreshing ? (
+          <ActivityIndicator color={colors.primary} style={{ marginTop: 24 }} />
+        ) : null}
+        {error ? (
+          <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
+        ) : null}
+
+        {!loading && cal ? (
+          <>
+            <Text style={[styles.section, { color: colors.textMuted }]}>Membros</Text>
+            {members.length === 0 ? (
+              <Text style={[styles.muted, { color: colors.textMuted }]}>
+                Nenhum membro listado.
+              </Text>
+            ) : (
+              members.map((m) => {
+                const mid = String(m.id || "");
+                const email = m.invited_email || "—";
+                const isMe = String(m.user_id || "") === myUserId;
+                const canRemove =
+                  !busyId &&
+                  m.role !== "owner" &&
+                  (isOwner || isMe);
+                return (
+                  <View
+                    key={mid}
+                    style={[styles.memberRow, { borderBottomColor: colors.border }]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.memberEmail, { color: colors.text }]}>{email}</Text>
+                      <Text style={[styles.memberRole, { color: colors.textMuted }]}>
+                        {m.role === "owner" ? "Criador" : "Membro"}
+                        {isMe ? " · você" : ""}
+                      </Text>
+                    </View>
+                    {canRemove ? (
+                      <Pressable onPress={() => onRemoveMember(mid, email, isMe)}>
+                        <Text style={{ color: colors.danger, fontSize: 13 }}>
+                          {isMe ? "Sair" : "Remover"}
+                        </Text>
+                      </Pressable>
+                    ) : null}
+                  </View>
+                );
+              })
+            )}
+
+            <Text style={[styles.section, { color: colors.textMuted }]}>Próximas reuniões</Text>
+            {events.length === 0 ? (
+              <Text style={[styles.muted, { color: colors.textMuted }]}>
+                Nenhuma reunião marcada. Peça no chat para marcar um compromisso.
+              </Text>
+            ) : (
+              events.map((ev) => (
+                <View
+                  key={String(ev.id)}
+                  style={[styles.eventRow, { borderBottomColor: colors.border }]}
+                >
+                  <Text style={[styles.eventTitle, { color: colors.text }]}>{ev.title || "Reunião"}</Text>
+                  <Text style={[styles.eventCalendar, { color: colors.primary }]}>{calName}</Text>
+                  <Text style={[styles.eventWhen, { color: colors.textMuted }]}>
+                    {formatWhen(ev.scheduled_at)}
+                  </Text>
+                </View>
+              ))
+            )}
+          </>
+        ) : null}
+      </ScrollView>
+    </ScreenShell>
+  );
+}
+
+const styles = StyleSheet.create({
+  scroll: { padding: 20, paddingBottom: 32 },
+  chatHint: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+  },
+  chatHintTitle: { fontSize: 14, fontWeight: "800", marginBottom: 6 },
+  chatHintBody: { fontSize: 13, lineHeight: 18 },
+  chatHintLink: { fontSize: 13, fontWeight: "700", marginTop: 10 },
+  section: {
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.6,
+    marginTop: 8,
+    marginBottom: 10,
+  },
+  muted: { fontSize: 14, lineHeight: 20, marginBottom: 8 },
+  memberRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  memberEmail: { fontSize: 15, fontWeight: "500" },
+  memberRole: { fontSize: 12, marginTop: 2 },
+  eventRow: { paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  eventTitle: { fontSize: 16, fontWeight: "600" },
+  eventCalendar: { fontSize: 12, fontWeight: "600", marginTop: 4 },
+  eventWhen: { fontSize: 13, marginTop: 4 },
+  error: { fontSize: 14, marginTop: 12 },
+});
