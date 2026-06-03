@@ -6,32 +6,26 @@ if errorlevel 1 (
   pause
   exit /b 1
 )
-if not exist package.json (
-  echo ERRO: falta app\package.json nesta pasta.
-  echo Pasta atual: %CD%
-  pause
-  exit /b 1
-)
-if not exist eas.json (
-  echo ERRO: falta app\eas.json nesta pasta.
-  echo Pasta atual: %CD%
-  pause
-  exit /b 1
-)
 echo.
 echo === Build Android production (.aab) v1.0.3 ===
 echo Pasta: %CD%
 echo.
-echo A URL da API ja esta no eas.json (profile production).
-echo Se pedir login: eas login
-echo.
-call eas build --platform android --profile production
+echo Validando projeto...
+call npx expo config --json >nul
 if errorlevel 1 (
-  echo.
-  echo Build falhou. Veja a mensagem acima.
+  echo ERRO: expo config falhou.
+  echo Corra: cd app ^&^& npx expo config
   pause
   exit /b 1
 )
+echo OK.
 echo.
-echo Download do .aab em: https://expo.dev
+echo Se pedir login: eas login
+call eas build --platform android --profile production
+if errorlevel 1 (
+  echo Build falhou.
+  pause
+  exit /b 1
+)
+echo Download: https://expo.dev
 pause
