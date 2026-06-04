@@ -446,6 +446,8 @@ def only_personal_schedule_available(
     supabase: Client | None, user_id: str
 ) -> bool:
     """Sem agendas de grupo: marcações ambíguas vão para agenda pessoal."""
+    if not supabase or not user_id:
+        return False
     return user_shared_calendar_count(supabase, user_id) == 0
 
 
@@ -493,8 +495,11 @@ def detect_scope_from_user_text(
         return "personal"
     if is_group_schedule_request(t) and user_named_shared_calendar(t):
         return "shared"
-    if looks_like_schedule_intent(t) and only_personal_schedule_available(
-        supabase, user_id
+    if (
+        supabase
+        and user_id
+        and looks_like_schedule_intent(t)
+        and only_personal_schedule_available(supabase, user_id)
     ):
         return "personal"
     return None
