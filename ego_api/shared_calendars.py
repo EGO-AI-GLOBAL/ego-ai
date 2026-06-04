@@ -82,7 +82,7 @@ def _lookup_auth_user_id_by_email(email_norm: str) -> str | None:
     try:
         with httpx.Client(timeout=20.0) as client:
             page = 1
-            while page <= 15:
+            while page <= 5:
                 resp = client.get(
                     f"{base}/auth/v1/admin/users",
                     params={"page": page, "per_page": 200},

@@ -10,6 +10,21 @@ import { fetchDashboard, getSession } from "@/api/client";
 import type { DashboardData } from "@/api/types";
 import { accountPersona } from "@/constants/personas";
 import { useAuth } from "@/context/AuthContext";
+import { registerExpoPushToken } from "@/utils/pushRegistration";
+import {
+  cancelAllReminderLocalNotifications,
+  syncReminderLocalNotifications,
+} from "@/utils/reminderNotifications";
+import {
+  notifyNewSharedEventsFromOthers,
+  syncSharedCalendarLocalNotifications,
+} from "@/utils/sharedCalendarNotifications";
+import {
+  getLocalPersonaChoice,
+  isPersonaConfiguredLocal,
+  markPersonaConfiguredLocal,
+  saveLocalPersonaChoice,
+} from "@/storage/personaPrefs";
 
 const empty: DashboardData = {
   health: null,
@@ -28,6 +43,8 @@ type DashboardContextValue = {
   error: string | null;
   refresh: () => Promise<void>;
   setPersona: (avatarId: string, voiceId: string) => void;
+  /** true se o servidor ou o telemóvel já registou escolha de assistente */
+  personaGateOk: boolean;
 };
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
@@ -39,11 +56,14 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [personaLocalOk, setPersonaLocalOk] = useState(false);
 
   const load = useCallback(async () => {
     if (!enabled) {
       setData(empty);
       setLoading(false);
+      setPersonaLocalOk(false);
+      void cancelAllReminderLocalNotifications();
       return;
     }
     if (!getSession()?.access_token?.trim()) {
@@ -52,8 +72,40 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }
     setError(null);
     try {
-      const dashboard = await fetchDashboard();
+      let dashboard = await fetchDashboard();
+      const uid = dashboard.me?.user_id ?? "";
+      const localChoice = uid ? await getLocalPersonaChoice(uid) : null;
+      if (localChoice && dashboard.me) {
+        const server = dashboard.me.persona;
+        const serverAid = (server?.avatar_id || "f1").toLowerCase();
+        const localAid = localChoice.avatar_id.toLowerCase();
+        if (serverAid !== localAid) {
+          const persona = accountPersona(localChoice);
+          dashboard = {
+            ...dashboard,
+            me: {
+              ...dashboard.me,
+              persona,
+              persona_configured: true,
+            },
+          };
+        }
+      }
       setData(dashboard);
+      if (dashboard.me?.persona_configured === true && uid) {
+        setPersonaLocalOk(true);
+        void markPersonaConfiguredLocal(uid);
+      } else if (uid) {
+        const local = await isPersonaConfiguredLocal(uid);
+        setPersonaLocalOk(local);
+      } else {
+        setPersonaLocalOk(false);
+      }
+      void syncReminderLocalNotifications(dashboard.reminders);
+      const shared = dashboard.shared_calendars ?? [];
+      void registerExpoPushToken();
+      void notifyNewSharedEventsFromOthers(shared, uid).catch(() => {});
+      void syncSharedCalendarLocalNotifications(shared).catch(() => {});
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar dados.";
       if (/token ausente|sessão inválida|sessão expirada/i.test(msg)) {
@@ -68,6 +120,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     if (!enabled) {
       setData(empty);
       setLoading(false);
+      setPersonaLocalOk(false);
+      void cancelAllReminderLocalNotifications();
       return;
     }
     setLoading(true);
@@ -83,6 +137,12 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   const setPersona = useCallback((avatarId: string, voiceId: string) => {
     const persona = accountPersona({ avatar_id: avatarId, voice_id: voiceId });
+    setPersonaLocalOk(true);
+    const uid = data.me?.user_id;
+    if (uid) {
+      void markPersonaConfiguredLocal(uid);
+      void saveLocalPersonaChoice(uid, persona);
+    }
     setData((prev) => ({
       ...prev,
       me: prev.me
@@ -93,11 +153,24 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           }
         : prev.me,
     }));
-  }, []);
+  }, [data.me?.user_id]);
+
+  const personaGateOk =
+    personaLocalOk ||
+    data.me?.persona_configured === true ||
+    (data.me?.persona_configured == null && Boolean(data.me?.persona));
 
   const value = useMemo(
-    () => ({ data, loading, refreshing, error, refresh, setPersona }),
-    [data, loading, refreshing, error, refresh, setPersona]
+    () => ({
+      data,
+      loading,
+      refreshing,
+      error,
+      refresh,
+      setPersona,
+      personaGateOk,
+    }),
+    [data, loading, refreshing, error, refresh, setPersona, personaGateOk]
   );
 
   return (

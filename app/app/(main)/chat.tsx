@@ -98,7 +98,6 @@ export default function ChatScreen() {
     findAvatarInCatalog(persona.avatar_id)?.shortName ??
     (isMaleAvatar(persona.avatar_id) ? "Leo" : "Luna");
   const voice = useVoiceChat();
-  const userId = data.me?.user_id || session?.user?.id || "";
   const {
     messages: localMessages,
     ready: localChatReady,
@@ -522,10 +521,12 @@ export default function ChatScreen() {
       await saveExchange(userLabel, result.reply);
       setPendingChat([]);
       setLastChatResult(result);
-      if (autoPlayVoice) {
+      if (autoPlayVoice && !(result.warnings && result.warnings.length > 0)) {
         void playVoice(result).catch((e) => {
           setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
         });
+      } else if (result.warnings?.length) {
+        setChatNotice("Resposta pronta (sem áudio automático por causa do aviso).");
       } else {
         setChatNotice("Resposta pronta. Toque em «Ouvir resposta» para ouvir.");
       }
