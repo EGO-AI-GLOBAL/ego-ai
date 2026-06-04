@@ -80,9 +80,33 @@ def _lookup_auth_user_id_by_email(email_norm: str) -> str | None:
 
     headers = {"Authorization": f"Bearer {key}", "apikey": key}
     try:
-        with httpx.Client(timeout=20.0) as client:
+        with httpx.Client(timeout=12.0) as client:
+            for params in (
+                {"page": 1, "per_page": 50, "email": email_norm},
+                {"page": 1, "per_page": 50, "keyword": email_norm},
+            ):
+                resp = client.get(
+                    f"{base}/auth/v1/admin/users",
+                    params=params,
+                    headers=headers,
+                )
+                if resp.status_code >= 400:
+                    continue
+                payload = resp.json()
+                users = (
+                    payload.get("users")
+                    if isinstance(payload, dict)
+                    else (payload if isinstance(payload, list) else [])
+                )
+                for user in users or []:
+                    if not isinstance(user, dict):
+                        continue
+                    stored = str(user.get("email") or "").strip().lower()
+                    if stored == email_norm:
+                        return str(user.get("id") or "")
+
             page = 1
-            while page <= 5:
+            while page <= 3:
                 resp = client.get(
                     f"{base}/auth/v1/admin/users",
                     params={"page": page, "per_page": 200},

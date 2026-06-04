@@ -58,27 +58,24 @@ For one-off meetings use [[EGO_REMINDER:...]] only for the user's PERSONAL agend
 """
 
 SCHEDULE_WIZARD_LLM_INSTRUCTION = """
-AGENDAMENTO PESSOAL VS COMPARTILHADO (obrigatório no chat):
-A aba Agenda no app é SÓ CONSULTA (ver compromissos). Toda criação, nome da agenda, convites e
-marcações faz-se AQUI no chat — o utilizador não precisa de formulários na aba Agenda.
+AGENDAMENTO — PESSOAL vs GRUPO (Família):
+A aba Agenda no app é só consulta. Marcações no chat.
 
-- Se o utilizador pedir para marcar reunião, compromisso ou lembrete com data/hora e ainda não escolheu o tipo,
-  pergunte de forma natural: «Quer na sua agenda pessoal ou numa agenda compartilhada?»
-  Não use [[EGO_REMINDER:...]] nem [[EGO_SHARED_SETUP:...]] nem [[EGO_SHARED_EVENT:...]] nessa mensagem.
-- Agenda PESSOAL: quando souber título e data/hora, use [[EGO_REMINDER:{"title":"...","scheduled_at":"ISO com fuso","announce":"..."}]] no fim.
-- Agenda COMPARTILHADA NOVA — criar com nome (com ou sem compromisso já):
-  [[EGO_SHARED_SETUP:{"calendar_name":"Família","title":"...","scheduled_at":"ISO","invite_emails":["a@b.com"]}]]
-  Pode omitir title/scheduled_at se só quiser criar a agenda e convidar; pode omitir invite_emails se só criar o nome.
-- Agenda COMPARTILHADA EXISTENTE — marcar compromisso (qualquer membro):
-  [[EGO_SHARED_EVENT:{"calendar_name":"Equipe","title":"Reunião","scheduled_at":"ISO com fuso"}]]
-- Convidar e-mail numa agenda EXISTENTE (só o criador):
-  [[EGO_SHARED_INVITE:{"calendar_name":"Família","invite_emails":["a@b.com"]}]]
-- Apagar agenda compartilhada (só o criador):
-  [[EGO_SHARED_DELETE:{"calendar_name":"Família"}]]
-- Todos os membros podem marcar compromissos numa agenda em que já participam.
-- Enquanto monta agenda compartilhada, NÃO use [[EGO_REMINDER:...]].
-- Pode guardar progresso com [[EGO_SCHEDULE_DRAFT:{"scope":"shared","calendar_name":"...","title":"...","scheduled_at":"..."}]] no fim.
-- Seja conversacional: uma pergunta de cada vez, como um assistente atencioso.
+REGRA (obrigatória):
+- Se o utilizador disser «agenda pessoal», «minha agenda» ou «pessoal» → SOMENTE [[EGO_REMINDER:...]].
+  Nunca use EGO_SHARED_* nessa mensagem.
+- Se NÃO disser «pessoal», marcar reunião/compromisso → agenda de GRUPO (EGO_SHARED_EVENT).
+  Não peça «compartilhada ou pessoal?».
+- Se só existir uma agenda de grupo (ex. Família), use esse calendar_name automaticamente.
+
+Grupo:
+- Nova: [[EGO_SHARED_SETUP:{"calendar_name":"Família",...}]]
+- Marcar: [[EGO_SHARED_EVENT:{"calendar_name":"Família","title":"Reunião","scheduled_at":"ISO"}]]
+- Convidar: [[EGO_SHARED_INVITE:{"calendar_name":"Família","invite_emails":["a@b.com"]}]]
+- Apagar: [[EGO_SHARED_DELETE:{"calendar_name":"Família"}]]
+
+Exemplos do utilizador: «marca reunião amanhã 15h», «marca na agenda Família …», «marca na agenda pessoal …»
+Uma pergunta de cada vez só se faltar data/hora ou se houver várias agendas de grupo sem nome.
 """
 
 

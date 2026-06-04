@@ -7,7 +7,8 @@ import React, {
   useState,
 } from "react";
 import { fetchDashboard, getSession } from "@/api/client";
-import type { DashboardData } from "@/api/types";
+import type { DashboardData, SendChatResult } from "@/api/types";
+import { chatResultChangedData, mergeChatIntoDashboard } from "@/utils/mergeChatDashboard";
 import { accountPersona } from "@/constants/personas";
 import { useAuth } from "@/context/AuthContext";
 import { registerExpoPushToken } from "@/utils/pushRegistration";
@@ -36,12 +37,19 @@ const empty: DashboardData = {
   messages: [],
 };
 
+type RefreshOptions = {
+  /** Evita expo-notifications após chat (agenda compartilhada costuma crashar no Android). */
+  skipNotifications?: boolean;
+};
+
 type DashboardContextValue = {
   data: DashboardData;
   loading: boolean;
   refreshing: boolean;
   error: string | null;
-  refresh: () => Promise<void>;
+  refresh: (options?: RefreshOptions) => Promise<void>;
+  /** Atualiza agenda/lembretes a partir da resposta do chat (sem rede). */
+  mergeChatResult: (result: SendChatResult) => void;
   setPersona: (avatarId: string, voiceId: string) => void;
   /** true se o servidor ou o telemóvel já registou escolha de assistente */
   personaGateOk: boolean;
@@ -58,7 +66,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const [personaLocalOk, setPersonaLocalOk] = useState(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (options?: RefreshOptions) => {
     if (!enabled) {
       setData(empty);
       setLoading(false);
@@ -101,11 +109,13 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       } else {
         setPersonaLocalOk(false);
       }
-      void syncReminderLocalNotifications(dashboard.reminders);
-      const shared = dashboard.shared_calendars ?? [];
-      void registerExpoPushToken();
-      void notifyNewSharedEventsFromOthers(shared, uid).catch(() => {});
-      void syncSharedCalendarLocalNotifications(shared).catch(() => {});
+      if (!options?.skipNotifications) {
+        void syncReminderLocalNotifications(dashboard.reminders).catch(() => {});
+        const shared = dashboard.shared_calendars ?? [];
+        void registerExpoPushToken();
+        void notifyNewSharedEventsFromOthers(shared, uid).catch(() => {});
+        void syncSharedCalendarLocalNotifications(shared).catch(() => {});
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar dados.";
       if (/token ausente|sessão inválida|sessão expirada/i.test(msg)) {
@@ -128,12 +138,17 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     load().finally(() => setLoading(false));
   }, [enabled, load]);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (options?: RefreshOptions) => {
     if (!enabled) return;
     setRefreshing(true);
-    await load();
+    await load(options);
     setRefreshing(false);
   }, [enabled, load]);
+
+  const mergeChatResult = useCallback((result: SendChatResult) => {
+    if (!chatResultChangedData(result)) return;
+    setData((prev) => mergeChatIntoDashboard(prev, result));
+  }, []);
 
   const setPersona = useCallback((avatarId: string, voiceId: string) => {
     const persona = accountPersona({ avatar_id: avatarId, voice_id: voiceId });
@@ -167,10 +182,11 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       refreshing,
       error,
       refresh,
+      mergeChatResult,
       setPersona,
       personaGateOk,
     }),
-    [data, loading, refreshing, error, refresh, setPersona, personaGateOk]
+    [data, loading, refreshing, error, refresh, mergeChatResult, setPersona, personaGateOk]
   );
 
   return (

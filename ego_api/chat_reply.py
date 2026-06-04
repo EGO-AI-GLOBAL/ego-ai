@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 
 
@@ -14,6 +15,10 @@ def _format_scheduled_pt(iso_val: object) -> str:
         return f" para {dt.strftime('%d/%m às %H:%M')}"
     except Exception:
         return ""
+
+
+def _looks_like_false_schedule_success(text: str) -> bool:
+    return bool(re.search(r"(?i)\b(pronto|marquei|agendei|confirmado|registrei)\b", text))
 
 
 def ensure_visible_chat_reply(
@@ -41,23 +46,21 @@ def ensure_visible_chat_reply(
     created_cals = shared_calendars_created or []
     shared_cals = shared_calendars_saved or []
     text = (reply_clean or "").strip()
+    pending_rem = rem_items or []
+    pending_ag = ag_items or []
 
-    # O servidor já gravou/apagou — resposta certa (ignora texto enganoso do LLM).
+    # Servidor gravou — resposta certa (ignora texto enganoso do LLM).
     if deleted_cals:
         cal_name = deleted_cals[0].strip() or "Agenda"
-        extra = ""
-        if warns:
-            extra = f" Avisos: {'; '.join(warns[:3])}"
-        return f"Pronto! Apaguei a agenda compartilhada «{cal_name}».{extra}"
+        extra = f" Avisos: {'; '.join(warns[:3])}" if warns else ""
+        return f"Pronto! Apaguei a agenda «{cal_name}».{extra}"
 
     if created_cals:
         cal_name = str(created_cals[0].get("name") or "Agenda").strip()
-        extra = ""
-        if warns:
-            extra = f" Avisos: {'; '.join(warns[:3])}"
+        extra = f" Avisos: {'; '.join(warns[:3])}" if warns else ""
         return (
-            f"Pronto! Criei a agenda compartilhada «{cal_name}». "
-            f"Vê-la na aba Agenda → Compartilhada.{extra}"
+            f"Pronto! Criei a agenda «{cal_name}». "
+            f"Vê-la na aba Agenda → Família e grupos.{extra}"
         )
 
     if shared_ev_saved:
@@ -75,10 +78,8 @@ def ensure_visible_chat_reply(
             cal_name = str(
                 shared_event.get("calendar_name") or shared_event.get("name") or ""
             ).strip()
-        cal_part = f" na agenda «{cal_name}»" if cal_name else " na agenda compartilhada"
-        extra = ""
-        if warns:
-            extra = f" Avisos: {'; '.join(warns[:3])}"
+        cal_part = f" na agenda «{cal_name}»" if cal_name else " na agenda"
+        extra = f" Avisos: {'; '.join(warns[:3])}" if warns else ""
         return (
             f"Pronto! Marquei «{title}»{when}{cal_part}. "
             f"Os membros recebem aviso no telemóvel.{extra}"
@@ -92,13 +93,22 @@ def ensure_visible_chat_reply(
             ).strip()
         elif shared_cals:
             cal_name = (shared_cals[0].get("name") or cal_name).strip()
-        extra = ""
-        if warns:
-            extra = f" Avisos: {'; '.join(warns[:3])}"
+        extra = f" Avisos: {'; '.join(warns[:3])}" if warns else ""
         return (
             f"Pronto! Adicionei {len(shared_members)} pessoa(s) na agenda «{cal_name}». "
             f"Os convidados já veem a agenda no app.{extra}"
         )
+
+    if reminders_saved:
+        row = reminders_saved[0]
+        title = (row.get("title") or row.get("announce") or "seu lembrete").strip()
+        when = _format_scheduled_pt(row.get("scheduled_at"))
+        return f"Pronto! Agendei «{title}»{when} na agenda pessoal."
+
+    if agenda_saved:
+        row = agenda_saved[0]
+        tit = (row.get("titulo") or row.get("title") or "compromisso").strip()
+        return f"Pronto! Registrei na agenda pessoal: «{tit}»."
 
     if text and shared_setup and not created_cals and not shared_ev_saved:
         cal_name = str(
@@ -107,11 +117,11 @@ def ensure_visible_chat_reply(
         if warns:
             return (
                 f"Não consegui criar a agenda «{cal_name}»: {warns[0]} "
-                "Tente: Cria agenda compartilhada Família"
+                "Tente: Cria agenda Família"
             )
         return (
             f"Não consegui confirmar a criação da agenda «{cal_name}». "
-            "Repita: Cria agenda compartilhada Família"
+            "Repita: Cria agenda Família"
         )
 
     if text and shared_invite and not shared_members:
@@ -125,7 +135,7 @@ def ensure_visible_chat_reply(
             )
         return (
             f"Não consegui confirmar o convite na agenda «{cal_name}». "
-            "Primeiro: Cria agenda compartilhada Família. Depois convide o e-mail."
+            "Primeiro: Cria agenda Família. Depois convide o e-mail."
         )
 
     if text and shared_event and not shared_ev_saved:
@@ -139,8 +149,9 @@ def ensure_visible_chat_reply(
             )
         return (
             f"Não consegui confirmar o compromisso na agenda «{cal_name}». "
-            "Repita: Marca na agenda compartilhada Família reunião amanhã às 15h"
+            "Repita: Marca reunião amanhã às 15h (ou «marca na agenda pessoal …» se for só seu)"
         )
+
     if text and shared_delete and not deleted_cals:
         cal_name = str(
             shared_delete.get("calendar_name") or shared_delete.get("name") or "Agenda"
@@ -152,27 +163,13 @@ def ensure_visible_chat_reply(
             )
         return (
             f"Não consegui confirmar a remoção da agenda «{cal_name}». "
-            "Repita: Apaga a agenda compartilhada Família"
+            "Repita: Apaga a agenda Família"
         )
-    if text:
-        return text
 
-    pending_rem = rem_items or []
-    pending_ag = ag_items or []
-    shared_ev = shared_events_saved or []
-
-    if shared_invite:
+    if shared_invite and not shared_members:
         cal_name = str(
             shared_invite.get("calendar_name") or shared_invite.get("name") or "Agenda"
         ).strip()
-        if shared_members:
-            extra = ""
-            if warns:
-                extra = f" Avisos: {'; '.join(warns[:3])}"
-            return (
-                f"Pronto! Adicionei {len(shared_members)} pessoa(s) na agenda «{cal_name}». "
-                f"Os convidados já veem a agenda no app.{extra}"
-            )
         if warns:
             return (
                 f"Não consegui adicionar na agenda «{cal_name}»: {warns[0]} "
@@ -180,21 +177,10 @@ def ensure_visible_chat_reply(
             )
         return (
             f"Não consegui confirmar o convite na agenda «{cal_name}». "
-            "Repita: Convida email@exemplo.com para a agenda compartilhada Família"
+            "Repita: Convida email@exemplo.com para a agenda Família"
         )
 
-    if reminders_saved:
-        row = reminders_saved[0]
-        title = (row.get("title") or row.get("announce") or "seu lembrete").strip()
-        when = _format_scheduled_pt(row.get("scheduled_at"))
-        return f"Pronto! Agendei o lembrete «{title}»{when} na sua agenda pessoal."
-
-    if agenda_saved:
-        row = agenda_saved[0]
-        tit = (row.get("titulo") or row.get("title") or "compromisso").strip()
-        return f"Pronto! Registrei na agenda: «{tit}»."
-
-    if pending_rem:
+    if pending_rem and not reminders_saved:
         if warns:
             return f"Entendi o lembrete, mas não consegui agendar: {warns[0]}"
         item = pending_rem[0]
@@ -205,10 +191,27 @@ def ensure_visible_chat_reply(
             "Ex.: «hoje às 13h» ou «sexta às 15h»."
         )
 
-    if pending_ag:
+    if pending_ag and not agenda_saved:
         if warns:
             return f"Não consegui guardar na agenda: {warns[0]}"
         return "Entendi o hábito; informe dias da semana e horário (ex.: seg, qua, sex às 7h)."
+
+    if (
+        text
+        and _looks_like_false_schedule_success(text)
+        and not reminders_saved
+        and not agenda_saved
+        and not shared_ev_saved
+    ):
+        if warns:
+            return f"Não consegui gravar na agenda: {warns[0]}"
+        return (
+            "Não consegui confirmar na agenda. "
+            "Repita: Marca na agenda pessoal consulta amanhã às 9h"
+        )
+
+    if text:
+        return text
 
     if warns:
         return warns[0]

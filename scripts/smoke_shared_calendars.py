@@ -19,6 +19,8 @@ def main() -> int:
     assert hasattr(cs, "extract_shared_event")
     assert hasattr(cs, "extract_shared_invite")
     assert hasattr(cs, "parse_shared_event_from_plain_text")
+    assert hasattr(cs, "is_group_schedule_request")
+    assert hasattr(cs, "fill_shared_calendar_name")
     assert hasattr(cs, "shared_event_from_schedule_draft")
     assert hasattr(cs, "build_today_commitments_reply")
 
@@ -27,16 +29,46 @@ def main() -> int:
     )
     ev = cs.parse_shared_event_from_plain_text(event_text)
     assert ev and ev.get("calendar_name") == "Família", ev
-    assert ev.get("title") == "Reunião", ev
+
+    short_event = "Marque na agenda Família reunião amanhã às 15h"
+    ev2 = cs.parse_shared_event_from_plain_text(short_event)
+    assert ev2 and ev2.get("calendar_name"), ev2
+
+    bare = "Marca reunião amanhã às 15h"
+    assert cs.is_group_schedule_request(bare)
+    assert cs.detect_scope_from_user_text(bare) == "shared"
+    assert cs.detect_scope_from_user_text("Marca na agenda pessoal amanhã 15h") == "personal"
+    ev3 = cs.parse_shared_event_from_plain_text(bare)
+    assert ev3 and ev3.get("scheduled_at") and not ev3.get("calendar_name")
+    assert ev2.get("title") == "Reunião", ev2
     assert ev.get("scheduled_at"), ev
+    assert ev2.get("scheduled_at"), ev2
 
     delete_text = "Apaga a agenda compartilhada Família"
     deleted = cs.parse_delete_shared_calendar_from_plain_text(delete_text)
     assert deleted and deleted.get("calendar_name") == "Família", deleted
 
+    short_delete = "Apaga a agenda Família"
+    deleted2 = cs.parse_delete_shared_calendar_from_plain_text(short_delete)
+    assert deleted2 and deleted2.get("calendar_name") == "Família", deleted2
+
     create_text = "Cria agenda compartilhada Família"
     created = cs.parse_create_shared_calendar_from_plain_text(create_text)
     assert created and created.get("calendar_name") == "Família", created
+
+    short_create = "Cria agenda Família"
+    created2 = cs.parse_create_shared_calendar_from_plain_text(short_create)
+    assert created2 and created2.get("calendar_name") == "Família", created2
+
+    invite = cs.parse_invite_from_plain_text(
+        "Convida teste@exemplo.com para a agenda Família"
+    )
+    assert invite and invite.get("calendar_name") == "Família", invite
+
+    personal = "Marca na agenda pessoal consulta amanhã às 9h"
+    assert cs.detect_scope_from_user_text(personal) == "personal"
+    prem = cs.parse_reminder_from_plain_text(personal)
+    assert prem and prem.get("title") == "Consulta" and prem.get("scheduled_at"), prem
 
     from ego_api.chat_reply import ensure_visible_chat_reply
 
@@ -47,7 +79,7 @@ def main() -> int:
         shared_calendars_created=[{"name": "Família", "id": "x"}],
         shared_setup={"calendar_name": "Família"},
     )
-    assert "Criei a agenda compartilhada" in reply, reply
+    assert "Criei a agenda «Família»" in reply, reply
 
     reply = ensure_visible_chat_reply(
         "Não encontrei a agenda Família.",

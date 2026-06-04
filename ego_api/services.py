@@ -279,7 +279,9 @@ def process_chat_message(
 
     agenda_ctx = db.build_agenda_context_for_llm(supabase, user_id)
     agenda_ctx += cs.build_shared_calendars_context(supabase, user_id)
-    agenda_ctx += cs.build_schedule_wizard_context(schedule, user_display)
+    agenda_ctx += cs.build_schedule_wizard_context(
+        schedule, user_display, supabase, user_id
+    )
 
     if cs.looks_like_today_agenda_query(user_display):
         reply = cs.build_today_commitments_reply(supabase, user_id)
@@ -311,6 +313,8 @@ def process_chat_message(
     shared_calendars_created: list[dict] = []
     shared_calendars_deleted: list[str] = []
 
+    user_wants_personal = cs.detect_scope_from_user_text(user_display) == "personal"
+
     reply_clean = reply
     reply_clean, draft_patch = cs.extract_schedule_draft(reply_clean)
     if draft_patch:
@@ -318,6 +322,9 @@ def process_chat_message(
 
     reply_clean, shared_setup = cs.extract_shared_setup(reply_clean)
     if shared_setup:
+        shared_setup = cs.fill_shared_calendar_name(
+            supabase, user_id, shared_setup, prefer_text=user_display
+        )
         shared_setup_payload = shared_setup
         cals, evs, shared_warns = cs.process_shared_setup(
             supabase, user_id, shared_setup
@@ -352,6 +359,9 @@ def process_chat_message(
 
     reply_clean, shared_delete = cs.extract_shared_delete(reply_clean)
     if shared_delete:
+        shared_delete = cs.fill_shared_calendar_name(
+            supabase, user_id, shared_delete, prefer_text=user_display
+        )
         shared_delete_payload = shared_delete
         deleted_name, del_warns, deleted = cs.process_shared_delete(
             supabase, user_id, shared_delete
@@ -361,6 +371,9 @@ def process_chat_message(
             schedule = {"step": "", "draft": {}}
         warnings.extend(del_warns)
     elif fallback_delete := cs.parse_delete_shared_calendar_from_plain_text(user_display):
+        fallback_delete = cs.fill_shared_calendar_name(
+            supabase, user_id, fallback_delete, prefer_text=user_display
+        )
         shared_delete_payload = fallback_delete
         deleted_name, del_warns, deleted = cs.process_shared_delete(
             supabase, user_id, fallback_delete
@@ -378,6 +391,9 @@ def process_chat_message(
 
     reply_clean, shared_invite = cs.extract_shared_invite(reply_clean)
     if shared_invite:
+        shared_invite = cs.fill_shared_calendar_name(
+            supabase, user_id, shared_invite, prefer_text=user_display
+        )
         shared_invite_payload = shared_invite
         invited_cal, invite_warns, invite_added = cs.process_shared_invite(
             supabase, user_id, shared_invite
@@ -387,7 +403,10 @@ def process_chat_message(
             shared_calendars_saved.append(invited_cal)
         warnings.extend(invite_warns)
         schedule = {"step": "", "draft": {}}
-    elif (fallback_invite := cs.parse_invite_from_plain_text(user_display)):
+    elif fallback_invite := cs.parse_invite_from_plain_text(user_display):
+        fallback_invite = cs.fill_shared_calendar_name(
+            supabase, user_id, fallback_invite, prefer_text=user_display
+        )
         shared_invite_payload = fallback_invite
         invited_cal, invite_warns, invite_added = cs.process_shared_invite(
             supabase, user_id, fallback_invite
@@ -406,7 +425,12 @@ def process_chat_message(
             )
 
     reply_clean, shared_event = cs.extract_shared_event(reply_clean)
+    if user_wants_personal:
+        shared_event = None
     if shared_event:
+        shared_event = cs.fill_shared_calendar_name(
+            supabase, user_id, shared_event, prefer_text=user_display
+        )
         shared_event_payload = shared_event
         evs, shared_warns = cs.process_shared_event(
             supabase, user_id, shared_event
@@ -416,6 +440,9 @@ def process_chat_message(
         if evs:
             schedule = {"step": "", "draft": {}}
     elif draft_event := cs.shared_event_from_schedule_draft(schedule):
+        draft_event = cs.fill_shared_calendar_name(
+            supabase, user_id, draft_event, prefer_text=user_display
+        )
         shared_event_payload = draft_event
         evs, shared_warns = cs.process_shared_event(
             supabase, user_id, draft_event
@@ -429,7 +456,10 @@ def process_chat_message(
                 "O assistente respondeu no chat, mas o compromisso compartilhado "
                 "só entra quando o servidor grava. Detalhe: " + shared_warns[0]
             )
-    elif fallback_event := cs.parse_shared_event_from_plain_text(user_display):
+    elif not user_wants_personal and (fallback_event := cs.parse_shared_event_from_plain_text(user_display)):
+        fallback_event = cs.fill_shared_calendar_name(
+            supabase, user_id, fallback_event, prefer_text=user_display
+        )
         shared_event_payload = fallback_event
         evs, shared_warns = cs.process_shared_event(
             supabase, user_id, fallback_event
@@ -447,13 +477,17 @@ def process_chat_message(
     draft_scope = (schedule.get("draft") or {}).get("scope")
     user_scope = cs.detect_scope_from_user_text(user_display)
     block_personal_reminder = (
-        not shared_events_saved
+        user_scope != "personal"
+        and not shared_events_saved
         and (draft_scope == "shared" or user_scope == "shared")
     )
 
     reply_clean, rem_items = gemini.extract_reminders(reply_clean)
     if block_personal_reminder:
         rem_items = []
+    if not rem_items and user_wants_personal:
+        if fallback_rem := cs.parse_reminder_from_plain_text(user_display):
+            rem_items = [fallback_rem]
     rem_cap = enforce_reminder_limit(supabase, user_id, prof)
     for it in rem_items:
         if rem_cap:

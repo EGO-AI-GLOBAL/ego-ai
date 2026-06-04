@@ -25,10 +25,19 @@ _SCOPE_SHARED = re.compile(
 )
 _SCHEDULE_INTENT = re.compile(
     r"\b("
-    r"marcar|marca|agendar|agenda|reunião|reuniao|compromisso|"
+    r"marcar|marca|marque|marques|agendar|agenda|agende|"
+    r"reunião|reuniao|compromisso|"
     r"lembrete|lembrar|encontro|call|chamada|consulta"
     r")\b",
     re.I,
+)
+_GROUP_SCHEDULE_INTENT = re.compile(
+    r"(?i)\b(marcar|marca|marque|marques|agendar|agende|reuni|compromisso|encontro)\b"
+)
+# Nome de agenda de grupo (ex.: Família) sem dizer «compartilhada»
+_AGENDA_GROUP_NAME = re.compile(
+    r"(?i)\bagenda\s+(?!pessoal\b|minha\b|individual\b|privad[ao]\b)"
+    r"[«\"']?\s*([^«\"'\n.?]+)"
 )
 
 
@@ -44,17 +53,12 @@ def parse_invite_from_plain_text(text: str) -> dict | None:
     )
     if not em_match:
         return None
-    cal_match = re.search(
-        r"(?i)(?:agenda\s+compartilhada|grupo)\s+[«\"']?\s*([^«\"'\n.?]+)",
-        raw,
-    )
-    if not cal_match:
-        return None
+    cal_name = _extract_shared_calendar_name(raw)
     email = em_match.group(1).strip().lower()
-    cal_name = _extract_shared_calendar_name(raw) or cal_match.group(1).strip().strip("«»\"' ")
-    if not email or not cal_name:
-        return None
-    return {"calendar_name": cal_name, "invite_emails": [email]}
+    payload: dict[str, Any] = {"invite_emails": [email]}
+    if cal_name:
+        payload["calendar_name"] = cal_name
+    return payload
 
 
 def _extract_shared_calendar_name(raw: str) -> str:
@@ -67,6 +71,12 @@ def _extract_shared_calendar_name(raw: str) -> str:
 
     patterns = (
         r"(?i)(?:agenda\s+compartilhada|grupo)\s+[«\"']?\s*([^«\"'\n.?]+)",
+        r"(?i)\b(?:no|na|do|da)\s+agenda\s+(?!pessoal\b|minha\b|individual\b)"
+        r"[«\"']?\s*([^«\"'\n.?]+)",
+        r"(?i)(?:para|pra)\s+(?:a\s+)?agenda\s+(?!pessoal\b|minha\b|individual\b)"
+        r"[«\"']?\s*([^«\"'\n.?]+)",
+        r"(?i)\bagenda\s+(?!pessoal\b|minha\b|individual\b|privad[ao]\b)"
+        r"[«\"']?\s*([^«\"'\n.?]+)",
         r"(?i)\b(?:no|na|do|da)\s+grupo\s+[«\"']?\s*([^«\"'\n.?]+)",
     )
     for pat in patterns:
@@ -175,18 +185,97 @@ def parse_shared_event_from_plain_text(text: str) -> dict | None:
         return None
     if not looks_like_schedule_intent(raw):
         return None
-    if not _SCOPE_SHARED.search(raw):
+    if _SCOPE_PERSONAL.search(raw) and not _extract_shared_calendar_name(raw):
+        return None
+    if not is_group_schedule_request(raw):
+        return None
+    when = _parse_pt_schedule_hint(raw)
+    if not when:
         return None
     cal_name = _extract_shared_calendar_name(raw)
-    when = _parse_pt_schedule_hint(raw)
-    if not cal_name or not when:
-        return None
     title = _extract_shared_event_title(raw)
     return {
         "calendar_name": cal_name,
         "title": title,
         "scheduled_at": when.isoformat(),
     }
+
+
+def parse_reminder_from_plain_text(text: str) -> dict | None:
+    """Fallback: agenda pessoal quando o LLM não envia [[EGO_REMINDER:...]]."""
+    raw = (text or "").strip()
+    if not raw or not _SCOPE_PERSONAL.search(raw):
+        return None
+    if not looks_like_schedule_intent(raw):
+        return None
+    when = _parse_pt_schedule_hint(raw)
+    if not when:
+        return None
+    title = _extract_shared_event_title(raw)
+    return {
+        "title": title,
+        "scheduled_at": when.isoformat(),
+        "announce": title,
+    }
+
+
+def is_group_schedule_request(text: str) -> bool:
+    """True se o pedido é para agenda de grupo (não disse «pessoal»)."""
+    t = (text or "").strip()
+    if not t or _SCOPE_PERSONAL.search(t):
+        return False
+    return bool(
+        _SCOPE_SHARED.search(t)
+        or _extract_shared_calendar_name(t)
+        or _AGENDA_GROUP_NAME.search(t)
+        or _GROUP_SCHEDULE_INTENT.search(t)
+    )
+
+
+def resolve_default_shared_calendar_name(
+    supabase: Client | None,
+    user_id: str,
+    *,
+    prefer_text: str = "",
+) -> str:
+    explicit = _extract_shared_calendar_name(prefer_text)
+    if explicit:
+        return explicit
+    if not supabase or not user_id:
+        return ""
+    try:
+        from ego_api import shared_calendars as sc
+
+        rows = sc.list_calendars_for_user(supabase, user_id)
+    except Exception:
+        rows = []
+    if not rows:
+        return ""
+    if len(rows) == 1:
+        return str(rows[0].get("name") or "").strip()
+    for row in rows:
+        name = str(row.get("name") or "").strip()
+        if name.lower() in ("família", "familia", "family"):
+            return name
+    return ""
+
+
+def fill_shared_calendar_name(
+    supabase: Client | None,
+    user_id: str,
+    data: dict[str, Any],
+    *,
+    prefer_text: str = "",
+) -> dict[str, Any]:
+    out = dict(data)
+    name = str(out.get("calendar_name") or out.get("name") or "").strip()
+    if not name:
+        name = resolve_default_shared_calendar_name(
+            supabase, user_id, prefer_text=prefer_text
+        )
+    if name:
+        out["calendar_name"] = name
+    return out
 
 
 def load_chat_schedule(prof: dict | None) -> dict[str, Any]:
@@ -248,10 +337,10 @@ def detect_scope_from_user_text(text: str) -> str | None:
     t = (text or "").strip()
     if not t:
         return None
-    if _SCOPE_SHARED.search(t) and not _SCOPE_PERSONAL.search(t):
-        return "shared"
     if _SCOPE_PERSONAL.search(t):
         return "personal"
+    if is_group_schedule_request(t):
+        return "shared"
     return None
 
 
@@ -290,10 +379,10 @@ def build_shared_calendars_context(supabase: Client | None, user_id: str) -> str
         rows = []
     lines = [
         "",
-        "=== AGENDAS COMPARTILHADAS DO UTILIZADOR ===",
+        "=== AGENDAS DE GRUPO DO UTILIZADOR (Família, etc.) ===",
     ]
     if not rows:
-        lines.append("(nenhuma ainda — pode criar uma nova pelo chat)")
+        lines.append("(nenhuma ainda — criar com «cria agenda Família»)")
     else:
         for row in rows[:20]:
             cid = str(row.get("id") or "")
@@ -301,41 +390,70 @@ def build_shared_calendars_context(supabase: Client | None, user_id: str) -> str
             nmem = row.get("member_count") or len(row.get("members") or [])
             owner = " (criou)" if row.get("is_owner") else " (membro)"
             lines.append(
-                f'  - id={cid} | «{name}» | {nmem} membros{owner} — qualquer membro pode marcar compromissos'
+                f'  - id={cid} | «{name}» | {nmem} membros{owner}'
             )
-    lines.append("=== FIM AGENDAS COMPARTILHADAS ===")
+        if len(rows) == 1:
+            only = (rows[0].get("name") or "Agenda").strip()
+            lines.append(
+                f"Omissão: se o utilizador marcar reunião/compromisso SEM dizer «pessoal», "
+                f"use calendar_name «{only}»."
+            )
+    lines.append("=== FIM AGENDAS DE GRUPO ===")
     return "\n".join(lines)
 
 
 def build_schedule_wizard_context(
-    schedule: dict[str, Any], user_text: str
+    schedule: dict[str, Any],
+    user_text: str,
+    supabase: Client | None = None,
+    user_id: str = "",
 ) -> str:
     draft = schedule.get("draft") or {}
     scope = draft.get("scope")
+    default_cal = resolve_default_shared_calendar_name(
+        supabase, user_id, prefer_text=user_text
+    )
     lines = [
         "",
         "=== FLUXO AGENDAMENTO (CHAT) ===",
-        "A aba Agenda no app é só consulta. Tudo o que cria ou altera compromissos faz-se no chat.",
-        "Quando o utilizador quiser marcar compromisso/reunião/lembrete:",
-        "1) Se ainda não souber o tipo, pergunte UMA vez: «Na sua agenda pessoal ou numa agenda compartilhada?»",
-        "2) Pessoal → use [[EGO_REMINDER:{...}]] quando título e data/hora estiverem claros.",
-        "3) Compartilhada NOVA: nome (obrigatório), opcional compromisso e e-mails → [[EGO_SHARED_SETUP:{...}]]",
-        "4) Compartilhada EXISTENTE — marcar: [[EGO_SHARED_EVENT:{...}]]",
-        "5) Convidar e-mail em agenda existente (criador): [[EGO_SHARED_INVITE:{...}]]",
-        "6) Apagar agenda compartilhada (só criador): [[EGO_SHARED_DELETE:{...}]]",
+        "A aba Agenda no app é só consulta. Marcações fazem-se no chat.",
+        "",
+        "REGRA PRINCIPAL (obrigatória):",
+        "- Só «agenda pessoal» / «minha agenda» → lembrete PESSOAL ([[EGO_REMINDER:...]]).",
+        "- Todo o resto (marcar reunião, compromisso, «agenda Família», ou só data/hora) "
+        "→ agenda de GRUPO ([[EGO_SHARED_EVENT:...]] ou SETUP/INVITE).",
+        "- NÃO pergunte «compartilhada ou pessoal?» — o utilizador não usa essa palavra.",
+        "- Se não disser «pessoal», assume agenda de grupo.",
+        "",
+        "Marcadores:",
+        "1) Pessoal explícito → [[EGO_REMINDER:{...}]]",
+        "2) Grupo novo → [[EGO_SHARED_SETUP:{...}]]",
+        "3) Grupo existente — marcar → [[EGO_SHARED_EVENT:{...}]]",
+        "4) Convidar e-mail (criador) → [[EGO_SHARED_INVITE:{...}]]",
+        "5) Apagar grupo (criador) → [[EGO_SHARED_DELETE:{...}]]",
         "",
         f"Estado actual: step={schedule.get('step') or '—'} draft={json.dumps(draft, ensure_ascii=False)}",
     ]
+    if default_cal:
+        lines.append(
+            f"Agenda de grupo por omissão (sem «pessoal»): «{default_cal}» — "
+            "use este calendar_name se o utilizador não disser outro nome."
+        )
+    elif is_group_schedule_request(user_text):
+        lines.append(
+            "Várias agendas de grupo — só pergunte QUAL nome se o utilizador não disse «pessoal» "
+            "e não disse Família/outro nome."
+        )
     if scope == "shared":
         missing = []
         if not draft.get("calendar_id") and not draft.get("calendar_name"):
-            missing.append("qual agenda compartilhada (nome ou escolha da lista)")
+            missing.append("qual agenda de grupo (nome, ex. Família)")
         if not draft.get("scheduled_at"):
             missing.append("data e hora")
         if not draft.get("title"):
             missing.append("título do compromisso")
         if missing:
-            lines.append(f"Falta na agenda compartilhada: {', '.join(missing)}.")
+            lines.append(f"Falta na agenda de grupo: {', '.join(missing)}.")
             if not draft.get("calendar_id") and not draft.get("calendar_name"):
                 lines.append(
                     "Se for agenda NOVA, peça também e-mails a convidar e use EGO_SHARED_SETUP. "
@@ -347,9 +465,10 @@ def build_schedule_wizard_context(
                 )
     elif scope == "personal":
         lines.append("Tipo escolhido: pessoal. Use EGO_REMINDER quando data/hora estiverem claras.")
-    elif looks_like_schedule_intent(user_text):
+    elif is_group_schedule_request(user_text):
         lines.append(
-            "Parece pedido de agendamento. Comece perguntando pessoal vs compartilhada (sem marcadores ainda)."
+            "Pedido de grupo (não disse «pessoal»). Use EGO_SHARED_EVENT com calendar_name "
+            "por omissão se souber qual."
         )
     lines.append("=== FIM FLUXO ===")
     return "\n".join(lines)
@@ -672,7 +791,7 @@ def parse_create_shared_calendar_from_plain_text(text: str) -> dict | None:
     if not cal_name:
         m = re.search(
             r"(?i)(?:cria|criar|crie|abre|abrir)\s+(?:a\s+)?"
-            r"(?:agenda\s+compartilhada\s+)?[«\"']?\s*([^«\"'\n.?]+)",
+            r"(?:agenda(?:\s+compartilhada)?\s+)?[«\"']?\s*([^«\"'\n.?]+)",
             raw,
         )
         if m:
@@ -735,7 +854,7 @@ def parse_delete_shared_calendar_from_plain_text(text: str) -> dict | None:
     if not cal_name:
         m = re.search(
             r"(?i)(?:apaga|apagar|deleta|deletar|exclui|excluir|elimina|eliminar)"
-            r"\s+(?:a\s+)?(?:agenda\s+compartilhada\s+)?[«\"']?\s*([^«\"'\n.?]+)",
+            r"\s+(?:a\s+)?(?:agenda(?:\s+compartilhada)?\s+)?[«\"']?\s*([^«\"'\n.?]+)",
             raw,
         )
         if m:

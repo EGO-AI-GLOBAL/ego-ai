@@ -17,6 +17,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 import type { AppColors } from "@/theme/colors";
+import { membersSummary, membersGroupLine } from "@/utils/sharedCalendarMembers";
 
 type AgendaTab = "personal" | "shared";
 
@@ -79,7 +80,7 @@ function TabBar({
       {(
         [
           ["personal", "Agenda pessoal"],
-          ["shared", "Agenda compartilhada"],
+          ["shared", "Família e grupos"],
         ] as const
       ).map(([id, label]) => {
         const active = tab === id;
@@ -119,8 +120,7 @@ function ChatHint({ colors, onPress }: { colors: AppColors; onPress: () => void 
         Marcar, criar ou convidar
       </Text>
       <Text style={[styles.chatHintBody, { color: colors.textMuted }]}>
-        Peça no chat ao avatar: compromissos pessoais, criar agenda compartilhada, dar nome
-        e adicionar pessoas por e-mail.
+        No chat: «marca reunião amanhã 15h» (Família por omissão) ou «marca na agenda pessoal …»
       </Text>
       <Text style={[styles.chatHintLink, { color: colors.primary }]}>Ir para o chat →</Text>
     </Pressable>
@@ -220,8 +220,8 @@ export default function AgendaScreen() {
             </>
           ) : sharedCalendars.length === 0 ? (
             <Text style={[styles.muted, { color: colors.textMuted }]}>
-              Ainda não participa de agendas compartilhadas. No chat, peça ao avatar: «cria uma
-              agenda Família e convida email@exemplo.com».
+              Ainda não participa de agendas em grupo. No chat: «cria agenda Família» e
+              «convida email@exemplo.com para a agenda Família».
             </Text>
           ) : (
             <>
@@ -232,6 +232,7 @@ export default function AgendaScreen() {
                 const cid = String(cal.id || "");
                 const calName = (cal.name || "Agenda").trim();
                 const nmem = cal.member_count ?? cal.members?.length ?? 0;
+                const namesLine = membersSummary(cal.members);
                 const active = selectedSharedId === cid;
                 const evCount = (cal.events ?? []).filter((e) => !e.dismissed).length;
                 return (
@@ -257,7 +258,7 @@ export default function AgendaScreen() {
                       {calName}
                     </Text>
                     <Text style={[styles.calPickMeta, { color: colors.textMuted }]}>
-                      {nmem} membro{nmem === 1 ? "" : "s"}
+                      {namesLine || `${nmem} membro${nmem === 1 ? "" : "s"}`}
                       {cal.is_owner ? " · você criou" : ""}
                       {" · "}
                       {evCount} compromisso{evCount === 1 ? "" : "s"}
@@ -275,6 +276,9 @@ export default function AgendaScreen() {
                 >
                   <Text style={[styles.calDetailTitle, { color: colors.text }]}>
                     {(selectedCalendar.name || "Agenda").trim()}
+                  </Text>
+                  <Text style={[styles.calDetailMembers, { color: colors.textMuted }]}>
+                    {membersGroupLine(selectedCalendar.members, session?.user?.id)}
                   </Text>
                   <Text style={[styles.sectionInner, { color: colors.textMuted }]}>
                     Compromissos marcados
@@ -357,7 +361,8 @@ const styles = StyleSheet.create({
     padding: 14,
     marginTop: 12,
   },
-  calDetailTitle: { fontSize: 17, fontWeight: "800", marginBottom: 4 },
+  calDetailTitle: { fontSize: 17, fontWeight: "800", marginBottom: 6 },
+  calDetailMembers: { fontSize: 14, lineHeight: 20, marginBottom: 12 },
   eventRow: {
     flexDirection: "row",
     alignItems: "flex-start",

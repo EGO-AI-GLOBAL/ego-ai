@@ -62,7 +62,7 @@ export default function ChatScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
-  const { data, loading, refreshing, error, refresh, setPersona } = useDashboard();
+  const { data, loading, refreshing, error, refresh, mergeChatResult, setPersona } = useDashboard();
   const userId = data.me?.user_id?.trim() ?? session?.user?.id?.trim() ?? "";
 
   const onPersonaSaved = useCallback(
@@ -475,8 +475,14 @@ export default function ChatScreen() {
   };
 
   const applyChatResult = (result: SendChatResult) => {
-    setChatNotice(chatSavedNotice(result));
-    setChatError(chatWarnings(result));
+    mergeChatResult(result);
+    const warn = chatWarnings(result);
+    setChatNotice(warn ? null : chatSavedNotice(result));
+    setChatError(warn);
+  };
+
+  const afterChatDone = (_result: SendChatResult) => {
+    /* Sem refresh automático — evita crash; dados vêm de mergeChatResult. */
   };
 
   const pdfSummaryPrompt =
@@ -511,8 +517,10 @@ export default function ChatScreen() {
     ]);
     scrollMessagesToEnd(true);
     setSending(true);
+    let chatResult: SendChatResult | null = null;
     try {
-      const result = await sendChatMessage(text, autoPlayVoice, historyForApi());
+      chatResult = await sendChatMessage(text, autoPlayVoice, historyForApi());
+      const result = chatResult;
       setPendingChat([
         { role: "user", content: userLabel },
         { role: "assistant", content: result.reply },
@@ -521,7 +529,7 @@ export default function ChatScreen() {
       await saveExchange(userLabel, result.reply);
       setPendingChat([]);
       setLastChatResult(result);
-      if (autoPlayVoice && !(result.warnings && result.warnings.length > 0)) {
+      if (autoPlayVoice && !chatWarnings(result)) {
         void playVoice(result).catch((e) => {
           setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
         });
@@ -534,7 +542,9 @@ export default function ChatScreen() {
       setPendingChat([{ role: "user", content: userLabel }]);
       setChatError(e instanceof Error ? e.message : "Erro ao enviar.");
     } finally {
-      void refresh();
+      if (chatResult) {
+        afterChatDone(chatResult);
+      }
       setSending(false);
     }
   };
@@ -572,8 +582,9 @@ export default function ChatScreen() {
       { role: "user", content: "Voz" },
       { role: "assistant", content: "…" },
     ]);
+    let chatResult: SendChatResult | null = null;
     try {
-      const result = await voice.stopRecordingAndSend(autoPlayVoice, historyForApi(), {
+      chatResult = await voice.stopRecordingAndSend(autoPlayVoice, historyForApi(), {
         onDelta: (_chunk, full) => {
           setChatNotice("A responder…");
           setPendingChat([
@@ -582,6 +593,7 @@ export default function ChatScreen() {
           ]);
         },
       });
+      const result = chatResult;
       const userLabel = result.user_transcript?.trim() || "Voz";
       setPendingChat([
         { role: "user", content: userLabel },
@@ -598,7 +610,7 @@ export default function ChatScreen() {
       );
       setPendingChat([]);
       setLastChatResult(result);
-      if (autoPlayVoice && result.voice_engine !== "openai_realtime") {
+      if (autoPlayVoice && result.voice_engine !== "openai_realtime" && !chatWarnings(result)) {
         void playVoice(result).catch((e) => {
           setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
         });
@@ -613,7 +625,9 @@ export default function ChatScreen() {
       setPendingChat([]);
     } finally {
       micBusyRef.current = false;
-      void refresh();
+      if (chatResult) {
+        afterChatDone(chatResult);
+      }
       setSending(false);
     }
   };

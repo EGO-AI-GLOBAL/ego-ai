@@ -54,21 +54,29 @@ function notificationIdentifier(reminderId: string, minutesBefore: number): stri
 
 async function ensureAndroidChannel(): Promise<void> {
   if (Platform.OS !== "android") return;
-  await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
-    name: "Lembretes",
-    importance: Notifications.AndroidImportance.HIGH,
-    sound: "default",
-    vibrationPattern: [0, 250, 120, 250],
-  });
+  try {
+    await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID, {
+      name: "Lembretes",
+      importance: Notifications.AndroidImportance.HIGH,
+      sound: "default",
+      vibrationPattern: [0, 250, 120, 250],
+    });
+  } catch {
+    /* canal opcional */
+  }
 }
 
 export async function ensureReminderNotificationPermission(): Promise<boolean> {
   if (Platform.OS === "web") return false;
-  await ensureAndroidChannel();
-  const current = await Notifications.getPermissionsAsync();
-  if (current.granted) return true;
-  const requested = await Notifications.requestPermissionsAsync();
-  return requested.granted;
+  try {
+    await ensureAndroidChannel();
+    const current = await Notifications.getPermissionsAsync();
+    if (current.granted) return true;
+    const requested = await Notifications.requestPermissionsAsync();
+    return requested.granted;
+  } catch {
+    return false;
+  }
 }
 
 /** Agenda notificações locais 1 h, 30 min e 10 min antes de cada lembrete ativo. */
@@ -77,58 +85,74 @@ export async function syncReminderLocalNotifications(
 ): Promise<void> {
   if (Platform.OS === "web") return;
 
-  const granted = await ensureReminderNotificationPermission();
-  if (!granted) return;
+  try {
+    const granted = await ensureReminderNotificationPermission();
+    if (!granted) return;
 
-  const now = Date.now();
-  const active = reminders.filter(
-    (r) => r.id && r.scheduled_at && !r.dismissed
-  );
-  const wantedIds = new Set<string>();
+    const now = Date.now();
+    const active = reminders.filter(
+      (r) => r.id && r.scheduled_at && !r.dismissed
+    );
+    const wantedIds = new Set<string>();
 
-  for (const r of active) {
-    const rid = String(r.id);
-    const scheduled = new Date(String(r.scheduled_at));
-    if (Number.isNaN(scheduled.getTime())) continue;
-    const title = String(r.title || "Lembrete");
-    const announce = String(r.announce || "");
-    const whenLocal = formatLocalTime(scheduled.toISOString());
+    for (const r of active) {
+      const rid = String(r.id);
+      const scheduled = new Date(String(r.scheduled_at));
+      if (Number.isNaN(scheduled.getTime())) continue;
+      const title = String(r.title || "Lembrete");
+      const announce = String(r.announce || "");
+      const whenLocal = formatLocalTime(scheduled.toISOString());
 
-    for (const minutesBefore of REMINDER_ALERT_OFFSETS_MINUTES) {
-      const triggerAt = scheduled.getTime() - minutesBefore * 60_000;
-      if (triggerAt <= now) continue;
-      const id = notificationIdentifier(rid, minutesBefore);
-      wantedIds.add(id);
-      await Notifications.scheduleNotificationAsync({
-        identifier: id,
-        content: {
-          title: notificationTitle(minutesBefore),
-          body: notificationBody(minutesBefore, title, announce, whenLocal),
-          sound: true,
-          ...(Platform.OS === "android"
-            ? { channelId: ANDROID_CHANNEL_ID }
-            : {}),
-        },
-        trigger: new Date(triggerAt),
-      });
+      for (const minutesBefore of REMINDER_ALERT_OFFSETS_MINUTES) {
+        const triggerAt = scheduled.getTime() - minutesBefore * 60_000;
+        if (triggerAt <= now) continue;
+        const id = notificationIdentifier(rid, minutesBefore);
+        wantedIds.add(id);
+        try {
+          await Notifications.scheduleNotificationAsync({
+            identifier: id,
+            content: {
+              title: notificationTitle(minutesBefore),
+              body: notificationBody(minutesBefore, title, announce, whenLocal),
+              sound: true,
+              ...(Platform.OS === "android"
+                ? { channelId: ANDROID_CHANNEL_ID }
+                : {}),
+            },
+            trigger: new Date(triggerAt),
+          });
+        } catch {
+          /* ignora lembrete individual */
+        }
+      }
     }
-  }
 
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  for (const n of scheduled) {
-    const id = n.identifier;
-    if (id.startsWith("ego-rem-") && !wantedIds.has(id)) {
-      await Notifications.cancelScheduledNotificationAsync(id);
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    for (const n of scheduled) {
+      const id = n.identifier;
+      if (id.startsWith("ego-rem-") && !wantedIds.has(id)) {
+        try {
+          await Notifications.cancelScheduledNotificationAsync(id);
+        } catch {
+          /* ignora cancelamento individual */
+        }
+      }
     }
+  } catch {
+    /* lembretes opcionais — não deve derrubar o app */
   }
 }
 
 export async function cancelAllReminderLocalNotifications(): Promise<void> {
   if (Platform.OS === "web") return;
-  const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-  await Promise.all(
-    scheduled
-      .filter((n) => n.identifier.startsWith("ego-rem-"))
-      .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier))
-  );
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    await Promise.all(
+      scheduled
+        .filter((n) => n.identifier.startsWith("ego-rem-"))
+        .map((n) => Notifications.cancelScheduledNotificationAsync(n.identifier))
+    );
+  } catch {
+    /* opcional */
+  }
 }
