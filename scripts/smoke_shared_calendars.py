@@ -58,6 +58,16 @@ def main() -> int:
         sched, "marca na agenda familia", None, ""
     )
     assert done and done["draft"].get("scope") == "shared", done
+    assert (
+        cs.resolve_effective_schedule_scope(done, "marca na agenda familia")
+        == "shared"
+    )
+    assert (
+        cs.resolve_effective_schedule_scope(
+            {"draft": {"scope": "personal"}}, "ok"
+        )
+        == "personal"
+    )
     assert cs.detect_scope_from_user_text("Marca na agenda pessoal amanhã 15h") == "personal"
     ev3 = cs.parse_shared_event_from_plain_text(bare)
     assert ev3 and ev3.get("scheduled_at") and not ev3.get("calendar_name")

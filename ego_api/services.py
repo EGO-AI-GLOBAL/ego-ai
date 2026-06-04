@@ -338,6 +338,10 @@ def process_chat_message(
     skip_schedule_save = bool(scope_choice_reply)
     reply_clean = scope_choice_reply or reply
 
+    effective_scope = cs.resolve_effective_schedule_scope(
+        schedule, user_display, supabase, user_id
+    )
+
     reply_clean, draft_patch = cs.extract_schedule_draft(reply_clean)
     if draft_patch:
         schedule = cs.merge_schedule_draft(schedule, draft_patch)
@@ -465,9 +469,9 @@ def process_chat_message(
         reply_clean, shared_event = cs.extract_shared_event(reply_clean)
     else:
         shared_event = None
-    if user_wants_personal or only_personal_agenda:
+    if user_wants_personal or only_personal_agenda or effective_scope == "personal":
         shared_event = None
-    if shared_event:
+    if shared_event and effective_scope != "personal":
         shared_event = cs.override_scheduled_from_user_message(
             user_display, shared_event, ref=schedule_ref
         )
@@ -482,7 +486,9 @@ def process_chat_message(
         warnings.extend(shared_warns)
         if evs:
             schedule = {"step": "", "draft": {}}
-    elif draft_event := cs.shared_event_from_schedule_draft(schedule):
+    elif effective_scope != "personal" and (
+        draft_event := cs.shared_event_from_schedule_draft(schedule)
+    ):
         draft_event = cs.override_scheduled_from_user_message(
             user_display, draft_event, ref=schedule_ref
         )
@@ -504,6 +510,7 @@ def process_chat_message(
             )
     elif (
         not skip_schedule_save
+        and effective_scope != "personal"
         and not user_wants_personal
         and not only_personal_agenda
         and (
@@ -529,28 +536,23 @@ def process_chat_message(
                 "só entra quando o servidor grava. Detalhe: " + shared_warns[0]
             )
 
-    draft_scope = (schedule.get("draft") or {}).get("scope")
-    user_scope = cs.detect_scope_from_user_text(user_display, supabase, user_id)
-    block_personal_reminder = (
-        user_scope != "personal"
-        and not shared_events_saved
-        and (draft_scope == "shared" or user_scope == "shared")
-    )
-
     if not skip_schedule_save:
         reply_clean, rem_items = gemini.extract_reminders(reply_clean)
-        if block_personal_reminder:
+        if effective_scope == "shared":
             rem_items = []
         rem_items = cs.override_scheduled_from_user_message(
             user_display, rem_items, ref=schedule_ref
         ) or []
     else:
         rem_items = []
-    if not skip_schedule_save and not rem_items:
+    if not skip_schedule_save and not rem_items and effective_scope != "shared":
         if draft_rem := cs.reminder_from_schedule_draft(schedule):
             rem_items = [draft_rem]
-    if not skip_schedule_save and not rem_items and (
-        user_wants_personal or only_personal_agenda
+    if (
+        not skip_schedule_save
+        and not rem_items
+        and effective_scope != "shared"
+        and (user_wants_personal or only_personal_agenda)
     ):
         if fallback_rem := cs.parse_reminder_from_plain_text(
             user_display,

@@ -548,6 +548,25 @@ def build_schedule_scope_choice_reply(
     return "Agenda **pessoal**? Diga: «marca na agenda pessoal»."
 
 
+def resolve_effective_schedule_scope(
+    schedule: dict[str, Any],
+    user_text: str,
+    supabase: Client | None = None,
+    user_id: str = "",
+) -> str | None:
+    """Uma única agenda por mensagem: personal ou shared, nunca as duas."""
+    t = (user_text or "").strip()
+    if _SCOPE_PERSONAL.search(t):
+        return "personal"
+    if user_named_shared_calendar(t):
+        return "shared"
+    draft_scope = str((schedule.get("draft") or {}).get("scope") or "").strip()
+    if draft_scope in ("personal", "shared"):
+        return draft_scope
+    user_scope = detect_scope_from_user_text(t, supabase, user_id)
+    return user_scope
+
+
 def detect_scope_from_user_text(
     text: str,
     supabase: Client | None = None,
