@@ -431,6 +431,23 @@ def _pretty_name_from_email(email: str) -> str:
     return " ".join(p[:1].upper() + p[1:].lower() for p in parts)[:80]
 
 
+def _is_email_like(text: str) -> bool:
+    t = (text or "").strip().lower()
+    return bool(t) and ("@" in t or t.endswith(".com") or t.endswith(".br"))
+
+
+def _clean_person_name(name: str, email_norm: str) -> str:
+    """Descarta valores que são só e-mail ou alias do e-mail."""
+    n = (name or "").strip()
+    if not n or _is_email_like(n):
+        return ""
+    em = (email_norm or "").strip().lower()
+    local = em.split("@", 1)[0] if "@" in em else ""
+    if n.lower() in (em, local):
+        return ""
+    return n[:120]
+
+
 def _profile_full_name(admin: Client | None, user_id: str) -> str:
     if not admin or not user_id:
         return ""
@@ -450,21 +467,62 @@ def _profile_full_name(admin: Client | None, user_id: str) -> str:
     return ""
 
 
+def _profile_full_name_by_email(admin: Client | None, email_norm: str) -> str:
+    if not admin or not email_norm:
+        return ""
+    try:
+        res = (
+            admin.table("profiles")
+            .select("full_name,name,email")
+            .eq("email", email_norm)
+            .limit(1)
+            .execute()
+        )
+        rows = res.data or []
+        if not rows:
+            res = (
+                admin.table("profiles")
+                .select("full_name,name,email")
+                .ilike("email", email_norm)
+                .limit(5)
+                .execute()
+            )
+            rows = [
+                r
+                for r in (res.data or [])
+                if str(r.get("email") or "").strip().lower() == email_norm
+            ]
+        if rows:
+            return str(rows[0].get("full_name") or rows[0].get("name") or "").strip()
+    except Exception:
+        pass
+    return ""
+
+
 def _member_display_name(
     admin: Client | None, user_id: str | None, email: str
 ) -> str:
-    """Nome amigável (profiles.full_name = «como quer ser chamado»)."""
+    """Nome amigável (profiles.full_name = «como quer ser chamado»). Nunca e-mail cru."""
+    email_norm, _err = _normalize_invite_email(email)
+    if _err:
+        email_norm = (email or "").strip().lower()
+
     uid = (user_id or "").strip()
     if not uid:
         try:
-            uid = resolve_user_id_by_email(email) or ""
+            uid = resolve_user_id_by_email(email_norm or email) or ""
         except Exception:
             uid = ""
-    if uid:
-        name = _profile_full_name(admin, uid)
+
+    for candidate in (
+        _profile_full_name(admin, uid) if uid else "",
+        _profile_full_name_by_email(admin, email_norm),
+    ):
+        name = _clean_person_name(candidate, email_norm)
         if name:
-            return name[:120]
-    return _pretty_name_from_email(email)
+            return name
+
+    return _pretty_name_from_email(email_norm or email)
 
 
 def list_members(
