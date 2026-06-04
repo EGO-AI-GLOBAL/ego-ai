@@ -860,17 +860,29 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
 
 
 def _stripe_checkout_payload(user_id: str) -> dict:
+    from ego_api.team_stripe_checkout import team_checkout_nested
+
     urls = stripe_checkout_urls()
     legacy_m = _stripe_link(STRIPE_MENSAL_URL, user_id)
     legacy_a = _stripe_link(STRIPE_ANUAL_URL, user_id)
     connection = _stripe_link(urls.get(PLAN_CONNECTION) or "", user_id) or legacy_m
     int_connection = _stripe_link(urls.get("int_connection") or "", user_id)
+    launch = _stripe_link(urls.get("launch") or "", user_id)
+    team_raw = team_checkout_nested()
+    team: dict[str, dict[str, dict[str, str | None]]] = {"br": {}, "int": {}}
+    for market in ("br", "int"):
+        for tier, seat_map in (team_raw.get(market) or {}).items():
+            team[market][tier] = {
+                seats: _stripe_link(url, user_id) for seats, url in seat_map.items()
+            }
     return {
         "monthly_url": connection,
         "annual_url": legacy_a,
         "connection_url": connection,
+        "launch_url": launch,
         "premium_url": _stripe_link(urls.get(PLAN_PREMIUM) or "", user_id),
         "total_url": _stripe_link(urls.get(PLAN_TOTAL) or "", user_id),
+        "enterprise_url": _stripe_link(urls.get(PLAN_ENTERPRISE) or "", user_id),
         "int_connection_url": int_connection,
         "int_premium_url": _stripe_link(urls.get("int_premium") or "", user_id),
         "int_premium_annual_url": _stripe_link(
@@ -880,7 +892,9 @@ def _stripe_checkout_payload(user_id: str) -> dict:
         "int_total_annual_url": _stripe_link(
             urls.get("int_total_annual") or "", user_id
         ),
+        "int_enterprise_url": _stripe_link(urls.get("int_enterprise") or "", user_id),
         "essential": None,
+        "team": team,
     }
 
 

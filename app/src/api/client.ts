@@ -8,6 +8,7 @@ import type {
   DashboardData,
   HealthInfo,
   MeData,
+  LaunchPlanOffer,
   PlanCatalogItem,
   SendChatResult,
 } from "./types";
@@ -305,10 +306,19 @@ export async function requestPasswordReset(email: string): Promise<string> {
 
 export type LegalDoc = "terms" | "privacy" | "refund";
 
-export async function fetchPlansCatalog(): Promise<PlanCatalogItem[]> {
+export async function fetchPlansCatalog(): Promise<{
+  plans: PlanCatalogItem[];
+  launchOffer: LaunchPlanOffer | null;
+}> {
   const { data } = await axios.get(`${apiBase}plans`, { timeout: 15000 });
-  const body = unwrap<{ plans: PlanCatalogItem[] }>(data);
-  return body.plans ?? [];
+  const body = unwrap<{
+    plans: PlanCatalogItem[];
+    launch_offer?: LaunchPlanOffer | null;
+  }>(data);
+  return {
+    plans: body.plans ?? [],
+    launchOffer: body.launch_offer ?? null,
+  };
 }
 
 export async function fetchLegalMarkdown(doc: LegalDoc): Promise<string> {

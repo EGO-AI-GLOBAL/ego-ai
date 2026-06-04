@@ -281,8 +281,14 @@ def stripe_object_to_tier(*, price_id: str = "", product_id: str = "") -> str | 
     return stripe_price_to_tier(price_id) or stripe_product_to_tier(product_id)
 
 
+def stripe_launch_checkout_url() -> str | None:
+    """Oferta de lançamento BR (R$ 9,90/9,99) — mesmos limites EGO Conexão."""
+    return _clean_url(os.getenv("STRIPE_CHECKOUT_LAUNCH_URL", ""))
+
+
 def stripe_checkout_urls() -> dict[str, str | None]:
     return {
+        "launch": stripe_launch_checkout_url(),
         PLAN_CONNECTION: _clean_url(os.getenv("STRIPE_CHECKOUT_CONNECTION_URL", "")),
         PLAN_PREMIUM: _clean_url(os.getenv("STRIPE_CHECKOUT_PREMIUM_URL", "")),
         PLAN_TOTAL: _clean_url(os.getenv("STRIPE_CHECKOUT_TOTAL_URL", "")),

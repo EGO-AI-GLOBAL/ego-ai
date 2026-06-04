@@ -12,12 +12,13 @@ import {
   View,
 } from "react-native";
 import { fetchPlansCatalog } from "@/api/client";
-import type { PlanCatalogItem, PlanTier } from "@/api/types";
+import type { LaunchPlanOffer, PlanCatalogItem, PlanTier } from "@/api/types";
 import { PlanCard } from "@/components/PlanCard";
 import { ScreenShell } from "@/components/ScreenShell";
 import {
   DISPLAY_PRICE_BRL,
   DISPLAY_PRICE_USD,
+  LAUNCH_PLAN_OFFER_BR,
   MONTHLY_PLAN_OFFERS,
   fallbackLimitsForTier,
   type MonthlyMarket,
@@ -26,7 +27,11 @@ import { TEAM_PLAN_OFFERS } from "@/constants/teamStripeCheckout";
 import { formatMonthlyPrice } from "@/constants/plans";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
-import { checkoutUrlForTier, teamCheckoutUrl } from "@/utils/planCheckout";
+import {
+  checkoutUrlForTier,
+  launchCheckoutUrl,
+  teamCheckoutUrl,
+} from "@/utils/planCheckout";
 
 const MARKET_TITLE: Record<MonthlyMarket, string> = {
   br: "Brasil (R$) — mensal",
@@ -37,6 +42,7 @@ export default function PlansScreen() {
   const colors = useColors();
   const { data, loading, refreshing, error, refresh } = useDashboard();
   const [catalog, setCatalog] = useState<PlanCatalogItem[]>([]);
+  const [launchOffer, setLaunchOffer] = useState<LaunchPlanOffer | null>(null);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [openingKey, setOpeningKey] = useState<string | null>(null);
@@ -48,8 +54,9 @@ export default function PlansScreen() {
     setCatalogLoading(true);
     setCatalogError(null);
     try {
-      const plans = await fetchPlansCatalog();
+      const { plans, launchOffer: launch } = await fetchPlansCatalog();
       setCatalog(plans);
+      setLaunchOffer(launch);
     } catch {
       // Se a API /plans não existir neste backend, seguimos com os limites fallback.
       setCatalog([]);
@@ -109,6 +116,43 @@ export default function PlansScreen() {
 
   const busy = loading || catalogLoading;
   const showError = error;
+
+  const renderLaunchOffer = () => {
+    if (currentTier !== "essential") return null;
+    const url =
+      launchOffer?.checkout_url?.trim() ||
+      launchCheckoutUrl(checkout);
+    if (!url) return null;
+    const label = launchOffer?.label || LAUNCH_PLAN_OFFER_BR.label;
+    const tagline = launchOffer?.tagline || LAUNCH_PLAN_OFFER_BR.tagline;
+    const priceOverride =
+      launchOffer?.price_label || LAUNCH_PLAN_OFFER_BR.displayPrice;
+    const priceNum = launchOffer?.price_brl ?? LAUNCH_PLAN_OFFER_BR.priceNum;
+    const tier = (launchOffer?.tier || LAUNCH_PLAN_OFFER_BR.tier) as PlanTier;
+    const key = "launch-br";
+    return (
+      <PlanCard
+        key={key}
+        colors={colors}
+        plan={{
+          tier,
+          label,
+          price_brl: priceNum,
+          limits:
+            launchOffer?.limits ??
+            limitsByTier.get(tier) ??
+            fallbackLimitsForTier(tier),
+        }}
+        isCurrent={false}
+        highlighted
+        badgeLabel="Lançamento"
+        checkoutUrl={url}
+        onSubscribe={(_, u) => onSubscribe(key, u)}
+        busy={openingKey === key}
+        priceOverride={priceOverride}
+      />
+    );
+  };
 
   const renderIndividual = (market: MonthlyMarket) => {
     const offers = MONTHLY_PLAN_OFFERS.filter(
@@ -213,6 +257,14 @@ export default function PlansScreen() {
                 </Text>
               ) : null}
             </View>
+
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>
+              Oferta de lançamento (Brasil)
+            </Text>
+            <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
+              Preço promocional com os mesmos benefícios do plano Conexão.
+            </Text>
+            {renderLaunchOffer()}
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               {MARKET_TITLE.br} — individual

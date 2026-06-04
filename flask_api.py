@@ -667,7 +667,14 @@ def profile_patch():
 
 @app.get("/api/v1/plans")
 def plans_catalog():
-    from ego_api.plans import PLAN_LABELS, PLAN_PRICES_BRL, PLAN_TIERS, plan_limits
+    from ego_api.plans import (
+        PLAN_CONNECTION,
+        PLAN_LABELS,
+        PLAN_PRICES_BRL,
+        PLAN_TIERS,
+        plan_limits,
+        stripe_launch_checkout_url,
+    )
 
     items = []
     for tier in PLAN_TIERS:
@@ -688,7 +695,28 @@ def plans_catalog():
                 },
             }
         )
-    return _json_ok({"plans": items})
+    launch_url = stripe_launch_checkout_url()
+    launch_offer = None
+    if launch_url:
+        lim = plan_limits(PLAN_CONNECTION)
+        launch_offer = {
+            "tier": PLAN_CONNECTION,
+            "label": "EGO Conexão — Oferta de lançamento",
+            "price_brl": 9.9,
+            "price_label": "R$ 9,90/mês",
+            "tagline": "Mesmos benefícios da Conexão · depois R$ 29,90/mês",
+            "checkout_url": launch_url,
+            "limits": {
+                "monthly_tokens": lim.monthly_tokens,
+                "daily_text_messages": lim.daily_text_messages,
+                "daily_voice_messages": lim.daily_voice_messages,
+                "daily_tts_replies": lim.daily_tts_replies,
+                "max_agenda_items": lim.max_agenda_items,
+                "max_reminders": lim.max_reminders,
+                "audio_speed_multipliers": list(lim.audio_speed_multipliers),
+            },
+        }
+    return _json_ok({"plans": items, "launch_offer": launch_offer})
 
 
 @app.get("/api/v1/persona/options")

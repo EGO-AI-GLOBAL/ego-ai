@@ -1,5 +1,5 @@
 export type ApiOk<T> = { ok: true } & T;
-export type ApiErr = { ok: false; error: string; code?: string };
+export type ApiErr = { ok: false; error: string };
 
 export type SessionUser = {
   id: string;
@@ -19,20 +19,34 @@ export type HealthResponse = ApiOk<{
   gemini_configured: boolean;
 }>;
 
-export type PlanTier = "essential" | "connection" | "premium" | "total";
+export type PlanTier =
+  | "essential"
+  | "connection"
+  | "premium"
+  | "total"
+  | "enterprise";
 
 export type StripeCheckoutLinks = {
   monthly_url: string | null;
   annual_url: string | null;
   connection_url?: string | null;
+  /** Oferta de lançamento BR (R$ 9,90) — limites Conexão */
+  launch_url?: string | null;
   premium_url?: string | null;
   total_url?: string | null;
+  enterprise_url?: string | null;
   int_connection_url?: string | null;
   int_premium_url?: string | null;
   int_premium_annual_url?: string | null;
   int_total_url?: string | null;
   int_total_annual_url?: string | null;
+  int_enterprise_url?: string | null;
   essential?: null;
+  /** Planos equipe: team.br.connection['10'] */
+  team?: {
+    br?: Partial<Record<"connection" | "premium" | "total", Record<string, string | null>>>;
+    int?: Partial<Record<"connection" | "premium" | "total", Record<string, string | null>>>;
+  };
 };
 
 export type PlanLimitsInfo = {
@@ -49,6 +63,17 @@ export type PlanCatalogItem = {
   tier: PlanTier;
   label: string;
   price_brl: number;
+  limits: PlanLimitsInfo;
+};
+
+/** Promo lançamento (API /plans → launch_offer). */
+export type LaunchPlanOffer = {
+  tier: PlanTier;
+  label: string;
+  price_brl: number;
+  price_label?: string;
+  tagline?: string;
+  checkout_url?: string | null;
   limits: PlanLimitsInfo;
 };
 
@@ -96,6 +121,8 @@ export type AccessInfo = {
   /** Histórico de chat só no dispositivo (servidor não guarda mensagens). */
   chat_local_history?: boolean;
   is_pro: boolean;
+  team_seats?: number | null;
+  plan_type?: string;
 };
 
 export type AccessResponse = ApiOk<AccessInfo>;
@@ -174,8 +201,6 @@ export type SendChatResult = {
   language?: string;
   agenda_saved?: AgendaItem[];
   reminders_saved?: Reminder[];
-  shared_calendars_saved?: { id?: string; name?: string }[];
-  shared_events_saved?: { id?: string; title?: string; scheduled_at?: string }[];
   /** openai_realtime = áudio já reproduzido no browser */
   voice_engine?: string;
 };
