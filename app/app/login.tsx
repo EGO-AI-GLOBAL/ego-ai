@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { EgoLogo } from "@/components/EgoLogo";
+import { PasswordField } from "@/components/PasswordField";
 import { useAuth } from "@/context/AuthContext";
 import { useColors } from "@/theme/ThemeContext";
 import { validateEmail, validatePassword } from "@/utils/validation";
@@ -79,21 +80,13 @@ export default function LoginScreen() {
               placeholder="nome@exemplo.com"
               placeholderTextColor={colors.textMuted}
             />
-            <Text style={[styles.label, { color: colors.textMuted }]}>Senha</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bgElevated,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              secureTextEntry
+            <PasswordField
+              label="Senha"
               value={password}
               onChangeText={setPassword}
-              placeholder="••••••••"
-              placeholderTextColor={colors.textMuted}
+              kind="login"
+              returnKeyType="done"
+              onSubmitEditing={() => void onSubmit()}
             />
             <Link href="/forgot-password" asChild>
               <Pressable style={styles.forgotWrap} hitSlop={8}>

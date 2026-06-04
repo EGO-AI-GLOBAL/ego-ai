@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { EgoLogo } from "@/components/EgoLogo";
+import { PasswordField } from "@/components/PasswordField";
 import { validateReferralCode } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
 import { useColors } from "@/theme/ThemeContext";
@@ -198,43 +199,19 @@ export default function SignupScreen() {
               placeholder="seu@email.com"
               placeholderTextColor={colors.textMuted}
             />
-            <Text style={[styles.label, { color: colors.textMuted }]}>Senha</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bgElevated,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              secureTextEntry
+            <PasswordField
+              label="Senha"
               value={password}
               onChangeText={setPassword}
               placeholder="mín. 6 caracteres"
-              placeholderTextColor={colors.textMuted}
-              textContentType="newPassword"
-              autoComplete="password-new"
+              kind="new"
             />
-            <Text style={[styles.label, { color: colors.textMuted }]}>
-              Confirmar senha
-            </Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bgElevated,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              secureTextEntry
+            <PasswordField
+              label="Confirmar senha"
               value={passwordConfirm}
               onChangeText={setPasswordConfirm}
               placeholder="Repita a senha"
-              placeholderTextColor={colors.textMuted}
-              textContentType="newPassword"
-              autoComplete="password-new"
+              kind="new"
             />
             {referralOpen ? (
               <View style={styles.referralBlock}>
