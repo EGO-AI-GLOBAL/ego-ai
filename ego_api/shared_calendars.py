@@ -1077,19 +1077,27 @@ def delete_calendar(
         row = cal.data[0]
         if str(row.get("owner_user_id")) != owner_user_id:
             return False, "Só quem criou a agenda pode apagá-la."
-        try:
-            supabase.table(SUPABASE_SHARED_CALENDARS_TABLE).delete().eq(
-                "id", calendar_id
-            ).execute()
-            return True, ""
-        except Exception as exc:
-            admin = create_service_client()
-            if not admin:
-                return False, str(exc)
-            admin.table(SUPABASE_SHARED_CALENDARS_TABLE).delete().eq(
-                "id", calendar_id
-            ).execute()
-            return True, ""
+        admin = create_service_client()
+        clients: list = []
+        if admin:
+            clients.append(admin)
+        if supabase and supabase not in clients:
+            clients.append(supabase)
+        last_err = ""
+        for client in clients:
+            try:
+                client.table(SUPABASE_SHARED_CALENDARS_TABLE).delete().eq(
+                    "id", calendar_id
+                ).execute()
+                check = client.table(SUPABASE_SHARED_CALENDARS_TABLE).select(
+                    "id"
+                ).eq("id", calendar_id).limit(1).execute()
+                if not (check.data or []):
+                    return True, ""
+                last_err = "A agenda ainda aparece na base após apagar."
+            except Exception as exc:
+                last_err = str(exc)
+        return False, last_err or "Não foi possível apagar a agenda."
     except Exception as exc:
         return False, str(exc)
 

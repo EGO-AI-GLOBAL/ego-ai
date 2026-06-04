@@ -171,7 +171,7 @@ def ensure_visible_chat_reply(
             )
         return (
             f"Não consegui confirmar a remoção da agenda «{cal_name}». "
-            "Repita: Apaga a agenda Família"
+            f"Repita: Apaga a agenda {cal_name}"
         )
 
     if shared_invite and not shared_members:

@@ -84,6 +84,12 @@ def main() -> int:
     deleted2 = cs.parse_delete_shared_calendar_from_plain_text(short_delete)
     assert deleted2 and deleted2.get("calendar_name") == "Família", deleted2
 
+    delete_360 = "Apaga agenda 360 nas alturas"
+    deleted360 = cs.parse_delete_shared_calendar_from_plain_text(delete_360)
+    assert deleted360 and deleted360.get("calendar_name") == "360 nas alturas", (
+        deleted360
+    )
+
     create_text = "Cria agenda compartilhada Família"
     created = cs.parse_create_shared_calendar_from_plain_text(create_text)
     assert created and created.get("calendar_name") == "Família", created

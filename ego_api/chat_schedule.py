@@ -1226,19 +1226,35 @@ def extract_shared_delete(text: str) -> tuple[str, dict | None]:
     return text, None
 
 
+def apply_user_delete_calendar_intent(
+    user_display: str, data: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    """Pedido do utilizador define qual agenda apagar (ex. «360 nas alturas»)."""
+    parsed = parse_delete_shared_calendar_from_plain_text(user_display)
+    if not parsed:
+        return data
+    name = str(parsed.get("calendar_name") or "").strip()
+    if not name:
+        return data
+    out = dict(data) if isinstance(data, dict) else {}
+    out["calendar_name"] = name
+    out.pop("calendar_id", None)
+    return out
+
+
 def parse_delete_shared_calendar_from_plain_text(text: str) -> dict | None:
     """Fallback quando o criador pede apagar agenda em texto livre."""
     raw = (text or "").strip()
     if not raw:
         return None
     if not re.search(
-        r"(?i)\b(apaga|apagar|deleta|deletar|exclui|excluir|elimina|eliminar)\b",
+        r"(?i)\b(apaga|apagar|deleta|deletar|exclui|excluir|elimina|eliminar|remove|remover)\b",
         raw,
     ):
         return None
     if not (_SCOPE_SHARED.search(raw) or re.search(r"(?i)\bagenda\b", raw)):
         return None
-    cal_name = _extract_shared_calendar_name(raw)
+    cal_name = _extract_create_calendar_name(raw) or _extract_shared_calendar_name(raw)
     if not cal_name:
         m = re.search(
             r"(?i)(?:apaga|apagar|deleta|deletar|exclui|excluir|elimina|eliminar)"
@@ -1246,10 +1262,7 @@ def parse_delete_shared_calendar_from_plain_text(text: str) -> dict | None:
             raw,
         )
         if m:
-            cal_name = re.split(
-                r"(?i)\s+(?:reuni|marca|agend|amanh|hoje|depois|às|as|\d)",
-                m.group(1).strip().strip("«»\"' "),
-            )[0].strip()
+            cal_name = _trim_calendar_name_tail(m.group(1))
     if not cal_name:
         return None
     return {"calendar_name": cal_name}
@@ -1263,17 +1276,29 @@ def process_shared_delete(
     """Remove agenda compartilhada para todos (só criador)."""
     from ego_api import shared_calendars as sc
 
-    calendar_id = _resolve_calendar_id_for_user(
-        supabase,
-        user_id,
-        str(data.get("calendar_id") or ""),
-        str(data.get("calendar_name") or data.get("name") or ""),
-    )
     cal_name = str(data.get("calendar_name") or data.get("name") or "").strip()
+    calendar_id = str(data.get("calendar_id") or "").strip()
     warnings: list[str] = []
 
+    if calendar_id and cal_name:
+        bound = sc.get_calendar(supabase, user_id, calendar_id)
+        if bound:
+            bound_name = str(bound.get("name") or "").strip()
+            if bound_name and sc.calendar_name_key(bound_name) != sc.calendar_name_key(
+                cal_name
+            ):
+                calendar_id = ""
+
+    if not calendar_id and cal_name:
+        calendar_id = sc.find_calendar_id_by_name(supabase, user_id, cal_name) or ""
+
     if not calendar_id:
-        return cal_name, ["Agenda compartilhada não encontrada."], False
+        hint = (
+            f"Agenda «{cal_name}» não encontrada."
+            if cal_name
+            else "Agenda não encontrada."
+        )
+        return cal_name, [hint], False
 
     existing = sc.get_calendar(supabase, user_id, calendar_id)
     if existing:

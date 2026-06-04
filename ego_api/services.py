@@ -417,10 +417,20 @@ def process_chat_message(
                 "quando o servidor grava. Detalhe: " + shared_warns[0]
             )
 
+    user_delete_payload = (
+        cs.parse_delete_shared_calendar_from_plain_text(user_display)
+        if not skip_schedule_save
+        else None
+    )
+
     if not skip_schedule_save:
         reply_clean, shared_delete = cs.extract_shared_delete(reply_clean)
     else:
         shared_delete = None
+    if user_delete_payload:
+        shared_delete = cs.apply_user_delete_calendar_intent(
+            user_display, shared_delete
+        )
     if shared_delete:
         shared_delete = cs.fill_shared_calendar_name(
             supabase, user_id, shared_delete, prefer_text=user_display

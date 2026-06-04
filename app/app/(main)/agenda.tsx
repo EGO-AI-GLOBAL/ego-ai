@@ -1,7 +1,8 @@
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect, useRouter, type Href } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -9,6 +10,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { deleteSharedCalendar } from "@/api/client";
 import type { SharedCalendar, SharedCalendarEvent } from "@/api/types";
 import { AgendaItemRow } from "@/components/AgendaItem";
 import { ReminderItem } from "@/components/ReminderItem";
@@ -144,6 +146,35 @@ export default function AgendaScreen() {
     return sortEvents((selectedCalendar.events ?? []).filter((ev) => !ev.dismissed));
   }, [selectedCalendar]);
 
+  const onDeleteSelectedCalendar = () => {
+    if (!selectedCalendar?.id) return;
+    const cid = String(selectedCalendar.id);
+    const name = (selectedCalendar.name || "Agenda").trim();
+    Alert.alert(
+      "Apagar agenda",
+      `Apagar «${name}» para todos? Esta ação não pode ser desfeita.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Apagar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteSharedCalendar(cid);
+              await refresh();
+              setSelectedSharedId(null);
+            } catch (e) {
+              Alert.alert(
+                "Erro",
+                e instanceof Error ? e.message : "Não foi possível apagar a agenda."
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
   useFocusEffect(
     useCallback(() => {
       if (session) void refresh();
@@ -278,6 +309,42 @@ export default function AgendaScreen() {
                       <SharedEventRow key={String(ev.id)} event={ev} colors={colors} />
                     ))
                   )}
+                  {selectedCalendar.is_owner ? (
+                    <>
+                      <Pressable
+                        onPress={() =>
+                          router.push(
+                            `/(main)/shared-calendar/${String(selectedCalendar.id)}` as Href
+                          )
+                        }
+                        style={({ pressed }) => [
+                          styles.manageBtn,
+                          {
+                            borderColor: colors.primary,
+                            opacity: pressed ? 0.88 : 1,
+                          },
+                        ]}
+                      >
+                        <Text style={{ color: colors.primary, fontWeight: "600" }}>
+                          Gerir agenda (convidar, membros)
+                        </Text>
+                      </Pressable>
+                      <Pressable
+                        onPress={onDeleteSelectedCalendar}
+                        style={({ pressed }) => [
+                          styles.deleteBtn,
+                          {
+                            borderColor: colors.danger,
+                            opacity: pressed ? 0.88 : 1,
+                          },
+                        ]}
+                      >
+                        <Text style={{ color: colors.danger, fontWeight: "600" }}>
+                          Apagar esta agenda
+                        </Text>
+                      </Pressable>
+                    </>
+                  ) : null}
                 </View>
               ) : null}
             </>
@@ -365,4 +432,18 @@ const styles = StyleSheet.create({
   eventBody: { flex: 1 },
   eventTitle: { fontSize: 15, fontWeight: "600" },
   eventWhen: { fontSize: 13, marginTop: 2 },
+  manageBtn: {
+    marginTop: 16,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  deleteBtn: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
 });
