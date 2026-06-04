@@ -8,11 +8,20 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
-import { deleteSharedCalendar, fetchSharedCalendar, removeSharedCalendarMember } from "@/api/client";
+import {
+  addSharedCalendarMember,
+  createSharedCalendarEvent,
+  deleteSharedCalendar,
+  fetchSharedCalendar,
+  localDateTimeToIso,
+  removeSharedCalendarMember,
+} from "@/api/client";
 import { markSharedCalendarEventsSeen } from "@/utils/sharedCalendarNotifications";
 import { memberDisplayName, membersGroupLine } from "@/utils/sharedCalendarMembers";
+import { formatScheduledLocal } from "@/utils/scheduleTime";
 import type { SharedCalendar, SharedCalendarEvent } from "@/api/types";
 import { ScreenShell } from "@/components/ScreenShell";
 import { useAuth } from "@/context/AuthContext";
@@ -20,16 +29,18 @@ import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 import type { AppColors } from "@/theme/colors";
 
+function defaultDateBr(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  const day = String(d.getDate()).padStart(2, "0");
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  return `${day}/${month}/${d.getFullYear()}`;
+}
+
 function formatWhen(iso?: string) {
   if (!iso) return "—";
   try {
-    const d = new Date(iso);
-    return d.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    return formatScheduledLocal(iso);
   } catch {
     return iso.slice(0, 16).replace("T", " ");
   }
@@ -60,7 +71,7 @@ function ChatHint({ colors, onPress }: { colors: AppColors; onPress: () => void 
         Marcar, criar ou convidar
       </Text>
       <Text style={[styles.chatHintBody, { color: colors.textMuted }]}>
-        Peça no chat ao avatar: marcar compromisso, convidar e-mail ou criar agenda.
+        Peça no chat: marcar compromisso, convidar e-mail ou criar agenda Família.
       </Text>
       <Text style={[styles.chatHintLink, { color: colors.primary }]}>Ir para o chat →</Text>
     </Pressable>
@@ -79,6 +90,12 @@ export default function SharedCalendarDetailScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
+  const [eventTitle, setEventTitle] = useState("Reunião");
+  const [eventDate, setEventDate] = useState(defaultDateBr);
+  const [eventTime, setEventTime] = useState("15:00");
+  const [savingEvent, setSavingEvent] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
@@ -114,6 +131,50 @@ export default function SharedCalendarDetailScreen() {
   const events = sortEvents((cal?.events ?? []).filter((ev) => !ev.dismissed));
   const members = cal?.members ?? [];
   const calName = cal?.name?.trim() || "Agenda compartilhada";
+
+  const onInviteByEmail = async () => {
+    const email = inviteEmail.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      Alert.alert("E-mail", "Digite um e-mail válido.");
+      return;
+    }
+    setInviting(true);
+    try {
+      await addSharedCalendarMember(calendarId, email);
+      setInviteEmail("");
+      await load();
+      await refreshDashboard({ skipNotifications: true }).catch(() => {});
+      Alert.alert("Convite", `${email} foi adicionado à agenda.`);
+    } catch (e) {
+      Alert.alert("Convite", e instanceof Error ? e.message : "Não foi possível convidar.");
+    } finally {
+      setInviting(false);
+    }
+  };
+
+  const onAddEvent = async () => {
+    const title = eventTitle.trim() || "Reunião";
+    const iso = localDateTimeToIso(eventDate.trim(), eventTime.trim());
+    if (!iso) {
+      Alert.alert("Data/hora", "Use DD/MM/AAAA e HH:MM (ex.: 30/05/2026 e 15:00).");
+      return;
+    }
+    setSavingEvent(true);
+    try {
+      await createSharedCalendarEvent(calendarId, {
+        title,
+        scheduled_at: iso,
+        announce: title,
+      });
+      await load();
+      await refreshDashboard({ skipNotifications: true }).catch(() => {});
+      Alert.alert("Compromisso", `"${title}" marcado na agenda.`);
+    } catch (e) {
+      Alert.alert("Compromisso", e instanceof Error ? e.message : "Não foi possível marcar.");
+    } finally {
+      setSavingEvent(false);
+    }
+  };
 
   const onRemoveMember = (memberId: string, email: string, isMe: boolean) => {
     Alert.alert(
@@ -211,6 +272,58 @@ export default function SharedCalendarDetailScreen() {
             </View>
 
             <Text style={[styles.section, { color: colors.textMuted }]}>Compromissos</Text>
+            <View style={[styles.inviteBox, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
+              <Text style={[styles.inviteLabel, { color: colors.textMuted }]}>
+                Marcar compromisso (sem usar o chat)
+              </Text>
+              <TextInput
+                value={eventTitle}
+                onChangeText={setEventTitle}
+                placeholder="Título (ex.: Reunião)"
+                placeholderTextColor={colors.textMuted}
+                style={[
+                  styles.inviteInput,
+                  { color: colors.text, borderColor: colors.border, backgroundColor: colors.bg },
+                ]}
+              />
+              <View style={styles.eventRowInputs}>
+                <TextInput
+                  value={eventDate}
+                  onChangeText={setEventDate}
+                  placeholder="DD/MM/AAAA"
+                  placeholderTextColor={colors.textMuted}
+                  keyboardType="numbers-and-punctuation"
+                  style={[
+                    styles.inviteInput,
+                    styles.eventDateInput,
+                    { color: colors.text, borderColor: colors.border, backgroundColor: colors.bg },
+                  ]}
+                />
+                <TextInput
+                  value={eventTime}
+                  onChangeText={setEventTime}
+                  placeholder="HH:MM"
+                  placeholderTextColor={colors.textMuted}
+                  keyboardType="numbers-and-punctuation"
+                  style={[
+                    styles.inviteInput,
+                    styles.eventTimeInput,
+                    { color: colors.text, borderColor: colors.border, backgroundColor: colors.bg },
+                  ]}
+                />
+              </View>
+              <Pressable
+                onPress={onAddEvent}
+                disabled={savingEvent}
+                style={[styles.inviteBtn, { backgroundColor: colors.primary }]}
+              >
+                {savingEvent ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.inviteBtnText}>Marcar</Text>
+                )}
+              </Pressable>
+            </View>
             {events.length === 0 ? (
               <Text style={[styles.muted, { color: colors.textMuted }]}>
                 Nenhuma reunião marcada. Peça no chat para marcar um compromisso.
@@ -230,6 +343,37 @@ export default function SharedCalendarDetailScreen() {
             )}
 
             <Text style={[styles.section, { color: colors.textMuted }]}>Gerenciar membros</Text>
+            {isOwner ? (
+              <View style={[styles.inviteBox, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
+                <Text style={[styles.inviteLabel, { color: colors.textMuted }]}>
+                  Convidar por e-mail (sem usar o chat)
+                </Text>
+                <TextInput
+                  value={inviteEmail}
+                  onChangeText={setInviteEmail}
+                  placeholder="email@exemplo.com"
+                  placeholderTextColor={colors.textMuted}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  keyboardType="email-address"
+                  style={[
+                    styles.inviteInput,
+                    { color: colors.text, borderColor: colors.border, backgroundColor: colors.bg },
+                  ]}
+                />
+                <Pressable
+                  onPress={onInviteByEmail}
+                  disabled={inviting}
+                  style={[styles.inviteBtn, { backgroundColor: colors.primary }]}
+                >
+                  {inviting ? (
+                    <ActivityIndicator color="#fff" />
+                  ) : (
+                    <Text style={styles.inviteBtnText}>Convidar</Text>
+                  )}
+                </Pressable>
+              </View>
+            ) : null}
             {members.length === 0 ? (
               <Text style={[styles.muted, { color: colors.textMuted }]}>
                 Nenhum membro listado.
@@ -324,6 +468,30 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 10,
   },
+  inviteBox: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 12,
+    gap: 8,
+  },
+  inviteLabel: { fontSize: 12, lineHeight: 16 },
+  inviteInput: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+  },
+  inviteBtn: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  inviteBtnText: { color: "#fff", fontWeight: "800", fontSize: 15 },
+  eventRowInputs: { flexDirection: "row", gap: 8 },
+  eventDateInput: { flex: 1.4 },
+  eventTimeInput: { flex: 0.8 },
   muted: { fontSize: 14, lineHeight: 20, marginBottom: 8 },
   memberRow: {
     flexDirection: "row",

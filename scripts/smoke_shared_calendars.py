@@ -76,6 +76,10 @@ def main() -> int:
     wrong_llm = [{"title": "Consulta", "scheduled_at": "2026-06-05T12:00:00-03:00"}]
     fixed = cs.override_scheduled_from_user_message(personal, wrong_llm, ref=ref)
     assert fixed and "2026-05-30" in str(fixed[0].get("scheduled_at")), fixed
+    assert "T09:00" in str(fixed[0].get("scheduled_at")), fixed
+
+    nine = cs.parse_reminder_from_plain_text(personal, ref=ref)
+    assert nine and "T09:00" in str(nine.get("scheduled_at")), nine
 
     from ego_api.chat_reply import ensure_visible_chat_reply
 

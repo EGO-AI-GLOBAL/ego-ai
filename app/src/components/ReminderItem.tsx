@@ -2,21 +2,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { AppColors } from "@/theme/colors";
 import type { Reminder } from "@/api/types";
-
-function formatWhen(iso?: string) {
-  if (!iso) return "—";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso.slice(0, 16).replace("T", " ");
-  }
-}
+import { formatScheduledLocal } from "@/utils/scheduleTime";
 
 export function ReminderItem({
   item,
@@ -36,7 +22,7 @@ export function ReminderItem({
           {item.title || "Lembrete"}
         </Text>
         <Text style={[styles.when, { color: colors.textMuted }]}>
-          {formatWhen(item.scheduled_at)}
+          {formatScheduledLocal(item.scheduled_at)}
         </Text>
       </View>
       {onDismiss && id ? (

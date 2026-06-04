@@ -121,6 +121,13 @@ def user_message_has_relative_day(text: str) -> bool:
     return bool(_RELATIVE_DAY_HINT.search(text or ""))
 
 
+def user_message_has_schedule_time(text: str) -> bool:
+    low = (text or "").lower()
+    return bool(
+        re.search(r"(?:às|as)\s*\d{1,2}", low) or re.search(r"\b\d{1,2}:\d{2}\b", low)
+    )
+
+
 def _parse_pt_schedule_hint(
     text: str, ref: datetime.datetime | None = None
 ) -> datetime.datetime | None:
@@ -221,8 +228,11 @@ def override_scheduled_from_user_message(
     *,
     ref: datetime.datetime | None = None,
 ) -> dict | list[dict] | None:
-    """Se o utilizador disse hoje/amanhã, corrige scheduled_at (ignora feriado no LLM)."""
-    if not payload or not user_message_has_relative_day(user_text):
+    """Corrige data/hora quando o utilizador disse hoje/amanhã ou «às 9h» (fuso de ref)."""
+    if not payload or not (
+        user_message_has_relative_day(user_text)
+        or user_message_has_schedule_time(user_text)
+    ):
         return payload
     when = _parse_pt_schedule_hint(user_text, ref)
     if not when:

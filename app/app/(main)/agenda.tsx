@@ -18,23 +18,9 @@ import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 import type { AppColors } from "@/theme/colors";
 import { membersSummary, membersGroupLine } from "@/utils/sharedCalendarMembers";
+import { formatScheduledLocal } from "@/utils/scheduleTime";
 
 type AgendaTab = "personal" | "shared";
-
-function formatWhen(iso?: string) {
-  if (!iso) return "—";
-  try {
-    const d = new Date(iso);
-    return d.toLocaleString("pt-BR", {
-      day: "2-digit",
-      month: "short",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  } catch {
-    return iso.slice(0, 16).replace("T", " ");
-  }
-}
 
 function sortEvents(events: SharedCalendarEvent[]) {
   return [...events].sort((a, b) => {
@@ -59,7 +45,7 @@ function SharedEventRow({
           {event.title || "Compromisso"}
         </Text>
         <Text style={[styles.eventWhen, { color: colors.textMuted }]}>
-          {formatWhen(event.scheduled_at)}
+          {formatScheduledLocal(event.scheduled_at)}
         </Text>
       </View>
     </View>

@@ -490,6 +490,15 @@ export function localDateTimeToIso(dateBr: string, timeBr: string): string | nul
   return d.toISOString();
 }
 
+function clientTimezonePayload(): { timezone: string; tz_offset_min: number } {
+  const tz_offset_min = -new Date().getTimezoneOffset();
+  const timezone =
+    typeof Intl !== "undefined"
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone || ""
+      : "";
+  return { timezone, tz_offset_min };
+}
+
 export async function sendChatMessage(
   message: string,
   speak = true,
@@ -497,7 +506,7 @@ export async function sendChatMessage(
 ): Promise<SendChatResult> {
   const { data } = await api.post(
     "chat/messages",
-    { message, speak, history },
+    { message, speak, history, ...clientTimezonePayload() },
     { timeout: TIMEOUT_CHAT_MS }
   );
   const body = unwrap<SendChatResult>(data);
@@ -779,6 +788,7 @@ export async function sendChatVoiceMessage(opts: {
       audio_mime,
       speak: opts.speak !== false,
       history: opts.history ?? [],
+      ...clientTimezonePayload(),
     },
     {
       timeout: TIMEOUT_VOICE_MS,

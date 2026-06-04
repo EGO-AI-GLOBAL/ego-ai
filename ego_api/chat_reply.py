@@ -10,11 +10,15 @@ def _format_scheduled_pt(iso_val: object) -> str:
     if not iso_val:
         return ""
     try:
-        s = str(iso_val).replace("Z", "+00:00")
+        s = str(iso_val).strip().replace("Z", "+00:00")
+        if "T" in s and "+" not in s[10:] and "-" not in s[10:]:
+            s = f"{s}+00:00"
         dt = datetime.fromisoformat(s)
-        if dt.tzinfo is not None:
-            dt = dt.astimezone()
-        return f" para {dt.strftime('%d/%m às %H:%M')}"
+        if dt.tzinfo is None:
+            from datetime import timezone
+
+            dt = dt.replace(tzinfo=timezone.utc)
+        return f" para {dt.astimezone().strftime('%d/%m às %H:%M')}"
     except Exception:
         return ""
 

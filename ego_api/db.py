@@ -1075,6 +1075,16 @@ def normalize_scheduled_at(value: object) -> datetime.datetime | None:
     return dt_utc
 
 
+def _scheduled_at_api_iso(value: object) -> str:
+    dt = _coerce_reminder_to_utc(value)
+    if not dt:
+        return str(value or "")
+    u = dt.astimezone(datetime.timezone.utc)
+    return u.strftime("%Y-%m-%dT%H:%M:%S") + (
+        f".{u.microsecond // 1000:03d}" if u.microsecond else ""
+    ) + "Z"
+
+
 def insert_reminder(
     supabase: Client | None,
     user_id: str,
@@ -1101,6 +1111,11 @@ def insert_reminder(
 
         inserted = insert_returning_rows(supabase, SUPABASE_REMINDERS_TABLE, row)
         data = inserted[0] if inserted else row
+        if isinstance(data, dict) and data.get("scheduled_at"):
+            data = {
+                **data,
+                "scheduled_at": _scheduled_at_api_iso(data.get("scheduled_at")),
+            }
         return True, "", data
     except Exception as e:
         return False, str(e), None
