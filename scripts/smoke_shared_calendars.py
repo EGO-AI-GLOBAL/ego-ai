@@ -70,6 +70,13 @@ def main() -> int:
     prem = cs.parse_reminder_from_plain_text(personal)
     assert prem and prem.get("title") == "Consulta" and prem.get("scheduled_at"), prem
 
+    import datetime as dt
+
+    ref = dt.datetime(2026, 5, 29, 10, 0, tzinfo=dt.timezone(dt.timedelta(hours=-3)))
+    wrong_llm = [{"title": "Consulta", "scheduled_at": "2026-06-05T12:00:00-03:00"}]
+    fixed = cs.override_scheduled_from_user_message(personal, wrong_llm, ref=ref)
+    assert fixed and "2026-05-30" in str(fixed[0].get("scheduled_at")), fixed
+
     from ego_api.chat_reply import ensure_visible_chat_reply
 
     reply = ensure_visible_chat_reply(

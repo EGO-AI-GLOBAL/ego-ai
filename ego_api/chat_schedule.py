@@ -111,12 +111,24 @@ def _extract_shared_event_title(raw: str) -> str:
     return "Compromisso"
 
 
-def _parse_pt_schedule_hint(text: str) -> datetime.datetime | None:
-    """Interpreta frases comuns (hoje/amanhã + hora) para ISO local."""
+_RELATIVE_DAY_HINT = re.compile(
+    r"\b(hoje|amanhã|amanha|depois de amanhã|depois de amanha)\b",
+    re.I,
+)
+
+
+def user_message_has_relative_day(text: str) -> bool:
+    return bool(_RELATIVE_DAY_HINT.search(text or ""))
+
+
+def _parse_pt_schedule_hint(
+    text: str, ref: datetime.datetime | None = None
+) -> datetime.datetime | None:
+    """Interpreta frases comuns (hoje/amanhã + hora) para ISO no fuso de ref."""
     raw = (text or "").strip()
     if not raw:
         return None
-    ref = datetime.datetime.now().astimezone()
+    ref = ref or datetime.datetime.now().astimezone()
     low = raw.lower()
     tm = re.search(
         r"(?:às|as)\s*(\d{1,2})(?::(\d{2}))?\s*(?:h|horas)?",
@@ -178,7 +190,9 @@ def shared_event_from_schedule_draft(schedule: dict[str, Any]) -> dict | None:
     }
 
 
-def parse_shared_event_from_plain_text(text: str) -> dict | None:
+def parse_shared_event_from_plain_text(
+    text: str, ref: datetime.datetime | None = None
+) -> dict | None:
     """Fallback quando o LLM responde em texto mas não envia [[EGO_SHARED_EVENT:...]]."""
     raw = (text or "").strip()
     if not raw:
@@ -189,7 +203,7 @@ def parse_shared_event_from_plain_text(text: str) -> dict | None:
         return None
     if not is_group_schedule_request(raw):
         return None
-    when = _parse_pt_schedule_hint(raw)
+    when = _parse_pt_schedule_hint(raw, ref)
     if not when:
         return None
     cal_name = _extract_shared_calendar_name(raw)
@@ -201,14 +215,36 @@ def parse_shared_event_from_plain_text(text: str) -> dict | None:
     }
 
 
-def parse_reminder_from_plain_text(text: str) -> dict | None:
+def override_scheduled_from_user_message(
+    user_text: str,
+    payload: dict | list[dict] | None,
+    *,
+    ref: datetime.datetime | None = None,
+) -> dict | list[dict] | None:
+    """Se o utilizador disse hoje/amanhã, corrige scheduled_at (ignora feriado no LLM)."""
+    if not payload or not user_message_has_relative_day(user_text):
+        return payload
+    when = _parse_pt_schedule_hint(user_text, ref)
+    if not when:
+        return payload
+    iso = when.isoformat()
+    if isinstance(payload, dict):
+        return {**payload, "scheduled_at": iso}
+    return [
+        {**it, "scheduled_at": iso} if isinstance(it, dict) else it for it in payload
+    ]
+
+
+def parse_reminder_from_plain_text(
+    text: str, ref: datetime.datetime | None = None
+) -> dict | None:
     """Fallback: agenda pessoal quando o LLM não envia [[EGO_REMINDER:...]]."""
     raw = (text or "").strip()
     if not raw or not _SCOPE_PERSONAL.search(raw):
         return None
     if not looks_like_schedule_intent(raw):
         return None
-    when = _parse_pt_schedule_hint(raw)
+    when = _parse_pt_schedule_hint(raw, ref)
     if not when:
         return None
     title = _extract_shared_event_title(raw)

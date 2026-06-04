@@ -314,6 +314,7 @@ def process_chat_message(
     shared_calendars_deleted: list[str] = []
 
     user_wants_personal = cs.detect_scope_from_user_text(user_display) == "personal"
+    schedule_ref = gemini._local_now(sess)
 
     reply_clean = reply
     reply_clean, draft_patch = cs.extract_schedule_draft(reply_clean)
@@ -428,6 +429,9 @@ def process_chat_message(
     if user_wants_personal:
         shared_event = None
     if shared_event:
+        shared_event = cs.override_scheduled_from_user_message(
+            user_display, shared_event, ref=schedule_ref
+        )
         shared_event = cs.fill_shared_calendar_name(
             supabase, user_id, shared_event, prefer_text=user_display
         )
@@ -440,6 +444,9 @@ def process_chat_message(
         if evs:
             schedule = {"step": "", "draft": {}}
     elif draft_event := cs.shared_event_from_schedule_draft(schedule):
+        draft_event = cs.override_scheduled_from_user_message(
+            user_display, draft_event, ref=schedule_ref
+        )
         draft_event = cs.fill_shared_calendar_name(
             supabase, user_id, draft_event, prefer_text=user_display
         )
@@ -456,7 +463,11 @@ def process_chat_message(
                 "O assistente respondeu no chat, mas o compromisso compartilhado "
                 "só entra quando o servidor grava. Detalhe: " + shared_warns[0]
             )
-    elif not user_wants_personal and (fallback_event := cs.parse_shared_event_from_plain_text(user_display)):
+    elif not user_wants_personal and (
+        fallback_event := cs.parse_shared_event_from_plain_text(
+            user_display, ref=schedule_ref
+        )
+    ):
         fallback_event = cs.fill_shared_calendar_name(
             supabase, user_id, fallback_event, prefer_text=user_display
         )
@@ -485,8 +496,13 @@ def process_chat_message(
     reply_clean, rem_items = gemini.extract_reminders(reply_clean)
     if block_personal_reminder:
         rem_items = []
+    rem_items = cs.override_scheduled_from_user_message(
+        user_display, rem_items, ref=schedule_ref
+    ) or []
     if not rem_items and user_wants_personal:
-        if fallback_rem := cs.parse_reminder_from_plain_text(user_display):
+        if fallback_rem := cs.parse_reminder_from_plain_text(
+            user_display, ref=schedule_ref
+        ):
             rem_items = [fallback_rem]
     rem_cap = enforce_reminder_limit(supabase, user_id, prof)
     for it in rem_items:

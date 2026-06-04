@@ -75,6 +75,7 @@ Grupo:
 - Apagar: [[EGO_SHARED_DELETE:{"calendar_name":"Família"}]]
 
 Exemplos do utilizador: «marca reunião amanhã 15h», «marca na agenda Família …», «marca na agenda pessoal …»
+«amanhã» = dia seguinte no relógio local (feriado ou fim de semana não muda a data).
 Uma pergunta de cada vez só se faltar data/hora ou se houver várias agendas de grupo sem nome.
 """
 

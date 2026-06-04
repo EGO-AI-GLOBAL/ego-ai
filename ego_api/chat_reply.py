@@ -12,6 +12,8 @@ def _format_scheduled_pt(iso_val: object) -> str:
     try:
         s = str(iso_val).replace("Z", "+00:00")
         dt = datetime.fromisoformat(s)
+        if dt.tzinfo is not None:
+            dt = dt.astimezone()
         return f" para {dt.strftime('%d/%m às %H:%M')}"
     except Exception:
         return ""
