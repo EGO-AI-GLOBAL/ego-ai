@@ -759,6 +759,13 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
     prof = db.load_profile(supabase, user_id) or {}
     sess = get_session()
     email = (sess.email if sess else None) or str(prof.get("email") or "")
+    if email and supabase and user_id:
+        try:
+            from ego_api import shared_calendars as sc
+
+            sc.link_shared_memberships_for_user(supabase, user_id, email)
+        except Exception:
+            pass
     email_local = email.split("@")[0].strip().lower() if "@" in email else ""
     prof_full_name = str(prof.get("full_name") or "").strip()
     prof_name_is_email_alias = bool(

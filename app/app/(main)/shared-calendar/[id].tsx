@@ -140,11 +140,17 @@ export default function SharedCalendarDetailScreen() {
     }
     setInviting(true);
     try {
-      await addSharedCalendarMember(calendarId, email);
+      const member = await addSharedCalendarMember(calendarId, email);
       setInviteEmail("");
       await load();
       await refreshDashboard({ skipNotifications: true }).catch(() => {});
-      Alert.alert("Convite", `${email} foi adicionado à agenda.`);
+      const pending = member.status === "pending";
+      Alert.alert(
+        pending ? "Convite enviado" : "Adicionado",
+        pending
+          ? `${email} verá a agenda quando entrar no EGO com este e-mail.`
+          : `${email} já tem acesso à agenda.`
+      );
     } catch (e) {
       Alert.alert("Convite", e instanceof Error ? e.message : "Não foi possível convidar.");
     } finally {
@@ -401,7 +407,11 @@ export default function SharedCalendarDetailScreen() {
                         </Text>
                       ) : null}
                       <Text style={[styles.memberRole, { color: colors.textMuted }]}>
-                        {m.role === "owner" ? "Criador" : "Membro"}
+                        {m.role === "owner"
+                          ? "Criador"
+                          : m.status === "pending"
+                            ? "Convite pendente"
+                            : "Membro"}
                         {isMe ? " · você" : ""}
                       </Text>
                     </View>

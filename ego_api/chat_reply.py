@@ -85,9 +85,24 @@ def ensure_visible_chat_reply(
         elif shared_cals:
             cal_name = (shared_cals[0].get("name") or cal_name).strip()
         extra = f" Avisos: {'; '.join(warns[:3])}" if warns else ""
+        pending_n = sum(
+            1 for m in shared_members if str(m.get("status") or "") == "pending"
+        )
+        if pending_n == len(shared_members):
+            return (
+                f"Convite registado na agenda «{cal_name}». "
+                "A pessoa verá a agenda ao entrar no EGO com o mesmo e-mail."
+                f"{extra}"
+            )
+        if pending_n:
+            return (
+                f"Adicionei na agenda «{cal_name}»: alguns já têm acesso, "
+                "outros verão quando criarem conta com o e-mail convidado."
+                f"{extra}"
+            )
         return (
             f"Pronto! Adicionei {len(shared_members)} pessoa(s) na agenda «{cal_name}». "
-            f"Os convidados já veem a agenda no app.{extra}"
+            f"Já têm acesso no app.{extra}"
         )
 
     if reminders_saved:

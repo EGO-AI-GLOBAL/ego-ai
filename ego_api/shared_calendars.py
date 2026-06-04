@@ -28,8 +28,13 @@ except ImportError:
 
 EMAIL_NO_ACCOUNT_MSG = (
     "Este e-mail ainda não tem conta no EGO-AI. "
-    "Peça para a pessoa instalar o app, criar conta com o mesmo e-mail "
-    "e só depois adicioná-la aqui."
+    "Peça para a pessoa instalar o app e criar conta com o mesmo e-mail; "
+    "o convite fica guardado e a agenda aparece quando ela entrar."
+)
+
+PENDING_INVITE_MSG = (
+    "Convite enviado. A pessoa verá esta agenda quando entrar no EGO "
+    "com o mesmo e-mail."
 )
 
 
@@ -238,8 +243,11 @@ def link_shared_memberships_for_user(
         updated = 0
         for row in res.data or []:
             rid = str(row.get("id") or "")
+            if not rid:
+                continue
             current = str(row.get("user_id") or "")
-            if not rid or current == user_id:
+            status = str(row.get("status") or "")
+            if current == user_id and status == "active":
                 continue
             admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(
                 {"user_id": user_id, "status": "active"}
@@ -675,6 +683,67 @@ def count_owner_team_member_slots(
         return 0
 
 
+def _add_pending_member_by_email(
+    supabase: Client | None,
+    owner_user_id: str,
+    calendar_id: str,
+    email_norm: str,
+) -> tuple[bool, str, dict | None]:
+    """Convite por e-mail sem conta ainda — liga ao login (link_shared_memberships)."""
+    apply_user_auth(supabase)
+    try:
+        existing = (
+            supabase.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+            .select("id,user_id,status")
+            .eq("calendar_id", calendar_id)
+            .eq("invited_email", email_norm)
+            .limit(1)
+            .execute()
+        )
+        if existing.data:
+            prev = existing.data[0]
+            member_id = str(prev.get("id") or "")
+            if member_id:
+                admin = create_service_client()
+                client = admin or supabase
+                client.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(
+                    {
+                        "invited_email": email_norm,
+                        "status": "pending",
+                        "role": "member",
+                    }
+                ).eq("id", member_id).execute()
+                refreshed = (
+                    client.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                    .select("*")
+                    .eq("id", member_id)
+                    .limit(1)
+                    .execute()
+                )
+                data = (refreshed.data or [prev])[0]
+                return True, PENDING_INVITE_MSG, data
+            return False, "Este e-mail já está nesta agenda.", None
+        row = {
+            "calendar_id": calendar_id,
+            "user_id": None,
+            "invited_email": email_norm,
+            "role": "member",
+            "status": "pending",
+        }
+        from ego_api.supabase_client import insert_with_admin_fallback
+
+        inserted = insert_with_admin_fallback(
+            supabase, SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE, row, raise_errors=True
+        )
+        data = inserted[0] if inserted else row
+        return True, PENDING_INVITE_MSG, data
+    except Exception as exc:
+        low = str(exc).lower()
+        if "unique" in low or "duplicate" in low:
+            return False, "Este e-mail já está nesta agenda.", None
+        return False, str(exc), None
+
+
 def add_member_by_email(
     supabase: Client | None,
     owner_user_id: str,
@@ -711,7 +780,9 @@ def add_member_by_email(
                 "Confirme SUPABASE_SERVICE_ROLE_KEY no Railway e faça redeploy.",
                 None,
             )
-        return False, EMAIL_NO_ACCOUNT_MSG, None
+        return _add_pending_member_by_email(
+            supabase, owner_user_id, calendar_id, email_norm
+        )
     if target_uid == owner_user_id:
         return False, "Você já faz parte desta agenda.", None
 

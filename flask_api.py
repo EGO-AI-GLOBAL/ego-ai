@@ -886,10 +886,12 @@ def shared_calendars_add_member(calendar_id: str):
         g.supabase, g.user_id, calendar_id, email
     )
     if not ok:
-        if err == sc.EMAIL_NO_ACCOUNT_MSG:
-            return _json_error(err, 404, code="email_no_account")
         return _json_error(err or "Não foi possível adicionar o membro.")
-    return _json_ok({"member": row}, 201)
+    pending = str((row or {}).get("status") or "") == "pending"
+    return _json_ok(
+        {"member": row, "pending": pending, "message": err or ""},
+        201,
+    )
 
 
 @app.delete("/api/v1/shared-calendars/<calendar_id>/members/<member_id>")
