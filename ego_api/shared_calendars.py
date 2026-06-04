@@ -783,17 +783,19 @@ def _add_pending_member_by_email(
 
 def add_member_by_email(
     supabase: Client | None,
-    owner_user_id: str,
+    actor_user_id: str,
     calendar_id: str,
     email: str,
 ) -> tuple[bool, str, dict | None]:
-    if not supabase or not owner_user_id or not calendar_id:
+    """Qualquer membro ativo pode convidar; limite de lugares aplica-se ao dono da agenda."""
+    if not supabase or not actor_user_id or not calendar_id:
         return False, "Sessão indisponível.", None
     email_norm, err = _normalize_invite_email(email)
     if err:
         return False, err, None
-    if not _user_is_member(supabase, owner_user_id, calendar_id):
+    if not _user_is_member(supabase, actor_user_id, calendar_id):
         return False, "Sem acesso a esta agenda.", None
+    calendar_owner_id = ""
     try:
         cal = (
             supabase.table(SUPABASE_SHARED_CALENDARS_TABLE)
@@ -803,8 +805,9 @@ def add_member_by_email(
             .execute()
         )
         rows = cal.data or []
-        if not rows or str(rows[0].get("owner_user_id")) != owner_user_id:
-            return False, "Só o criador da agenda pode convidar por e-mail.", None
+        if not rows:
+            return False, "Agenda não encontrada.", None
+        calendar_owner_id = str(rows[0].get("owner_user_id") or "")
     except Exception:
         return False, "Agenda não encontrada.", None
 
@@ -818,21 +821,22 @@ def add_member_by_email(
                 None,
             )
         return _add_pending_member_by_email(
-            supabase, owner_user_id, calendar_id, email_norm
+            supabase, actor_user_id, calendar_id, email_norm
         )
-    if target_uid == owner_user_id:
+    if target_uid == actor_user_id:
         return False, "Você já faz parte desta agenda.", None
 
     apply_user_auth(supabase)
-    seat_limit = team_seat_limit_for_owner(supabase, owner_user_id)
+    seat_owner = calendar_owner_id or actor_user_id
+    seat_limit = team_seat_limit_for_owner(supabase, seat_owner)
     if seat_limit is not None:
-        used = count_owner_team_member_slots(supabase, owner_user_id)
+        used = count_owner_team_member_slots(supabase, seat_owner)
         already = False
         try:
             cals = (
                 supabase.table(SUPABASE_SHARED_CALENDARS_TABLE)
                 .select("id")
-                .eq("owner_user_id", owner_user_id)
+                .eq("owner_user_id", seat_owner)
                 .execute()
             )
             for cal in cals.data or []:

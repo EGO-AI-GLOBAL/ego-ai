@@ -1132,7 +1132,7 @@ def process_shared_invite(
     user_id: str,
     data: dict[str, Any],
 ) -> tuple[dict | None, list[str], list[dict]]:
-    """Convida e-mail(s) numa agenda compartilhada existente (criador)."""
+    """Convida e-mail(s) numa agenda compartilhada existente (qualquer membro ativo)."""
     from ego_api import shared_calendars as sc
 
     calendar_id = _resolve_calendar_id_for_user(
