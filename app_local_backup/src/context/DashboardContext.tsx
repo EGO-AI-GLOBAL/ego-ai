@@ -121,9 +121,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         void markPersonaConfiguredLocal(uid);
       } else if (uid) {
         const local = await isPersonaConfiguredLocal(uid);
-        setPersonaLocalOk(local);
+        setPersonaLocalOk((prev) => prev || local);
       } else {
-        setPersonaLocalOk(false);
+        setPersonaLocalOk((prev) => prev);
       }
       if (!options?.skipNotifications) {
         void syncReminderLocalNotifications(dashboard.reminders).catch(() => {});
