@@ -183,6 +183,76 @@ def _parse_pt_schedule_hint(
         return None
 
 
+def stash_pending_schedule_from_text(
+    schedule: dict[str, Any],
+    user_text: str,
+    ref: datetime.datetime | None = None,
+) -> dict[str, Any]:
+    """Guarda data/hora do pedido ambíguo para a resposta curta («marca na agenda familia»)."""
+    when = _parse_pt_schedule_hint(user_text, ref)
+    title = _extract_shared_event_title(user_text)
+    draft: dict[str, Any] = {"title": title}
+    if when:
+        draft["scheduled_at"] = when.isoformat()
+    return merge_schedule_draft(
+        schedule, {"step": "choose_scope", "draft": draft}
+    )
+
+
+def apply_scope_follow_up_if_pending(
+    schedule: dict[str, Any],
+    user_text: str,
+    supabase: Client | None,
+    user_id: str,
+    ref: datetime.datetime | None = None,
+) -> dict[str, Any] | None:
+    """Completa marcação após «marca na agenda pessoal» / «marca na agenda familia»."""
+    draft = schedule.get("draft") or {}
+    pending = draft.get("scheduled_at") or schedule.get("step") == "choose_scope"
+    if not pending:
+        return None
+    scope = detect_scope_from_user_text(user_text, supabase, user_id)
+    t = (user_text or "").strip()
+    if not scope and _SCOPE_PERSONAL.search(t):
+        scope = "personal"
+    if not scope and user_named_shared_calendar(t):
+        scope = "shared"
+    if not scope:
+        return None
+    when = _parse_pt_schedule_hint(t, ref)
+    scheduled_at = when.isoformat() if when else draft.get("scheduled_at")
+    if not scheduled_at:
+        return None
+    title = str(draft.get("title") or _extract_shared_event_title(t) or "Compromisso")[
+        :500
+    ]
+    new_draft: dict[str, Any] = {
+        "scope": scope,
+        "scheduled_at": scheduled_at,
+        "title": title,
+    }
+    if scope == "shared":
+        cal = _extract_shared_calendar_name(t) or str(draft.get("calendar_name") or "")
+        if cal:
+            new_draft["calendar_name"] = cal
+    return merge_schedule_draft(schedule, {"draft": new_draft, "step": ""})
+
+
+def reminder_from_schedule_draft(schedule: dict[str, Any]) -> dict | None:
+    draft = schedule.get("draft") or {}
+    if str(draft.get("scope") or "") != "personal":
+        return None
+    scheduled_at = draft.get("scheduled_at")
+    title = str(draft.get("title") or "Compromisso").strip()
+    if not scheduled_at or not title:
+        return None
+    return {
+        "title": title,
+        "scheduled_at": scheduled_at,
+        "announce": title,
+    }
+
+
 def shared_event_from_schedule_draft(schedule: dict[str, Any]) -> dict | None:
     draft = schedule.get("draft") or {}
     if str(draft.get("scope") or "") != "shared":
@@ -466,21 +536,16 @@ def build_schedule_scope_choice_reply(
     if len(names) == 1:
         n = names[0]
         return (
-            "Quer marcar na agenda **pessoal** ou na agenda "
-            f"**{n}**? Diga por exemplo: «marca na agenda pessoal consulta amanhã às 9h» "
-            f"ou «marca na agenda {n} reunião amanhã às 15h»."
+            f"Agenda **pessoal** ou **{n}**? "
+            f"Diga só: «marca na agenda pessoal» ou «marca na agenda {n}»."
         )
     if len(names) > 1:
-        listed = ", ".join(f"«{n}»" for n in names[:5])
+        listed = ", ".join(n for n in names[:3])
         return (
-            "Quer marcar na agenda **pessoal** ou numa agenda de grupo? "
-            f"As suas agendas de grupo: {listed}. "
-            "Ex.: «marca na agenda pessoal …» ou «marca na agenda familia reunião amanhã às 15h»."
+            f"Agenda **pessoal** ou de grupo ({listed})? "
+            "Diga só: «marca na agenda pessoal» ou «marca na agenda» + o nome."
         )
-    return (
-        "Quer marcar na agenda **pessoal**? "
-        "Diga por exemplo: «marca na agenda pessoal consulta amanhã às 9h»."
-    )
+    return "Agenda **pessoal**? Diga: «marca na agenda pessoal»."
 
 
 def detect_scope_from_user_text(

@@ -323,9 +323,17 @@ def process_chat_message(
 
     schedule_ref = local_now_from_session(sess)
 
+    schedule = cs.apply_scope_follow_up_if_pending(
+        schedule, user_display, supabase, user_id, schedule_ref
+    ) or schedule
+
     scope_choice_reply = cs.build_schedule_scope_choice_reply(
         supabase, user_id, user_display
     )
+    if scope_choice_reply:
+        schedule = cs.stash_pending_schedule_from_text(
+            schedule, user_display, schedule_ref
+        )
 
     skip_schedule_save = bool(scope_choice_reply)
     reply_clean = scope_choice_reply or reply
@@ -538,6 +546,9 @@ def process_chat_message(
         ) or []
     else:
         rem_items = []
+    if not skip_schedule_save and not rem_items:
+        if draft_rem := cs.reminder_from_schedule_draft(schedule):
+            rem_items = [draft_rem]
     if not skip_schedule_save and not rem_items and (
         user_wants_personal or only_personal_agenda
     ):

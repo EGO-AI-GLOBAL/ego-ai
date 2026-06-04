@@ -42,6 +42,18 @@ def main() -> int:
     assert cs.user_named_shared_calendar(bare) is False
     assert cs.user_named_shared_calendar(short_event) is True
     assert cs.detect_scope_from_user_text(short_event) == "shared"
+    assert cs.user_named_shared_calendar("marca na agenda familia") is True
+    assert cs.detect_scope_from_user_text("marca na agenda pessoal") == "personal"
+
+    sched: dict = {"step": "choose_scope", "draft": {}}
+    sched = cs.stash_pending_schedule_from_text(
+        sched, "Marca reunião amanhã às 15h", ref=ref
+    )
+    assert sched["draft"].get("scheduled_at"), sched
+    done = cs.apply_scope_follow_up_if_pending(
+        sched, "marca na agenda familia", None, ""
+    )
+    assert done and done["draft"].get("scope") == "shared", done
     assert cs.detect_scope_from_user_text("Marca na agenda pessoal amanhã 15h") == "personal"
     ev3 = cs.parse_shared_event_from_plain_text(bare)
     assert ev3 and ev3.get("scheduled_at") and not ev3.get("calendar_name")
