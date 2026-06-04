@@ -1037,6 +1037,15 @@ def process_shared_setup(
     events: list[dict] = []
     members_added: list[dict] = []
 
+    if calendar_id and calendar_name:
+        bound = sc.get_calendar(supabase, user_id, calendar_id)
+        if bound:
+            bound_name = str(bound.get("name") or "").strip()
+            if bound_name and sc.calendar_name_key(bound_name) != sc.calendar_name_key(
+                calendar_name
+            ):
+                calendar_id = ""
+
     if not calendar_id:
         if not calendar_name:
             return calendars, events, members_added, [

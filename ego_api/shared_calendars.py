@@ -361,8 +361,8 @@ def find_calendar_id_by_name(
         return exact
     if len(partial) == 1:
         return partial[0]
-    if len(rows) == 1:
-        return str(rows[0].get("id") or "") or None
+    # Não usar a única agenda existente se o nome pedido não coincide
+    # (ex. «360 nas alturas» com só «Família» criada → deve criar agenda nova).
     return None
 
 
