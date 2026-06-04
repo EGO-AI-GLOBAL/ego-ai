@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import re
 import unicodedata
 from typing import Any
 
@@ -418,31 +419,52 @@ def resolve_calendar_for_user(
     return "", name
 
 
+def _pretty_name_from_email(email: str) -> str:
+    """Sem perfil ainda: evita mostrar e-mail cru (usa parte local legível)."""
+    em = (email or "").strip().lower()
+    if not em:
+        return "Membro"
+    local = em.split("@", 1)[0] if "@" in em else em
+    parts = [p for p in re.sub(r"[._+\-]+", " ", local).split() if p]
+    if not parts:
+        return "Convidado"
+    return " ".join(p[:1].upper() + p[1:].lower() for p in parts)[:80]
+
+
+def _profile_full_name(admin: Client | None, user_id: str) -> str:
+    if not admin or not user_id:
+        return ""
+    try:
+        res = (
+            admin.table("profiles")
+            .select("full_name,name")
+            .eq("id", user_id)
+            .limit(1)
+            .execute()
+        )
+        rows = res.data or []
+        if rows:
+            return str(rows[0].get("full_name") or rows[0].get("name") or "").strip()
+    except Exception:
+        pass
+    return ""
+
+
 def _member_display_name(
     admin: Client | None, user_id: str | None, email: str
 ) -> str:
     """Nome amigável (profiles.full_name = «como quer ser chamado»)."""
     uid = (user_id or "").strip()
-    if admin and uid:
+    if not uid:
         try:
-            res = (
-                admin.table("profiles")
-                .select("full_name,name")
-                .eq("id", uid)
-                .limit(1)
-                .execute()
-            )
-            rows = res.data or []
-            if rows:
-                name = str(rows[0].get("full_name") or rows[0].get("name") or "").strip()
-                if name:
-                    return name[:120]
+            uid = resolve_user_id_by_email(email) or ""
         except Exception:
-            pass
-    em = (email or "").strip().lower()
-    if em and "@" in em:
-        return em.split("@", 1)[0][:80]
-    return "Membro"
+            uid = ""
+    if uid:
+        name = _profile_full_name(admin, uid)
+        if name:
+            return name[:120]
+    return _pretty_name_from_email(email)
 
 
 def list_members(
