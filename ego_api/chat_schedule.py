@@ -321,7 +321,20 @@ def fill_shared_calendar_name(
         name = resolve_default_shared_calendar_name(
             supabase, user_id, prefer_text=prefer_text
         )
-    if name:
+    if supabase and user_id:
+        from ego_api import shared_calendars as sc
+
+        cid, canon = sc.resolve_calendar_for_user(
+            supabase,
+            user_id,
+            calendar_id=str(out.get("calendar_id") or ""),
+            calendar_name=name,
+        )
+        if cid:
+            out["calendar_id"] = cid
+        if canon:
+            out["calendar_name"] = canon
+    elif name:
         out["calendar_name"] = name
     return out
 
@@ -651,21 +664,20 @@ def _resolve_calendar_id_for_user(
     calendar_id: str,
     calendar_name: str,
 ) -> str | None:
-    cid = (calendar_id or "").strip()
-    if cid:
-        return cid
-    name = (calendar_name or "").strip()
-    if not name or not supabase or not user_id:
-        return None
+    if not supabase or not user_id:
+        return (calendar_id or "").strip() or None
     try:
         from ego_api import shared_calendars as sc
 
-        found = sc.find_calendar_id_by_name(supabase, user_id, name)
-        if found:
-            return found
+        cid, _ = sc.resolve_calendar_for_user(
+            supabase,
+            user_id,
+            calendar_id=calendar_id,
+            calendar_name=calendar_name,
+        )
+        return cid or None
     except Exception:
-        pass
-    return None
+        return (calendar_id or "").strip() or None
 
 
 def process_shared_event(

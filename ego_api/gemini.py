@@ -66,7 +66,8 @@ REGRA (obrigatória):
   Nunca use EGO_SHARED_* nessa mensagem.
 - Se NÃO disser «pessoal», marcar reunião/compromisso → agenda de GRUPO (EGO_SHARED_EVENT).
   Não peça «compartilhada ou pessoal?».
-- Se só existir uma agenda de grupo (ex. Família), use esse calendar_name automaticamente.
+- Se só existir uma agenda de grupo, use o nome EXACTO da lista «AGENDAS DE GRUPO» (ex. «familia», não invente outro).
+- Família/familia/Family são o mesmo nome — copie o que aparece na lista.
 
 Grupo:
 - Nova: [[EGO_SHARED_SETUP:{"calendar_name":"Família",...}]]

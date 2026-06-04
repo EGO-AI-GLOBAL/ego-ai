@@ -15,6 +15,8 @@ def main() -> int:
     assert hasattr(sc, "create_calendar")
     assert hasattr(sc, "list_calendars_for_user")
     assert hasattr(sc, "find_calendar_id_by_name")
+    assert sc.calendar_name_key("Família") == sc.calendar_name_key("familia")
+    assert sc.calendar_name_key("  FAMILIA ") == sc.calendar_name_key("família")
     assert hasattr(cs, "extract_shared_setup")
     assert hasattr(cs, "extract_shared_event")
     assert hasattr(cs, "extract_shared_invite")

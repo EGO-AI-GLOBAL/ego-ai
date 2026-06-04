@@ -140,7 +140,9 @@ def ensure_visible_chat_reply(
             )
         return (
             f"Não consegui confirmar o compromisso na agenda «{cal_name}». "
-            "Repita: Marca reunião amanhã às 15h (ou «marca na agenda pessoal …» se for só seu)"
+            "Repita com o nome que vê na app, ex.: "
+            "Marca na agenda familia reunião amanhã às 15h "
+            "(ou só «marca reunião amanhã às 15h» se tiver uma agenda de grupo)."
         )
 
     if text and shared_delete and not deleted_cals:

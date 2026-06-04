@@ -3,7 +3,14 @@
 from __future__ import annotations
 
 import datetime
+import unicodedata
 from typing import Any
+
+
+def calendar_name_key(name: str) -> str:
+    """Compara nomes sem diferir maiúsculas nem acentos (Família = familia)."""
+    raw = unicodedata.normalize("NFD", (name or "").strip().lower())
+    return "".join(c for c in raw if unicodedata.category(c) != "Mn")
 
 from ego_api.config import (
     AGENDA_HORIZON_DAYS,
@@ -316,31 +323,71 @@ def list_calendars_for_user(supabase: Client | None, user_id: str) -> list[dict]
 def find_calendar_id_by_name(
     supabase: Client | None, user_id: str, calendar_name: str
 ) -> str | None:
-    """Procura agenda do utilizador por nome (exacto ou parcial, case-insensitive)."""
-    needle = (calendar_name or "").strip().lower()
-    if not needle or not supabase or not user_id:
+    """Procura agenda do utilizador por nome (sem acento/caixa; ou única agenda)."""
+    needle_key = calendar_name_key(calendar_name)
+    if not supabase or not user_id:
         return None
     try:
         rows = list_calendars_for_user(supabase, user_id)
     except Exception:
         return None
+    if not rows:
+        return None
+    if not needle_key and len(rows) == 1:
+        return str(rows[0].get("id") or "") or None
+    if not needle_key:
+        return None
     exact: str | None = None
     partial: list[str] = []
     for row in rows:
         cid = str(row.get("id") or "")
-        row_name = str(row.get("name") or "").strip().lower()
-        if not cid or not row_name:
+        row_key = calendar_name_key(str(row.get("name") or ""))
+        if not cid or not row_key:
             continue
-        if row_name == needle:
+        if row_key == needle_key:
             exact = cid
             break
-        if needle in row_name or row_name in needle:
+        if needle_key in row_key or row_key in needle_key:
             partial.append(cid)
     if exact:
         return exact
     if len(partial) == 1:
         return partial[0]
+    if len(rows) == 1:
+        return str(rows[0].get("id") or "") or None
     return None
+
+
+def resolve_calendar_for_user(
+    supabase: Client | None,
+    user_id: str,
+    *,
+    calendar_id: str = "",
+    calendar_name: str = "",
+) -> tuple[str, str]:
+    """Devolve (id, nome canónico na base) para marcar/convidar."""
+    cid = (calendar_id or "").strip()
+    name = (calendar_name or "").strip()
+    if not supabase or not user_id:
+        return "", name
+    try:
+        rows = list_calendars_for_user(supabase, user_id)
+    except Exception:
+        rows = []
+    if cid:
+        for row in rows:
+            if str(row.get("id") or "") == cid:
+                return cid, str(row.get("name") or name).strip()
+        return cid, name
+    found = find_calendar_id_by_name(supabase, user_id, name)
+    if found:
+        for row in rows:
+            if str(row.get("id") or "") == found:
+                return found, str(row.get("name") or name).strip()
+    if len(rows) == 1:
+        only = rows[0]
+        return str(only.get("id") or ""), str(only.get("name") or "").strip()
+    return "", name
 
 
 def _member_display_name(
