@@ -204,15 +204,31 @@ def build_system_instruction(
 
 
 def build_system_instruction_voice(sess: UserSession, lang_code: str) -> str:
-    """Prompt mínimo para mensagens de voz — menos tokens, resposta mais rápida."""
+    """Prompt para voz — inclui marcadores de agenda (pessoal e compartilhada)."""
     return (
         GEMINI_SYSTEM_INSTRUCTION
         + language_instruction(lang_code)
         + _identity_instruction(sess)
         + _datetime_instruction(sess)
+        + REMINDER_LLM_INSTRUCTION
+        + AGENDA_RECURRING_LLM_INSTRUCTION
+        + SCHEDULE_WIZARD_LLM_INSTRUCTION
         + "\n\n"
         + VOICE_REPLY_INSTRUCTION
     )
+
+
+def _trim_agenda_context_for_voice(agenda_context: str) -> str:
+    """Voz: omite lista longa da agenda pessoal; mantém compartilhada + wizard."""
+    ctx = agenda_context or ""
+    start = ctx.find("=== CURRENT USER AGENDA")
+    if start == -1:
+        return ctx.strip()
+    end = ctx.find("=== END AGENDA ===", start)
+    if end == -1:
+        return ctx.strip()
+    end += len("=== END AGENDA ===")
+    return (ctx[:start] + ctx[end:]).strip()
 
 
 def _messages_to_gemini_history(messages: list) -> list[dict]:
@@ -347,10 +363,10 @@ def _generate_reply_inner(
     msgs = conversation_messages if conversation_messages is not None else []
     prior = msgs[:-1] if msgs else []
     if audio_bytes:
-        # Voz: pouco histórico + sem agenda = resposta mais rápida.
+        # Voz: pouco histórico; contexto compacto (sem listagem pessoal longa).
         if len(prior) > 2:
             prior = prior[-2:]
-        agenda_context = ""
+        agenda_context = _trim_agenda_context_for_voice(agenda_context)
     elif len(prior) > CHAT_LLM_MAX_TURNS:
         prior = prior[-CHAT_LLM_MAX_TURNS:]
 

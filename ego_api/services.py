@@ -303,6 +303,7 @@ def process_chat_message(
     agenda_saved: list[dict] = []
     shared_calendars_saved: list[dict] = []
     shared_events_saved: list[dict] = []
+    shared_members_saved: list[dict] = []
     shared_invite_payload: dict | None = None
 
     reply_clean = reply
@@ -323,13 +324,31 @@ def process_chat_message(
     reply_clean, shared_invite = cs.extract_shared_invite(reply_clean)
     if shared_invite:
         shared_invite_payload = shared_invite
-        invited_cal, invite_warns = cs.process_shared_invite(
+        invited_cal, invite_warns, invite_added = cs.process_shared_invite(
             supabase, user_id, shared_invite
         )
+        shared_members_saved.extend(invite_added)
         if invited_cal:
             shared_calendars_saved.append(invited_cal)
         warnings.extend(invite_warns)
         schedule = {"step": "", "draft": {}}
+    elif (fallback_invite := cs.parse_invite_from_plain_text(user_display)):
+        shared_invite_payload = fallback_invite
+        invited_cal, invite_warns, invite_added = cs.process_shared_invite(
+            supabase, user_id, fallback_invite
+        )
+        shared_members_saved.extend(invite_added)
+        if invited_cal:
+            shared_calendars_saved.append(invited_cal)
+        warnings.extend(invite_warns)
+        if invite_added:
+            schedule = {"step": "", "draft": {}}
+        elif invite_warns:
+            warnings.append(
+                "O assistente respondeu no chat, mas o convite só entra "
+                "quando o servidor grava o e-mail. Detalhe: "
+                + invite_warns[0]
+            )
 
     reply_clean, shared_event = cs.extract_shared_event(reply_clean)
     if shared_event:
@@ -395,6 +414,7 @@ def process_chat_message(
         warnings=warnings,
         shared_calendars_saved=shared_calendars_saved,
         shared_events_saved=shared_events_saved,
+        shared_members_saved=shared_members_saved,
         shared_setup=shared_setup,
         shared_invite=shared_invite_payload,
     )
@@ -422,6 +442,7 @@ def process_chat_message(
         "agenda_saved": agenda_saved,
         "shared_calendars_saved": shared_calendars_saved,
         "shared_events_saved": shared_events_saved,
+        "shared_members_saved": shared_members_saved,
     }
     if speak_reply and reply_clean.strip():
         from ego_api import tts

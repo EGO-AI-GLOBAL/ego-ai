@@ -32,6 +32,31 @@ _SCHEDULE_INTENT = re.compile(
 )
 
 
+def parse_invite_from_plain_text(text: str) -> dict | None:
+    """Fallback quando o LLM responde em texto mas não envia [[EGO_SHARED_INVITE:...]]."""
+    raw = (text or "").strip()
+    if not raw:
+        return None
+    if not re.search(r"(?i)\b(convida|convite|adiciona|inclui|adicione|add)\b", raw):
+        return None
+    em_match = re.search(
+        r"([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})", raw, re.I
+    )
+    if not em_match:
+        return None
+    cal_match = re.search(
+        r"(?i)(?:agenda\s+compartilhada|grupo)\s+[«\"']?\s*([^«\"'\n.?]+)",
+        raw,
+    )
+    if not cal_match:
+        return None
+    email = em_match.group(1).strip().lower()
+    cal_name = cal_match.group(1).strip().strip("«»\"' ")
+    if not email or not cal_name:
+        return None
+    return {"calendar_name": cal_name, "invite_emails": [email]}
+
+
 def load_chat_schedule(prof: dict | None) -> dict[str, Any]:
     ui = ui_state_from_profile(prof)
     raw = ui.get(_SCHEDULE_KEY)
@@ -467,7 +492,7 @@ def process_shared_invite(
     supabase: Client | None,
     user_id: str,
     data: dict[str, Any],
-) -> tuple[dict | None, list[str]]:
+) -> tuple[dict | None, list[str], list[dict]]:
     """Convida e-mail(s) numa agenda compartilhada existente (criador)."""
     from ego_api import shared_calendars as sc
 
@@ -484,9 +509,9 @@ def process_shared_invite(
     added: list[dict] = []
 
     if not calendar_id:
-        return None, ["Agenda compartilhada não encontrada."]
+        return None, ["Agenda compartilhada não encontrada."], []
     if not emails:
-        return None, ["Informe o e-mail a convidar."]
+        return None, ["Informe o e-mail a convidar."], []
 
     for em in emails:
         ok, err, mem = sc.add_member_by_email(supabase, user_id, calendar_id, em)
@@ -498,7 +523,7 @@ def process_shared_invite(
     cal = sc.get_calendar(supabase, user_id, calendar_id) if added else None
     if not added and not warnings:
         warnings.append("Não foi possível adicionar os e-mails.")
-    return cal, warnings
+    return cal, warnings, added
 
 
 _TODAY_AGENDA_QUERY = re.compile(

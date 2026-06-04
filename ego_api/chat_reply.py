@@ -26,14 +26,22 @@ def ensure_visible_chat_reply(
     warnings: list[str] | None = None,
     shared_calendars_saved: list[dict] | None = None,
     shared_events_saved: list[dict] | None = None,
+    shared_members_saved: list[dict] | None = None,
     shared_setup: dict | None = None,
     shared_invite: dict | None = None,
 ) -> str:
+    warns = warnings or []
+    shared_members = shared_members_saved or []
     text = (reply_clean or "").strip()
+    if text and shared_invite and not shared_members:
+        if warns:
+            return (
+                f"Não consegui adicionar na agenda compartilhada: {warns[0]} "
+                "Confirme o e-mail da conta e o nome da agenda."
+            )
     if text:
         return text
 
-    warns = warnings or []
     pending_rem = rem_items or []
     pending_ag = ag_items or []
     shared_cals = shared_calendars_saved or []
@@ -75,12 +83,23 @@ def ensure_visible_chat_reply(
         cal_name = str(
             shared_invite.get("calendar_name") or shared_invite.get("name") or "Agenda"
         ).strip()
-        extra = ""
+        if shared_members:
+            extra = ""
+            if warns:
+                extra = f" Avisos: {'; '.join(warns[:3])}"
+            return (
+                f"Pronto! Adicionei {len(shared_members)} pessoa(s) na agenda «{cal_name}». "
+                f"Os convidados já veem a agenda no app.{extra}"
+            )
         if warns:
-            extra = f" Avisos: {'; '.join(warns[:3])}"
-        elif not warns:
-            extra = " Os convidados já veem a agenda no app."
-        return f"Pronto! Adicionei o(s) e-mail(s) na agenda «{cal_name}».{extra}"
+            return (
+                f"Não consegui adicionar na agenda «{cal_name}»: {warns[0]} "
+                "Use o e-mail exacto da Conta no app."
+            )
+        return (
+            f"Não consegui confirmar o convite na agenda «{cal_name}». "
+            "Repita: Convida email@exemplo.com para a agenda compartilhada Família"
+        )
 
     if reminders_saved:
         row = reminders_saved[0]

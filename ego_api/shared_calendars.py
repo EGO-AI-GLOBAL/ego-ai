@@ -190,9 +190,58 @@ def _user_day_start_utc() -> datetime.datetime:
     return datetime.datetime.now(datetime.timezone.utc)
 
 
+def link_shared_memberships_for_user(
+    supabase: Client | None, user_id: str, email: str
+) -> int:
+    """Associa convites gravados por e-mail ao user_id actual (login / bootstrap)."""
+    email_norm, err = _normalize_invite_email(email)
+    if err or not email_norm or not user_id:
+        return 0
+    admin = create_service_client()
+    if not admin:
+        return 0
+    try:
+        res = (
+            admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+            .select("id,user_id,status")
+            .eq("invited_email", email_norm)
+            .execute()
+        )
+        updated = 0
+        for row in res.data or []:
+            rid = str(row.get("id") or "")
+            current = str(row.get("user_id") or "")
+            if not rid or current == user_id:
+                continue
+            admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(
+                {"user_id": user_id, "status": "active"}
+            ).eq("id", rid).execute()
+            updated += 1
+        return updated
+    except Exception as exc:
+        print(
+            f"[EGO] link_shared_memberships_for_user error user={user_id}: {exc}",
+            flush=True,
+        )
+        return 0
+
+
 def list_calendars_for_user(supabase: Client | None, user_id: str) -> list[dict]:
     if not supabase or not user_id:
         return []
+    try:
+        from ego_api import db
+        from ego_api.request_ctx import get_session
+
+        sess = get_session()
+        em = (sess.email if sess else "") or ""
+        if not em:
+            prof = db.load_profile(supabase, user_id) or {}
+            em = str(prof.get("email") or "")
+        if em:
+            link_shared_memberships_for_user(supabase, user_id, em)
+    except Exception:
+        pass
     apply_user_auth(supabase)
     try:
         mem = (
@@ -273,6 +322,33 @@ def find_calendar_id_by_name(
     return None
 
 
+def _member_display_name(
+    admin: Client | None, user_id: str | None, email: str
+) -> str:
+    """Nome amigável (profiles.full_name = «como quer ser chamado»)."""
+    uid = (user_id or "").strip()
+    if admin and uid:
+        try:
+            res = (
+                admin.table("profiles")
+                .select("full_name,name")
+                .eq("id", uid)
+                .limit(1)
+                .execute()
+            )
+            rows = res.data or []
+            if rows:
+                name = str(rows[0].get("full_name") or rows[0].get("name") or "").strip()
+                if name:
+                    return name[:120]
+        except Exception:
+            pass
+    em = (email or "").strip().lower()
+    if em and "@" in em:
+        return em.split("@", 1)[0][:80]
+    return "Membro"
+
+
 def list_members(
     supabase: Client | None, user_id: str, calendar_id: str
 ) -> list[dict]:
@@ -287,7 +363,15 @@ def list_members(
             .order("created_at")
             .execute()
         )
-        return list(res.data or [])
+        members = list(res.data or [])
+        admin = create_service_client()
+        for row in members:
+            row["display_name"] = _member_display_name(
+                admin,
+                str(row.get("user_id") or "") or None,
+                str(row.get("invited_email") or ""),
+            )
+        return members
     except Exception:
         return []
 
@@ -607,6 +691,33 @@ def add_member_by_email(
             .execute()
         )
         if existing.data:
+            prev = existing.data[0]
+            prev_uid = str(prev.get("user_id") or "")
+            if prev_uid == target_uid:
+                return False, "Este e-mail já está nesta agenda.", None
+            member_id = str(prev.get("id") or "")
+            if member_id:
+                admin = create_service_client()
+                client = admin or supabase
+                try:
+                    client.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(
+                        {
+                            "user_id": target_uid,
+                            "invited_email": email_norm,
+                            "status": "active",
+                        }
+                    ).eq("id", member_id).execute()
+                    refreshed = (
+                        client.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                        .select("*")
+                        .eq("id", member_id)
+                        .limit(1)
+                        .execute()
+                    )
+                    data = (refreshed.data or [prev])[0]
+                    return True, "", data
+                except Exception as exc:
+                    return False, str(exc), None
             return False, "Este e-mail já está nesta agenda.", None
         row = {
             "calendar_id": calendar_id,
