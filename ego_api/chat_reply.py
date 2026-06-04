@@ -30,10 +30,13 @@ def ensure_visible_chat_reply(
     shared_setup: dict | None = None,
     shared_invite: dict | None = None,
     shared_event: dict | None = None,
+    shared_delete: dict | None = None,
+    shared_calendars_deleted: list[str] | None = None,
 ) -> str:
     warns = warnings or []
     shared_members = shared_members_saved or []
     shared_ev_saved = shared_events_saved or []
+    deleted_cals = shared_calendars_deleted or []
     text = (reply_clean or "").strip()
     if text and shared_invite and not shared_members:
         if warns:
@@ -54,6 +57,19 @@ def ensure_visible_chat_reply(
             f"Não consegui confirmar o compromisso na agenda «{cal_name}». "
             "Repita: Marca na agenda compartilhada Família reunião amanhã às 15h"
         )
+    if text and shared_delete and not deleted_cals:
+        cal_name = str(
+            shared_delete.get("calendar_name") or shared_delete.get("name") or "Agenda"
+        ).strip()
+        if warns:
+            return (
+                f"Não consegui apagar a agenda «{cal_name}»: {warns[0]} "
+                "Só quem criou a agenda pode apagá-la."
+            )
+        return (
+            f"Não consegui confirmar a remoção da agenda «{cal_name}». "
+            "Repita: Apaga a agenda compartilhada Família"
+        )
     if text:
         return text
 
@@ -61,6 +77,10 @@ def ensure_visible_chat_reply(
     pending_ag = ag_items or []
     shared_cals = shared_calendars_saved or []
     shared_ev = shared_events_saved or []
+
+    if deleted_cals:
+        cal_name = deleted_cals[0].strip() or "Agenda"
+        return f"Pronto! Apaguei a agenda compartilhada «{cal_name}»."
 
     if shared_ev:
         ev = shared_ev[0]

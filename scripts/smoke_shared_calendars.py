@@ -30,6 +30,10 @@ def main() -> int:
     assert ev.get("title") == "Reunião", ev
     assert ev.get("scheduled_at"), ev
 
+    delete_text = "Apaga a agenda compartilhada Família"
+    deleted = cs.parse_delete_shared_calendar_from_plain_text(delete_text)
+    assert deleted and deleted.get("calendar_name") == "Família", deleted
+
     sample = (
         'Ok [[EGO_SHARED_SETUP:{"calendar_name":"Familia","title":"Call",'
         '"scheduled_at":"2026-06-15T14:00:00-03:00","invite_emails":["a@b.com"]}]]'

@@ -1,7 +1,10 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
+import * as FileSystem from "expo-file-system";
 import { API_V1 } from "@/constants/config";
 import { resolveSpeechVoiceId } from "@/constants/personas";
 import { getPlayIntegrityToken } from "@/security/playIntegrity";
+import { getWebOrigin } from "@/utils/webLocation";
+import { reportApiFailure } from "@/monitoring/errorReporter";
 import type {
   AccessInfo,
   ApiErr,
@@ -62,13 +65,11 @@ function applyAuthHeaders(
 
 export class ApiClientError extends Error {
   status?: number;
-  code?: string;
 
-  constructor(message: string, status?: number, code?: string) {
+  constructor(message: string, status?: number) {
     super(message);
     this.name = "ApiClientError";
     this.status = status;
-    this.code = code;
   }
 }
 
@@ -89,6 +90,7 @@ const TIMEOUT_BOOTSTRAP_MS = 90_000;
 const INTEGRITY_PATH_PREFIXES = [
   "chat/messages",
   "chat/voice",
+  "chat/voice/stream",
   "voice/realtime/client-secret",
   "voice/realtime/webrtc",
   "voice/realtime/finish",
@@ -164,16 +166,11 @@ api.interceptors.response.use(
       (err.message === "Network Error" ||
         err.code === "ERR_NETWORK" ||
         err.code === "ECONNREFUSED");
-    const webOrigin =
-      typeof window !== "undefined" ? window.location.origin : "";
+    const webOrigin = getWebOrigin();
     const isProdApi = /^https:\/\//i.test(apiBase);
     const apiHint = apiBase.startsWith("http")
       ? apiBase.replace(/\/api\/v1\/?$/, "")
       : webOrigin || "http://SEU_IP:8081";
-    const apiCode =
-      typeof err.response?.data === "object" && err.response?.data
-        ? (err.response.data as ApiErr).code
-        : undefined;
     const msg =
       err.response?.data?.error ||
       (timedOut
@@ -188,7 +185,8 @@ api.interceptors.response.use(
             : `Sem ligação à API. Confirme: (1) python flask_api.py no PC, (2) Flask a correr na porta 5000, (3) no PC use ${webOrigin || "http://localhost:8081"} (não :5000 no browser). Telefone: mesma Wi‑Fi e ${apiHint}.`
           : err.message) ||
       "Não foi possível contactar o servidor. Verifique a internet e a URL da API.";
-    return Promise.reject(new ApiClientError(msg, status, apiCode));
+    reportApiFailure(original?.url, status, msg);
+    return Promise.reject(new ApiClientError(msg, status));
   }
 );
 
@@ -211,15 +209,13 @@ async function fetchDashboardLegacy(): Promise<DashboardData> {
     .get<HealthInfo>(`${apiBase}health`, { timeout: 8000 })
     .catch(() => null);
 
-  const [healthRes, meRes, accessRes, remRes, agRes, chatRes, sharedRes] =
-    await Promise.all([
+  const [healthRes, meRes, accessRes, remRes, agRes, chatRes] = await Promise.all([
     healthReq,
     api.get("me"),
     api.get("access"),
     api.get("reminders"),
     api.get("agenda"),
     api.get("chat/messages"),
-    api.get("shared-calendars").catch(() => null),
   ]);
 
   const meBody = unwrap<MeData & { ok?: boolean }>(meRes.data);
@@ -227,9 +223,6 @@ async function fetchDashboardLegacy(): Promise<DashboardData> {
   const remBody = unwrap<{ reminders: DashboardData["reminders"] }>(remRes.data);
   const agBody = unwrap<{ agenda: DashboardData["agenda"] }>(agRes.data);
   const chatBody = unwrap<{ messages: DashboardData["messages"] }>(chatRes.data);
-  const sharedBody = sharedRes
-    ? unwrap<{ shared_calendars: SharedCalendar[] }>(sharedRes.data)
-    : { shared_calendars: [] as SharedCalendar[] };
 
   return {
     health: healthRes ? unwrap<HealthInfo>(healthRes.data) : null,
@@ -237,7 +230,6 @@ async function fetchDashboardLegacy(): Promise<DashboardData> {
     access: accessBody,
     reminders: remBody.reminders ?? [],
     agenda: agBody.agenda ?? [],
-    shared_calendars: sharedBody.shared_calendars ?? [],
     messages: chatBody.messages ?? [],
   };
 }
@@ -302,15 +294,27 @@ export async function login(email: string, password: string): Promise<AuthSessio
   return session;
 }
 
+export async function validateReferralCode(
+  code: string
+): Promise<{ valid: boolean; display_name?: string; code?: string }> {
+  const { data } = await api.post("referrals/validate", {
+    code: code.trim(),
+  });
+  const body = unwrap<{ valid: boolean; display_name?: string; code?: string }>(data);
+  return body;
+}
+
 export async function signup(
   email: string,
   password: string,
-  fullName?: string
+  fullName?: string,
+  referralCode?: string
 ): Promise<AuthSession | null> {
   const { data } = await api.post("auth/signup", {
     email,
     password,
     full_name: fullName || "",
+    referral_code: (referralCode || "").trim(),
   });
   const body = unwrap<{ session: AuthSession; message?: string }>(data);
   if (body.session?.access_token || (body as { access_token?: string }).access_token) {
@@ -383,9 +387,6 @@ export async function createPersonalReminder(payload: {
 
 function sharedCalendarFriendlyError(err: unknown, fallback: string): string {
   if (err instanceof ApiClientError && err.status === 404) {
-    if (err.code === "email_no_account" || err.message.includes("não tem conta no EGO-AI")) {
-      return err.message;
-    }
     return (
       "Agendas compartilhadas ainda não estão no servidor (API desatualizada). " +
       "Faça deploy do código novo no Railway e execute a migration SQL no Supabase."
@@ -393,13 +394,6 @@ function sharedCalendarFriendlyError(err: unknown, fallback: string): string {
   }
   if (err instanceof Error && err.message) return err.message;
   return fallback;
-}
-
-export function isSharedCalendarEmailNoAccountError(err: unknown): boolean {
-  return (
-    err instanceof ApiClientError &&
-    (err.code === "email_no_account" || err.message.includes("não tem conta no EGO-AI"))
-  );
 }
 
 export async function fetchSharedCalendars(): Promise<SharedCalendar[]> {
@@ -448,20 +442,11 @@ export async function addSharedCalendarMember(
   calendarId: string,
   email: string
 ): Promise<SharedCalendarMember> {
-  try {
-    const { data } = await api.post(`shared-calendars/${calendarId}/members`, {
-      email: email.trim(),
-    });
-    const body = unwrap<{ member: SharedCalendarMember }>(data);
-    return body.member;
-  } catch (e) {
-    if (e instanceof ApiClientError) {
-      throw e;
-    }
-    throw new Error(
-      sharedCalendarFriendlyError(e, "Não foi possível adicionar este e-mail.")
-    );
-  }
+  const { data } = await api.post(`shared-calendars/${calendarId}/members`, {
+    email,
+  });
+  const body = unwrap<{ member: SharedCalendarMember }>(data);
+  return body.member;
 }
 
 export async function removeSharedCalendarMember(
@@ -522,6 +507,99 @@ export async function sendChatMessage(
   return body;
 }
 
+async function voiceAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {};
+  const session = getSession();
+  const token = session?.access_token?.trim();
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+    if (session?.refresh_token) {
+      headers["X-Refresh-Token"] = session.refresh_token;
+    }
+  }
+  const integrityToken = await getPlayIntegrityToken();
+  if (integrityToken) {
+    headers["X-Play-Integrity"] = integrityToken;
+  }
+  return headers;
+}
+
+function appendVoiceFormFields(
+  form: FormData,
+  opts: {
+    blob?: Blob;
+    uri?: string;
+    audioMime: string;
+    speak?: boolean;
+    history?: ChatHistoryPayload;
+  }
+): void {
+  const audio_mime = opts.audioMime;
+  const ext = audio_mime.includes("webm") ? "webm" : audio_mime.includes("wav") ? "wav" : "m4a";
+  if (opts.blob) {
+    form.append("audio", voiceUploadFile(opts.blob, audio_mime));
+  } else if (opts.uri) {
+    form.append("audio", {
+      uri: opts.uri,
+      name: `voice.${ext}`,
+      type: audio_mime,
+    } as unknown as Blob);
+  }
+  form.append("audio_mime", audio_mime);
+  form.append("speak", opts.speak !== false ? "true" : "false");
+  if (opts.history?.length) {
+    form.append("history", JSON.stringify(opts.history));
+  }
+}
+
+async function readVoiceNdjsonStream(
+  response: Response,
+  onDelta?: (chunk: string, full: string) => void
+): Promise<SendChatResult> {
+  const reader = response.body?.getReader();
+  if (!reader) {
+    throw new Error("Streaming indisponível neste dispositivo.");
+  }
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let full = "";
+  let donePayload: SendChatResult | null = null;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split("\n");
+    buffer = lines.pop() || "";
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) continue;
+      const ev = JSON.parse(trimmed) as {
+        type?: string;
+        text?: string;
+        error?: string;
+        result?: SendChatResult;
+      };
+      if (ev.type === "delta" && ev.text) {
+        full += ev.text;
+        onDelta?.(ev.text, full);
+      } else if (ev.type === "error") {
+        throw new Error(ev.error || "Erro ao processar voz.");
+      } else if (ev.type === "done" && ev.result) {
+        donePayload = ev.result;
+      }
+    }
+  }
+
+  if (donePayload?.reply) {
+    return donePayload;
+  }
+  if (full.trim()) {
+    return { reply: full.trim() };
+  }
+  throw new Error("A API não devolveu resposta do assistente.");
+}
+
 function voiceUploadFile(blob: Blob, mime: string): Blob | File {
   const audio_mime = mime.includes("webm")
     ? "audio/webm"
@@ -558,12 +636,12 @@ export async function sendChatVoiceBlob(opts: {
         : mime;
 
   const form = new FormData();
-  form.append("audio", voiceUploadFile(opts.blob, audio_mime));
-  form.append("audio_mime", audio_mime);
-  form.append("speak", opts.speak !== false ? "true" : "false");
-  if (opts.history?.length) {
-    form.append("history", JSON.stringify(opts.history));
-  }
+  appendVoiceFormFields(form, {
+    blob: opts.blob,
+    audioMime: audio_mime,
+    speak: opts.speak,
+    history: opts.history,
+  });
 
   const { data } = await api.post("chat/voice", form, {
     timeout: 150_000,
@@ -575,6 +653,103 @@ export async function sendChatVoiceBlob(opts: {
     throw new Error("A API não devolveu resposta do assistente.");
   }
   return body;
+}
+
+/** Voz com streaming — texto aparece antes do áudio (estilo ChatGPT). */
+export async function sendChatVoiceBlobStream(opts: {
+  blob: Blob;
+  audioMime?: string;
+  speak?: boolean;
+  history?: ChatHistoryPayload;
+  onDelta?: (chunk: string, full: string) => void;
+}): Promise<SendChatResult> {
+  if (!opts.blob || opts.blob.size < 256) {
+    throw new Error("Gravação demasiado curta. Fale pelo menos 1 segundo.");
+  }
+
+  const mime = (opts.audioMime || opts.blob.type || "audio/webm").toLowerCase();
+  const audio_mime = mime.includes("webm")
+    ? "audio/webm"
+    : mime.includes("mp4") || mime.includes("m4a")
+      ? "audio/mp4"
+      : mime.includes("wav")
+        ? "audio/wav"
+        : mime;
+
+  const form = new FormData();
+  appendVoiceFormFields(form, {
+    blob: opts.blob,
+    audioMime: audio_mime,
+    speak: opts.speak,
+    history: opts.history,
+  });
+
+  const streamUrl = `${API_V1.replace(/\/$/, "")}/chat/voice/stream`;
+  try {
+    const headers = await voiceAuthHeaders();
+    const res = await fetch(streamUrl, { method: "POST", headers, body: form });
+    if (!res.ok) {
+      let msg = `Erro ${res.status}`;
+      try {
+        const j = (await res.json()) as { error?: string };
+        if (j.error) msg = j.error;
+      } catch {
+        /* ignore */
+      }
+      throw new Error(msg);
+    }
+    return await readVoiceNdjsonStream(res, opts.onDelta);
+  } catch (e) {
+    if (e instanceof Error && e.message.includes("Streaming indisponível")) {
+      return sendChatVoiceBlob(opts);
+    }
+    throw e instanceof Error ? e : new Error("Erro ao enviar voz.");
+  }
+}
+
+/** Voz nativa (URI) com streaming NDJSON. */
+export async function sendChatVoiceUriStream(opts: {
+  uri: string;
+  audioMime?: string;
+  speak?: boolean;
+  history?: ChatHistoryPayload;
+  onDelta?: (chunk: string, full: string) => void;
+}): Promise<SendChatResult> {
+  const mime = (opts.audioMime || "audio/mp4").toLowerCase();
+  const audio_mime = mime.includes("webm")
+    ? "audio/webm"
+    : mime.includes("mp4") || mime.includes("m4a")
+      ? "audio/mp4"
+      : mime.includes("wav")
+        ? "audio/wav"
+        : mime;
+
+  const form = new FormData();
+  appendVoiceFormFields(form, {
+    uri: opts.uri,
+    audioMime: audio_mime,
+    speak: opts.speak,
+    history: opts.history,
+  });
+
+  const streamUrl = `${API_V1.replace(/\/$/, "")}/chat/voice/stream`;
+  try {
+    const headers = await voiceAuthHeaders();
+    const res = await fetch(streamUrl, { method: "POST", headers, body: form });
+    if (!res.ok) {
+      throw new Error(`Erro ${res.status}`);
+    }
+    return await readVoiceNdjsonStream(res, opts.onDelta);
+  } catch {
+    return sendChatVoiceMessage({
+      audioBase64: await FileSystem.readAsStringAsync(opts.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      }),
+      audioMime: audio_mime,
+      speak: opts.speak,
+      history: opts.history,
+    });
+  }
 }
 
 export async function sendChatVoiceMessage(opts: {

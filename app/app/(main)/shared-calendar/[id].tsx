@@ -10,8 +10,9 @@ import {
   Text,
   View,
 } from "react-native";
-import { fetchSharedCalendar, removeSharedCalendarMember } from "@/api/client";
+import { deleteSharedCalendar, fetchSharedCalendar, removeSharedCalendarMember } from "@/api/client";
 import { markSharedCalendarEventsSeen } from "@/utils/sharedCalendarNotifications";
+import { memberDisplayName, membersGroupLine } from "@/utils/sharedCalendarMembers";
 import type { SharedCalendar, SharedCalendarEvent } from "@/api/types";
 import { ScreenShell } from "@/components/ScreenShell";
 import { useAuth } from "@/context/AuthContext";
@@ -78,6 +79,7 @@ export default function SharedCalendarDetailScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const load = useCallback(async () => {
     if (!session || !calendarId) return;
@@ -106,6 +108,12 @@ export default function SharedCalendarDetailScreen() {
     await refreshDashboard();
     setRefreshing(false);
   };
+
+  const isOwner = Boolean(cal?.is_owner);
+  const myUserId = session?.user?.id || "";
+  const events = sortEvents((cal?.events ?? []).filter((ev) => !ev.dismissed));
+  const members = cal?.members ?? [];
+  const calName = cal?.name?.trim() || "Agenda compartilhada";
 
   const onRemoveMember = (memberId: string, email: string, isMe: boolean) => {
     Alert.alert(
@@ -138,14 +146,37 @@ export default function SharedCalendarDetailScreen() {
     );
   };
 
-  const isOwner = Boolean(cal?.is_owner);
-  const myUserId = session?.user?.id || "";
-  const events = sortEvents((cal?.events ?? []).filter((ev) => !ev.dismissed));
-  const members = cal?.members ?? [];
-  const calName = cal?.name?.trim() || "Agenda compartilhada";
+  const onDeleteCalendar = () => {
+    Alert.alert(
+      "Apagar agenda",
+      `Apagar «${calName}» para todos? Esta ação não pode ser desfeita.`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Apagar",
+          style: "destructive",
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await deleteSharedCalendar(calendarId);
+              await refreshDashboard();
+              router.replace("/(main)/agenda");
+            } catch (e) {
+              Alert.alert(
+                "Erro",
+                e instanceof Error ? e.message : "Falha ao apagar a agenda."
+              );
+            } finally {
+              setDeleting(false);
+            }
+          },
+        },
+      ]
+    );
+  };
 
   return (
-    <ScreenShell title={calName} subtitle="Consulta · só leitura">
+    <ScreenShell title={calName} subtitle={isOwner ? "Consulta · você criou" : "Consulta · só leitura"}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
@@ -167,7 +198,38 @@ export default function SharedCalendarDetailScreen() {
 
         {!loading && cal ? (
           <>
-            <Text style={[styles.section, { color: colors.textMuted }]}>Membros</Text>
+            <View
+              style={[
+                styles.groupHeader,
+                { borderColor: colors.border, backgroundColor: colors.bgCard },
+              ]}
+            >
+              <Text style={[styles.groupTitle, { color: colors.text }]}>{calName}</Text>
+              <Text style={[styles.groupMembers, { color: colors.textMuted }]}>
+                {membersGroupLine(members, myUserId)}
+              </Text>
+            </View>
+
+            <Text style={[styles.section, { color: colors.textMuted }]}>Compromissos</Text>
+            {events.length === 0 ? (
+              <Text style={[styles.muted, { color: colors.textMuted }]}>
+                Nenhuma reunião marcada. Peça no chat para marcar um compromisso.
+              </Text>
+            ) : (
+              events.map((ev) => (
+                <View
+                  key={String(ev.id)}
+                  style={[styles.eventRow, { borderBottomColor: colors.border }]}
+                >
+                  <Text style={[styles.eventTitle, { color: colors.text }]}>{ev.title || "Reunião"}</Text>
+                  <Text style={[styles.eventWhen, { color: colors.textMuted }]}>
+                    {formatWhen(ev.scheduled_at)}
+                  </Text>
+                </View>
+              ))
+            )}
+
+            <Text style={[styles.section, { color: colors.textMuted }]}>Gerenciar membros</Text>
             {members.length === 0 ? (
               <Text style={[styles.muted, { color: colors.textMuted }]}>
                 Nenhum membro listado.
@@ -176,6 +238,7 @@ export default function SharedCalendarDetailScreen() {
               members.map((m) => {
                 const mid = String(m.id || "");
                 const email = m.invited_email || "—";
+                const label = memberDisplayName(m);
                 const isMe = String(m.user_id || "") === myUserId;
                 const canRemove =
                   !busyId &&
@@ -187,7 +250,12 @@ export default function SharedCalendarDetailScreen() {
                     style={[styles.memberRow, { borderBottomColor: colors.border }]}
                   >
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.memberEmail, { color: colors.text }]}>{email}</Text>
+                      <Text style={[styles.memberEmail, { color: colors.text }]}>{label}</Text>
+                      {email !== "—" && label.toLowerCase() !== email.toLowerCase() ? (
+                        <Text style={[styles.memberEmailSub, { color: colors.textMuted }]}>
+                          {email}
+                        </Text>
+                      ) : null}
                       <Text style={[styles.memberRole, { color: colors.textMuted }]}>
                         {m.role === "owner" ? "Criador" : "Membro"}
                         {isMe ? " · você" : ""}
@@ -205,25 +273,23 @@ export default function SharedCalendarDetailScreen() {
               })
             )}
 
-            <Text style={[styles.section, { color: colors.textMuted }]}>Próximas reuniões</Text>
-            {events.length === 0 ? (
-              <Text style={[styles.muted, { color: colors.textMuted }]}>
-                Nenhuma reunião marcada. Peça no chat para marcar um compromisso.
-              </Text>
-            ) : (
-              events.map((ev) => (
-                <View
-                  key={String(ev.id)}
-                  style={[styles.eventRow, { borderBottomColor: colors.border }]}
-                >
-                  <Text style={[styles.eventTitle, { color: colors.text }]}>{ev.title || "Reunião"}</Text>
-                  <Text style={[styles.eventCalendar, { color: colors.primary }]}>{calName}</Text>
-                  <Text style={[styles.eventWhen, { color: colors.textMuted }]}>
-                    {formatWhen(ev.scheduled_at)}
-                  </Text>
-                </View>
-              ))
-            )}
+            {isOwner ? (
+              <Pressable
+                onPress={onDeleteCalendar}
+                disabled={deleting}
+                style={({ pressed }) => [
+                  styles.deleteBtn,
+                  {
+                    borderColor: colors.danger,
+                    opacity: deleting || pressed ? 0.7 : 1,
+                  },
+                ]}
+              >
+                <Text style={[styles.deleteBtnText, { color: colors.danger }]}>
+                  {deleting ? "Apagando…" : "Apagar agenda para todos"}
+                </Text>
+              </Pressable>
+            ) : null}
           </>
         ) : null}
       </ScrollView>
@@ -233,6 +299,14 @@ export default function SharedCalendarDetailScreen() {
 
 const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 32 },
+  groupHeader: {
+    borderWidth: 1,
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+  },
+  groupTitle: { fontSize: 18, fontWeight: "800", marginBottom: 8 },
+  groupMembers: { fontSize: 14, lineHeight: 20 },
   chatHint: {
     borderWidth: 1,
     borderRadius: 12,
@@ -257,11 +331,20 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  memberEmail: { fontSize: 15, fontWeight: "500" },
+  memberEmail: { fontSize: 15, fontWeight: "600" },
+  memberEmailSub: { fontSize: 12, marginTop: 2 },
   memberRole: { fontSize: 12, marginTop: 2 },
   eventRow: { paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   eventTitle: { fontSize: 16, fontWeight: "600" },
   eventCalendar: { fontSize: 12, fontWeight: "600", marginTop: 4 },
   eventWhen: { fontSize: 13, marginTop: 4 },
   error: { fontSize: 14, marginTop: 12 },
+  deleteBtn: {
+    marginTop: 28,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  deleteBtnText: { fontSize: 15, fontWeight: "700" },
 });

@@ -306,6 +306,8 @@ def process_chat_message(
     shared_members_saved: list[dict] = []
     shared_invite_payload: dict | None = None
     shared_event_payload: dict | None = None
+    shared_delete_payload: dict | None = None
+    shared_calendars_deleted: list[str] = []
 
     reply_clean = reply
     reply_clean, draft_patch = cs.extract_schedule_draft(reply_clean)
@@ -321,6 +323,32 @@ def process_chat_message(
         shared_events_saved.extend(evs)
         warnings.extend(shared_warns)
         schedule = {"step": "", "draft": {}}
+
+    reply_clean, shared_delete = cs.extract_shared_delete(reply_clean)
+    if shared_delete:
+        shared_delete_payload = shared_delete
+        deleted_name, del_warns, deleted = cs.process_shared_delete(
+            supabase, user_id, shared_delete
+        )
+        if deleted and deleted_name:
+            shared_calendars_deleted.append(deleted_name)
+            schedule = {"step": "", "draft": {}}
+        warnings.extend(del_warns)
+    elif fallback_delete := cs.parse_delete_shared_calendar_from_plain_text(user_display):
+        shared_delete_payload = fallback_delete
+        deleted_name, del_warns, deleted = cs.process_shared_delete(
+            supabase, user_id, fallback_delete
+        )
+        if deleted and deleted_name:
+            shared_calendars_deleted.append(deleted_name)
+            schedule = {"step": "", "draft": {}}
+        elif del_warns:
+            warnings.append(
+                "O assistente respondeu no chat, mas a agenda só some "
+                "quando o servidor apaga. Detalhe: " + del_warns[0]
+            )
+        else:
+            warnings.extend(del_warns)
 
     reply_clean, shared_invite = cs.extract_shared_invite(reply_clean)
     if shared_invite:
@@ -453,6 +481,8 @@ def process_chat_message(
         shared_setup=shared_setup,
         shared_invite=shared_invite_payload,
         shared_event=shared_event_payload,
+        shared_delete=shared_delete_payload,
+        shared_calendars_deleted=shared_calendars_deleted,
     )
 
     cs.save_chat_schedule(
@@ -479,6 +509,7 @@ def process_chat_message(
         "shared_calendars_saved": shared_calendars_saved,
         "shared_events_saved": shared_events_saved,
         "shared_members_saved": shared_members_saved,
+        "shared_calendars_deleted": shared_calendars_deleted,
     }
     if speak_reply and reply_clean.strip():
         from ego_api import tts

@@ -73,6 +73,8 @@ marcações faz-se AQUI no chat — o utilizador não precisa de formulários na
   [[EGO_SHARED_EVENT:{"calendar_name":"Equipe","title":"Reunião","scheduled_at":"ISO com fuso"}]]
 - Convidar e-mail numa agenda EXISTENTE (só o criador):
   [[EGO_SHARED_INVITE:{"calendar_name":"Família","invite_emails":["a@b.com"]}]]
+- Apagar agenda compartilhada (só o criador):
+  [[EGO_SHARED_DELETE:{"calendar_name":"Família"}]]
 - Todos os membros podem marcar compromissos numa agenda em que já participam.
 - Enquanto monta agenda compartilhada, NÃO use [[EGO_REMINDER:...]].
 - Pode guardar progresso com [[EGO_SCHEDULE_DRAFT:{"scope":"shared","calendar_name":"...","title":"...","scheduled_at":"..."}]] no fim.

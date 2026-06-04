@@ -322,6 +322,7 @@ def build_schedule_wizard_context(
         "3) Compartilhada NOVA: nome (obrigatório), opcional compromisso e e-mails → [[EGO_SHARED_SETUP:{...}]]",
         "4) Compartilhada EXISTENTE — marcar: [[EGO_SHARED_EVENT:{...}]]",
         "5) Convidar e-mail em agenda existente (criador): [[EGO_SHARED_INVITE:{...}]]",
+        "6) Apagar agenda compartilhada (só criador): [[EGO_SHARED_DELETE:{...}]]",
         "",
         f"Estado actual: step={schedule.get('step') or '—'} draft={json.dumps(draft, ensure_ascii=False)}",
     ]
@@ -656,6 +657,94 @@ def process_shared_invite(
     if not added and not warnings:
         warnings.append("Não foi possível adicionar os e-mails.")
     return cal, warnings, added
+
+
+def extract_shared_delete(text: str) -> tuple[str, dict | None]:
+    """Apagar agenda compartilhada (só criador)."""
+    marker = "[[EGO_SHARED_DELETE:"
+    if marker not in text:
+        return text, None
+    idx = text.find(marker)
+    end = text.find("]]", idx)
+    if end == -1:
+        return text, None
+    raw = text[idx + len(marker) : end].strip()
+    clean = (text[:idx].rstrip() + "\n" + text[end + 2 :].lstrip()).strip()
+    try:
+        obj = json.loads(raw)
+    except json.JSONDecodeError:
+        j0, j1 = raw.find("{"), raw.rfind("}")
+        if j0 == -1 or j1 <= j0:
+            return text, None
+        try:
+            obj = json.loads(raw[j0 : j1 + 1])
+        except json.JSONDecodeError:
+            return text, None
+    if not isinstance(obj, dict):
+        return text, None
+    if obj.get("calendar_id") or obj.get("calendar_name") or obj.get("name"):
+        return clean, obj
+    return text, None
+
+
+def parse_delete_shared_calendar_from_plain_text(text: str) -> dict | None:
+    """Fallback quando o criador pede apagar agenda em texto livre."""
+    raw = (text or "").strip()
+    if not raw:
+        return None
+    if not re.search(
+        r"(?i)\b(apaga|apagar|deleta|deletar|exclui|excluir|elimina|eliminar)\b",
+        raw,
+    ):
+        return None
+    if not (_SCOPE_SHARED.search(raw) or re.search(r"(?i)\bagenda\b", raw)):
+        return None
+    cal_name = _extract_shared_calendar_name(raw)
+    if not cal_name:
+        m = re.search(
+            r"(?i)(?:apaga|apagar|deleta|deletar|exclui|excluir|elimina|eliminar)"
+            r"\s+(?:a\s+)?(?:agenda\s+compartilhada\s+)?[«\"']?\s*([^«\"'\n.?]+)",
+            raw,
+        )
+        if m:
+            cal_name = re.split(
+                r"(?i)\s+(?:reuni|marca|agend|amanh|hoje|depois|às|as|\d)",
+                m.group(1).strip().strip("«»\"' "),
+            )[0].strip()
+    if not cal_name:
+        return None
+    return {"calendar_name": cal_name}
+
+
+def process_shared_delete(
+    supabase: Client | None,
+    user_id: str,
+    data: dict[str, Any],
+) -> tuple[str, list[str], bool]:
+    """Remove agenda compartilhada para todos (só criador)."""
+    from ego_api import shared_calendars as sc
+
+    calendar_id = _resolve_calendar_id_for_user(
+        supabase,
+        user_id,
+        str(data.get("calendar_id") or ""),
+        str(data.get("calendar_name") or data.get("name") or ""),
+    )
+    cal_name = str(data.get("calendar_name") or data.get("name") or "").strip()
+    warnings: list[str] = []
+
+    if not calendar_id:
+        return cal_name, ["Agenda compartilhada não encontrada."], False
+
+    existing = sc.get_calendar(supabase, user_id, calendar_id)
+    if existing:
+        cal_name = str(existing.get("name") or cal_name or "Agenda").strip()
+
+    ok, err = sc.delete_calendar(supabase, user_id, calendar_id)
+    if ok:
+        return cal_name or "Agenda", [], True
+    warnings.append(err or "Não foi possível apagar a agenda.")
+    return cal_name or "Agenda", warnings, False
 
 
 _TODAY_AGENDA_QUERY = re.compile(
