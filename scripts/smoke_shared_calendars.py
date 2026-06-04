@@ -38,7 +38,10 @@ def main() -> int:
 
     bare = "Marca reunião amanhã às 15h"
     assert cs.is_group_schedule_request(bare)
-    assert cs.detect_scope_from_user_text(bare) == "shared"
+    assert cs.detect_scope_from_user_text(bare) is None
+    assert cs.user_named_shared_calendar(bare) is False
+    assert cs.user_named_shared_calendar(short_event) is True
+    assert cs.detect_scope_from_user_text(short_event) == "shared"
     assert cs.detect_scope_from_user_text("Marca na agenda pessoal amanhã 15h") == "personal"
     ev3 = cs.parse_shared_event_from_plain_text(bare)
     assert ev3 and ev3.get("scheduled_at") and not ev3.get("calendar_name")

@@ -318,12 +318,21 @@ def process_chat_message(
 
     schedule_ref = local_now_from_session(sess)
 
-    reply_clean = reply
+    scope_choice_reply = cs.build_schedule_scope_choice_reply(
+        supabase, user_id, user_display
+    )
+
+    skip_schedule_save = bool(scope_choice_reply)
+    reply_clean = scope_choice_reply or reply
+
     reply_clean, draft_patch = cs.extract_schedule_draft(reply_clean)
     if draft_patch:
         schedule = cs.merge_schedule_draft(schedule, draft_patch)
 
-    reply_clean, shared_setup = cs.extract_shared_setup(reply_clean)
+    if not skip_schedule_save:
+        reply_clean, shared_setup = cs.extract_shared_setup(reply_clean)
+    else:
+        shared_setup = None
     if shared_setup:
         shared_setup = cs.fill_shared_calendar_name(
             supabase, user_id, shared_setup, prefer_text=user_display
@@ -343,7 +352,9 @@ def process_chat_message(
                 "O assistente respondeu no chat, mas a agenda só entra "
                 "quando o servidor grava. Detalhe: " + shared_warns[0]
             )
-    elif fallback_create := cs.parse_create_shared_calendar_from_plain_text(user_display):
+    elif not skip_schedule_save and (
+        fallback_create := cs.parse_create_shared_calendar_from_plain_text(user_display)
+    ):
         shared_setup_payload = fallback_create
         cals, evs, shared_warns = cs.process_shared_setup(
             supabase, user_id, fallback_create
@@ -360,7 +371,10 @@ def process_chat_message(
                 "quando o servidor grava. Detalhe: " + shared_warns[0]
             )
 
-    reply_clean, shared_delete = cs.extract_shared_delete(reply_clean)
+    if not skip_schedule_save:
+        reply_clean, shared_delete = cs.extract_shared_delete(reply_clean)
+    else:
+        shared_delete = None
     if shared_delete:
         shared_delete = cs.fill_shared_calendar_name(
             supabase, user_id, shared_delete, prefer_text=user_display
@@ -373,7 +387,9 @@ def process_chat_message(
             shared_calendars_deleted.append(deleted_name)
             schedule = {"step": "", "draft": {}}
         warnings.extend(del_warns)
-    elif fallback_delete := cs.parse_delete_shared_calendar_from_plain_text(user_display):
+    elif not skip_schedule_save and (
+        fallback_delete := cs.parse_delete_shared_calendar_from_plain_text(user_display)
+    ):
         fallback_delete = cs.fill_shared_calendar_name(
             supabase, user_id, fallback_delete, prefer_text=user_display
         )
@@ -392,7 +408,10 @@ def process_chat_message(
         else:
             warnings.extend(del_warns)
 
-    reply_clean, shared_invite = cs.extract_shared_invite(reply_clean)
+    if not skip_schedule_save:
+        reply_clean, shared_invite = cs.extract_shared_invite(reply_clean)
+    else:
+        shared_invite = None
     if shared_invite:
         shared_invite = cs.fill_shared_calendar_name(
             supabase, user_id, shared_invite, prefer_text=user_display
@@ -406,7 +425,9 @@ def process_chat_message(
             shared_calendars_saved.append(invited_cal)
         warnings.extend(invite_warns)
         schedule = {"step": "", "draft": {}}
-    elif fallback_invite := cs.parse_invite_from_plain_text(user_display):
+    elif not skip_schedule_save and (
+        fallback_invite := cs.parse_invite_from_plain_text(user_display)
+    ):
         fallback_invite = cs.fill_shared_calendar_name(
             supabase, user_id, fallback_invite, prefer_text=user_display
         )
@@ -427,7 +448,10 @@ def process_chat_message(
                 + invite_warns[0]
             )
 
-    reply_clean, shared_event = cs.extract_shared_event(reply_clean)
+    if not skip_schedule_save:
+        reply_clean, shared_event = cs.extract_shared_event(reply_clean)
+    else:
+        shared_event = None
     if user_wants_personal:
         shared_event = None
     if shared_event:
@@ -465,7 +489,7 @@ def process_chat_message(
                 "O assistente respondeu no chat, mas o compromisso compartilhado "
                 "só entra quando o servidor grava. Detalhe: " + shared_warns[0]
             )
-    elif not user_wants_personal and (
+    elif not skip_schedule_save and not user_wants_personal and (
         fallback_event := cs.parse_shared_event_from_plain_text(
             user_display, ref=schedule_ref
         )
@@ -495,19 +519,22 @@ def process_chat_message(
         and (draft_scope == "shared" or user_scope == "shared")
     )
 
-    reply_clean, rem_items = gemini.extract_reminders(reply_clean)
-    if block_personal_reminder:
+    if not skip_schedule_save:
+        reply_clean, rem_items = gemini.extract_reminders(reply_clean)
+        if block_personal_reminder:
+            rem_items = []
+        rem_items = cs.override_scheduled_from_user_message(
+            user_display, rem_items, ref=schedule_ref
+        ) or []
+    else:
         rem_items = []
-    rem_items = cs.override_scheduled_from_user_message(
-        user_display, rem_items, ref=schedule_ref
-    ) or []
-    if not rem_items and user_wants_personal:
+    if not skip_schedule_save and not rem_items and user_wants_personal:
         if fallback_rem := cs.parse_reminder_from_plain_text(
             user_display, ref=schedule_ref
         ):
             rem_items = [fallback_rem]
     rem_cap = enforce_reminder_limit(supabase, user_id, prof)
-    for it in rem_items:
+    for it in rem_items if not skip_schedule_save else []:
         if rem_cap:
             warnings.append(rem_cap)
             break
@@ -524,7 +551,10 @@ def process_chat_message(
         elif err:
             warnings.append(f"Lembrete: {err}")
 
-    reply_clean, ag_items = gemini.extract_agenda_markers(reply_clean)
+    if not skip_schedule_save:
+        reply_clean, ag_items = gemini.extract_agenda_markers(reply_clean)
+    else:
+        ag_items = []
     ag_cap = enforce_agenda_limit(supabase, user_id, prof)
     for it in ag_items:
         if ag_cap:

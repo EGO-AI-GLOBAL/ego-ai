@@ -394,13 +394,75 @@ def merge_schedule_draft(
     return out
 
 
+def user_named_shared_calendar(text: str) -> bool:
+    """Utilizador indicou agenda de grupo pelo nome (ex. «agenda familia»)."""
+    t = (text or "").strip()
+    if not t:
+        return False
+    return bool(_extract_shared_calendar_name(t) or _AGENDA_GROUP_NAME.search(t))
+
+
+def schedule_scope_is_ambiguous(
+    text: str, supabase: Client | None, user_id: str
+) -> bool:
+    """Marcar reunião/compromisso sem «pessoal» nem nome de agenda de grupo."""
+    t = (text or "").strip()
+    if not looks_like_schedule_intent(t) or _SCOPE_PERSONAL.search(t):
+        return False
+    if user_named_shared_calendar(t):
+        return False
+    if not _GROUP_SCHEDULE_INTENT.search(t):
+        return False
+    if not supabase or not user_id:
+        return False
+    try:
+        from ego_api import shared_calendars as sc
+
+        rows = sc.list_calendars_for_user(supabase, user_id)
+    except Exception:
+        rows = []
+    return len(rows) >= 1
+
+
+def build_schedule_scope_choice_reply(
+    supabase: Client | None, user_id: str, user_text: str
+) -> str | None:
+    if not schedule_scope_is_ambiguous(user_text, supabase, user_id):
+        return None
+    try:
+        from ego_api import shared_calendars as sc
+
+        rows = sc.list_calendars_for_user(supabase, user_id)
+    except Exception:
+        rows = []
+    names = [str(r.get("name") or "").strip() for r in rows if r.get("name")]
+    if len(names) == 1:
+        n = names[0]
+        return (
+            "Quer marcar na agenda **pessoal** ou na agenda "
+            f"**{n}**? Diga por exemplo: «marca na agenda pessoal consulta amanhã às 9h» "
+            f"ou «marca na agenda {n} reunião amanhã às 15h»."
+        )
+    if len(names) > 1:
+        listed = ", ".join(f"«{n}»" for n in names[:5])
+        return (
+            "Quer marcar na agenda **pessoal** ou numa agenda de grupo? "
+            f"As suas agendas de grupo: {listed}. "
+            "Ex.: «marca na agenda pessoal …» ou «marca na agenda familia reunião amanhã às 15h»."
+        )
+    return (
+        "Quer marcar na agenda **pessoal**? "
+        "Diga por exemplo: «marca na agenda pessoal consulta amanhã às 9h»."
+    )
+
+
 def detect_scope_from_user_text(text: str) -> str | None:
     t = (text or "").strip()
     if not t:
         return None
     if _SCOPE_PERSONAL.search(t):
         return "personal"
-    if is_group_schedule_request(t):
+    if is_group_schedule_request(t) and user_named_shared_calendar(t):
         return "shared"
     return None
 
@@ -480,11 +542,11 @@ def build_schedule_wizard_context(
         "A aba Agenda no app é só consulta. Marcações fazem-se no chat.",
         "",
         "REGRA PRINCIPAL (obrigatória):",
-        "- Só «agenda pessoal» / «minha agenda» → lembrete PESSOAL ([[EGO_REMINDER:...]]).",
-        "- Todo o resto (marcar reunião, compromisso, «agenda Família», ou só data/hora) "
-        "→ agenda de GRUPO ([[EGO_SHARED_EVENT:...]] ou SETUP/INVITE).",
-        "- NÃO pergunte «compartilhada ou pessoal?» — o utilizador não usa essa palavra.",
-        "- Se não disser «pessoal», assume agenda de grupo.",
+        "- «agenda pessoal» / «minha agenda» / «pessoal» → [[EGO_REMINDER:...]] (só pessoal).",
+        "- «agenda familia» / «agenda Família» + reunião → [[EGO_SHARED_EVENT:...]] com esse nome.",
+        "- Só «marca reunião amanhã 15h» SEM dizer pessoal nem familia → NÃO grave marcadores; "
+        "pergunte UMA vez: agenda pessoal ou agenda de grupo (cite o nome, ex. familia).",
+        "- Não use a palavra «compartilhada».",
         "",
         "Marcadores:",
         "1) Pessoal explícito → [[EGO_REMINDER:{...}]]",
@@ -495,15 +557,18 @@ def build_schedule_wizard_context(
         "",
         f"Estado actual: step={schedule.get('step') or '—'} draft={json.dumps(draft, ensure_ascii=False)}",
     ]
-    if default_cal:
+    if schedule_scope_is_ambiguous(user_text, supabase, user_id):
         lines.append(
-            f"Agenda de grupo por omissão (sem «pessoal»): «{default_cal}» — "
-            "use este calendar_name se o utilizador não disser outro nome."
+            "Pedido ambíguo (reunião sem «pessoal» nem «agenda familia»): "
+            "pergunte pessoal vs grupo; NÃO envie EGO_REMINDER nem EGO_SHARED_EVENT até responder."
+        )
+    elif default_cal:
+        lines.append(
+            f"Se disser agenda de grupo pelo nome, use «{default_cal}» quando for essa agenda."
         )
     elif is_group_schedule_request(user_text):
         lines.append(
-            "Várias agendas de grupo — só pergunte QUAL nome se o utilizador não disse «pessoal» "
-            "e não disse Família/outro nome."
+            "Várias agendas de grupo — pergunte QUAL nome se não disse «pessoal» nem o nome da agenda."
         )
     if scope == "shared":
         missing = []

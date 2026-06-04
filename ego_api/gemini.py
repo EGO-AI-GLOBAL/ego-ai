@@ -62,12 +62,11 @@ AGENDAMENTO — PESSOAL vs GRUPO (Família):
 A aba Agenda no app é só consulta. Marcações no chat.
 
 REGRA (obrigatória):
-- Se o utilizador disser «agenda pessoal», «minha agenda» ou «pessoal» → SOMENTE [[EGO_REMINDER:...]].
-  Nunca use EGO_SHARED_* nessa mensagem.
-- Se NÃO disser «pessoal», marcar reunião/compromisso → agenda de GRUPO (EGO_SHARED_EVENT).
-  Não peça «compartilhada ou pessoal?».
-- Se só existir uma agenda de grupo, use o nome EXACTO da lista «AGENDAS DE GRUPO» (ex. «familia», não invente outro).
-- Família/familia/Family são o mesmo nome — copie o que aparece na lista.
+- «agenda pessoal» / «minha agenda» / «pessoal» → SOMENTE [[EGO_REMINDER:...]].
+- «agenda familia» (ou nome na lista AGENDAS DE GRUPO) + compromisso → [[EGO_SHARED_EVENT:...]].
+- Só «marca reunião amanhã 15h» sem pessoal nem nome de agenda → pergunte: pessoal ou familia?
+  Não envie marcadores até o utilizador escolher.
+- Família/familia: use o nome EXACTO da lista «AGENDAS DE GRUPO».
 
 Grupo:
 - Nova: [[EGO_SHARED_SETUP:{"calendar_name":"Família",...}]]
