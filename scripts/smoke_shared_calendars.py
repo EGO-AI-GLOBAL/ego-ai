@@ -18,7 +18,17 @@ def main() -> int:
     assert hasattr(cs, "extract_shared_setup")
     assert hasattr(cs, "extract_shared_event")
     assert hasattr(cs, "extract_shared_invite")
+    assert hasattr(cs, "parse_shared_event_from_plain_text")
+    assert hasattr(cs, "shared_event_from_schedule_draft")
     assert hasattr(cs, "build_today_commitments_reply")
+
+    event_text = (
+        "Marca na agenda compartilhada Família reunião amanhã às 15h"
+    )
+    ev = cs.parse_shared_event_from_plain_text(event_text)
+    assert ev and ev.get("calendar_name") == "Família", ev
+    assert ev.get("title") == "Reunião", ev
+    assert ev.get("scheduled_at"), ev
 
     sample = (
         'Ok [[EGO_SHARED_SETUP:{"calendar_name":"Familia","title":"Call",'

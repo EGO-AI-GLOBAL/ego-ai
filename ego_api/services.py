@@ -305,6 +305,7 @@ def process_chat_message(
     shared_events_saved: list[dict] = []
     shared_members_saved: list[dict] = []
     shared_invite_payload: dict | None = None
+    shared_event_payload: dict | None = None
 
     reply_clean = reply
     reply_clean, draft_patch = cs.extract_schedule_draft(reply_clean)
@@ -352,15 +353,49 @@ def process_chat_message(
 
     reply_clean, shared_event = cs.extract_shared_event(reply_clean)
     if shared_event:
+        shared_event_payload = shared_event
         evs, shared_warns = cs.process_shared_event(
             supabase, user_id, shared_event
         )
         shared_events_saved.extend(evs)
         warnings.extend(shared_warns)
-        schedule = {"step": "", "draft": {}}
+        if evs:
+            schedule = {"step": "", "draft": {}}
+    elif draft_event := cs.shared_event_from_schedule_draft(schedule):
+        shared_event_payload = draft_event
+        evs, shared_warns = cs.process_shared_event(
+            supabase, user_id, draft_event
+        )
+        shared_events_saved.extend(evs)
+        warnings.extend(shared_warns)
+        if evs:
+            schedule = {"step": "", "draft": {}}
+        elif shared_warns:
+            warnings.append(
+                "O assistente respondeu no chat, mas o compromisso compartilhado "
+                "só entra quando o servidor grava. Detalhe: " + shared_warns[0]
+            )
+    elif fallback_event := cs.parse_shared_event_from_plain_text(user_display):
+        shared_event_payload = fallback_event
+        evs, shared_warns = cs.process_shared_event(
+            supabase, user_id, fallback_event
+        )
+        shared_events_saved.extend(evs)
+        warnings.extend(shared_warns)
+        if evs:
+            schedule = {"step": "", "draft": {}}
+        elif shared_warns:
+            warnings.append(
+                "O assistente respondeu no chat, mas o compromisso compartilhado "
+                "só entra quando o servidor grava. Detalhe: " + shared_warns[0]
+            )
 
     draft_scope = (schedule.get("draft") or {}).get("scope")
-    block_personal_reminder = draft_scope == "shared" and not shared_events_saved
+    user_scope = cs.detect_scope_from_user_text(user_display)
+    block_personal_reminder = (
+        not shared_events_saved
+        and (draft_scope == "shared" or user_scope == "shared")
+    )
 
     reply_clean, rem_items = gemini.extract_reminders(reply_clean)
     if block_personal_reminder:
@@ -417,6 +452,7 @@ def process_chat_message(
         shared_members_saved=shared_members_saved,
         shared_setup=shared_setup,
         shared_invite=shared_invite_payload,
+        shared_event=shared_event_payload,
     )
 
     cs.save_chat_schedule(

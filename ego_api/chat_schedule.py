@@ -57,6 +57,138 @@ def parse_invite_from_plain_text(text: str) -> dict | None:
     return {"calendar_name": cal_name, "invite_emails": [email]}
 
 
+def _extract_shared_calendar_name(raw: str) -> str:
+    def _trim_calendar_tail(name: str) -> str:
+        trimmed = re.split(
+            r"(?i)\s+(?:reuni|marca|agend|amanh|hoje|depois|às|as|\d)",
+            name.strip().strip("«»\"' "),
+        )[0].strip()
+        return trimmed
+
+    patterns = (
+        r"(?i)(?:agenda\s+compartilhada|grupo)\s+[«\"']?\s*([^«\"'\n.?]+)",
+        r"(?i)\b(?:no|na|do|da)\s+grupo\s+[«\"']?\s*([^«\"'\n.?]+)",
+    )
+    for pat in patterns:
+        m = re.search(pat, raw)
+        if m:
+            name = _trim_calendar_tail(m.group(1))
+            if name:
+                return name
+    if re.search(r"(?i)\bfamília\b|\bfamilia\b", raw):
+        return "Família"
+    return ""
+
+
+def _extract_shared_event_title(raw: str) -> str:
+    low = raw.lower()
+    if re.search(r"\breuni", low):
+        return "Reunião"
+    if re.search(r"\bencontro\b", low):
+        return "Encontro"
+    if re.search(r"\bchamada\b|\bcall\b", low):
+        return "Chamada"
+    if re.search(r"\bconsulta\b", low):
+        return "Consulta"
+    m = re.search(
+        r"(?i)(?:título|titulo)\s+[«\"']?\s*([^«\"'\n.?]+)",
+        raw,
+    )
+    if m:
+        title = m.group(1).strip().strip("«»\"' ")
+        if title:
+            return title[:500]
+    return "Compromisso"
+
+
+def _parse_pt_schedule_hint(text: str) -> datetime.datetime | None:
+    """Interpreta frases comuns (hoje/amanhã + hora) para ISO local."""
+    raw = (text or "").strip()
+    if not raw:
+        return None
+    ref = datetime.datetime.now().astimezone()
+    low = raw.lower()
+    tm = re.search(
+        r"(?:às|as)\s*(\d{1,2})(?::(\d{2}))?\s*(?:h|horas)?",
+        low,
+    )
+    if not tm:
+        tm = re.search(r"\b(\d{1,2}):(\d{2})\b", low)
+    if not tm:
+        return None
+    hour = int(tm.group(1))
+    minute = int(tm.group(2) or 0)
+    if hour > 23 or minute > 59:
+        return None
+
+    day = ref.date()
+    if re.search(r"\bdepois de amanhã\b|\bdepois de amanha\b", low):
+        day = day + datetime.timedelta(days=2)
+    elif re.search(r"\bamanhã\b|\bamanha\b", low):
+        day = day + datetime.timedelta(days=1)
+    elif re.search(r"\bhoje\b", low):
+        pass
+    else:
+        dm = re.search(r"\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b", low)
+        if dm:
+            d_num = int(dm.group(1))
+            m_num = int(dm.group(2))
+            y_raw = dm.group(3)
+            year = int(y_raw) if y_raw else ref.year
+            if year < 100:
+                year += 2000
+            try:
+                day = datetime.date(year, m_num, d_num)
+            except ValueError:
+                return None
+        else:
+            return None
+
+    try:
+        return datetime.datetime.combine(
+            day, datetime.time(hour, minute), tzinfo=ref.tzinfo
+        )
+    except ValueError:
+        return None
+
+
+def shared_event_from_schedule_draft(schedule: dict[str, Any]) -> dict | None:
+    draft = schedule.get("draft") or {}
+    if str(draft.get("scope") or "") != "shared":
+        return None
+    cal_name = str(draft.get("calendar_name") or draft.get("name") or "").strip()
+    title = str(draft.get("title") or draft.get("event_title") or "").strip()
+    scheduled_at = draft.get("scheduled_at")
+    if not cal_name or not title or not scheduled_at:
+        return None
+    return {
+        "calendar_name": cal_name,
+        "title": title,
+        "scheduled_at": scheduled_at,
+    }
+
+
+def parse_shared_event_from_plain_text(text: str) -> dict | None:
+    """Fallback quando o LLM responde em texto mas não envia [[EGO_SHARED_EVENT:...]]."""
+    raw = (text or "").strip()
+    if not raw:
+        return None
+    if not looks_like_schedule_intent(raw):
+        return None
+    if not _SCOPE_SHARED.search(raw):
+        return None
+    cal_name = _extract_shared_calendar_name(raw)
+    when = _parse_pt_schedule_hint(raw)
+    if not cal_name or not when:
+        return None
+    title = _extract_shared_event_title(raw)
+    return {
+        "calendar_name": cal_name,
+        "title": title,
+        "scheduled_at": when.isoformat(),
+    }
+
+
 def load_chat_schedule(prof: dict | None) -> dict[str, Any]:
     ui = ui_state_from_profile(prof)
     raw = ui.get(_SCHEDULE_KEY)

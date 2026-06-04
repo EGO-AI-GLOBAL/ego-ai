@@ -29,9 +29,11 @@ def ensure_visible_chat_reply(
     shared_members_saved: list[dict] | None = None,
     shared_setup: dict | None = None,
     shared_invite: dict | None = None,
+    shared_event: dict | None = None,
 ) -> str:
     warns = warnings or []
     shared_members = shared_members_saved or []
+    shared_ev_saved = shared_events_saved or []
     text = (reply_clean or "").strip()
     if text and shared_invite and not shared_members:
         if warns:
@@ -39,6 +41,19 @@ def ensure_visible_chat_reply(
                 f"Não consegui adicionar na agenda compartilhada: {warns[0]} "
                 "Confirme o e-mail da conta e o nome da agenda."
             )
+    if text and shared_event and not shared_ev_saved:
+        cal_name = str(
+            shared_event.get("calendar_name") or shared_event.get("name") or "Agenda"
+        ).strip()
+        if warns:
+            return (
+                f"Não consegui marcar na agenda «{cal_name}»: {warns[0]} "
+                "Confirme o nome da agenda e a data/hora."
+            )
+        return (
+            f"Não consegui confirmar o compromisso na agenda «{cal_name}». "
+            "Repita: Marca na agenda compartilhada Família reunião amanhã às 15h"
+        )
     if text:
         return text
 
