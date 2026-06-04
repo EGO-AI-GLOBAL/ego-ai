@@ -797,6 +797,33 @@ def _bootstrap_section(label: str, fn, default):  # noqa: ANN001
         return default
 
 
+def bootstrap_payload_fallback(supabase: Client | None, user_id: str) -> dict:
+    """Resposta mínima 200 — evita ecrã vermelho em todo o app se algo falhar."""
+    from ego_api.config import gemini_api_key, supabase_anon_key, supabase_url
+
+    me = _bootstrap_section("me", lambda: me_payload(supabase, user_id), None)
+    return {
+        "health": {
+            "ok": True,
+            "service": "ego-ai-api",
+            "supabase_configured": bool(supabase_url() and supabase_anon_key()),
+            "gemini_configured": bool(gemini_api_key()),
+            "degraded": True,
+        },
+        "me": me,
+        "access": {
+            "ok": True,
+            "access_allowed": True,
+            "plan_tier": "essential",
+            "plan_label": "EGO Essencial",
+        },
+        "reminders": [],
+        "agenda": [],
+        "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
+        "messages": [],
+    }
+
+
 def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
     """Um único payload para o painel (evita vários GET no cliente)."""
     from ego_api.config import gemini_api_key, supabase_anon_key, supabase_url

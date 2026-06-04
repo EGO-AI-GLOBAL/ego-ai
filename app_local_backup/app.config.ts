@@ -17,7 +17,7 @@ if (isProd && apiUrl && !apiUrl.startsWith("https://")) {
 const config: ExpoConfig = {
   name: "Ego-IA",
   slug: "ego-ai",
-  version: "1.0.4.2",
+  version: "1.0.5",
   orientation: "portrait",
   scheme: "egoai",
   userInterfaceStyle: "automatic",

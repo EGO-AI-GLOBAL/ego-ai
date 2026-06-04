@@ -51,7 +51,7 @@ type DashboardContextValue = {
   refresh: (options?: RefreshOptions) => Promise<void>;
   /** Atualiza agenda/lembretes a partir da resposta do chat (sem rede). */
   mergeChatResult: (result: SendChatResult) => void;
-  setPersona: (avatarId: string, voiceId: string) => void;
+  setPersona: (avatarId: string, voiceId: string) => void | Promise<void>;
   /** true se o servidor ou o telemóvel já registou escolha de assistente */
   personaGateOk: boolean;
 };
@@ -116,14 +116,17 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         }
       }
       setData(dashboard);
-      if (dashboard.me?.persona_configured === true && uid) {
+      if (uid && localChoice) {
+        setPersonaLocalOk(true);
+      } else if (dashboard.me?.persona_configured === true && uid) {
         setPersonaLocalOk(true);
         void markPersonaConfiguredLocal(uid);
       } else if (uid) {
         const local = await isPersonaConfiguredLocal(uid);
         setPersonaLocalOk((prev) => prev || local);
-      } else {
-        setPersonaLocalOk((prev) => prev);
+      }
+      if (dashboard.me || (dashboard.shared_calendars?.length ?? 0) > 0) {
+        setError(null);
       }
       if (!options?.skipNotifications) {
         void syncReminderLocalNotifications(dashboard.reminders).catch(() => {});
@@ -186,13 +189,13 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     setData((prev) => mergeChatIntoDashboard(prev, result));
   }, []);
 
-  const setPersona = useCallback((avatarId: string, voiceId: string) => {
+  const setPersona = useCallback(async (avatarId: string, voiceId: string) => {
     const persona = accountPersona({ avatar_id: avatarId, voice_id: voiceId });
     const uid = resolveUserId(session, data.me?.user_id);
     setPersonaLocalOk(true);
     if (uid) {
-      void markPersonaConfiguredLocal(uid);
-      void saveLocalPersonaChoice(uid, persona);
+      await markPersonaConfiguredLocal(uid);
+      await saveLocalPersonaChoice(uid, persona);
     }
     setData((prev) => ({
       ...prev,

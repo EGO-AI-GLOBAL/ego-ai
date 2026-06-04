@@ -463,18 +463,15 @@ def legal(doc: str):
 
 
 def _dashboard_payload():
+    uid = getattr(g, "user_id", "") or ""
     try:
-        return _json_ok(services.bootstrap_payload(g.supabase, g.user_id))
+        return _json_ok(services.bootstrap_payload(g.supabase, uid))
     except Exception as exc:  # noqa: BLE001
         import traceback
 
-        print(f"[EGO] bootstrap error user={getattr(g, 'user_id', '')}: {exc}", flush=True)
+        print(f"[EGO] bootstrap error user={uid}: {exc}", flush=True)
         traceback.print_exc()
-        return _json_error(
-            "Não foi possível carregar a agenda. Confirme SUPABASE_SERVICE_ROLE_KEY no Railway "
-            "e as tabelas no Supabase (shared_calendars).",
-            500,
-        )
+        return _json_ok(services.bootstrap_payload_fallback(g.supabase, uid))
 
 
 @app.post("/api/v1/app/bootstrap")
