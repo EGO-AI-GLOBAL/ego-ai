@@ -757,7 +757,7 @@ export default function ChatScreen() {
             <ActivityIndicator color={colors.primary} style={{ marginVertical: 16 }} />
           ) : null}
 
-          {error ? (
+          {error && !localChatReady ? (
             <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
           ) : null}
 

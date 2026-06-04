@@ -123,7 +123,8 @@ export default function PlansScreen() {
   };
 
   const busy = loading || catalogLoading;
-  const showError = error;
+  /** Erro do painel não deve esconder planos — testador ainda pode assinar. */
+  const showErrorBanner = Boolean(error);
 
   const renderLaunchOffer = () => {
     if (currentTier !== "essential") return null;
@@ -238,14 +239,16 @@ export default function PlansScreen() {
           <ActivityIndicator color={colors.primary} style={{ marginTop: 24 }} />
         ) : null}
 
-        {showError ? (
-          <Pressable onPress={onRefresh}>
-            <Text style={[styles.error, { color: colors.danger }]}>{showError}</Text>
-            <Text style={[styles.link, { color: colors.primary }]}>Tentar de novo</Text>
+        {showErrorBanner ? (
+          <Pressable onPress={onRefresh} style={styles.errorBanner}>
+            <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
+            <Text style={[styles.link, { color: colors.primary }]}>
+              Tentar de novo (os planos abaixo continuam disponíveis)
+            </Text>
           </Pressable>
         ) : null}
 
-        {!busy && !showError ? (
+        {!busy ? (
           <>
             <View
               style={[
@@ -328,6 +331,7 @@ const styles = StyleSheet.create({
     marginTop: -4,
   },
   footer: { fontSize: 13, lineHeight: 19, marginTop: 16 },
+  errorBanner: { marginBottom: 16 },
   error: { fontSize: 14 },
   link: { fontSize: 14, marginTop: 8, fontWeight: "600" },
 });
