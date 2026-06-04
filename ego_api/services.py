@@ -307,6 +307,8 @@ def process_chat_message(
     shared_invite_payload: dict | None = None
     shared_event_payload: dict | None = None
     shared_delete_payload: dict | None = None
+    shared_setup_payload: dict | None = None
+    shared_calendars_created: list[dict] = []
     shared_calendars_deleted: list[str] = []
 
     reply_clean = reply
@@ -316,13 +318,37 @@ def process_chat_message(
 
     reply_clean, shared_setup = cs.extract_shared_setup(reply_clean)
     if shared_setup:
+        shared_setup_payload = shared_setup
         cals, evs, shared_warns = cs.process_shared_setup(
             supabase, user_id, shared_setup
         )
+        shared_calendars_created.extend(cals)
         shared_calendars_saved.extend(cals)
         shared_events_saved.extend(evs)
         warnings.extend(shared_warns)
-        schedule = {"step": "", "draft": {}}
+        if cals or evs:
+            schedule = {"step": "", "draft": {}}
+        elif shared_warns:
+            warnings.append(
+                "O assistente respondeu no chat, mas a agenda só entra "
+                "quando o servidor grava. Detalhe: " + shared_warns[0]
+            )
+    elif fallback_create := cs.parse_create_shared_calendar_from_plain_text(user_display):
+        shared_setup_payload = fallback_create
+        cals, evs, shared_warns = cs.process_shared_setup(
+            supabase, user_id, fallback_create
+        )
+        shared_calendars_created.extend(cals)
+        shared_calendars_saved.extend(cals)
+        shared_events_saved.extend(evs)
+        warnings.extend(shared_warns)
+        if cals or evs:
+            schedule = {"step": "", "draft": {}}
+        elif shared_warns:
+            warnings.append(
+                "O assistente respondeu no chat, mas a agenda só entra "
+                "quando o servidor grava. Detalhe: " + shared_warns[0]
+            )
 
     reply_clean, shared_delete = cs.extract_shared_delete(reply_clean)
     if shared_delete:
@@ -478,11 +504,12 @@ def process_chat_message(
         shared_calendars_saved=shared_calendars_saved,
         shared_events_saved=shared_events_saved,
         shared_members_saved=shared_members_saved,
-        shared_setup=shared_setup,
+        shared_setup=shared_setup_payload,
         shared_invite=shared_invite_payload,
         shared_event=shared_event_payload,
         shared_delete=shared_delete_payload,
         shared_calendars_deleted=shared_calendars_deleted,
+        shared_calendars_created=shared_calendars_created,
     )
 
     cs.save_chat_schedule(

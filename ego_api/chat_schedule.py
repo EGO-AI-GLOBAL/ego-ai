@@ -51,7 +51,7 @@ def parse_invite_from_plain_text(text: str) -> dict | None:
     if not cal_match:
         return None
     email = em_match.group(1).strip().lower()
-    cal_name = cal_match.group(1).strip().strip("«»\"' ")
+    cal_name = _extract_shared_calendar_name(raw) or cal_match.group(1).strip().strip("«»\"' ")
     if not email or not cal_name:
         return None
     return {"calendar_name": cal_name, "invite_emails": [email]}
@@ -657,6 +657,38 @@ def process_shared_invite(
     if not added and not warnings:
         warnings.append("Não foi possível adicionar os e-mails.")
     return cal, warnings, added
+
+
+def parse_create_shared_calendar_from_plain_text(text: str) -> dict | None:
+    """Fallback quando o LLM responde em texto mas não envia [[EGO_SHARED_SETUP:...]]."""
+    raw = (text or "").strip()
+    if not raw:
+        return None
+    if not re.search(r"(?i)\b(cria|criar|crie|abre|abrir|novo|nova)\b", raw):
+        return None
+    if not (_SCOPE_SHARED.search(raw) or re.search(r"(?i)\bagenda\b", raw)):
+        return None
+    cal_name = _extract_shared_calendar_name(raw)
+    if not cal_name:
+        m = re.search(
+            r"(?i)(?:cria|criar|crie|abre|abrir)\s+(?:a\s+)?"
+            r"(?:agenda\s+compartilhada\s+)?[«\"']?\s*([^«\"'\n.?]+)",
+            raw,
+        )
+        if m:
+            cal_name = re.split(
+                r"(?i)\s+(?:reuni|marca|agend|convida|amanh|hoje|depois|às|as|\d)",
+                m.group(1).strip().strip("«»\"' "),
+            )[0].strip()
+    if not cal_name:
+        return None
+    emails = _normalize_email_list(
+        re.findall(r"([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})", raw, re.I)
+    )
+    payload: dict[str, Any] = {"calendar_name": cal_name}
+    if emails:
+        payload["invite_emails"] = emails
+    return payload
 
 
 def extract_shared_delete(text: str) -> tuple[str, dict | None]:

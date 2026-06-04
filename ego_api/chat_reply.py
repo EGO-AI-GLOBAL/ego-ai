@@ -32,11 +32,13 @@ def ensure_visible_chat_reply(
     shared_event: dict | None = None,
     shared_delete: dict | None = None,
     shared_calendars_deleted: list[str] | None = None,
+    shared_calendars_created: list[dict] | None = None,
 ) -> str:
     warns = warnings or []
     shared_members = shared_members_saved or []
     shared_ev_saved = shared_events_saved or []
     deleted_cals = shared_calendars_deleted or []
+    created_cals = shared_calendars_created or []
     shared_cals = shared_calendars_saved or []
     text = (reply_clean or "").strip()
 
@@ -47,6 +49,16 @@ def ensure_visible_chat_reply(
         if warns:
             extra = f" Avisos: {'; '.join(warns[:3])}"
         return f"Pronto! Apaguei a agenda compartilhada «{cal_name}».{extra}"
+
+    if created_cals:
+        cal_name = str(created_cals[0].get("name") or "Agenda").strip()
+        extra = ""
+        if warns:
+            extra = f" Avisos: {'; '.join(warns[:3])}"
+        return (
+            f"Pronto! Criei a agenda compartilhada «{cal_name}». "
+            f"Vê-la na aba Agenda → Compartilhada.{extra}"
+        )
 
     if shared_ev_saved:
         ev = shared_ev_saved[0]
@@ -88,24 +100,34 @@ def ensure_visible_chat_reply(
             f"Os convidados já veem a agenda no app.{extra}"
         )
 
-    if shared_cals and shared_setup:
+    if text and shared_setup and not created_cals and not shared_ev_saved:
         cal_name = str(
             shared_setup.get("calendar_name") or shared_setup.get("name") or "Agenda"
         ).strip()
-        extra = ""
         if warns:
-            extra = f" Avisos: {'; '.join(warns[:3])}"
+            return (
+                f"Não consegui criar a agenda «{cal_name}»: {warns[0]} "
+                "Tente: Cria agenda compartilhada Família"
+            )
         return (
-            f"Pronto! Criei a agenda compartilhada «{cal_name}». "
-            f"Vê-la na aba Agenda → Compartilhada.{extra}"
+            f"Não consegui confirmar a criação da agenda «{cal_name}». "
+            "Repita: Cria agenda compartilhada Família"
         )
 
     if text and shared_invite and not shared_members:
+        cal_name = str(
+            shared_invite.get("calendar_name") or shared_invite.get("name") or "Agenda"
+        ).strip()
         if warns:
             return (
-                f"Não consegui adicionar na agenda compartilhada: {warns[0]} "
-                "Confirme o e-mail da conta e o nome da agenda."
+                f"Não consegui adicionar na agenda «{cal_name}»: {warns[0]} "
+                "Crie a agenda primeiro ou confirme o e-mail da conta."
             )
+        return (
+            f"Não consegui confirmar o convite na agenda «{cal_name}». "
+            "Primeiro: Cria agenda compartilhada Família. Depois convide o e-mail."
+        )
+
     if text and shared_event and not shared_ev_saved:
         cal_name = str(
             shared_event.get("calendar_name") or shared_event.get("name") or "Agenda"

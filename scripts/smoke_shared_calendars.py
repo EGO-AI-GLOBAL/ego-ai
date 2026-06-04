@@ -34,7 +34,20 @@ def main() -> int:
     deleted = cs.parse_delete_shared_calendar_from_plain_text(delete_text)
     assert deleted and deleted.get("calendar_name") == "Família", deleted
 
+    create_text = "Cria agenda compartilhada Família"
+    created = cs.parse_create_shared_calendar_from_plain_text(create_text)
+    assert created and created.get("calendar_name") == "Família", created
+
     from ego_api.chat_reply import ensure_visible_chat_reply
+
+    reply = ensure_visible_chat_reply(
+        "Pronto, criei a agenda Família!",
+        reminders_saved=[],
+        agenda_saved=[],
+        shared_calendars_created=[{"name": "Família", "id": "x"}],
+        shared_setup={"calendar_name": "Família"},
+    )
+    assert "Criei a agenda compartilhada" in reply, reply
 
     reply = ensure_visible_chat_reply(
         "Não encontrei a agenda Família.",
