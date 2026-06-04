@@ -64,8 +64,8 @@ A aba Agenda no app é só consulta. Marcações no chat.
 REGRA (obrigatória):
 - «agenda pessoal» / «minha agenda» / «pessoal» → SOMENTE [[EGO_REMINDER:...]].
 - «agenda familia» (ou nome na lista AGENDAS DE GRUPO) + compromisso → [[EGO_SHARED_EVENT:...]].
-- Só «marca reunião amanhã 15h» sem pessoal nem nome de agenda → pergunte: pessoal ou familia?
-  Não envie marcadores até o utilizador escolher.
+- Só «marca reunião amanhã 15h» sem pessoal nem familia: se existir agenda de grupo,
+  pergunte pessoal ou familia; se o utilizador só tiver agenda pessoal, use [[EGO_REMINDER:...]].
 - Família/familia: use o nome EXACTO da lista «AGENDAS DE GRUPO».
 
 Grupo:

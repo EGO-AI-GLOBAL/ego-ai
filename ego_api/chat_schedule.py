@@ -248,11 +248,16 @@ def override_scheduled_from_user_message(
 
 
 def parse_reminder_from_plain_text(
-    text: str, ref: datetime.datetime | None = None
+    text: str,
+    ref: datetime.datetime | None = None,
+    *,
+    implicit_personal: bool = False,
 ) -> dict | None:
     """Fallback: agenda pessoal quando o LLM não envia [[EGO_REMINDER:...]]."""
     raw = (text or "").strip()
-    if not raw or not _SCOPE_PERSONAL.search(raw):
+    if not raw:
+        return None
+    if not _SCOPE_PERSONAL.search(raw) and not implicit_personal:
         return None
     if not looks_like_schedule_intent(raw):
         return None
@@ -402,10 +407,23 @@ def user_named_shared_calendar(text: str) -> bool:
     return bool(_extract_shared_calendar_name(t) or _AGENDA_GROUP_NAME.search(t))
 
 
+def user_shared_calendar_count(
+    supabase: Client | None, user_id: str
+) -> int:
+    if not supabase or not user_id:
+        return 0
+    try:
+        from ego_api import shared_calendars as sc
+
+        return len(sc.list_calendars_for_user(supabase, user_id))
+    except Exception:
+        return 0
+
+
 def schedule_scope_is_ambiguous(
     text: str, supabase: Client | None, user_id: str
 ) -> bool:
-    """Marcar reunião/compromisso sem «pessoal» nem nome de agenda de grupo."""
+    """Marcar sem «pessoal» nem nome de grupo — só pergunta se existir agenda de grupo."""
     t = (text or "").strip()
     if not looks_like_schedule_intent(t) or _SCOPE_PERSONAL.search(t):
         return False
@@ -422,6 +440,13 @@ def schedule_scope_is_ambiguous(
     except Exception:
         rows = []
     return len(rows) >= 1
+
+
+def only_personal_schedule_available(
+    supabase: Client | None, user_id: str
+) -> bool:
+    """Sem agendas de grupo: marcações ambíguas vão para agenda pessoal."""
+    return user_shared_calendar_count(supabase, user_id) == 0
 
 
 def build_schedule_scope_choice_reply(
@@ -456,7 +481,11 @@ def build_schedule_scope_choice_reply(
     )
 
 
-def detect_scope_from_user_text(text: str) -> str | None:
+def detect_scope_from_user_text(
+    text: str,
+    supabase: Client | None = None,
+    user_id: str = "",
+) -> str | None:
     t = (text or "").strip()
     if not t:
         return None
@@ -464,6 +493,10 @@ def detect_scope_from_user_text(text: str) -> str | None:
         return "personal"
     if is_group_schedule_request(t) and user_named_shared_calendar(t):
         return "shared"
+    if looks_like_schedule_intent(t) and only_personal_schedule_available(
+        supabase, user_id
+    ):
+        return "personal"
     return None
 
 
@@ -544,8 +577,9 @@ def build_schedule_wizard_context(
         "REGRA PRINCIPAL (obrigatória):",
         "- «agenda pessoal» / «minha agenda» / «pessoal» → [[EGO_REMINDER:...]] (só pessoal).",
         "- «agenda familia» / «agenda Família» + reunião → [[EGO_SHARED_EVENT:...]] com esse nome.",
-        "- Só «marca reunião amanhã 15h» SEM dizer pessoal nem familia → NÃO grave marcadores; "
-        "pergunte UMA vez: agenda pessoal ou agenda de grupo (cite o nome, ex. familia).",
+        "- Só «marca reunião amanhã 15h» SEM pessoal nem familia: se o utilizador "
+        "tiver agenda de grupo → pergunte pessoal ou familia; se só tiver pessoal → "
+        "[[EGO_REMINDER:...]] directo.",
         "- Não use a palavra «compartilhada».",
         "",
         "Marcadores:",
@@ -557,10 +591,15 @@ def build_schedule_wizard_context(
         "",
         f"Estado actual: step={schedule.get('step') or '—'} draft={json.dumps(draft, ensure_ascii=False)}",
     ]
-    if schedule_scope_is_ambiguous(user_text, supabase, user_id):
+    if only_personal_schedule_available(supabase, user_id):
+        lines.append(
+            "O utilizador só tem agenda pessoal (sem grupo): "
+            "«marca reunião …» → [[EGO_REMINDER:...]] sem perguntar."
+        )
+    elif schedule_scope_is_ambiguous(user_text, supabase, user_id):
         lines.append(
             "Pedido ambíguo (reunião sem «pessoal» nem «agenda familia»): "
-            "pergunte pessoal vs grupo; NÃO envie EGO_REMINDER nem EGO_SHARED_EVENT até responder."
+            "pergunte pessoal vs grupo; NÃO envie marcadores até responder."
         )
     elif default_cal:
         lines.append(

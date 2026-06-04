@@ -269,7 +269,9 @@ def process_chat_message(
     from ego_api import chat_schedule as cs
 
     schedule = cs.load_chat_schedule(prof)
-    scope_hint = cs.detect_scope_from_user_text(user_display)
+    scope_hint = cs.detect_scope_from_user_text(
+        user_display, supabase, user_id
+    )
     if scope_hint:
         schedule = cs.merge_schedule_draft(schedule, {"draft": {"scope": scope_hint}})
         if scope_hint == "shared":
@@ -313,7 +315,10 @@ def process_chat_message(
     shared_calendars_created: list[dict] = []
     shared_calendars_deleted: list[str] = []
 
-    user_wants_personal = cs.detect_scope_from_user_text(user_display) == "personal"
+    user_wants_personal = (
+        cs.detect_scope_from_user_text(user_display, supabase, user_id) == "personal"
+    )
+    only_personal_agenda = cs.only_personal_schedule_available(supabase, user_id)
     from ego_api.schedule_tz import local_now_from_session
 
     schedule_ref = local_now_from_session(sess)
@@ -452,7 +457,7 @@ def process_chat_message(
         reply_clean, shared_event = cs.extract_shared_event(reply_clean)
     else:
         shared_event = None
-    if user_wants_personal:
+    if user_wants_personal or only_personal_agenda:
         shared_event = None
     if shared_event:
         shared_event = cs.override_scheduled_from_user_message(
@@ -489,9 +494,14 @@ def process_chat_message(
                 "O assistente respondeu no chat, mas o compromisso compartilhado "
                 "só entra quando o servidor grava. Detalhe: " + shared_warns[0]
             )
-    elif not skip_schedule_save and not user_wants_personal and (
-        fallback_event := cs.parse_shared_event_from_plain_text(
-            user_display, ref=schedule_ref
+    elif (
+        not skip_schedule_save
+        and not user_wants_personal
+        and not only_personal_agenda
+        and (
+            fallback_event := cs.parse_shared_event_from_plain_text(
+                user_display, ref=schedule_ref
+            )
         )
     ):
         fallback_event = cs.fill_shared_calendar_name(
@@ -512,7 +522,7 @@ def process_chat_message(
             )
 
     draft_scope = (schedule.get("draft") or {}).get("scope")
-    user_scope = cs.detect_scope_from_user_text(user_display)
+    user_scope = cs.detect_scope_from_user_text(user_display, supabase, user_id)
     block_personal_reminder = (
         user_scope != "personal"
         and not shared_events_saved
@@ -528,9 +538,13 @@ def process_chat_message(
         ) or []
     else:
         rem_items = []
-    if not skip_schedule_save and not rem_items and user_wants_personal:
+    if not skip_schedule_save and not rem_items and (
+        user_wants_personal or only_personal_agenda
+    ):
         if fallback_rem := cs.parse_reminder_from_plain_text(
-            user_display, ref=schedule_ref
+            user_display,
+            ref=schedule_ref,
+            implicit_personal=only_personal_agenda,
         ):
             rem_items = [fallback_rem]
     rem_cap = enforce_reminder_limit(supabase, user_id, prof)
