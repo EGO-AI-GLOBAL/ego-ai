@@ -37,7 +37,69 @@ def ensure_visible_chat_reply(
     shared_members = shared_members_saved or []
     shared_ev_saved = shared_events_saved or []
     deleted_cals = shared_calendars_deleted or []
+    shared_cals = shared_calendars_saved or []
     text = (reply_clean or "").strip()
+
+    # O servidor já gravou/apagou — resposta certa (ignora texto enganoso do LLM).
+    if deleted_cals:
+        cal_name = deleted_cals[0].strip() or "Agenda"
+        extra = ""
+        if warns:
+            extra = f" Avisos: {'; '.join(warns[:3])}"
+        return f"Pronto! Apaguei a agenda compartilhada «{cal_name}».{extra}"
+
+    if shared_ev_saved:
+        ev = shared_ev_saved[0]
+        title = (ev.get("title") or "Compromisso").strip()
+        when = _format_scheduled_pt(ev.get("scheduled_at"))
+        cal_name = ""
+        if shared_cals:
+            cal_name = (shared_cals[0].get("name") or "").strip()
+        if not cal_name and shared_setup:
+            cal_name = str(
+                shared_setup.get("calendar_name") or shared_setup.get("name") or ""
+            ).strip()
+        if not cal_name and shared_event:
+            cal_name = str(
+                shared_event.get("calendar_name") or shared_event.get("name") or ""
+            ).strip()
+        cal_part = f" na agenda «{cal_name}»" if cal_name else " na agenda compartilhada"
+        extra = ""
+        if warns:
+            extra = f" Avisos: {'; '.join(warns[:3])}"
+        return (
+            f"Pronto! Marquei «{title}»{when}{cal_part}. "
+            f"Os membros recebem aviso no telemóvel.{extra}"
+        )
+
+    if shared_members:
+        cal_name = "Agenda"
+        if shared_invite:
+            cal_name = str(
+                shared_invite.get("calendar_name") or shared_invite.get("name") or cal_name
+            ).strip()
+        elif shared_cals:
+            cal_name = (shared_cals[0].get("name") or cal_name).strip()
+        extra = ""
+        if warns:
+            extra = f" Avisos: {'; '.join(warns[:3])}"
+        return (
+            f"Pronto! Adicionei {len(shared_members)} pessoa(s) na agenda «{cal_name}». "
+            f"Os convidados já veem a agenda no app.{extra}"
+        )
+
+    if shared_cals and shared_setup:
+        cal_name = str(
+            shared_setup.get("calendar_name") or shared_setup.get("name") or "Agenda"
+        ).strip()
+        extra = ""
+        if warns:
+            extra = f" Avisos: {'; '.join(warns[:3])}"
+        return (
+            f"Pronto! Criei a agenda compartilhada «{cal_name}». "
+            f"Vê-la na aba Agenda → Compartilhada.{extra}"
+        )
+
     if text and shared_invite and not shared_members:
         if warns:
             return (
@@ -75,44 +137,7 @@ def ensure_visible_chat_reply(
 
     pending_rem = rem_items or []
     pending_ag = ag_items or []
-    shared_cals = shared_calendars_saved or []
     shared_ev = shared_events_saved or []
-
-    if deleted_cals:
-        cal_name = deleted_cals[0].strip() or "Agenda"
-        return f"Pronto! Apaguei a agenda compartilhada «{cal_name}»."
-
-    if shared_ev:
-        ev = shared_ev[0]
-        title = (ev.get("title") or "Compromisso").strip()
-        when = _format_scheduled_pt(ev.get("scheduled_at"))
-        cal_name = ""
-        if shared_cals:
-            cal_name = (shared_cals[0].get("name") or "").strip()
-        if not cal_name and shared_setup:
-            cal_name = str(
-                shared_setup.get("calendar_name") or shared_setup.get("name") or ""
-            ).strip()
-        cal_part = f" na agenda «{cal_name}»" if cal_name else " na agenda compartilhada"
-        extra = ""
-        if warns:
-            extra = f" Avisos: {'; '.join(warns[:3])}"
-        return (
-            f"Pronto! Marquei «{title}»{when}{cal_part}. "
-            f"Os membros recebem aviso no telemóvel.{extra}"
-        )
-
-    if shared_cals and shared_setup:
-        cal_name = str(
-            shared_setup.get("calendar_name") or shared_setup.get("name") or "Agenda"
-        ).strip()
-        extra = ""
-        if warns:
-            extra = f" Avisos: {'; '.join(warns[:3])}"
-        return (
-            f"Pronto! Criei a agenda compartilhada «{cal_name}». "
-            f"Vê-la na aba Agenda → Compartilhada.{extra}"
-        )
 
     if shared_invite:
         cal_name = str(
