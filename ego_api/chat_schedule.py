@@ -723,7 +723,15 @@ def build_shared_calendars_context(supabase: Client | None, user_id: str) -> str
     if not rows:
         lines.append("(nenhuma ainda — criar com «cria agenda Família»)")
     else:
-        for row in rows[:20]:
+        from ego_api.config import MAX_SHARED_CALENDARS_PER_OWNER
+
+        owned = sum(1 for row in rows if row.get("is_owner"))
+        cap = max(1, MAX_SHARED_CALENDARS_PER_OWNER)
+        lines.append(
+            f"Pode ter até {cap} agendas criadas por si ({owned} agora). "
+            "Cada «cria agenda NOME» com nome novo cria OUTRA agenda (nomes podem repetir entre utilizadores diferentes)."
+        )
+        for row in rows[:cap]:
             cid = str(row.get("id") or "")
             name = (row.get("name") or "Agenda").strip()
             nmem = row.get("member_count") or len(row.get("members") or [])
@@ -737,9 +745,14 @@ def build_shared_calendars_context(supabase: Client | None, user_id: str) -> str
                 f"Omissão: se o utilizador marcar reunião/compromisso SEM dizer «pessoal», "
                 f"use calendar_name «{only}»."
             )
+        elif len(rows) > 1:
+            lines.append(
+                "Várias agendas: marcar/convidar exige o nome exacto da lista; "
+                "«cria agenda X» cria agenda NOVA se X ainda não existir nas dele."
+            )
         lines.append(
             "Ao CRIAR agenda nova, use no JSON o nome EXATO que o utilizador pediu "
-            "(ex. «360 nas alturas»), nunca substitua por «Família» salvo se ele pedir Família."
+            "(ex. «360 nas alturas»), nunca substitua por outro nome da lista."
         )
     lines.append("=== FIM AGENDAS DE GRUPO ===")
     return "\n".join(lines)

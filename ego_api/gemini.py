@@ -70,7 +70,8 @@ REGRA (obrigatória):
 
 Grupo:
 - Nova agenda: [[EGO_SHARED_SETUP:{"calendar_name":"NOME_PEDIDO_PELO_UTILIZADOR"}]] — use o nome
-  exacto que ele disse (ex. «360 nas alturas»), NUNCA troque por «Família» se ele deu outro nome.
+  exacto que ele disse (ex. «360 nas alturas»). O utilizador pode ter até 10 agendas com nomes
+  diferentes; cada «cria agenda X» com X novo cria OUTRA agenda (não reutilize outra só porque já existe uma).
 - Marcar: [[EGO_SHARED_EVENT:{"calendar_name":"NOME_DA_AGENDA","title":"Reunião","scheduled_at":"ISO"}]]
 - Convidar: [[EGO_SHARED_INVITE:{"calendar_name":"NOME_DA_AGENDA","invite_emails":["a@b.com"]}]]
 - Apagar: [[EGO_SHARED_DELETE:{"calendar_name":"NOME_DA_AGENDA"}]]

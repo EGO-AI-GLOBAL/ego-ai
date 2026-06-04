@@ -14,6 +14,7 @@ def calendar_name_key(name: str) -> str:
 
 from ego_api.config import (
     AGENDA_HORIZON_DAYS,
+    MAX_SHARED_CALENDARS_PER_OWNER,
     SUPABASE_SHARED_CALENDAR_EVENTS_TABLE,
     SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE,
     SUPABASE_SHARED_CALENDARS_TABLE,
@@ -328,6 +329,23 @@ def list_calendars_for_user(supabase: Client | None, user_id: str) -> list[dict]
         return []
 
 
+def count_owned_calendars(supabase: Client | None, owner_user_id: str) -> int:
+    """Agendas de grupo que o utilizador criou (limite de criação)."""
+    if not supabase or not owner_user_id:
+        return 0
+    apply_user_auth(supabase)
+    try:
+        res = (
+            supabase.table(SUPABASE_SHARED_CALENDARS_TABLE)
+            .select("id")
+            .eq("owner_user_id", owner_user_id)
+            .execute()
+        )
+        return len(res.data or [])
+    except Exception:
+        return 0
+
+
 def find_calendar_id_by_name(
     supabase: Client | None, user_id: str, calendar_name: str
 ) -> str | None:
@@ -525,6 +543,16 @@ def create_calendar(
         return False, "Dê um nome à agenda compartilhada.", None
     if not apply_user_auth(supabase):
         return False, "Sessão expirada.", None
+
+    cap = max(1, MAX_SHARED_CALENDARS_PER_OWNER)
+    owned = count_owned_calendars(supabase, user_id)
+    if owned >= cap:
+        return (
+            False,
+            f"Você já tem {owned} agendas compartilhadas (limite {cap}). "
+            "Apague uma no app ou use outro nome só se for convidar/marcar numa existente.",
+            None,
+        )
 
     from ego_api.supabase_client import create_service_client, insert_returning_rows
 
