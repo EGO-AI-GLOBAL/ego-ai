@@ -19,10 +19,13 @@ import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 import type { AppColors } from "@/theme/colors";
-import { membersSummary, membersGroupLine } from "@/utils/sharedCalendarMembers";
+import { membersCardLine, membersGroupLine } from "@/utils/sharedCalendarMembers";
 import { formatScheduledLocal } from "@/utils/scheduleTime";
 
 type AgendaTab = "personal" | "shared";
+
+/** Se não vir isto na aba compartilhada, o telefone não carregou o código novo (Expo). */
+const AGENDA_UI_VERSION = "jun/2025 · nomes + layout claro";
 
 function sortEvents(events: SharedCalendarEvent[]) {
   return [...events].sort((a, b) => {
@@ -68,7 +71,7 @@ function TabBar({
       {(
         [
           ["personal", "Agenda pessoal"],
-          ["shared", "Família e grupos"],
+          ["shared", "Agenda compartilhada"],
         ] as const
       ).map(([id, label]) => {
         const active = tab === id;
@@ -76,10 +79,20 @@ function TabBar({
           <Pressable
             key={id}
             onPress={() => onChange(id)}
-            style={[styles.tabBtn, active && { backgroundColor: colors.primary }]}
+            style={[
+              styles.tabBtn,
+              active && {
+                backgroundColor: colors.bgCard,
+                borderBottomWidth: 3,
+                borderBottomColor: colors.primary,
+              },
+            ]}
           >
             <Text
-              style={[styles.tabBtnText, { color: active ? "#fff" : colors.textMuted }]}
+              style={[
+                styles.tabBtnText,
+                { color: active ? colors.text : colors.textMuted, fontWeight: active ? "800" : "700" },
+              ]}
               numberOfLines={1}
             >
               {label}
@@ -108,7 +121,8 @@ function ChatHint({ colors, onPress }: { colors: AppColors; onPress: () => void 
         Marcar, criar ou convidar
       </Text>
       <Text style={[styles.chatHintBody, { color: colors.textMuted }]}>
-        No chat: «marca reunião amanhã 15h» (Família por omissão) ou «marca na agenda pessoal …»
+        No chat: «marca reunião amanhã 15h» (Família por omissão), «convida email@exemplo.com
+        para a agenda Família» — qualquer membro pode convidar.
       </Text>
       <Text style={[styles.chatHintLink, { color: colors.primary }]}>Ir para o chat →</Text>
     </Pressable>
@@ -177,7 +191,7 @@ export default function AgendaScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (session) void refresh();
+      if (session) void refresh({ skipNotifications: true });
     }, [session, refresh])
   );
 
@@ -238,10 +252,13 @@ export default function AgendaScreen() {
           ) : sharedCalendars.length === 0 ? (
             <Text style={[styles.muted, { color: colors.textMuted }]}>
               Ainda não participa de agendas em grupo. No chat: «cria agenda Família» e
-              «convida email@exemplo.com para a agenda Família».
+              «convida email@exemplo.com para a agenda Família». Qualquer membro pode convidar.
             </Text>
           ) : (
             <>
+              <Text style={[styles.uiVersion, { color: colors.primary }]}>
+                {AGENDA_UI_VERSION}
+              </Text>
               <Text style={[styles.section, { color: colors.textMuted }]}>
                 Suas agendas ({sharedCalendars.length})
               </Text>
@@ -249,7 +266,11 @@ export default function AgendaScreen() {
                 const cid = String(cal.id || "");
                 const calName = (cal.name || "Agenda").trim();
                 const nmem = cal.member_count ?? cal.members?.length ?? 0;
-                const namesLine = membersSummary(cal.members);
+                const peopleLine = membersCardLine(
+                  cal.members,
+                  nmem,
+                  session?.user?.id
+                );
                 const active = selectedSharedId === cid;
                 const evCount = (cal.events ?? []).filter((e) => !e.dismissed).length;
                 return (
@@ -259,23 +280,35 @@ export default function AgendaScreen() {
                     style={({ pressed }) => [
                       styles.calPick,
                       {
-                        borderColor: active ? colors.primary : colors.border,
-                        backgroundColor: active ? colors.primaryLight : colors.bgCard,
+                        borderColor: colors.border,
+                        backgroundColor: active ? colors.bgElevated : colors.bgCard,
+                        borderWidth: 1.5,
                         opacity: pressed ? 0.88 : 1,
+                      },
+                      active && {
+                        borderLeftWidth: 4,
+                        borderLeftColor: colors.primary,
+                        paddingLeft: 12,
                       },
                     ]}
                   >
-                    <Text
-                      style={[
-                        styles.calPickTitle,
-                        { color: active ? colors.primary : colors.text },
-                      ]}
-                      numberOfLines={2}
-                    >
+                    <Text style={[styles.calPickTitle, { color: colors.text }]} numberOfLines={2}>
                       {calName}
                     </Text>
+                    {peopleLine ? (
+                      <>
+                        <Text style={[styles.calPickPeopleLabel, { color: colors.textMuted }]}>
+                          Pessoas no grupo
+                        </Text>
+                        <Text style={[styles.calPickMembers, { color: colors.text }]} numberOfLines={6}>
+                          {peopleLine}
+                        </Text>
+                      </>
+                    ) : null}
                     <Text style={[styles.calPickMeta, { color: colors.textMuted }]}>
-                      {namesLine || `${nmem} membro${nmem === 1 ? "" : "s"}`}
+                      {nmem > 0
+                        ? `${nmem} membro${nmem === 1 ? "" : "s"}`
+                        : "Sem membros"}
                       {cal.is_owner ? " · você criou" : ""}
                       {" · "}
                       {evCount} compromisso{evCount === 1 ? "" : "s"}
@@ -382,6 +415,11 @@ const styles = StyleSheet.create({
   chatHintTitle: { fontSize: 14, fontWeight: "800", marginBottom: 6 },
   chatHintBody: { fontSize: 13, lineHeight: 18 },
   chatHintLink: { fontSize: 13, fontWeight: "700", marginTop: 10 },
+  uiVersion: {
+    fontSize: 12,
+    fontWeight: "700",
+    marginBottom: 8,
+  },
   section: {
     fontSize: 11,
     fontWeight: "700",
@@ -407,6 +445,15 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   calPickTitle: { fontSize: 16, fontWeight: "700" },
+  calPickPeopleLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  calPickMembers: { fontSize: 14, lineHeight: 21, fontWeight: "600" },
   calPickMeta: { fontSize: 12, marginTop: 4 },
   calDetail: {
     borderWidth: 1,

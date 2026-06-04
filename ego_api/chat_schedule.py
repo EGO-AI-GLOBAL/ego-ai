@@ -63,7 +63,12 @@ def parse_invite_from_plain_text(text: str) -> dict | None:
 
 def _trim_calendar_name_tail(name: str) -> str:
     trimmed = re.split(
-        r"(?i)\s+(?:reuni|marca|agend|convida|amanh|hoje|depois|às|as|\d)",
+        r"(?i)\s+(?:"
+        r"reuni|marca|agend|convida|amanh|hoje|depois|às|as|"
+        r"ensaio|compromisso|encontro|chamada|consulta|"
+        r"pra\s+dia|para\s+dia|"
+        r"\d"
+        r")",
         name.strip().strip("«»\"' "),
     )[0].strip()
     if re.match(r"(?i)^(com\s+)?nome\s+", trimmed):
@@ -127,6 +132,7 @@ def _trim_event_title_tail(fragment: str) -> str:
     s = re.split(
         r"(?i)\s+(?:"
         r"na|no|n[oa]|da|do|de|para|pra|em|com|"
+        r"pra\s+dia|para\s+o\s+dia|para\s+dia|no\s+dia|"
         r"às|as|hoje|amanh|depois|"
         r"segunda|terça|terca|quarta|quinta|sexta|sábado|sabado|domingo|"
         r"agenda|grupo|compartilhada|família|familia"
@@ -150,6 +156,39 @@ def _format_event_title(fragment: str) -> str:
     return s[:500]
 
 
+def _extract_event_title_after_calendar(raw: str) -> str:
+    """Texto do compromisso logo após o nome da agenda (ex.: «…alturas ensaio pra dia 18»)."""
+    cal = _extract_shared_calendar_name(raw)
+    if not cal:
+        return ""
+    m = re.search(re.escape(cal), raw, re.I)
+    if not m:
+        return ""
+    return _format_event_title(raw[m.end() :])
+
+
+_EVENT_KEYWORD_TITLES: tuple[tuple[str, str], ...] = (
+    (r"\bensaio\b", "Ensaio"),
+    (r"\breuni", "Reunião"),
+    (r"\bencontro\b", "Encontro"),
+    (r"\bchamada\b|\bcall\b", "Chamada"),
+    (r"\bconsulta\b", "Consulta"),
+    (r"\bprova\b", "Prova"),
+    (r"\baula\b", "Aula"),
+    (r"\btreino\b", "Treino"),
+    (r"\bshow\b", "Show"),
+    (r"\bapresenta", "Apresentação"),
+)
+
+
+def _keyword_event_title(text: str) -> str:
+    low = (text or "").lower()
+    for pat, label in _EVENT_KEYWORD_TITLES:
+        if re.search(pat, low):
+            return label
+    return ""
+
+
 def _extract_shared_event_title(raw: str) -> str:
     """Título que o utilizador disse (ex.: «marca ensaio amanhã 15h» → Ensaio)."""
     text = (raw or "").strip()
@@ -165,36 +204,77 @@ def _extract_shared_event_title(raw: str) -> str:
         if title:
             return title
 
+    after_cal = _extract_event_title_after_calendar(text)
+    if after_cal and len(after_cal) <= 80:
+        return after_cal
+
+    kw = _keyword_event_title(text)
+    if kw:
+        return kw
+
     verb = re.search(
-        r"(?i)\b(?:marca|marcar|marque|marques|agende|agendar|agenda|coloca|colocar)\s+"
+        r"(?i)\b(?:marca|marcar|marque|marques|agende|agendar|coloca|colocar)\s+"
         r"(?:um|uma|o|a|no|na|n[oa])?\s*(.+)$",
         text,
     )
     if verb:
         title = _format_event_title(verb.group(1))
-        if title:
+        if title and not re.search(r"(?i)\bagenda\b", title[:20]):
             return title
 
-    low = text.lower()
-    if re.search(r"\breuni", low):
-        return "Reunião"
-    if re.search(r"\bencontro\b", low):
-        return "Encontro"
-    if re.search(r"\bchamada\b|\bcall\b", low):
-        return "Chamada"
-    if re.search(r"\bconsulta\b", low):
-        return "Consulta"
-    if re.search(r"\bensaio\b", low):
-        return "Ensaio"
-
     return "Compromisso"
+
+
+def _should_replace_event_title(
+    current: str,
+    extracted: str,
+    user_text: str,
+    *,
+    calendar_name: str = "",
+) -> bool:
+    """Substitui título do LLM quando o utilizador foi mais específico no chat."""
+    if not extracted or extracted == "Compromisso":
+        return False
+    cur = (current or "").strip()
+    if not cur or cur.lower() in (
+        "compromisso",
+        "reunião",
+        "reuniao",
+        "evento",
+        "lembrete",
+    ):
+        return True
+    ext = extracted.strip()
+    if cur.lower() == ext.lower():
+        return False
+    low_u = (user_text or "").lower()
+    ext_low = ext.lower()
+    if ext_low not in low_u:
+        return False
+    cal_low = (calendar_name or "").strip().lower()
+    cur_low = cur.lower()
+    if cur_low == ext_low:
+        return False
+    if cal_low and (cur_low == cal_low or cal_low in cur_low):
+        return True
+    if re.search(r"(?i)^agenda\b", cur):
+        return True
+    if cur_low in ("reunião", "reuniao", "compromisso", "evento", "lembrete"):
+        return True
+    if len(cur) > 24 and ext_low in low_u:
+        return True
+    if ext_low in low_u and cur_low != ext_low:
+        return True
+    return False
 
 
 def override_title_from_user_message(
     user_text: str, payload: dict | list[dict] | None
 ) -> dict | list[dict] | None:
-    """Usa o texto do utilizador se o modelo gravou só «Compromisso»."""
+    """Título vem do pedido do utilizador (Ensaio), nunca do nome da agenda nem «Reunião» genérico."""
     if not payload:
+        return payload
+    if not looks_like_schedule_intent(user_text):
         return payload
     extracted = _extract_shared_event_title(user_text)
     if not extracted or extracted == "Compromisso":
@@ -202,8 +282,9 @@ def override_title_from_user_message(
 
     def _patch(item: dict) -> dict:
         current = str(item.get("title") or item.get("event_title") or "").strip()
-        if current in ("", "Compromisso") or (
-            current == "Reunião" and extracted.lower() != "reunião"
+        cal_name = _extract_shared_calendar_name(user_text)
+        if _should_replace_event_title(
+            current, extracted, user_text, calendar_name=cal_name
         ):
             return {**item, "title": extracted, "announce": extracted}
         return item
@@ -213,20 +294,63 @@ def override_title_from_user_message(
     return [_patch(it) if isinstance(it, dict) else it for it in payload]
 
 
+def apply_shared_event_fields_from_user(
+    user_text: str,
+    data: dict[str, Any],
+    *,
+    ref: datetime.datetime | None = None,
+) -> dict[str, Any]:
+    """Última passagem antes de gravar: título e data do texto do chat."""
+    patched = override_title_from_user_message(user_text, data)
+    out = patched if isinstance(patched, dict) else data
+    sched = override_scheduled_from_user_message(user_text, out, ref=ref)
+    return sched if isinstance(sched, dict) else out
+
+
 _RELATIVE_DAY_HINT = re.compile(
     r"\b(hoje|amanhã|amanha|depois de amanhã|depois de amanha)\b",
     re.I,
 )
+_EXPLICIT_DATE_HINT = re.compile(r"\b\d{1,2}/\d{1,2}(?:/\d{2,4})?\b")
+_EXPLICIT_DAY_MONTH = re.compile(
+    r"\b\d{1,2}\s+de\s+"
+    r"(janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|"
+    r"setembro|outubro|novembro|dezembro)\b",
+    re.I,
+)
+_MONTH_PT: dict[str, int] = {
+    "janeiro": 1,
+    "fevereiro": 2,
+    "março": 3,
+    "marco": 3,
+    "abril": 4,
+    "maio": 5,
+    "junho": 6,
+    "julho": 7,
+    "agosto": 8,
+    "setembro": 9,
+    "outubro": 10,
+    "novembro": 11,
+    "dezembro": 12,
+}
 
 
 def user_message_has_relative_day(text: str) -> bool:
     return bool(_RELATIVE_DAY_HINT.search(text or ""))
 
 
+def user_message_has_explicit_date(text: str) -> bool:
+    t = text or ""
+    return bool(_EXPLICIT_DATE_HINT.search(t) or _EXPLICIT_DAY_MONTH.search(t))
+
+
 def user_message_has_schedule_time(text: str) -> bool:
     low = (text or "").lower()
     return bool(
-        re.search(r"(?:às|as)\s*\d{1,2}", low) or re.search(r"\b\d{1,2}:\d{2}\b", low)
+        re.search(r"(?:às|as)\s*\d{1,2}", low)
+        or re.search(r"\b\d{1,2}:\d{2}\b", low)
+        or re.search(r"\b\d{1,2}\s*h(?:oras)?\b", low)
+        or re.search(r"\b\d{1,2}\s*horas?\b", low)
     )
 
 
@@ -247,6 +371,10 @@ def _parse_pt_schedule_hint(
     )
     if not tm:
         tm = re.search(r"\b(\d{1,2}):(\d{2})\b", low)
+    if not tm:
+        tm = re.search(r"\b(\d{1,2})\s*horas?\b", low)
+    if not tm:
+        tm = re.search(r"\b(\d{1,2})\s*h\b", low)
     if not tm:
         return None
     hour = int(tm.group(1))
@@ -274,8 +402,31 @@ def _parse_pt_schedule_hint(
                 day = datetime.date(year, m_num, d_num)
             except ValueError:
                 return None
+            if not y_raw and day < ref.date():
+                try:
+                    day = datetime.date(year + 1, m_num, d_num)
+                except ValueError:
+                    return None
         else:
-            return None
+            md = _EXPLICIT_DAY_MONTH.search(low)
+            if md:
+                d_num = int(md.group(1))
+                m_key = md.group(2).lower().replace("ç", "c")
+                m_num = _MONTH_PT.get(m_key)
+                if not m_num:
+                    return None
+                year = ref.year
+                try:
+                    day = datetime.date(year, m_num, d_num)
+                except ValueError:
+                    return None
+                if day < ref.date():
+                    try:
+                        day = datetime.date(year + 1, m_num, d_num)
+                    except ValueError:
+                        return None
+            else:
+                return None
 
     try:
         return datetime.datetime.combine(
@@ -402,10 +553,11 @@ def override_scheduled_from_user_message(
     *,
     ref: datetime.datetime | None = None,
 ) -> dict | list[dict] | None:
-    """Corrige data/hora quando o utilizador disse hoje/amanhã ou «às 9h» (fuso de ref)."""
+    """Corrige data/hora com base no texto (fuso de ref), mesmo se o LLM errou."""
     if not payload or not (
         user_message_has_relative_day(user_text)
         or user_message_has_schedule_time(user_text)
+        or user_message_has_explicit_date(user_text)
     ):
         return payload
     when = _parse_pt_schedule_hint(user_text, ref)
@@ -1061,9 +1213,14 @@ def process_shared_event(
     supabase: Client | None,
     user_id: str,
     data: dict[str, Any],
+    *,
+    user_message: str = "",
 ) -> tuple[list[dict], list[str]]:
     """Marca compromisso numa agenda em que o utilizador já é membro."""
     from ego_api import shared_calendars as sc
+
+    if user_message:
+        data = apply_shared_event_fields_from_user(user_message, data)
 
     calendar_id = _resolve_calendar_id_for_user(
         supabase,
@@ -1102,9 +1259,14 @@ def process_shared_setup(
     supabase: Client | None,
     user_id: str,
     data: dict[str, Any],
+    *,
+    user_message: str = "",
 ) -> tuple[list[dict], list[dict], list[dict], list[str]]:
     """Cria agenda (se preciso), convida e-mails e marca compromisso."""
     from ego_api import shared_calendars as sc
+
+    if user_message:
+        data = apply_shared_event_fields_from_user(user_message, data)
 
     calendar_id = str(data.get("calendar_id") or "").strip()
     calendar_name = str(

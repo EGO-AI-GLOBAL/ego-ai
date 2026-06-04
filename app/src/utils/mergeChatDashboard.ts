@@ -26,7 +26,17 @@ export function mergeChatIntoDashboard(
     if (!id) continue;
     const idx = sharedCalendars.findIndex((c) => String(c.id) === id);
     if (idx >= 0) {
-      sharedCalendars[idx] = { ...sharedCalendars[idx], ...cal };
+      const prev = sharedCalendars[idx];
+      const incomingMembers = cal.members;
+      sharedCalendars[idx] = {
+        ...prev,
+        ...cal,
+        members:
+          incomingMembers?.length ? incomingMembers : prev.members ?? incomingMembers,
+        member_count:
+          cal.member_count ?? (incomingMembers?.length ? incomingMembers.length : prev.member_count),
+        events: cal.events?.length ? cal.events : prev.events,
+      };
     } else {
       sharedCalendars = [cal, ...sharedCalendars];
     }
@@ -45,6 +55,31 @@ export function mergeChatIntoDashboard(
     });
   }
 
+  for (const m of result.shared_members_saved ?? []) {
+    const mid = String(m.id || "");
+    let cid = String(m.calendar_id || "");
+    if (!cid && sharedCalendars.length === 1) {
+      cid = String(sharedCalendars[0]?.id || "");
+    }
+    if (!mid && !cid) continue;
+    sharedCalendars = sharedCalendars.map((cal) => {
+      if (cid && String(cal.id) !== cid) return cal;
+      if (!cid && sharedCalendars.length > 1) return cal;
+      const members = [...(cal.members ?? [])];
+      if (mid && members.some((x) => String(x.id) === mid)) {
+        const next = members.map((x) =>
+          String(x.id) === mid ? { ...x, ...m } : x
+        );
+        return { ...cal, members: next, member_count: next.length };
+      }
+      return {
+        ...cal,
+        members: [m, ...members],
+        member_count: members.length + 1,
+      };
+    });
+  }
+
   return {
     ...data,
     reminders,
@@ -58,6 +93,7 @@ export function chatResultChangedData(result: SendChatResult): boolean {
     result.reminders_saved?.length ||
       result.agenda_saved?.length ||
       result.shared_events_saved?.length ||
-      result.shared_calendars_saved?.length
+      result.shared_calendars_saved?.length ||
+      result.shared_members_saved?.length
   );
 }

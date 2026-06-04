@@ -363,12 +363,16 @@ def process_chat_message(
         )
 
     if shared_setup:
+        shared_setup = cs.override_title_from_user_message(user_display, shared_setup)
+        shared_setup = cs.override_scheduled_from_user_message(
+            user_display, shared_setup, ref=schedule_ref
+        )
         shared_setup = cs.fill_shared_calendar_name(
             supabase, user_id, shared_setup, prefer_text=user_display
         )
         shared_setup_payload = shared_setup
         cals, evs, setup_members, shared_warns = cs.process_shared_setup(
-            supabase, user_id, shared_setup
+            supabase, user_id, shared_setup, user_message=user_display
         )
         shared_calendars_created.extend(cals)
         shared_calendars_saved.extend(cals)
@@ -383,11 +387,15 @@ def process_chat_message(
                 "quando o servidor grava. Detalhe: " + shared_warns[0]
             )
         elif user_create_payload and cs._user_requests_new_calendar(user_display):
+            retry = cs.override_title_from_user_message(user_display, user_create_payload)
+            retry = cs.override_scheduled_from_user_message(
+                user_display, retry, ref=schedule_ref
+            )
             retry = cs.fill_shared_calendar_name(
-                supabase, user_id, user_create_payload, prefer_text=user_display
+                supabase, user_id, retry, prefer_text=user_display
             )
             cals2, evs2, mem2, warn2 = cs.process_shared_setup(
-                supabase, user_id, retry
+                supabase, user_id, retry, user_message=user_display
             )
             shared_calendars_created.extend(cals2)
             shared_calendars_saved.extend(cals2)
@@ -397,12 +405,18 @@ def process_chat_message(
             if cals2 or evs2 or mem2:
                 schedule = {"step": "", "draft": {}}
     elif user_create_payload:
+        fallback_create = cs.override_title_from_user_message(
+            user_display, user_create_payload
+        )
+        fallback_create = cs.override_scheduled_from_user_message(
+            user_display, fallback_create, ref=schedule_ref
+        )
         fallback_create = cs.fill_shared_calendar_name(
-            supabase, user_id, user_create_payload, prefer_text=user_display
+            supabase, user_id, fallback_create, prefer_text=user_display
         )
         shared_setup_payload = fallback_create
         cals, evs, setup_members, shared_warns = cs.process_shared_setup(
-            supabase, user_id, fallback_create
+            supabase, user_id, fallback_create, user_message=user_display
         )
         shared_calendars_created.extend(cals)
         shared_calendars_saved.extend(cals)
@@ -520,7 +534,7 @@ def process_chat_message(
         )
         shared_event_payload = shared_event
         evs, shared_warns = cs.process_shared_event(
-            supabase, user_id, shared_event
+            supabase, user_id, shared_event, user_message=user_display
         )
         shared_events_saved.extend(evs)
         warnings.extend(shared_warns)
@@ -538,7 +552,7 @@ def process_chat_message(
         )
         shared_event_payload = draft_event
         evs, shared_warns = cs.process_shared_event(
-            supabase, user_id, draft_event
+            supabase, user_id, draft_event, user_message=user_display
         )
         shared_events_saved.extend(evs)
         warnings.extend(shared_warns)
@@ -563,12 +577,15 @@ def process_chat_message(
         fallback_event = cs.override_title_from_user_message(
             user_display, fallback_event
         )
+        fallback_event = cs.override_scheduled_from_user_message(
+            user_display, fallback_event, ref=schedule_ref
+        )
         fallback_event = cs.fill_shared_calendar_name(
             supabase, user_id, fallback_event, prefer_text=user_display
         )
         shared_event_payload = fallback_event
         evs, shared_warns = cs.process_shared_event(
-            supabase, user_id, fallback_event
+            supabase, user_id, fallback_event, user_message=user_display
         )
         shared_events_saved.extend(evs)
         warnings.extend(shared_warns)

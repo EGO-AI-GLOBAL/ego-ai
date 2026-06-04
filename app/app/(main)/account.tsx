@@ -14,11 +14,13 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { UsageDashboard } from "@/components/UsageDashboard";
 import { accountPersona } from "@/constants/personas";
 import { isProductionApiOk } from "@/constants/config";
+import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 
 export default function AccountScreen() {
   const colors = useColors();
+  const { signOut } = useAuth();
   const { data, loading, refreshing, error, refresh, setPersona } = useDashboard();
   const persona = accountPersona(data.me?.persona);
   const apiOk = isProductionApiOk();
@@ -125,6 +127,20 @@ export default function AccountScreen() {
                 API em HTTP — só para desenvolvimento.
               </Text>
             ) : null}
+
+            <Pressable
+              style={[styles.signOut, { borderColor: colors.border }]}
+              onPress={() => {
+                void (async () => {
+                  await signOut();
+                  router.replace("/login");
+                })();
+              }}
+              accessibilityRole="button"
+              accessibilityLabel="Sair da conta"
+            >
+              <Text style={[styles.signOutText, { color: colors.text }]}>Sair</Text>
+            </Pressable>
           </>
         ) : null}
       </ScrollView>
@@ -161,4 +177,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   upgradeBtnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
+  signOut: {
+    marginTop: 28,
+    alignSelf: "stretch",
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    borderRadius: 12,
+    borderWidth: 1,
+    alignItems: "center",
+  },
+  signOutText: { fontSize: 16, fontWeight: "700" },
 });

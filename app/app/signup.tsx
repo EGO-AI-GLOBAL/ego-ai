@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { EgoLogo } from "@/components/EgoLogo";
 import { validateReferralCode } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
 import { useColors } from "@/theme/ThemeContext";
@@ -124,9 +125,8 @@ export default function SignupScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={styles.inner}>
-          <Text style={[styles.logo, { color: colors.text }]}>
-            Criar conta <Text style={{ color: colors.primaryLight }}>EGO-AI</Text>
-          </Text>
+          <EgoLogo width={280} style={styles.logoImage} />
+          <Text style={[styles.logoSub, { color: colors.textMuted }]}>Criar conta</Text>
 
           <View
             style={[
@@ -367,7 +367,8 @@ export default function SignupScreen() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   inner: { flex: 1, justifyContent: "center", paddingHorizontal: 24 },
-  logo: { fontSize: 28, fontWeight: "800", textAlign: "center", marginBottom: 24 },
+  logoImage: { alignSelf: "center", marginBottom: 8 },
+  logoSub: { fontSize: 16, fontWeight: "600", textAlign: "center", marginBottom: 20 },
   form: { borderRadius: 20, padding: 20, borderWidth: 1 },
   label: { fontSize: 12, marginBottom: 6, marginTop: 8 },
   input: {

@@ -11,6 +11,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { EgoLogo } from "@/components/EgoLogo";
 import { useAuth } from "@/context/AuthContext";
 import { useColors } from "@/theme/ThemeContext";
 import { validateEmail, validatePassword } from "@/utils/validation";
@@ -53,9 +54,7 @@ export default function LoginScreen() {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View style={styles.inner}>
-          <Text style={[styles.logo, { color: colors.text }]}>
-            EGO<Text style={{ color: colors.primaryLight }}>-AI</Text>
-          </Text>
+          <EgoLogo width={300} style={styles.logoImage} />
 
           <View
             style={[
@@ -141,12 +140,9 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   fill: { flex: 1 },
   inner: { flex: 1, justifyContent: "center", paddingHorizontal: 24 },
-  logo: {
-    fontSize: 36,
-    fontWeight: "800",
-    letterSpacing: -1,
-    textAlign: "center",
-    marginBottom: 32,
+  logoImage: {
+    alignSelf: "center",
+    marginBottom: 28,
   },
   form: { borderRadius: 20, padding: 20, borderWidth: 1 },
   label: { fontSize: 12, marginBottom: 6, marginTop: 8 },

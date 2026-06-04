@@ -1092,6 +1092,13 @@ def insert_event(
             supabase, SUPABASE_SHARED_CALENDAR_EVENTS_TABLE, row, raise_errors=True
         )
         event = inserted[0] if inserted else row
+        if isinstance(event, dict) and event.get("scheduled_at"):
+            from ego_api.db import _scheduled_at_api_iso
+
+            event = {
+                **event,
+                "scheduled_at": _scheduled_at_api_iso(event.get("scheduled_at")),
+            }
         try:
             from ego_api.shared_calendar_notify import (
                 calendar_name_by_id,

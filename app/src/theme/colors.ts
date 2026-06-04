@@ -5,6 +5,8 @@ export type AppColors = {
   border: string;
   primary: string;
   primaryLight: string;
+  primaryTint: string;
+  primarySoft: string;
   text: string;
   textMuted: string;
   success: string;
@@ -26,6 +28,8 @@ export const lightColors: AppColors = {
   border: "#E8E8EC",
   primary: "#6B21A8",
   primaryLight: "#7C3AED",
+  primaryTint: "#F5F3FF",
+  primarySoft: "#C4B5FD",
   text: "#18181B",
   textMuted: "#71717A",
   success: "#16a34a",
@@ -47,6 +51,8 @@ export const darkColors: AppColors = {
   border: "#27272A",
   primary: "#A78BFA",
   primaryLight: "#C4B5FD",
+  primaryTint: "#1C1C22",
+  primarySoft: "#6D28D9",
   text: "#FAFAFA",
   textMuted: "#A1A1AA",
   success: "#22c55e",

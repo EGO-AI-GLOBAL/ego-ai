@@ -15,9 +15,9 @@ if (isProd && apiUrl && !apiUrl.startsWith("https://")) {
 }
 
 const config: ExpoConfig = {
-  name: "EGO-AI",
+  name: "Ego-IA",
   slug: "ego-ai",
-  version: "1.0.4",
+  version: "1.0.3",
   orientation: "portrait",
   scheme: "egoai",
   userInterfaceStyle: "automatic",
@@ -27,7 +27,7 @@ const config: ExpoConfig = {
   splash: {
     image: "./assets/splash-icon.png",
     resizeMode: "contain",
-    backgroundColor: "#F7F7F9",
+    backgroundColor: "#0A122A",
   },
   ios: {
     supportsTablet: true,
@@ -46,19 +46,16 @@ const config: ExpoConfig = {
     package: "com.egoai.app",
     adaptiveIcon: {
       foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#7B2CBF",
+      backgroundColor: "#0A122A",
     },
     permissions: [
       "RECORD_AUDIO",
       "MODIFY_AUDIO_SETTINGS",
       "POST_NOTIFICATIONS",
+      "SCHEDULE_EXACT_ALARM",
+      "USE_EXACT_ALARM",
       "CAMERA",
       "READ_MEDIA_IMAGES",
-    ],
-    /** Play Store: USE_EXACT_ALARM só para apps cujo foco é despertador/agenda. EGO-AI é assistente IA. */
-    blockedPermissions: [
-      "android.permission.USE_EXACT_ALARM",
-      "android.permission.SCHEDULE_EXACT_ALARM",
     ],
     /** Evita o teclado tapar a caixa de mensagem no chat. */
     softwareKeyboardLayoutMode: "resize",
@@ -86,7 +83,7 @@ const config: ExpoConfig = {
       "expo-notifications",
       {
         icon: "./assets/icon.png",
-        color: "#7B2CBF",
+        color: "#22D3EE",
         sounds: [],
       },
     ],

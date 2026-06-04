@@ -1057,10 +1057,35 @@ def _coerce_reminder_to_utc(
     if isinstance(value, datetime.datetime):
         dt = value
         if dt.tzinfo is None:
-            dt = dt.replace(tzinfo=datetime.timezone.utc)
+            from ego_api.schedule_tz import tzinfo_from_session
+            from ego_api.request_ctx import get_session
+
+            tz = tzinfo_from_session(get_session())
+            dt = dt.replace(tzinfo=tz or datetime.timezone.utc)
         return dt.astimezone(datetime.timezone.utc)
-    parsed = _parse_ts_iso(str(value))
-    return parsed
+    raw = str(value).strip()
+    if not raw:
+        return None
+    has_tz = bool(
+        re.search(r"(?:Z|[+-]\d{2}:?\d{2})$", raw.replace(" ", "T"), re.I)
+    )
+    try:
+        clean = raw.replace("Z", "+00:00")
+        if " " in clean and "T" not in clean:
+            clean = clean.replace(" ", "T", 1)
+        dt = datetime.datetime.fromisoformat(clean)
+    except ValueError:
+        return _parse_ts_iso(raw)
+    if dt.tzinfo is None:
+        if has_tz:
+            dt = dt.replace(tzinfo=datetime.timezone.utc)
+        else:
+            from ego_api.schedule_tz import tzinfo_from_session
+            from ego_api.request_ctx import get_session
+
+            tz = tzinfo_from_session(get_session())
+            dt = dt.replace(tzinfo=tz or datetime.timezone.utc)
+    return dt.astimezone(datetime.timezone.utc)
 
 
 def normalize_scheduled_at(value: object) -> datetime.datetime | None:

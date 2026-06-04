@@ -1,32 +1,3 @@
-/** Fuso do aparelho — enviado em cada pedido autenticado para o servidor. */
-export function clientTimezonePayload(): {
-  timezone: string;
-  tz_offset_min: number;
-} {
-  const tz_offset_min = -new Date().getTimezoneOffset();
-  const timezone =
-    typeof Intl !== "undefined"
-      ? Intl.DateTimeFormat().resolvedOptions().timeZone || ""
-      : "";
-  return { timezone, tz_offset_min };
-}
-
-/** Anexa timezone ao corpo JSON ou FormData (voz, chat, bootstrap). */
-export function attachDeviceTimezone(data: unknown): unknown {
-  const tz = clientTimezonePayload();
-  if (typeof FormData !== "undefined" && data instanceof FormData) {
-    if (!data.has("timezone")) data.append("timezone", tz.timezone);
-    if (!data.has("tz_offset_min")) {
-      data.append("tz_offset_min", String(tz.tz_offset_min));
-    }
-    return data;
-  }
-  if (data && typeof data === "object" && !Array.isArray(data)) {
-    return { ...(data as Record<string, unknown>), ...tz };
-  }
-  return data;
-}
-
 /** Timestamps da API vêm em UTC; sem 'Z' o JS trata como hora local e mostra +3h (ex.: 9h → 12h). */
 export function parseScheduledIso(iso?: string): Date | null {
   if (!iso) return null;
@@ -34,10 +5,8 @@ export function parseScheduledIso(iso?: string): Date | null {
   if (!s) return null;
   if (s.includes(" ")) s = s.replace(" ", "T");
   const hasTz = /[zZ]$|[+-]\d{2}:?\d{2}$/.test(s);
-  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(s) && !hasTz) {
-    s = `${s}Z`;
-  }
-  const d = new Date(s);
+  // Sem offset: tratar como hora local do aparelho (evita deslocar o dia em agendas de grupo).
+  const d = hasTz ? new Date(s) : new Date(s.replace(" ", "T"));
   return Number.isNaN(d.getTime()) ? null : d;
 }
 

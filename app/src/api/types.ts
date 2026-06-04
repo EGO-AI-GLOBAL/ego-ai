@@ -120,6 +120,7 @@ export type SharedCalendarMember = {
   calendar_id?: string;
   user_id?: string | null;
   invited_email?: string;
+  display_name?: string;
   role?: "owner" | "member";
   status?: string;
   created_at?: string;
