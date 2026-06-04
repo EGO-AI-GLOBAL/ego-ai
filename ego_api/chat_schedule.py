@@ -119,8 +119,63 @@ def _extract_shared_calendar_name(raw: str) -> str:
     return ""
 
 
+def _trim_event_title_tail(fragment: str) -> str:
+    """Remove hora, data e nome da agenda do que o utilizador disse."""
+    s = (fragment or "").strip().strip("«»\"' ")
+    if not s:
+        return ""
+    s = re.split(
+        r"(?i)\s+(?:"
+        r"na|no|n[oa]|da|do|de|para|pra|em|com|"
+        r"às|as|hoje|amanh|depois|"
+        r"segunda|terça|terca|quarta|quinta|sexta|sábado|sabado|domingo|"
+        r"agenda|grupo|compartilhada|família|familia"
+        r"|\d{1,2}[:/h]\d*"
+        r")",
+        s,
+        maxsplit=1,
+    )[0].strip()
+    s = re.sub(r"(?i)^(um|uma|o|a)\s+", "", s).strip()
+    if re.match(r"(?i)^(compartilhada|compartilhado|grupo|família|familia)$", s):
+        return ""
+    return s
+
+
+def _format_event_title(fragment: str) -> str:
+    s = _trim_event_title_tail(fragment)
+    if not s or len(s) < 2:
+        return ""
+    if s.islower() and len(s) <= 80:
+        return (s[0].upper() + s[1:])[:500]
+    return s[:500]
+
+
 def _extract_shared_event_title(raw: str) -> str:
-    low = raw.lower()
+    """Título que o utilizador disse (ex.: «marca ensaio amanhã 15h» → Ensaio)."""
+    text = (raw or "").strip()
+    if not text:
+        return "Compromisso"
+
+    m = re.search(
+        r"(?i)(?:título|titulo)\s+[«\"']?\s*([^«\"'\n.?]+)",
+        text,
+    )
+    if m:
+        title = _format_event_title(m.group(1))
+        if title:
+            return title
+
+    verb = re.search(
+        r"(?i)\b(?:marca|marcar|marque|marques|agende|agendar|agenda|coloca|colocar)\s+"
+        r"(?:um|uma|o|a|no|na|n[oa])?\s*(.+)$",
+        text,
+    )
+    if verb:
+        title = _format_event_title(verb.group(1))
+        if title:
+            return title
+
+    low = text.lower()
     if re.search(r"\breuni", low):
         return "Reunião"
     if re.search(r"\bencontro\b", low):
@@ -129,15 +184,33 @@ def _extract_shared_event_title(raw: str) -> str:
         return "Chamada"
     if re.search(r"\bconsulta\b", low):
         return "Consulta"
-    m = re.search(
-        r"(?i)(?:título|titulo)\s+[«\"']?\s*([^«\"'\n.?]+)",
-        raw,
-    )
-    if m:
-        title = m.group(1).strip().strip("«»\"' ")
-        if title:
-            return title[:500]
+    if re.search(r"\bensaio\b", low):
+        return "Ensaio"
+
     return "Compromisso"
+
+
+def override_title_from_user_message(
+    user_text: str, payload: dict | list[dict] | None
+) -> dict | list[dict] | None:
+    """Usa o texto do utilizador se o modelo gravou só «Compromisso»."""
+    if not payload:
+        return payload
+    extracted = _extract_shared_event_title(user_text)
+    if not extracted or extracted == "Compromisso":
+        return payload
+
+    def _patch(item: dict) -> dict:
+        current = str(item.get("title") or item.get("event_title") or "").strip()
+        if current in ("", "Compromisso") or (
+            current == "Reunião" and extracted.lower() != "reunião"
+        ):
+            return {**item, "title": extracted, "announce": extracted}
+        return item
+
+    if isinstance(payload, dict):
+        return _patch(payload)
+    return [_patch(it) if isinstance(it, dict) else it for it in payload]
 
 
 _RELATIVE_DAY_HINT = re.compile(

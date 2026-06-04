@@ -511,6 +511,7 @@ def process_chat_message(
     if user_wants_personal or only_personal_agenda or effective_scope == "personal":
         shared_event = None
     if shared_event and effective_scope != "personal":
+        shared_event = cs.override_title_from_user_message(user_display, shared_event)
         shared_event = cs.override_scheduled_from_user_message(
             user_display, shared_event, ref=schedule_ref
         )
@@ -528,6 +529,7 @@ def process_chat_message(
     elif effective_scope != "personal" and (
         draft_event := cs.shared_event_from_schedule_draft(schedule)
     ):
+        draft_event = cs.override_title_from_user_message(user_display, draft_event)
         draft_event = cs.override_scheduled_from_user_message(
             user_display, draft_event, ref=schedule_ref
         )
@@ -558,6 +560,9 @@ def process_chat_message(
             )
         )
     ):
+        fallback_event = cs.override_title_from_user_message(
+            user_display, fallback_event
+        )
         fallback_event = cs.fill_shared_calendar_name(
             supabase, user_id, fallback_event, prefer_text=user_display
         )
