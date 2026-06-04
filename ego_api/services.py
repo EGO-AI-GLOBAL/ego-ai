@@ -346,41 +346,70 @@ def process_chat_message(
     if draft_patch:
         schedule = cs.merge_schedule_draft(schedule, draft_patch)
 
+    user_create_payload = (
+        cs.parse_create_shared_calendar_from_plain_text(user_display)
+        if not skip_schedule_save
+        else None
+    )
+
     if not skip_schedule_save:
         reply_clean, shared_setup = cs.extract_shared_setup(reply_clean)
     else:
         shared_setup = None
+
+    if user_create_payload and cs._user_requests_new_calendar(user_display):
+        shared_setup = cs.apply_user_create_calendar_intent(
+            user_display, shared_setup
+        )
+
     if shared_setup:
         shared_setup = cs.fill_shared_calendar_name(
             supabase, user_id, shared_setup, prefer_text=user_display
         )
         shared_setup_payload = shared_setup
-        cals, evs, shared_warns = cs.process_shared_setup(
+        cals, evs, setup_members, shared_warns = cs.process_shared_setup(
             supabase, user_id, shared_setup
         )
         shared_calendars_created.extend(cals)
         shared_calendars_saved.extend(cals)
         shared_events_saved.extend(evs)
+        shared_members_saved.extend(setup_members)
         warnings.extend(shared_warns)
-        if cals or evs:
+        if cals or evs or setup_members:
             schedule = {"step": "", "draft": {}}
         elif shared_warns:
             warnings.append(
                 "O assistente respondeu no chat, mas a agenda só entra "
                 "quando o servidor grava. Detalhe: " + shared_warns[0]
             )
-    elif not skip_schedule_save and (
-        fallback_create := cs.parse_create_shared_calendar_from_plain_text(user_display)
-    ):
+        elif user_create_payload and cs._user_requests_new_calendar(user_display):
+            retry = cs.fill_shared_calendar_name(
+                supabase, user_id, user_create_payload, prefer_text=user_display
+            )
+            cals2, evs2, mem2, warn2 = cs.process_shared_setup(
+                supabase, user_id, retry
+            )
+            shared_calendars_created.extend(cals2)
+            shared_calendars_saved.extend(cals2)
+            shared_events_saved.extend(evs2)
+            shared_members_saved.extend(mem2)
+            warnings.extend(warn2)
+            if cals2 or evs2 or mem2:
+                schedule = {"step": "", "draft": {}}
+    elif user_create_payload:
+        fallback_create = cs.fill_shared_calendar_name(
+            supabase, user_id, user_create_payload, prefer_text=user_display
+        )
         shared_setup_payload = fallback_create
-        cals, evs, shared_warns = cs.process_shared_setup(
+        cals, evs, setup_members, shared_warns = cs.process_shared_setup(
             supabase, user_id, fallback_create
         )
         shared_calendars_created.extend(cals)
         shared_calendars_saved.extend(cals)
         shared_events_saved.extend(evs)
+        shared_members_saved.extend(setup_members)
         warnings.extend(shared_warns)
-        if cals or evs:
+        if cals or evs or setup_members:
             schedule = {"step": "", "draft": {}}
         elif shared_warns:
             warnings.append(
@@ -603,6 +632,12 @@ def process_chat_message(
 
     from ego_api.chat_reply import ensure_visible_chat_reply
 
+    user_requested_cal_name = ""
+    if user_create_payload:
+        user_requested_cal_name = str(
+            user_create_payload.get("calendar_name") or ""
+        ).strip()
+
     reply_clean = ensure_visible_chat_reply(
         reply_clean,
         reminders_saved=reminders_saved,
@@ -619,6 +654,7 @@ def process_chat_message(
         shared_delete=shared_delete_payload,
         shared_calendars_deleted=shared_calendars_deleted,
         shared_calendars_created=shared_calendars_created,
+        user_requested_cal_name=user_requested_cal_name,
     )
 
     cs.save_chat_schedule(

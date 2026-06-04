@@ -69,10 +69,11 @@ REGRA (obrigatória):
 - Família/familia: use o nome EXACTO da lista «AGENDAS DE GRUPO».
 
 Grupo:
-- Nova: [[EGO_SHARED_SETUP:{"calendar_name":"Família",...}]]
-- Marcar: [[EGO_SHARED_EVENT:{"calendar_name":"Família","title":"Reunião","scheduled_at":"ISO"}]]
-- Convidar: [[EGO_SHARED_INVITE:{"calendar_name":"Família","invite_emails":["a@b.com"]}]]
-- Apagar: [[EGO_SHARED_DELETE:{"calendar_name":"Família"}]]
+- Nova agenda: [[EGO_SHARED_SETUP:{"calendar_name":"NOME_PEDIDO_PELO_UTILIZADOR"}]] — use o nome
+  exacto que ele disse (ex. «360 nas alturas»), NUNCA troque por «Família» se ele deu outro nome.
+- Marcar: [[EGO_SHARED_EVENT:{"calendar_name":"NOME_DA_AGENDA","title":"Reunião","scheduled_at":"ISO"}]]
+- Convidar: [[EGO_SHARED_INVITE:{"calendar_name":"NOME_DA_AGENDA","invite_emails":["a@b.com"]}]]
+- Apagar: [[EGO_SHARED_DELETE:{"calendar_name":"NOME_DA_AGENDA"}]]
 
 Exemplos do utilizador: «marca reunião amanhã 15h», «marca na agenda Família …», «marca na agenda pessoal …»
 «amanhã» = dia seguinte no relógio local (feriado ou fim de semana não muda a data).

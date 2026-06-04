@@ -61,13 +61,42 @@ def parse_invite_from_plain_text(text: str) -> dict | None:
     return payload
 
 
+def _trim_calendar_name_tail(name: str) -> str:
+    trimmed = re.split(
+        r"(?i)\s+(?:reuni|marca|agend|convida|amanh|hoje|depois|às|as|\d)",
+        name.strip().strip("«»\"' "),
+    )[0].strip()
+    if re.match(r"(?i)^(com\s+)?nome\s+", trimmed):
+        trimmed = re.sub(r"(?i)^(com\s+)?nome\s+", "", trimmed).strip()
+    return trimmed
+
+
+def _extract_create_calendar_name(raw: str) -> str:
+    """Nome ao criar agenda («com nome 360 nas alturas», «chamada Equipe X»)."""
+    patterns = (
+        r"(?i)(?:com\s+)?nome\s+(?:da\s+agenda(?:\s+compartilhada)?\s+)?[«\"']?\s*([^«\"'\n.?]+)",
+        r"(?i)(?:chamad[ao]|batizad[ao]|intitulad[ao])\s+(?:de\s+)?[«\"']?\s*([^«\"'\n.?]+)",
+        r"(?i)cria(?:r|r?\s+(?:uma|um))?\s+agenda(?:\s+compartilhada)?\s+com\s+(?:o\s+)?nome\s+"
+        r"[«\"']?\s*([^«\"'\n.?]+)",
+    )
+    for pat in patterns:
+        m = re.search(pat, raw)
+        if m:
+            name = _trim_calendar_name_tail(m.group(1))
+            if name and not re.match(
+                r"(?i)^(compartilhada|compartilhado|grupo|família|familia)$", name
+            ):
+                return name
+    return ""
+
+
 def _extract_shared_calendar_name(raw: str) -> str:
+    created = _extract_create_calendar_name(raw)
+    if created:
+        return created
+
     def _trim_calendar_tail(name: str) -> str:
-        trimmed = re.split(
-            r"(?i)\s+(?:reuni|marca|agend|amanh|hoje|depois|às|as|\d)",
-            name.strip().strip("«»\"' "),
-        )[0].strip()
-        return trimmed
+        return _trim_calendar_name_tail(name)
 
     patterns = (
         r"(?i)(?:agenda\s+compartilhada|grupo)\s+[«\"']?\s*([^«\"'\n.?]+)",
@@ -383,6 +412,39 @@ def resolve_default_shared_calendar_name(
     return ""
 
 
+def apply_user_create_calendar_intent(
+    user_display: str, data: dict[str, Any] | None
+) -> dict[str, Any] | None:
+    """Pedido do utilizador manda no nome ao criar (ignora JSON errado do LLM)."""
+    parsed = parse_create_shared_calendar_from_plain_text(user_display)
+    if not parsed:
+        return data
+    name = str(parsed.get("calendar_name") or "").strip()
+    if not name or not _user_requests_new_calendar(user_display):
+        return data
+    out = dict(data) if isinstance(data, dict) else {}
+    out["calendar_name"] = name
+    out.pop("calendar_id", None)
+    for key in ("invite_emails", "emails", "members"):
+        if key in parsed and parsed[key]:
+            out[key] = parsed[key]
+    return out
+
+
+def _user_requests_new_calendar(text: str) -> bool:
+    raw = (text or "").strip()
+    if not raw:
+        return False
+    if not re.search(r"(?i)\b(cria|criar|crie|abre|abrir|novo|nova)\b", raw):
+        return False
+    return bool(
+        re.search(r"(?i)\bagenda\b", raw)
+        or re.search(r"(?i)\bgrupo\b", raw)
+        or _SCOPE_SHARED.search(raw)
+        or _extract_create_calendar_name(raw)
+    )
+
+
 def fill_shared_calendar_name(
     supabase: Client | None,
     user_id: str,
@@ -391,13 +453,41 @@ def fill_shared_calendar_name(
     prefer_text: str = "",
 ) -> dict[str, Any]:
     out = dict(data)
+    from_user = ""
+    if prefer_text:
+        from_user = (
+            _extract_create_calendar_name(prefer_text)
+            or _extract_shared_calendar_name(prefer_text)
+        ).strip()
     name = str(out.get("calendar_name") or out.get("name") or "").strip()
-    if not name:
+    if from_user:
+        name = from_user
+    elif not name:
         name = resolve_default_shared_calendar_name(
             supabase, user_id, prefer_text=prefer_text
         )
+
+    creating = bool(prefer_text and _user_requests_new_calendar(prefer_text) and from_user)
+    if creating:
+        out.pop("calendar_id", None)
+
     if supabase and user_id:
         from ego_api import shared_calendars as sc
+
+        if creating:
+            found = sc.find_calendar_id_by_name(supabase, user_id, name)
+            if found:
+                for row in sc.list_calendars_for_user(supabase, user_id):
+                    if str(row.get("id") or "") == found:
+                        row_name = str(row.get("name") or "").strip()
+                        if sc.calendar_name_key(row_name) == sc.calendar_name_key(name):
+                            out["calendar_id"] = found
+                            out["calendar_name"] = row_name or name
+                            return out
+                        break
+            out.pop("calendar_id", None)
+            out["calendar_name"] = name
+            return out
 
         cid, canon = sc.resolve_calendar_for_user(
             supabase,
@@ -405,10 +495,14 @@ def fill_shared_calendar_name(
             calendar_id=str(out.get("calendar_id") or ""),
             calendar_name=name,
         )
-        if cid:
+        key_wanted = sc.calendar_name_key(name)
+        key_canon = sc.calendar_name_key(canon) if canon else ""
+        if cid and key_wanted and key_canon and key_wanted == key_canon:
             out["calendar_id"] = cid
-        if canon:
             out["calendar_name"] = canon
+        else:
+            out.pop("calendar_id", None)
+            out["calendar_name"] = name
     elif name:
         out["calendar_name"] = name
     return out
@@ -643,6 +737,10 @@ def build_shared_calendars_context(supabase: Client | None, user_id: str) -> str
                 f"Omissão: se o utilizador marcar reunião/compromisso SEM dizer «pessoal», "
                 f"use calendar_name «{only}»."
             )
+        lines.append(
+            "Ao CRIAR agenda nova, use no JSON o nome EXATO que o utilizador pediu "
+            "(ex. «360 nas alturas»), nunca substitua por «Família» salvo se ele pedir Família."
+        )
     lines.append("=== FIM AGENDAS DE GRUPO ===")
     return "\n".join(lines)
 
@@ -918,7 +1016,7 @@ def process_shared_setup(
     supabase: Client | None,
     user_id: str,
     data: dict[str, Any],
-) -> tuple[list[dict], list[dict], list[str]]:
+) -> tuple[list[dict], list[dict], list[dict], list[str]]:
     """Cria agenda (se preciso), convida e-mails e marca compromisso."""
     from ego_api import shared_calendars as sc
 
@@ -937,21 +1035,25 @@ def process_shared_setup(
     warnings: list[str] = []
     calendars: list[dict] = []
     events: list[dict] = []
+    members_added: list[dict] = []
 
     if not calendar_id:
         if not calendar_name:
-            return calendars, events, ["Informe o nome da agenda compartilhada."]
+            return calendars, events, members_added, [
+                "Informe o nome da agenda compartilhada."
+            ]
         calendar_id = (
             _resolve_calendar_id_for_user(supabase, user_id, "", calendar_name) or ""
         )
         if not calendar_id:
             ok, err, cal = sc.create_calendar(supabase, user_id, name=calendar_name)
             if not ok or not cal:
-                return calendars, events, [
+                return calendars, events, members_added, [
                     err or "Não foi possível criar a agenda compartilhada."
                 ]
             calendar_id = str(cal.get("id") or "")
-            calendars.append(cal)
+            full = sc.get_calendar(supabase, user_id, calendar_id) if calendar_id else None
+            calendars.append(full or cal)
     else:
         calendar_id = (
             _resolve_calendar_id_for_user(
@@ -965,13 +1067,15 @@ def process_shared_setup(
                 calendars.append(existing)
 
     if not calendar_id:
-        return calendars, events, ["Agenda compartilhada inválida."]
+        return calendars, events, members_added, ["Agenda compartilhada inválida."]
 
     for em in emails:
-        ok, err, _mem = sc.add_member_by_email(
+        ok, err, mem = sc.add_member_by_email(
             supabase, user_id, calendar_id, em
         )
-        if not ok and err:
+        if ok and mem:
+            members_added.append(mem)
+        elif err:
             warnings.append(f"{em}: {err}")
 
     if scheduled_at and title:
@@ -990,7 +1094,15 @@ def process_shared_setup(
     elif scheduled_at and not title:
         warnings.append("Informe o título do compromisso para marcar na agenda.")
 
-    return calendars, events, warnings
+    if calendar_id:
+        full = sc.get_calendar(supabase, user_id, calendar_id)
+        if full:
+            if calendars:
+                calendars[0] = full
+            else:
+                calendars.append(full)
+
+    return calendars, events, members_added, warnings
 
 
 def process_shared_invite(
@@ -1025,7 +1137,7 @@ def process_shared_invite(
         elif err:
             warnings.append(f"{em}: {err}")
 
-    cal = sc.get_calendar(supabase, user_id, calendar_id) if added else None
+    cal = sc.get_calendar(supabase, user_id, calendar_id) if calendar_id else None
     if not added and not warnings:
         warnings.append("Não foi possível adicionar os e-mails.")
     return cal, warnings, added
@@ -1038,9 +1150,13 @@ def parse_create_shared_calendar_from_plain_text(text: str) -> dict | None:
         return None
     if not re.search(r"(?i)\b(cria|criar|crie|abre|abrir|novo|nova)\b", raw):
         return None
-    if not (_SCOPE_SHARED.search(raw) or re.search(r"(?i)\bagenda\b", raw)):
+    if not (
+        _SCOPE_SHARED.search(raw)
+        or re.search(r"(?i)\bagenda\b", raw)
+        or re.search(r"(?i)\bgrupo\b", raw)
+    ):
         return None
-    cal_name = _extract_shared_calendar_name(raw)
+    cal_name = _extract_create_calendar_name(raw) or _extract_shared_calendar_name(raw)
     if not cal_name:
         m = re.search(
             r"(?i)(?:cria|criar|crie|abre|abrir)\s+(?:a\s+)?"
@@ -1048,10 +1164,7 @@ def parse_create_shared_calendar_from_plain_text(text: str) -> dict | None:
             raw,
         )
         if m:
-            cal_name = re.split(
-                r"(?i)\s+(?:reuni|marca|agend|convida|amanh|hoje|depois|às|as|\d)",
-                m.group(1).strip().strip("«»\"' "),
-            )[0].strip()
+            cal_name = _trim_calendar_name_tail(m.group(1))
     if not cal_name:
         return None
     emails = _normalize_email_list(

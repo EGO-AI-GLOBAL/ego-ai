@@ -392,7 +392,9 @@ def resolve_calendar_for_user(
         for row in rows:
             if str(row.get("id") or "") == found:
                 return found, str(row.get("name") or name).strip()
-    if len(rows) == 1:
+    # Só usa a única agenda existente quando o pedido não nomeia outra (evita
+    # «cria agenda 360» virar reutilizar «Família»).
+    if not name.strip() and len(rows) == 1:
         only = rows[0]
         return str(only.get("id") or ""), str(only.get("name") or "").strip()
     return "", name
@@ -702,6 +704,13 @@ def _add_pending_member_by_email(
         )
         if existing.data:
             prev = existing.data[0]
+            if str(prev.get("role") or "") == "owner":
+                return (
+                    False,
+                    "Esse e-mail é o seu (conta com que você entrou). "
+                    "Use o e-mail de outra pessoa para convidar.",
+                    None,
+                )
             member_id = str(prev.get("id") or "")
             if member_id:
                 admin = create_service_client()
@@ -833,6 +842,13 @@ def add_member_by_email(
         )
         if existing.data:
             prev = existing.data[0]
+            if str(prev.get("role") or "") == "owner":
+                return (
+                    False,
+                    "Esse e-mail é o seu (conta com que você entrou). "
+                    "Use o e-mail de outra pessoa para convidar.",
+                    None,
+                )
             prev_uid = str(prev.get("user_id") or "")
             if prev_uid == target_uid:
                 return False, "Este e-mail já está nesta agenda.", None

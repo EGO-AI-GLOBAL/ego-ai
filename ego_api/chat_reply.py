@@ -29,6 +29,7 @@ def ensure_visible_chat_reply(
     shared_delete: dict | None = None,
     shared_calendars_deleted: list[str] | None = None,
     shared_calendars_created: list[dict] | None = None,
+    user_requested_cal_name: str = "",
 ) -> str:
     warns = warnings or []
     shared_members = shared_members_saved or []
@@ -117,17 +118,17 @@ def ensure_visible_chat_reply(
         return f"Pronto! Registrei na agenda pessoal: «{tit}»."
 
     if text and shared_setup and not created_cals and not shared_ev_saved:
-        cal_name = str(
+        cal_name = (user_requested_cal_name or "").strip() or str(
             shared_setup.get("calendar_name") or shared_setup.get("name") or "Agenda"
         ).strip()
         if warns:
             return (
                 f"Não consegui criar a agenda «{cal_name}»: {warns[0]} "
-                "Tente: Cria agenda Família"
+                f"Repita: Cria agenda {cal_name}"
             )
         return (
             f"Não consegui confirmar a criação da agenda «{cal_name}». "
-            "Repita: Cria agenda Família"
+            f"Repita: Cria agenda {cal_name}"
         )
 
     if text and shared_invite and not shared_members:
@@ -141,7 +142,8 @@ def ensure_visible_chat_reply(
             )
         return (
             f"Não consegui confirmar o convite na agenda «{cal_name}». "
-            "Primeiro: Cria agenda Família. Depois convide o e-mail."
+            "Primeiro crie a agenda com o nome certo; depois convide outro e-mail "
+            "(não o seu)."
         )
 
     if text and shared_event and not shared_ev_saved:
@@ -215,6 +217,28 @@ def ensure_visible_chat_reply(
             "Não consegui confirmar na agenda. "
             "Repita: Marca na agenda pessoal consulta amanhã às 9h"
         )
+
+    if (
+        text
+        and (user_requested_cal_name or "").strip()
+        and not created_cals
+        and not shared_ev_saved
+    ):
+        want = user_requested_cal_name.strip()
+        if warns:
+            return (
+                f"Não consegui criar a agenda «{want}»: {warns[0]} "
+                f"Repita: Cria agenda {want}"
+            )
+        if re.search(r"(?i)família|familia", text) and want.lower() not in (
+            "família",
+            "familia",
+            "family",
+        ):
+            return (
+                f"Não consegui criar a agenda «{want}». "
+                f"Repita: Cria agenda {want}"
+            )
 
     if text:
         return text

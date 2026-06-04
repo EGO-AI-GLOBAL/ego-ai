@@ -91,6 +91,17 @@ def main() -> int:
     created2 = cs.parse_create_shared_calendar_from_plain_text(short_create)
     assert created2 and created2.get("calendar_name") == "Família", created2
 
+    create_360 = "Cria agenda 360 nas alturas"
+    created360 = cs.parse_create_shared_calendar_from_plain_text(create_360)
+    assert created360 and created360.get("calendar_name") == "360 nas alturas", (
+        created360
+    )
+    merged = cs.apply_user_create_calendar_intent(
+        create_360, {"calendar_name": "Família", "calendar_id": "old-id"}
+    )
+    assert merged and merged.get("calendar_name") == "360 nas alturas", merged
+    assert "calendar_id" not in merged, merged
+
     invite = cs.parse_invite_from_plain_text(
         "Convida teste@exemplo.com para a agenda Família"
     )
