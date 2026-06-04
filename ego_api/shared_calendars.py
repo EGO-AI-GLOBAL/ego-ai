@@ -201,14 +201,11 @@ def _user_is_member(
 def _user_day_start_utc() -> datetime.datetime:
     """Início do dia local do utilizador (para listar compromissos de hoje)."""
     try:
-        from ego_api.request_ctx import get_session
+        from ego_api.schedule_tz import local_now_from_session
 
-        sess = get_session()
-        if sess and isinstance(sess.tz_offset_min, int):
-            tz = datetime.timezone(datetime.timedelta(minutes=int(sess.tz_offset_min)))
-            now_local = datetime.datetime.now(tz)
-            day_start = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
-            return day_start.astimezone(datetime.timezone.utc)
+        now_local = local_now_from_session()
+        day_start = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
+        return day_start.astimezone(datetime.timezone.utc)
     except Exception:
         pass
     return datetime.datetime.now(datetime.timezone.utc)
@@ -437,7 +434,9 @@ def list_events_on_local_day(
     if not supabase or not calendar_id or not _user_is_member(supabase, user_id, calendar_id):
         return []
     apply_user_auth(supabase)
-    ref = datetime.datetime.now().astimezone()
+    from ego_api.schedule_tz import local_now_from_session
+
+    ref = local_now_from_session()
     local_day = day or ref.date()
     start_local = datetime.datetime.combine(local_day, datetime.time.min, tzinfo=ref.tzinfo)
     end_local = start_local + datetime.timedelta(days=1)

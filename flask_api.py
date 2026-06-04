@@ -144,6 +144,24 @@ def _json_ok(data: dict | None = None, status: int = 200):
     return jsonify(body), status
 
 
+def _request_client_body() -> dict:
+    """JSON ou campos de formulário (voz multipart) com timezone do aparelho."""
+    if request.is_json:
+        data = request.get_json(silent=True) or {}
+        return data if isinstance(data, dict) else {}
+    body: dict = {}
+    tz_name = request.form.get("timezone")
+    if tz_name:
+        body["timezone"] = tz_name
+    raw_off = request.form.get("tz_offset_min")
+    if raw_off not in (None, ""):
+        try:
+            body["tz_offset_min"] = int(raw_off)
+        except (TypeError, ValueError):
+            pass
+    return body
+
+
 def _parse_bearer() -> tuple[str, str]:
     """access_token, refresh_token (opcional, header X-Refresh-Token)."""
     auth = request.headers.get("Authorization", "")
@@ -190,7 +208,7 @@ def require_auth(f: Callable) -> Callable:
         except Exception:  # noqa: BLE001
             return _json_error("Sessão inválida ou expirada.", 401)
 
-        body = request.get_json(silent=True) or {} if request.is_json else {}
+        body = _request_client_body()
         meta = getattr(user, "user_metadata", None) or {}
         if not isinstance(meta, dict):
             meta = getattr(user, "raw_user_meta_data", None) or {}
@@ -253,6 +271,13 @@ def require_auth(f: Callable) -> Callable:
                 or ui.get("gemini_model_preference")
                 or GEMINI_MODEL_FLASH
             )
+            if body.get("timezone") or body.get("tz_offset_min") is not None:
+                services.persist_client_timezone(
+                    client,
+                    uid,
+                    timezone=str(sess.timezone or ""),
+                    tz_offset_min=sess.tz_offset_min,
+                )
         g.supabase = client
         g.user_id = uid
         return f(*args, **kwargs)

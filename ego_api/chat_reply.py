@@ -3,24 +3,9 @@
 from __future__ import annotations
 
 import re
-from datetime import datetime
 
-
-def _format_scheduled_pt(iso_val: object) -> str:
-    if not iso_val:
-        return ""
-    try:
-        s = str(iso_val).strip().replace("Z", "+00:00")
-        if "T" in s and "+" not in s[10:] and "-" not in s[10:]:
-            s = f"{s}+00:00"
-        dt = datetime.fromisoformat(s)
-        if dt.tzinfo is None:
-            from datetime import timezone
-
-            dt = dt.replace(tzinfo=timezone.utc)
-        return f" para {dt.astimezone().strftime('%d/%m às %H:%M')}"
-    except Exception:
-        return ""
+from ego_api.request_ctx import get_session
+from ego_api.schedule_tz import format_scheduled_for_user as _format_scheduled_pt
 
 
 def _looks_like_false_schedule_success(text: str) -> bool:

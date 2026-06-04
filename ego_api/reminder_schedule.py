@@ -98,6 +98,7 @@ you may register it by adding EXACTLY ONE line at the very END of your reply (af
 - If the user omits the year, use the current calendar year; if that date/time already passed, use the next year.
 - If the user omits the month, use the current month.
 - «hoje» / «amanhã» / «depois de amanhã» = próximo dia civil no relógio local do utilizador (feriados e fins de semana contam; nunca salte para «próximo dia útil»).
+- Horas como «às 9h» são sempre no fuso do aparelho do utilizador (ver RELÓGIO DE REFERÊNCIA); não use UTC do servidor.
 - Always output scheduled_at as full ISO-8601 with timezone offset after resolving year/month/day/time.
 - If date/time is still ambiguous, do NOT add the line; ask one short clarifying question instead.
 - When the user clearly wants a reminder/alarm at a known time, you MUST output the [[EGO_REMINDER:...]] line automatically.

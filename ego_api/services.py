@@ -314,7 +314,9 @@ def process_chat_message(
     shared_calendars_deleted: list[str] = []
 
     user_wants_personal = cs.detect_scope_from_user_text(user_display) == "personal"
-    schedule_ref = gemini._local_now(sess)
+    from ego_api.schedule_tz import local_now_from_session
+
+    schedule_ref = local_now_from_session(sess)
 
     reply_clean = reply
     reply_clean, draft_patch = cs.extract_schedule_draft(reply_clean)
@@ -756,6 +758,35 @@ def _stripe_link(base: str, user_id: str) -> str | None:
         return None
     sep = "&" if "?" in base else "?"
     return f"{base}{sep}client_reference_id={user_id}"
+
+
+def persist_client_timezone(
+    supabase: Client | None,
+    user_id: str,
+    *,
+    timezone: str = "",
+    tz_offset_min: int | None = None,
+) -> None:
+    """Grava fuso do aparelho no perfil (cada bootstrap/chat/voz actualiza)."""
+    if not supabase or not user_id:
+        return
+    if not (timezone or "").strip() and tz_offset_min is None:
+        return
+    try:
+        prof = db.load_profile(supabase, user_id) or {}
+        ui = dict(ui_state_from_profile(prof))
+        changed = False
+        tz_clean = (timezone or "").strip()[:120]
+        if tz_clean and ui.get("ego_client_timezone") != tz_clean:
+            ui["ego_client_timezone"] = tz_clean
+            changed = True
+        if tz_offset_min is not None and ui.get("ego_client_tz_offset_min") != tz_offset_min:
+            ui["ego_client_tz_offset_min"] = int(tz_offset_min)
+            changed = True
+        if changed:
+            db.update_profile_fields(supabase, user_id, {"ui_state": ui})
+    except Exception:
+        pass
 
 
 def ui_state_from_profile(prof: dict | None) -> dict:

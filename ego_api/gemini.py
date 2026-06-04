@@ -122,19 +122,9 @@ def language_instruction(code: str) -> str:
 
 
 def _local_now(sess: UserSession) -> datetime.datetime:
-    tz_name = (sess.timezone or "").strip()
-    if tz_name and ZoneInfo is not None:
-        try:
-            return datetime.datetime.now(ZoneInfo(tz_name))
-        except Exception:
-            pass
-    if isinstance(sess.tz_offset_min, int):
-        try:
-            tz = datetime.timezone(datetime.timedelta(minutes=int(sess.tz_offset_min)))
-            return datetime.datetime.now(tz)
-        except Exception:
-            pass
-    return datetime.datetime.now().astimezone()
+    from ego_api.schedule_tz import local_now_from_session
+
+    return local_now_from_session(sess)
 
 
 def _datetime_instruction(sess: UserSession) -> str:
@@ -151,7 +141,7 @@ def _datetime_instruction(sess: UserSession) -> str:
     )
     wd = dias_pt[loc.weekday()]
     lines = [
-        "\n\nRELÓGIO DE REFERÊNCIA:",
+        "\n\nRELÓGIO DE REFERÊNCIA (fuso do aparelho do utilizador — use isto para hoje/amanhã e horas):",
         f"- Agora em UTC: **{utc_now.isoformat(timespec='seconds')}**",
         f"- Agora local: **{loc.isoformat(timespec='seconds')}** (dia: **{wd}**).",
     ]

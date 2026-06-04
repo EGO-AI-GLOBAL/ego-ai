@@ -5,6 +5,7 @@ import { resolveSpeechVoiceId } from "@/constants/personas";
 import { getPlayIntegrityToken } from "@/security/playIntegrity";
 import { getWebOrigin } from "@/utils/webLocation";
 import { reportApiFailure } from "@/monitoring/errorReporter";
+import { attachDeviceTimezone } from "@/utils/scheduleTime";
 import type {
   AccessInfo,
   ApiErr,
@@ -109,6 +110,10 @@ export const api: AxiosInstance = axios.create({
 
 api.interceptors.request.use(async (config) => {
   applyAuthHeaders(config.headers);
+  const method = (config.method || "get").toLowerCase();
+  if (method !== "get" && method !== "head" && config.data != null) {
+    config.data = attachDeviceTimezone(config.data);
+  }
   if (needsPlayIntegrityHeader(config.url)) {
     const integrityToken = await getPlayIntegrityToken();
     if (integrityToken && config.headers) {
@@ -243,14 +248,9 @@ function isNotFound(err: unknown): boolean {
 
 export async function fetchDashboard(): Promise<DashboardData> {
   try {
-    const tz_offset_min = -new Date().getTimezoneOffset();
-    const timezone =
-      typeof Intl !== "undefined"
-        ? Intl.DateTimeFormat().resolvedOptions().timeZone || ""
-        : "";
     const { data } = await api.post(
       "app/bootstrap",
-      { timezone, tz_offset_min },
+      {},
       {
       timeout: TIMEOUT_BOOTSTRAP_MS,
       }
@@ -490,15 +490,6 @@ export function localDateTimeToIso(dateBr: string, timeBr: string): string | nul
   return d.toISOString();
 }
 
-function clientTimezonePayload(): { timezone: string; tz_offset_min: number } {
-  const tz_offset_min = -new Date().getTimezoneOffset();
-  const timezone =
-    typeof Intl !== "undefined"
-      ? Intl.DateTimeFormat().resolvedOptions().timeZone || ""
-      : "";
-  return { timezone, tz_offset_min };
-}
-
 export async function sendChatMessage(
   message: string,
   speak = true,
@@ -506,7 +497,7 @@ export async function sendChatMessage(
 ): Promise<SendChatResult> {
   const { data } = await api.post(
     "chat/messages",
-    { message, speak, history, ...clientTimezonePayload() },
+    { message, speak, history },
     { timeout: TIMEOUT_CHAT_MS }
   );
   const body = unwrap<SendChatResult>(data);
@@ -788,7 +779,6 @@ export async function sendChatVoiceMessage(opts: {
       audio_mime,
       speak: opts.speak !== false,
       history: opts.history ?? [],
-      ...clientTimezonePayload(),
     },
     {
       timeout: TIMEOUT_VOICE_MS,

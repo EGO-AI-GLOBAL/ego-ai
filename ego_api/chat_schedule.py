@@ -135,7 +135,9 @@ def _parse_pt_schedule_hint(
     raw = (text or "").strip()
     if not raw:
         return None
-    ref = ref or datetime.datetime.now().astimezone()
+    from ego_api.schedule_tz import local_now_from_session
+
+    ref = ref or local_now_from_session()
     low = raw.lower()
     tm = re.search(
         r"(?:às|as)\s*(\d{1,2})(?::(\d{2}))?\s*(?:h|horas)?",
@@ -973,7 +975,9 @@ def looks_like_today_agenda_query(text: str) -> bool:
 def _local_day_bounds(
     day: datetime.date | None = None,
 ) -> tuple[datetime.datetime, datetime.datetime]:
-    ref = datetime.datetime.now().astimezone()
+    from ego_api.schedule_tz import local_now_from_session
+
+    ref = local_now_from_session()
     local_day = day or ref.date()
     start = datetime.datetime.combine(local_day, datetime.time.min, tzinfo=ref.tzinfo)
     end = start + datetime.timedelta(days=1)
@@ -987,7 +991,9 @@ def _parse_scheduled_local(value: object) -> datetime.datetime | None:
         dt = datetime.datetime.fromisoformat(str(value).strip().replace("Z", "+00:00"))
         if dt.tzinfo is None:
             dt = dt.replace(tzinfo=datetime.timezone.utc)
-        return dt.astimezone()
+        from ego_api.schedule_tz import utc_to_session_local
+
+        return utc_to_session_local(dt)
     except ValueError:
         return None
 
@@ -1040,7 +1046,9 @@ def build_today_commitments_reply(
     from ego_api.db import DOW_PT_ORDER
     from ego_api.supabase_client import apply_user_auth
 
-    now = datetime.datetime.now().astimezone()
+    from ego_api.schedule_tz import local_now_from_session
+
+    now = local_now_from_session()
     today_code = DOW_PT_ORDER[now.weekday()]
     day_start, day_end = _local_day_bounds(now.date())
     start_utc = day_start.astimezone(datetime.timezone.utc).isoformat()
