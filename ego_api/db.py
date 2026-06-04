@@ -767,7 +767,16 @@ def persona_is_configured(supabase: Client | None, user_id: str) -> bool:
     from ego_api.supabase_client import create_service_client
 
     admin = create_service_client()
-    return _persona_row_exists(admin, user_id)
+    if _persona_row_exists(admin, user_id):
+        return True
+    prof = load_profile(supabase, user_id) or (
+        _load_profile_raw(admin, user_id) if admin else None
+    )
+    if prof:
+        ui = _parse_ui_state(prof)
+        if str(ui.get("avatar_id") or "").strip():
+            return True
+    return False
 
 
 def _read_persona_from_client(client: Client | None, user_id: str) -> tuple[str, str] | None:

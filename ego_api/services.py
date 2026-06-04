@@ -789,11 +789,24 @@ def _list_shared_calendars_safe(supabase: Client | None, user_id: str) -> list:
         return []
 
 
+def _bootstrap_section(label: str, fn, default):  # noqa: ANN001
+    try:
+        return fn()
+    except Exception as exc:
+        print(f"[EGO] bootstrap {label} error: {exc}", flush=True)
+        return default
+
+
 def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
     """Um único payload para o painel (evita vários GET no cliente)."""
     from ego_api.config import gemini_api_key, supabase_anon_key, supabase_url
 
-    access = db.build_plan_access_payload(supabase, user_id)
+    access = _bootstrap_section(
+        "access",
+        lambda: db.build_plan_access_payload(supabase, user_id),
+        {"access_allowed": True, "plan_tier": "essential", "plan_label": "EGO Essencial"},
+    )
+    me = _bootstrap_section("me", lambda: me_payload(supabase, user_id), None)
     return {
         "health": {
             "ok": True,
@@ -801,12 +814,16 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
             "supabase_configured": bool(supabase_url() and supabase_anon_key()),
             "gemini_configured": bool(gemini_api_key()),
         },
-        "me": me_payload(supabase, user_id),
+        "me": me,
         "access": {"ok": True, **access},
-        "reminders": db.list_reminders(supabase, user_id),
-        "agenda": db.list_agenda(supabase, user_id),
+        "reminders": _bootstrap_section(
+            "reminders", lambda: db.list_reminders(supabase, user_id), []
+        ),
+        "agenda": _bootstrap_section("agenda", lambda: db.list_agenda(supabase, user_id), []),
         "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
-        "messages": db.load_chat_history(supabase, user_id),
+        "messages": _bootstrap_section(
+            "messages", lambda: db.load_chat_history(supabase, user_id), []
+        ),
     }
 
 
@@ -819,7 +836,10 @@ def ensure_persona_normalized(supabase: Client | None, user_id: str) -> tuple[st
     if db.persona_is_configured(supabase, user_id) and (
         stored_a != avatar_id or stored_v != voice_id
     ):
-        db.save_persona(supabase, user_id, avatar_id, voice_id)
+        try:
+            db.save_persona(supabase, user_id, avatar_id, voice_id)
+        except Exception as exc:
+            print(f"[EGO] ensure_persona_normalized save error: {exc}", flush=True)
     return avatar_id, voice_id
 
 
@@ -868,13 +888,16 @@ def _stripe_checkout_payload(user_id: str) -> dict:
     connection = _stripe_link(urls.get(PLAN_CONNECTION) or "", user_id) or legacy_m
     int_connection = _stripe_link(urls.get("int_connection") or "", user_id)
     launch = _stripe_link(urls.get("launch") or "", user_id)
-    team_raw = team_checkout_nested()
     team: dict[str, dict[str, dict[str, str | None]]] = {"br": {}, "int": {}}
-    for market in ("br", "int"):
-        for tier, seat_map in (team_raw.get(market) or {}).items():
-            team[market][tier] = {
-                seats: _stripe_link(url, user_id) for seats, url in seat_map.items()
-            }
+    try:
+        team_raw = team_checkout_nested()
+        for market in ("br", "int"):
+            for tier, seat_map in (team_raw.get(market) or {}).items():
+                team[market][tier] = {
+                    seats: _stripe_link(url, user_id) for seats, url in seat_map.items()
+                }
+    except Exception as exc:
+        print(f"[EGO] team_checkout_nested error: {exc}", flush=True)
     return {
         "monthly_url": connection,
         "annual_url": legacy_a,
