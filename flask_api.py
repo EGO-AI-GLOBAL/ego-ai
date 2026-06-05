@@ -665,7 +665,10 @@ def profile_patch():
     if "full_name" in data:
         fields["full_name"] = str(data["full_name"])[:200]
     if "ui_state" in data and isinstance(data["ui_state"], dict):
-        fields["ui_state"] = data["ui_state"]
+        prof = db.load_profile(g.supabase, g.user_id) or {}
+        current = services.ui_state_from_profile(prof)
+        merged = {**current, **services.sanitize_user_ui_state(data["ui_state"])}
+        fields["ui_state"] = merged
     if "country" in data:
         fields["country"] = str(data["country"])[:80]
     ok, err = db.update_profile_fields(g.supabase, g.user_id, fields)

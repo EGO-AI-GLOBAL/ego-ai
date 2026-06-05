@@ -259,18 +259,7 @@ def resolve_plan_tier(profile: dict[str, Any] | None) -> str:
         tier = normalize_plan_tier(str(raw))
         if tier != PLAN_ESSENTIAL:
             return tier
-    ui = profile.get("ui_state")
-    if isinstance(ui, str) and ui.strip():
-        import json
-
-        try:
-            ui = json.loads(ui)
-        except json.JSONDecodeError:
-            ui = {}
-    if isinstance(ui, dict):
-        ui_tier = normalize_plan_tier(str(ui.get("plan_tier") or ""))
-        if ui_tier != PLAN_ESSENTIAL:
-            return ui_tier
+    # Plano nunca via ui_state (evita escalada via PATCH /profile).
     if bool(profile.get("is_pro")):
         legacy = (os.getenv("EGO_LEGACY_IS_PRO_TIER") or PLAN_CONNECTION).strip().lower()
         return normalize_plan_tier(legacy)

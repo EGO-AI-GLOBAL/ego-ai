@@ -1063,6 +1063,26 @@ def persist_client_timezone(
         pass
 
 
+# Campos que só o servidor/Stripe podem gravar — nunca aceitar do app.
+UI_STATE_SERVER_ONLY_KEYS = frozenset(
+    {
+        "plan_tier",
+        "plan_type",
+        "is_pro",
+        "team_seats",
+        "monthly_tokens_used",
+        "monthly_tokens_period",
+    }
+)
+
+
+def sanitize_user_ui_state(patch: dict | None) -> dict:
+    """Remove chaves sensíveis antes de persistir ui_state vindo do cliente."""
+    if not isinstance(patch, dict):
+        return {}
+    return {k: v for k, v in patch.items() if k not in UI_STATE_SERVER_ONLY_KEYS}
+
+
 def ui_state_from_profile(prof: dict | None) -> dict:
     if not prof:
         return {}
