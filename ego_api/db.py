@@ -157,16 +157,19 @@ def ensure_user_profile(
     *,
     email: str = "",
     full_name: str = "",
+    phone: str = "",
 ) -> tuple[bool, str]:
     if not supabase or not user_id:
         return False, "Cliente Supabase ou user_id em falta."
     apply_user_auth(supabase)
     display = (full_name or "").strip() or "Usuário"
     em = (email or "").strip()[:254]
+    ph = (phone or "").strip()
     row = {
         "id": user_id,
         "full_name": display[:200],
         "email": em or None,
+        "phone": ph or None,
         "country": "Brasil",
         "document_type": "",
     }
@@ -180,7 +183,11 @@ def ensure_user_profile(
         )
         if found.data:
             supabase.table(SUPABASE_PROFILES_TABLE).update(
-                {"full_name": row["full_name"], "email": row["email"]}
+                {
+                    "full_name": row["full_name"],
+                    "email": row["email"],
+                    "phone": row["phone"],
+                }
             ).eq("id", user_id).execute()
         else:
             supabase.table(SUPABASE_PROFILES_TABLE).insert(
@@ -593,11 +600,15 @@ def build_plan_access_payload(
     ag_ok, ag_n = agenda_limit_ok(supabase, user_id, limits)
     rem_ok, rem_n = reminders_limit_ok(supabase, user_id, limits)
     paid = tier != "essential"
+    from ego_api.plans import is_test_total_email
+
+    email = str(prof.get("email") or "").strip().lower()
     return {
         "access_allowed": ok_access,
         "access_status": status,
         "plan_tier": tier,
         "plan_label": plan_label(tier),
+        "is_test_total": is_test_total_email(email),
         "plan_price_brl": PLAN_PRICES_BRL.get(tier, 0.0),
         "is_pro": paid,
         "monthly_tokens_ok": ok_tok,
@@ -760,22 +771,26 @@ def _persona_row_exists(client: Client | None, user_id: str) -> bool:
 
 
 def persona_is_configured(supabase: Client | None, user_id: str) -> bool:
+    """True só após escolha explícita (PUT /persona), não por defaults f1."""
     if not user_id:
         return False
-    if supabase and apply_user_auth(supabase) and _persona_row_exists(supabase, user_id):
-        return True
     from ego_api.supabase_client import create_service_client
 
     admin = create_service_client()
-    if _persona_row_exists(admin, user_id):
+    for client in (supabase, admin):
+        if not client:
+            continue
+        prof = load_profile(client, user_id) if client is supabase else (
+            _load_profile_raw(client, user_id)
+        )
+        if prof:
+            ui = _parse_ui_state(prof)
+            if str(ui.get("persona_chosen_at") or "").strip():
+                return True
+    if supabase and apply_user_auth(supabase) and _persona_row_exists(supabase, user_id):
         return True
-    prof = load_profile(supabase, user_id) or (
-        _load_profile_raw(admin, user_id) if admin else None
-    )
-    if prof:
-        ui = _parse_ui_state(prof)
-        if str(ui.get("avatar_id") or "").strip():
-            return True
+    if admin and _persona_row_exists(admin, user_id):
+        return True
     return False
 
 
@@ -840,28 +855,39 @@ def _read_persona_from_profile_ui(
 
 
 def load_persona(supabase: Client | None, user_id: str) -> tuple[str, str]:
-    """Lê persona: ui_state no perfil primeiro (espelho da escolha), depois user_personas."""
+    """Lê persona: user_personas primeiro (escolha guardada), depois ui_state no perfil."""
     if not user_id:
         return "f1", "vf1"
 
+    from ego_api.persona import normalize_persona_pair
     from ego_api.supabase_client import create_service_client
 
     admin = create_service_client()
+
+    def _read_pair(client: Client | None) -> tuple[str, str] | None:
+        if not client:
+            return None
+        pair = _read_persona_from_client(client, user_id)
+        if pair:
+            return normalize_persona_pair(pair[0], pair[1])
+        pair = _read_persona_from_profile(
+            _load_profile_raw(client, user_id)
+            if client is admin
+            else (load_profile(client, user_id) if apply_user_auth(client) else None)
+        )
+        if pair:
+            return normalize_persona_pair(pair[0], pair[1])
+        return None
+
     if admin:
-        pair = _persona_pair_from_profile(_load_profile_raw(admin, user_id))
-        if pair:
-            return pair
-        pair = _read_persona_from_client(admin, user_id)
-        if pair:
-            return pair
+        got = _read_pair(admin)
+        if got:
+            return got
 
     if supabase and apply_user_auth(supabase):
-        pair = _read_persona_from_profile_ui(supabase, user_id)
-        if pair:
-            return pair
-        pair = _read_persona_from_client(supabase, user_id)
-        if pair:
-            return pair
+        got = _read_pair(supabase)
+        if got:
+            return got
 
     return "f1", "vf1"
 
@@ -911,6 +937,7 @@ def _mirror_persona_to_profile(
         "avatar_id": avatar_id,
         "voice_id": voice_id,
         "ego_assistant_display_name": name,
+        "persona_chosen_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
     }
     ok, _ = update_profile_fields(supabase, user_id, {"ui_state": merged})
     return ok

@@ -74,7 +74,7 @@ Grupo:
   diferentes; cada «cria agenda X» com X novo cria OUTRA agenda (não reutilize outra só porque já existe uma).
 - Marcar: [[EGO_SHARED_EVENT:{"calendar_name":"NOME_DA_AGENDA","title":"NOME_CURTO_DO_COMPROMISSO","scheduled_at":"ISO-8601 com offset do fuso do utilizador (ex. -03:00)"}]]
   - title = só o evento (ex. «Ensaio»), NUNCA o nome da agenda nem «Compromisso»/«Reunião» genérico se o utilizador disse outra coisa.
-- Convidar: [[EGO_SHARED_INVITE:{"calendar_name":"NOME_DA_AGENDA","invite_emails":["a@b.com"]}]]
+- Convidar: [[EGO_SHARED_INVITE:{"calendar_name":"NOME_DA_AGENDA","invite_emails":["a@b.com"],"invite_phones":["+5511999999999"]}]]
 - Apagar: [[EGO_SHARED_DELETE:{"calendar_name":"NOME_DA_AGENDA"}]]
 
 Exemplos do utilizador: «marca reunião amanhã 15h», «marca na agenda Família …», «marca na agenda pessoal …»
@@ -288,6 +288,11 @@ def _is_quota_error(exc: BaseException) -> bool:
     return "429" in err_s or "quota" in low or "resource exhausted" in low
 
 
+def _is_quota_reply(text: str | None) -> bool:
+    low = (text or "").lower()
+    return "cota" in low and ("gemini" in low or "google" in low)
+
+
 def is_gemini_error_reply(text: str | None) -> bool:
     """Respostas de generate_reply que não são do assistente (erro de API/config)."""
     s = (text or "").strip()
@@ -299,6 +304,7 @@ def is_gemini_error_reply(text: str | None) -> bool:
         "Configure GOOGLE_API_KEY",
         "Instale google-generativeai",
         "Cota da API Gemini",
+        "Cota da API Google Gemini",
         "Cota gratuita da API Gemini",
         "Modelo Gemini não disponível",
         "Não obtive texto na resposta",
@@ -323,11 +329,29 @@ def _gemini_error_message(exc: BaseException) -> str:
             "Depois reinicie: python flask_api.py"
         )
     if _is_quota_error(exc):
+        if any(
+            x in low
+            for x in (
+                "per minute",
+                "per min",
+                "rpm",
+                "rate limit",
+                "too many requests",
+                "retry in",
+            )
+        ):
+            return (
+                "Muitos pedidos seguidos na API Google (limite por minuto). "
+                "Espere 30–60 segundos e tente de novo em texto. "
+                "Isto não é o plano EGO no app — é a chave GOOGLE_API_KEY no Railway."
+            )
         return (
-            "Cota da API Gemini esgotada (limite gratuito diário ou por minuto). "
-            "Aguarde algumas horas ou até amanhã para repor; ou crie uma chave nova em "
-            "https://aistudio.google.com/apikey e atualize GOOGLE_API_KEY no .env na raiz. "
-            "Mensagens de voz gastam mais cota que texto. Reinicie a API: python flask_api.py"
+            "A API Google bloqueou este pedido (cota/limite da chave GOOGLE_API_KEY). "
+            "Isto não é o plano EGO Total no Supabase. "
+            "Se você já paga o Google: confira no Railway se a variável GOOGLE_API_KEY "
+            "é a chave do projeto COM faturamento ligado (AI Studio → mesma conta → Billing). "
+            "Depois de trocar a chave: Redeploy no Railway. "
+            f"Detalhe: {err_s[:180]}"
         )
     if "404" in err_s and "gemini" in low:
         return (
@@ -564,6 +588,24 @@ def iter_voice_reply_stream(
         yield full
 
 
+def _try_openai_fallback(
+    user_text: str,
+    *,
+    conversation_messages: list | None,
+    lang_code: str,
+    agenda_context: str,
+) -> str | None:
+    from ego_api.openai_chat_fallback import generate_openai_text_reply
+
+    sess = get_session() or UserSession(user_id="")
+    system = build_system_instruction(sess, lang_code, agenda_context)
+    return generate_openai_text_reply(
+        user_text,
+        conversation_messages=conversation_messages,
+        system_instruction=system,
+    )
+
+
 def generate_reply(
     user_text: str,
     *,
@@ -575,7 +617,7 @@ def generate_reply(
 ) -> str:
     """Gera resposta; mensagens de voz têm timeout para não bloquear o Flask."""
     if not audio_bytes:
-        return _generate_reply_inner(
+        reply = _generate_reply_inner(
             user_text,
             conversation_messages=conversation_messages,
             lang_code=lang_code,
@@ -583,6 +625,18 @@ def generate_reply(
             audio_bytes=None,
             audio_mime=audio_mime,
         )
+        if is_gemini_error_reply(reply) and (
+            _is_quota_reply(reply) or _is_quota_error(Exception(reply))
+        ):
+            alt = _try_openai_fallback(
+                user_text,
+                conversation_messages=conversation_messages,
+                lang_code=lang_code,
+                agenda_context=agenda_context,
+            )
+            if alt:
+                return alt
+        return reply
     timeout_s = 90
     with ThreadPoolExecutor(max_workers=1) as pool:
         fut = pool.submit(
@@ -595,7 +649,19 @@ def generate_reply(
             audio_mime=audio_mime,
         )
         try:
-            return fut.result(timeout=timeout_s)
+            reply = fut.result(timeout=timeout_s)
+            if is_gemini_error_reply(reply) and (
+                _is_quota_reply(reply) or _is_quota_error(Exception(str(reply)))
+            ):
+                alt = _try_openai_fallback(
+                    user_text or "",
+                    conversation_messages=conversation_messages,
+                    lang_code=lang_code,
+                    agenda_context=agenda_context,
+                )
+                if alt:
+                    return alt
+            return reply
         except FuturesTimeout:
             return (
                 "A IA demorou demais para ouvir o áudio (mais de 1 minuto). "

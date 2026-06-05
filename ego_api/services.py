@@ -92,7 +92,7 @@ def login(email: str, password: str) -> tuple[dict | None, str | None]:
 
 
 def signup(
-    email: str, password: str, full_name: str = ""
+    email: str, password: str, full_name: str = "", phone: str = ""
 ) -> tuple[dict | None, str | None]:
     client = create_anon_client()
     if not client:
@@ -103,6 +103,13 @@ def signup(
     if not (password or "").strip():
         return None, "Informe a senha."
     display = (full_name or "").strip() or email_norm.split("@")[0] or "Usuário"
+    phone_norm = ""
+    if (phone or "").strip():
+        from ego_api.phone_utils import normalize_phone_br
+
+        phone_norm, phone_err = normalize_phone_br(phone)
+        if phone_err:
+            return None, phone_err
     try:
         res = client.auth.sign_up(
             {
@@ -128,7 +135,13 @@ def signup(
             )
         )
         apply_user_auth(client)
-        ensure_user_profile(client, uid, email=email_norm, full_name=display)
+        ensure_user_profile(
+            client, uid, email=email_norm, full_name=display, phone=phone_norm
+        )
+        if phone_norm:
+            from ego_api import shared_calendars as sc
+
+            sc.link_shared_memberships_for_user_phone(client, uid, phone_norm)
         return payload, None
     except Exception as e:  # noqa: BLE001
         return None, format_auth_error(e)
@@ -701,6 +714,7 @@ def process_chat_message(
     mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_clean)
     tok_n = gemini.count_tokens_approx(user_display, reply_clean)
     db.add_tokens_used(supabase, user_id, tok_n, prof)
+    prof = db.load_profile(supabase, user_id) or prof
 
     payload: dict = {
         "reply": reply_clean,
@@ -714,6 +728,7 @@ def process_chat_message(
         "shared_events_saved": shared_events_saved,
         "shared_members_saved": shared_members_saved,
         "shared_calendars_deleted": shared_calendars_deleted,
+        "access": db.build_plan_access_payload(supabase, user_id, prof),
     }
     if speak_reply and reply_clean.strip():
         from ego_api import tts
@@ -802,6 +817,18 @@ def bootstrap_payload_fallback(supabase: Client | None, user_id: str) -> dict:
     from ego_api.config import gemini_api_key, supabase_anon_key, supabase_url
 
     me = _bootstrap_section("me", lambda: me_payload(supabase, user_id), None)
+    access = _bootstrap_section(
+        "access",
+        lambda: db.build_plan_access_payload(supabase, user_id),
+        {
+            "access_allowed": True,
+            "plan_tier": "essential",
+            "plan_label": "EGO Essencial",
+            "monthly_tokens_used": 0,
+            "monthly_tokens_limit": 200_000,
+            "monthly_tokens_ok": True,
+        },
+    )
     return {
         "health": {
             "ok": True,
@@ -811,12 +838,7 @@ def bootstrap_payload_fallback(supabase: Client | None, user_id: str) -> dict:
             "degraded": True,
         },
         "me": me,
-        "access": {
-            "ok": True,
-            "access_allowed": True,
-            "plan_tier": "essential",
-            "plan_label": "EGO Essencial",
-        },
+        "access": {"ok": True, **access},
         "reminders": [],
         "agenda": [],
         "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
@@ -879,6 +901,9 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
             from ego_api import shared_calendars as sc
 
             sc.link_shared_memberships_for_user(supabase, user_id, email)
+            ph = str(prof.get("phone") or "").strip()
+            if ph:
+                sc.link_shared_memberships_for_user_phone(supabase, user_id, ph)
         except Exception:
             pass
     email_local = email.split("@")[0].strip().lower() if "@" in email else ""

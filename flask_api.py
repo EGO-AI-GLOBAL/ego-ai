@@ -349,6 +349,7 @@ def auth_signup():
         data.get("email", ""),
         data.get("password", ""),
         data.get("full_name", ""),
+        data.get("phone", ""),
     )
     if err:
         return _json_error(err, 400)
@@ -741,8 +742,11 @@ def persona_put():
     from ego_api.plans import resolve_plan_tier
 
     data = request.get_json(silent=True) or {}
-    prof = db.load_profile(g.supabase, g.user_id)
-    user_tier = resolve_plan_tier(prof)
+    prof = db.load_profile(g.supabase, g.user_id) or {}
+    prof = db._profile_with_session_email(prof)
+    prof = db.refresh_test_total_quota(g.supabase, g.user_id, prof)
+    access = db.build_plan_access_payload(g.supabase, g.user_id, prof)
+    user_tier = str(access.get("plan_tier") or resolve_plan_tier(prof))
 
     preset = str(data.get("preset") or "").strip().lower()
     if preset:
@@ -904,11 +908,13 @@ def shared_calendars_add_member(calendar_id: str):
     from ego_api import shared_calendars as sc
 
     data = request.get_json(silent=True) or {}
-    email = str(data.get("email") or "").strip()
-    if not email:
-        return _json_error("Informe o e-mail do utilizador.")
-    ok, err, row = sc.add_member_by_email(
-        g.supabase, g.user_id, calendar_id, email
+    contact = str(
+        data.get("email") or data.get("phone") or data.get("contact") or ""
+    ).strip()
+    if not contact:
+        return _json_error("Informe e-mail ou telefone do utilizador.")
+    ok, err, row = sc.add_member_by_contact(
+        g.supabase, g.user_id, calendar_id, contact
     )
     if not ok:
         return _json_error(err or "Não foi possível adicionar o membro.")
