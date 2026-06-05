@@ -23,6 +23,23 @@ type WebRecorderState = {
   chunks: Blob[];
 };
 
+/** Evita "Recorder does not exist" ao parar gravação já libertada (Android/expo-av). */
+async function safeStopNativeRecording(rec: Audio.Recording | null): Promise<void> {
+  if (!rec) return;
+  try {
+    const status = await rec.getStatusAsync();
+    if (status.isRecording) {
+      await rec.stopAndUnloadAsync();
+    }
+  } catch {
+    try {
+      await rec.stopAndUnloadAsync();
+    } catch {
+      /* gravação já inexistente — ignorar */
+    }
+  }
+}
+
 function normalizeBase64Payload(b64: string): string {
   let s = (b64 || "").trim();
   if (s.startsWith("data:") && s.includes(",")) {
@@ -409,7 +426,8 @@ export function useVoiceChat() {
   useEffect(() => {
     return () => {
       Speech.stop();
-      void recordingRef.current?.stopAndUnloadAsync();
+      void safeStopNativeRecording(recordingRef.current);
+      recordingRef.current = null;
       if (webRecorderRef.current) {
         try {
           webRecorderRef.current.recorder.stop();
@@ -636,6 +654,10 @@ export function useVoiceChat() {
       }
       return;
     }
+    if (recordingRef.current) {
+      await safeStopNativeRecording(recordingRef.current);
+      recordingRef.current = null;
+    }
     const perm = await Audio.requestPermissionsAsync();
     if (!perm.granted) {
       throw new Error("Permissão do microfone negada.");
@@ -737,7 +759,7 @@ export function useVoiceChat() {
       setIsRecording(false);
       recordingRef.current = null;
       setMicSessionActive(false);
-      await rec.stopAndUnloadAsync();
+      await safeStopNativeRecording(rec);
       const uri = rec.getURI();
       if (!uri) {
         throw new Error("Gravação vazia.");
@@ -776,11 +798,7 @@ export function useVoiceChat() {
     recordingRef.current = null;
     setMicSessionActive(false);
     setIsRecording(false);
-    try {
-      await rec.stopAndUnloadAsync();
-    } catch {
-      /* ignore */
-    }
+    await safeStopNativeRecording(rec);
   }, []);
 
   const replayLastText = useCallback(

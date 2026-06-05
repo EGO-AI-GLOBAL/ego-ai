@@ -223,6 +223,48 @@ def beta_unlimited() -> bool:
     return False
 
 
+def latest_app_version() -> str:
+    """Versão mais recente na Play — app antigo mostra aviso de atualização."""
+    return read_env("EGO_LATEST_APP_VERSION", "1.0.11")
+
+
+def play_store_update_url() -> str:
+    """Link Play (teste interno ou loja pública)."""
+    url = read_env(
+        "EGO_PLAY_STORE_URL",
+        "https://play.google.com/apps/internaltest/4700773173398888106",
+    )
+    if url:
+        return url
+    return "market://details?id=com.egoai.app"
+
+
+def app_update_message() -> str:
+    return read_env(
+        "EGO_APP_UPDATE_MESSAGE",
+        "Nova versão disponível na Play Store.",
+    )
+
+
+def maintenance_mode() -> bool:
+    return read_env("EGO_MAINTENANCE", "").lower() in ("1", "true", "yes", "sim")
+
+
+def maintenance_message() -> str:
+    return read_env(
+        "EGO_MAINTENANCE_MESSAGE",
+        "Estamos atualizando o servidor. Algumas funções podem falhar por instantes.",
+    )
+
+
+def app_update_payload() -> dict[str, str]:
+    return {
+        "latest_version": latest_app_version(),
+        "play_store_url": play_store_update_url(),
+        "message": app_update_message(),
+    }
+
+
 def chat_defer_tts_on_voice() -> bool:
     """Voz: devolve texto primeiro; o app pede áudio em /tts (evita timeout)."""
     raw = read_env("EGO_CHAT_DEFER_TTS_ON_VOICE", "1").strip().lower()

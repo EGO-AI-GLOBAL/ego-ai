@@ -5,8 +5,12 @@ import { Stack } from "expo-router";
 
 initMonitoring();
 import { StatusBar } from "expo-status-bar";
-import { Dimensions, useColorScheme } from "react-native";
+import { Dimensions, useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { AppUpdateBanner } from "@/components/AppUpdateBanner";
+import { SystemStatusBanner } from "@/components/SystemStatusBanner";
+import { AppUpdateProvider } from "@/context/AppUpdateContext";
+import { MaintenanceProvider } from "@/context/MaintenanceContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { ThemeProvider } from "@/theme/ThemeContext";
 import { useColors } from "@/theme/ThemeContext";
@@ -50,7 +54,15 @@ export default function RootLayout() {
       <SafeAreaProvider initialMetrics={webInitialMetrics}>
         <ThemeProvider>
           <AuthProvider>
-            <RootNavigator />
+            <MaintenanceProvider>
+              <AppUpdateProvider>
+                <View style={{ flex: 1 }}>
+                  <AppUpdateBanner />
+                  <SystemStatusBanner />
+                  <RootNavigator />
+                </View>
+              </AppUpdateProvider>
+            </MaintenanceProvider>
           </AuthProvider>
         </ThemeProvider>
       </SafeAreaProvider>

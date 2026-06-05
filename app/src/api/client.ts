@@ -8,6 +8,7 @@ import type {
   AuthSession,
   DashboardData,
   HealthInfo,
+  PublicHealthInfo,
   MeData,
   LaunchPlanOffer,
   PlanCatalogItem,
@@ -75,6 +76,18 @@ function unwrap<T>(data: unknown): T {
     throw new Error(d.error || "Erro na API");
   }
   return data as T;
+}
+
+export const DEFAULT_UPDATING_MESSAGE =
+  "Estamos atualizando o servidor. Tente de novo em instantes.";
+
+export async function fetchPublicHealth(): Promise<PublicHealthInfo | null> {
+  try {
+    const { data } = await axios.get(`${apiBase}health`, { timeout: 8000 });
+    return unwrap<PublicHealthInfo>(data);
+  } catch {
+    return null;
+  }
 }
 
 const TIMEOUT_DEFAULT_MS = 60_000;

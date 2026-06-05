@@ -323,6 +323,19 @@ def health():
         payload["monitoring"] = monitoring_status()
     except Exception:
         payload["monitoring"] = {"sentry": False}
+    try:
+        from ego_api.config import (
+            app_update_payload,
+            maintenance_message,
+            maintenance_mode,
+        )
+
+        payload["app_update"] = app_update_payload()
+        if maintenance_mode():
+            payload["maintenance"] = True
+            payload["maintenance_message"] = maintenance_message()
+    except Exception:
+        pass
     include_details = os.getenv("EGO_HEALTH_DETAILS", "").lower() in ("1", "true", "yes")
     if include_details:
         payload["checks"].update(

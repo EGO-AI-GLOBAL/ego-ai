@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -132,10 +133,15 @@ export default function SignupScreen() {
     <SafeAreaView style={[styles.fill, { backgroundColor: colors.bg }]}>
       <KeyboardAvoidingView
         style={styles.fill}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
       >
-        <View style={styles.inner}>
-          <EgoLogo width={280} style={styles.logoImage} />
+        <ScrollView
+          contentContainerStyle={styles.scroll}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <EgoLogo width={240} style={styles.logoImage} />
           <Text style={[styles.logoSub, { color: colors.textMuted }]}>Criar conta</Text>
 
           <View
@@ -362,7 +368,7 @@ export default function SignupScreen() {
               </Text>
             </Pressable>
           </Link>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -370,9 +376,14 @@ export default function SignupScreen() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  inner: { flex: 1, justifyContent: "center", paddingHorizontal: 24 },
+  scroll: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingTop: 12,
+    paddingBottom: 32,
+  },
   logoImage: { alignSelf: "center", marginBottom: 8 },
-  logoSub: { fontSize: 16, fontWeight: "600", textAlign: "center", marginBottom: 20 },
+  logoSub: { fontSize: 16, fontWeight: "600", textAlign: "center", marginBottom: 16 },
   form: { borderRadius: 20, padding: 20, borderWidth: 1 },
   label: { fontSize: 12, marginBottom: 6, marginTop: 8 },
   input: {

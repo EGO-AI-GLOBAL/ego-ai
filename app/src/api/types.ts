@@ -216,6 +216,20 @@ export type SendChatResult = {
   access?: AccessInfo;
 };
 
+export type AppUpdateInfo = {
+  latest_version: string;
+  play_store_url: string;
+  message?: string;
+};
+
+export type PublicHealthInfo = {
+  ok?: boolean;
+  service?: string;
+  maintenance?: boolean;
+  maintenance_message?: string;
+  app_update?: AppUpdateInfo;
+};
+
 export type HealthInfo = {
   ok?: boolean;
   service: string;
