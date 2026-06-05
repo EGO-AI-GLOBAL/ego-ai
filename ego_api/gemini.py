@@ -619,6 +619,17 @@ def generate_reply(
 ) -> str:
     """Gera resposta; mensagens de voz têm timeout para não bloquear o Flask."""
     if not audio_bytes:
+        from ego_api.openai_chat_fallback import openai_chat_first_enabled
+
+        if openai_chat_first_enabled():
+            alt = _try_openai_fallback(
+                user_text,
+                conversation_messages=conversation_messages,
+                lang_code=lang_code,
+                agenda_context=agenda_context,
+            )
+            if alt:
+                return alt
         reply = _generate_reply_inner(
             user_text,
             conversation_messages=conversation_messages,

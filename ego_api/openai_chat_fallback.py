@@ -12,8 +12,24 @@ def openai_chat_fallback_enabled() -> bool:
     return raw not in ("0", "false", "no", "nao", "não")
 
 
+def openai_chat_first_enabled() -> bool:
+    """Texto: OpenAI primeiro (evita esperar Gemini falhar por cota)."""
+    raw = read_env("EGO_CHAT_OPENAI_FIRST", "1").lower()
+    if raw in ("0", "false", "no", "nao", "não"):
+        return False
+    return openai_chat_fallback_enabled() and bool(openai_api_key())
+
+
 def _openai_chat_model() -> str:
     return read_env("OPENAI_CHAT_MODEL", "gpt-4o-mini") or "gpt-4o-mini"
+
+
+def _openai_max_tokens() -> int:
+    raw = read_env("OPENAI_CHAT_MAX_TOKENS", "480")
+    try:
+        return max(120, min(int(raw), 1200))
+    except ValueError:
+        return 480
 
 
 def generate_openai_text_reply(
@@ -59,10 +75,10 @@ def generate_openai_text_reply(
             json={
                 "model": _openai_chat_model(),
                 "messages": messages,
-                "max_tokens": 720,
-                "temperature": 0.75,
+                "max_tokens": _openai_max_tokens(),
+                "temperature": 0.7,
             },
-            timeout=75,
+            timeout=45,
         )
     except requests.RequestException:
         return None
