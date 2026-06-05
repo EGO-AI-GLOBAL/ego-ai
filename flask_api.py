@@ -309,6 +309,14 @@ def health():
         payload["deploy_hint"] = (
             "Adicione SUPABASE_SERVICE_ROLE_KEY no Railway e redeploy"
         )
+    elif not sb.get("client_ok") and sb.get("url_set") and sb.get("key_set"):
+        payload["deploy_hint"] = (
+            "SUPABASE_URL ou SUPABASE_KEY invalidos no Railway — "
+            "URL: https://SEU-PROJETO.supabase.co | KEY: Publishable (anon), nao service_role"
+        )
+        err = sb.get("client_error")
+        if err:
+            payload["supabase_error"] = str(err)[:200]
     try:
         from ego_api.monitoring import monitoring_status
 

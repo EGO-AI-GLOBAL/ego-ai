@@ -30,7 +30,7 @@ def supabase_env_status() -> dict[str, bool | int | str]:
         create_client(url, key)
         status["client_ok"] = True
     except Exception as exc:
-        status["client_error"] = type(exc).__name__
+        status["client_error"] = str(exc)[:200] or type(exc).__name__
     return status
 
 
