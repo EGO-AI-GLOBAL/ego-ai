@@ -35,16 +35,16 @@ const FALLBACK_CHECKOUT_URLS: Record<
   Record<Exclude<PlanTier, "essential">, string | null>
 > = {
   br: {
-    connection: "https://buy.stripe.com/5kQ6oJfeC3mWeq4cJA4ow00",
+    connection: "https://buy.stripe.com/dRm5kFaYmbTs5TydNE4ow0M",
     premium: "https://buy.stripe.com/14A7sNgiG6z8chWgZQ4ow02",
     total: "https://buy.stripe.com/5kQeVf6I60aK95K6lc4ow03",
-    enterprise: null,
+    enterprise: "https://buy.stripe.com/5kQ4gBaYm7Dcfu8eRI4ow0O",
   },
   int: {
     connection: "https://buy.stripe.com/00w3cx9UibTs0ze24W4ow04",
-    premium: "https://buy.stripe.com/eVq4gBaYme1A0ze10S4ow08",
-    total: "https://buy.stripe.com/4gM28t6I63mW2Hm6lc4ow09",
-    enterprise: null,
+    premium: "https://buy.stripe.com/5kQbJ3eay7Dc81G7pg4ow06",
+    total: "https://buy.stripe.com/eVqfZjaYm8Hg4Pu9xo4ow0L",
+    enterprise: "https://buy.stripe.com/8x2dRbfeC9Lk4Pu6lc4ow0N",
   },
 };
 

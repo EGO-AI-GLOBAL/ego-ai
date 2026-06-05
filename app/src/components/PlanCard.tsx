@@ -20,6 +20,10 @@ type Props = {
   priceOverride?: string;
   /** Substitui o selo «Recomendado» (ex.: «Lançamento»). */
   badgeLabel?: string;
+  /** Texto do botão (ex.: «Mudar para este plano»). */
+  subscribeLabel?: string;
+  /** Nota sob o plano atual (ex.: cancelar para voltar ao grátis). */
+  footnote?: string;
 };
 
 export function PlanCard({
@@ -32,9 +36,12 @@ export function PlanCard({
   busy,
   priceOverride,
   badgeLabel,
+  subscribeLabel,
+  footnote,
 }: Props) {
   const features = planFeatureLines(plan);
   const canSubscribe = !isCurrent && Boolean(checkoutUrl);
+  const ctaLabel = subscribeLabel || "Assinar";
 
   return (
     <View
@@ -76,6 +83,9 @@ export function PlanCard({
       {isCurrent ? (
         <View style={[styles.statusPill, { backgroundColor: colors.userBubble }]}>
           <Text style={[styles.statusText, { color: colors.text }]}>Plano atual</Text>
+          {footnote ? (
+            <Text style={[styles.footnote, { color: colors.textMuted }]}>{footnote}</Text>
+          ) : null}
         </View>
       ) : (
         <Pressable
@@ -93,11 +103,16 @@ export function PlanCard({
             <ActivityIndicator color="#fff" />
           ) : (
             <Text style={styles.ctaText}>
-              {canSubscribe ? "Assinar" : "Link em configuração"}
+              {canSubscribe ? ctaLabel : "Link em configuração"}
             </Text>
           )}
         </Pressable>
       )}
+      {!isCurrent && footnote ? (
+        <Text style={[styles.footnote, { color: colors.textMuted, marginTop: 10 }]}>
+          {footnote}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -139,4 +154,10 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   statusText: { fontSize: 15, fontWeight: "700" },
+  footnote: {
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: 8,
+    textAlign: "center",
+  },
 });

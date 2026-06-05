@@ -1,5 +1,7 @@
 import { Redirect, Stack, useSegments } from "expo-router";
+import { useEffect } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { syncDailyCheckInNotification } from "@/utils/dailyCheckInNotification";
 import { AppDrawer } from "@/components/AppDrawer";
 import { PersonaGate } from "@/components/PersonaGate";
 import { DashboardProvider } from "@/context/DashboardContext";
@@ -35,6 +37,12 @@ function MainShell() {
 export default function MainLayout() {
   const colors = useColors();
   const { session, loading } = useAuth();
+
+  useEffect(() => {
+    if (session?.access_token?.trim()) {
+      void syncDailyCheckInNotification();
+    }
+  }, [session?.access_token]);
 
   if (loading) {
     return (

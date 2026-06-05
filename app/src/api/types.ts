@@ -73,6 +73,9 @@ export type LaunchPlanOffer = {
   price_brl: number;
   price_label?: string;
   tagline?: string;
+  intro_months?: number;
+  price_after_brl?: number;
+  campaign_ends_at?: string | null;
   checkout_url?: string | null;
   limits: PlanLimitsInfo;
 };
@@ -121,6 +124,8 @@ export type AccessInfo = {
   /** Histórico de chat só no dispositivo (servidor não guarda mensagens). */
   chat_local_history?: boolean;
   is_pro: boolean;
+  /** E-mail listado em EGO_TEST_TOTAL_EMAILS no servidor (Railway). */
+  is_test_total?: boolean;
   team_seats?: number | null;
   plan_type?: string;
 };
@@ -147,6 +152,7 @@ export type SharedCalendarMember = {
   calendar_id?: string;
   user_id?: string | null;
   invited_email?: string;
+  invited_phone?: string;
   display_name?: string;
   role?: "owner" | "member";
   status?: string;
@@ -201,8 +207,13 @@ export type SendChatResult = {
   language?: string;
   agenda_saved?: AgendaItem[];
   reminders_saved?: Reminder[];
+  shared_events_saved?: (SharedCalendarEvent & { calendar_name?: string })[];
+  shared_calendars_saved?: SharedCalendar[];
+  shared_members_saved?: SharedCalendarMember[];
   /** openai_realtime = áudio já reproduzido no browser */
   voice_engine?: string;
+  /** Contadores atualizados após esta mensagem (barra de uso no chat). */
+  access?: AccessInfo;
 };
 
 export type HealthInfo = {

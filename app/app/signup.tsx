@@ -16,10 +16,12 @@ import { PasswordField } from "@/components/PasswordField";
 import { validateReferralCode } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
 import { useColors } from "@/theme/ThemeContext";
+import { formatPhoneBrInput } from "@/utils/phoneBr";
 import {
   validateEmail,
   validatePassword,
   validatePasswordConfirm,
+  validatePhone,
 } from "@/utils/validation";
 
 export default function SignupScreen() {
@@ -29,6 +31,7 @@ export default function SignupScreen() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [preferredName, setPreferredName] = useState("");
+  const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
@@ -92,6 +95,11 @@ export default function SignupScreen() {
       setError("Informe como gostaria de ser chamado.");
       return;
     }
+    const phoneErr = validatePhone(phone, true);
+    if (phoneErr) {
+      setError(phoneErr);
+      return;
+    }
     if (!acceptedTerms) {
       setError("Aceite os Termos de Uso e a Política de Privacidade.");
       return;
@@ -103,6 +111,7 @@ export default function SignupScreen() {
         email.trim(),
         password,
         display,
+        phone.trim(),
         referralCode.trim() || undefined
       );
       if (needsEmailConfirm) {
@@ -181,6 +190,24 @@ export default function SignupScreen() {
               onChangeText={setPreferredName}
               placeholder="Ex.: Reida"
               placeholderTextColor={colors.textMuted}
+            />
+            <Text style={[styles.label, { color: colors.textMuted }]}>
+              Telefone (WhatsApp)
+            </Text>
+            <TextInput
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.bgElevated,
+                  borderColor: colors.border,
+                  color: colors.text,
+                },
+              ]}
+              value={phone}
+              onChangeText={(t) => setPhone(formatPhoneBrInput(t))}
+              placeholder="(11) 99999-9999"
+              placeholderTextColor={colors.textMuted}
+              keyboardType="phone-pad"
             />
             <Text style={[styles.label, { color: colors.textMuted }]}>E-mail</Text>
             <TextInput

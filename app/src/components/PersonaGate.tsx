@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
-import { isPersonaConfiguredLocal } from "@/storage/personaPrefs";
+import { getLocalPersonaChoice } from "@/storage/personaPrefs";
 import { useColors } from "@/theme/ThemeContext";
 import { resolveUserId } from "@/utils/resolveUserId";
 
@@ -14,28 +14,26 @@ type Props = {
 export function PersonaGate({ children }: Props) {
   const colors = useColors();
   const { session } = useAuth();
-  const { data, loading, personaGateOk } = useDashboard();
+  const { data, loading } = useDashboard();
   const segments = useSegments();
   const onChooseAvatar = segments.includes("choose-avatar");
   const [localReady, setLocalReady] = useState(false);
-  const [localConfigured, setLocalConfigured] = useState(false);
+  const [hasLocalChoice, setHasLocalChoice] = useState(false);
   const uid = resolveUserId(session, data.me?.user_id);
 
   useEffect(() => {
     if (!uid) {
-      setLocalConfigured(false);
+      setHasLocalChoice(false);
       setLocalReady(true);
       return;
     }
-    void isPersonaConfiguredLocal(uid).then((ok) => {
-      setLocalConfigured(ok);
+    void getLocalPersonaChoice(uid).then((choice) => {
+      setHasLocalChoice(Boolean(choice?.avatar_id && choice?.voice_id));
       setLocalReady(true);
     });
-  }, [uid, personaGateOk]);
+  }, [uid]);
 
-  const configured = personaGateOk || localConfigured;
-
-  if (!localReady || (loading && !data.me && !localConfigured)) {
+  if (!localReady || loading) {
     return (
       <View
         style={{
@@ -50,7 +48,7 @@ export function PersonaGate({ children }: Props) {
     );
   }
 
-  if (!configured && !onChooseAvatar) {
+  if (!hasLocalChoice && !onChooseAvatar) {
     return <Redirect href="/(main)/choose-avatar" />;
   }
 

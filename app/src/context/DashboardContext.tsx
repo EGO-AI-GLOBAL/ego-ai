@@ -6,7 +6,11 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { fetchDashboard, getSession } from "@/api/client";
+import { fetchAccessInfo, fetchDashboard, getSession } from "@/api/client";
+import { normalizeAccessInfo } from "@/constants/planLimits";
+import type { AccessInfo } from "@/api/types";
+import { loadLocalChatHistory } from "@/storage/chatHistoryLocal";
+import { estimateTokenDelta } from "@/utils/usageStats";
 import { resolveUserId } from "@/utils/resolveUserId";
 import type { DashboardData, SendChatResult } from "@/api/types";
 import { chatResultChangedData, mergeChatIntoDashboard } from "@/utils/mergeChatDashboard";
@@ -51,6 +55,8 @@ type DashboardContextValue = {
   refresh: (options?: RefreshOptions) => Promise<void>;
   /** Atualiza agenda/lembretes a partir da resposta do chat (sem rede). */
   mergeChatResult: (result: SendChatResult) => void;
+  /** Atualiza só limites/uso (rápido após chat). */
+  refreshAccess: () => Promise<void>;
   setPersona: (avatarId: string, voiceId: string) => void | Promise<void>;
   /** true se o servidor ou o telemóvel já registou escolha de assistente */
   personaGateOk: boolean;
@@ -87,19 +93,14 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       if (localChoice) {
         const persona = accountPersona(localChoice);
         if (dashboard.me) {
-          const server = dashboard.me.persona;
-          const serverAid = (server?.avatar_id || "f1").toLowerCase();
-          const localAid = localChoice.avatar_id.toLowerCase();
-          if (serverAid !== localAid || !dashboard.me.persona_configured) {
-            dashboard = {
-              ...dashboard,
-              me: {
-                ...dashboard.me,
-                persona,
-                persona_configured: true,
-              },
-            };
-          }
+          dashboard = {
+            ...dashboard,
+            me: {
+              ...dashboard.me,
+              persona,
+              persona_configured: true,
+            },
+          };
         } else {
           dashboard = {
             ...dashboard,
@@ -115,16 +116,32 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           };
         }
       }
-      setData(dashboard);
-      if (uid && localChoice) {
-        setPersonaLocalOk(true);
-      } else if (dashboard.me?.persona_configured === true && uid) {
-        setPersonaLocalOk(true);
-        void markPersonaConfiguredLocal(uid);
-      } else if (uid) {
-        const local = await isPersonaConfiguredLocal(uid);
-        setPersonaLocalOk((prev) => prev || local);
+      if (uid && dashboard.access) {
+        const msgs = await loadLocalChatHistory(uid).catch(() => []);
+        let est = 0;
+        for (let i = 0; i < msgs.length; i++) {
+          const m = msgs[i];
+          const prev = i > 0 ? msgs[i - 1] : null;
+          if (m.role === "assistant" && prev?.role === "user") {
+            est += estimateTokenDelta(prev.content || "", m.content || "");
+          }
+        }
+        if (est > (dashboard.access.monthly_tokens_used ?? 0)) {
+          dashboard = {
+            ...dashboard,
+            access: normalizeAccessInfo({
+              ...dashboard.access,
+              monthly_tokens_used: est,
+            }),
+          };
+        }
       }
+      dashboard = {
+        ...dashboard,
+        access: normalizeAccessInfo(dashboard.access),
+      };
+      setData(dashboard);
+      setPersonaLocalOk(Boolean(uid && localChoice));
       if (dashboard.me || (dashboard.shared_calendars?.length ?? 0) > 0) {
         setError(null);
       }
@@ -184,9 +201,40 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     setRefreshing(false);
   }, [enabled, load]);
 
+  const refreshAccess = useCallback(async () => {
+    if (!enabled) return;
+    try {
+      const access = normalizeAccessInfo(await fetchAccessInfo());
+      if (!access) return;
+      setData((prev) => ({
+        ...prev,
+        access: normalizeAccessInfo({
+          ...(prev.access ?? {}),
+          ...access,
+        } as AccessInfo),
+      }));
+    } catch {
+      /* mantém valores locais */
+    }
+  }, [enabled]);
+
   const mergeChatResult = useCallback((result: SendChatResult) => {
-    if (!chatResultChangedData(result)) return;
-    setData((prev) => mergeChatIntoDashboard(prev, result));
+    const hasData = chatResultChangedData(result);
+    const hasAccess = Boolean(result.access);
+    if (!hasData && !hasAccess) return;
+    setData((prev) => {
+      let next = hasData ? mergeChatIntoDashboard(prev, result) : prev;
+      if (hasAccess && result.access) {
+        next = {
+          ...next,
+          access: normalizeAccessInfo({
+            ...(next.access ?? {}),
+            ...result.access,
+          } as AccessInfo),
+        };
+      }
+      return next;
+    });
   }, []);
 
   const setPersona = useCallback(async (avatarId: string, voiceId: string) => {
@@ -219,10 +267,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }));
   }, [data.me?.user_id, session]);
 
-  const personaGateOk =
-    personaLocalOk ||
-    data.me?.persona_configured === true ||
-    (data.me?.persona_configured == null && Boolean(data.me?.persona));
+  /** Só conta escolha guardada neste telemóvel (reinstalar = escolher de novo). */
+  const personaGateOk = personaLocalOk;
 
   const value = useMemo(
     () => ({
@@ -232,10 +278,21 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       error,
       refresh,
       mergeChatResult,
+      refreshAccess,
       setPersona,
       personaGateOk,
     }),
-    [data, loading, refreshing, error, refresh, mergeChatResult, setPersona, personaGateOk]
+    [
+      data,
+      loading,
+      refreshing,
+      error,
+      refresh,
+      mergeChatResult,
+      refreshAccess,
+      setPersona,
+      personaGateOk,
+    ]
   );
 
   return (

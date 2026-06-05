@@ -9,7 +9,6 @@ import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import {
   getLocalPersonaChoice,
-  isPersonaConfiguredLocal,
   markPersonaConfiguredLocal,
   saveLocalPersonaChoice,
 } from "@/storage/personaPrefs";
@@ -19,7 +18,7 @@ import { resolveUserId } from "@/utils/resolveUserId";
 export default function ChooseAvatarScreen() {
   const colors = useColors();
   const { session } = useAuth();
-  const { data, refresh, setPersona } = useDashboard();
+  const { data, setPersona } = useDashboard();
   const [persona, setPersonaLocal] = useState<PersonaChoice>(DEFAULT_PERSONA);
   const [checking, setChecking] = useState(true);
   const completingRef = useRef(false);
@@ -34,8 +33,8 @@ export default function ChooseAvatarScreen() {
         return;
       }
       const local = await getLocalPersonaChoice(uid);
-      if (local) setPersonaLocal(local);
-      if (await isPersonaConfiguredLocal(uid)) {
+      if (local?.avatar_id && local?.voice_id) {
+        if (!cancelled) setPersonaLocal(local);
         if (!cancelled) router.replace("/(main)/chat");
         return;
       }
@@ -51,20 +50,13 @@ export default function ChooseAvatarScreen() {
     completingRef.current = true;
     const choice = savedChoiceRef.current;
     const uid = resolveUserId(session, data.me?.user_id);
-    setPersona(choice.avatar_id, choice.voice_id);
+    await setPersona(choice.avatar_id, choice.voice_id);
     if (uid) {
       await markPersonaConfiguredLocal(uid);
       await saveLocalPersonaChoice(uid, choice);
     }
     router.replace("/(main)/chat");
-    try {
-      await refresh({ skipNotifications: true });
-    } catch {
-      /* mantém Leo no telemóneo */
-    } finally {
-      setPersona(choice.avatar_id, choice.voice_id);
-    }
-  }, [refresh, setPersona, session, data.me?.user_id]);
+  }, [setPersona, session, data.me?.user_id]);
 
   if (checking) {
     return (
@@ -87,11 +79,12 @@ export default function ChooseAvatarScreen() {
         <PersonaPicker
           colors={colors}
           variant="onboarding"
+          planTier={data.access?.plan_tier || "essential"}
           persona={persona}
           onPersonaChange={setPersonaLocal}
-          onSaved={(choice) => {
+          onSaved={async (choice) => {
             savedChoiceRef.current = choice;
-            setPersona(choice.avatar_id, choice.voice_id);
+            await setPersona(choice.avatar_id, choice.voice_id);
           }}
           onComplete={onComplete}
         />

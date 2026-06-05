@@ -26,9 +26,22 @@ export function memberIsPendingInvite(m: SharedCalendarMember): boolean {
   return status === "pending" || !String(m.user_id || "").trim();
 }
 
-/** Nome da pessoa — prioriza perfil; nunca mostra e-mail completo. */
+function formatPhoneBr(e164: string): string {
+  const digits = e164.replace(/\D/g, "");
+  const local = digits.startsWith("55") ? digits.slice(2) : digits;
+  if (local.length === 11) {
+    return `(${local.slice(0, 2)}) ${local.slice(2, 7)}-${local.slice(7)}`;
+  }
+  if (local.length === 10) {
+    return `(${local.slice(0, 2)}) ${local.slice(2, 6)}-${local.slice(6)}`;
+  }
+  return e164;
+}
+
+/** Nome da pessoa — prioriza «como quer ser chamado» (full_name); nunca e-mail cru. */
 export function memberDisplayName(m: SharedCalendarMember): string {
   const email = invitedEmail(m);
+  const phone = (m.invited_phone || "").trim();
   const fromApi = (m.display_name || "").trim();
 
   if (fromApi && !isEmailLike(fromApi)) {
@@ -38,6 +51,11 @@ export function memberDisplayName(m: SharedCalendarMember): string {
     }
   }
 
+  if (phone) return formatPhoneBr(phone);
+  if (email.includes("@") && email.includes("@invite.ego")) {
+    const digits = email.split("@")[0].replace(/^phone/, "");
+    if (digits) return formatPhoneBr("+" + digits);
+  }
   if (email.includes("@")) return prettyNameFromEmail(email);
   if (fromApi) return prettyNameFromEmail(fromApi);
   return "Membro";

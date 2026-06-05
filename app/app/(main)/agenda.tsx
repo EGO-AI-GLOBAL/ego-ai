@@ -8,9 +8,10 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
-import { deleteSharedCalendar } from "@/api/client";
+import { addSharedCalendarMember, deleteSharedCalendar } from "@/api/client";
 import type { SharedCalendar, SharedCalendarEvent } from "@/api/types";
 import { AgendaItemRow } from "@/components/AgendaItem";
 import { ReminderItem } from "@/components/ReminderItem";
@@ -19,7 +20,11 @@ import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 import type { AppColors } from "@/theme/colors";
-import { membersCardLine, membersGroupLine } from "@/utils/sharedCalendarMembers";
+import {
+  memberDisplayName,
+  membersCardLine,
+  membersGroupLine,
+} from "@/utils/sharedCalendarMembers";
 import { formatScheduledLocal } from "@/utils/scheduleTime";
 
 type AgendaTab = "personal" | "shared";
@@ -122,7 +127,7 @@ function ChatHint({ colors, onPress }: { colors: AppColors; onPress: () => void 
       </Text>
       <Text style={[styles.chatHintBody, { color: colors.textMuted }]}>
         No chat: «marca reunião amanhã 15h» (Família por omissão), «convida email@exemplo.com
-        para a agenda Família» — qualquer membro pode convidar.
+        para a agenda Família». Até 10 listas · 100 pessoas por lista.
       </Text>
       <Text style={[styles.chatHintLink, { color: colors.primary }]}>Ir para o chat →</Text>
     </Pressable>
@@ -136,6 +141,8 @@ export default function AgendaScreen() {
   const { data, loading, refreshing, error, refresh } = useDashboard();
   const [tab, setTab] = useState<AgendaTab>("personal");
   const [selectedSharedId, setSelectedSharedId] = useState<string | null>(null);
+  const [inviteContact, setInviteContact] = useState("");
+  const [inviting, setInviting] = useState(false);
 
   const sharedCalendars = data.shared_calendars ?? [];
 
@@ -159,6 +166,33 @@ export default function AgendaScreen() {
     if (!selectedCalendar) return [];
     return sortEvents((selectedCalendar.events ?? []).filter((ev) => !ev.dismissed));
   }, [selectedCalendar]);
+
+  const onInviteToSelectedCalendar = async () => {
+    if (!selectedCalendar?.id) return;
+    const contact = inviteContact.trim();
+    if (!contact) {
+      Alert.alert("Convite", "Digite telefone ou e-mail.");
+      return;
+    }
+    setInviting(true);
+    try {
+      const member = await addSharedCalendarMember(String(selectedCalendar.id), contact);
+      setInviteContact("");
+      await refresh({ skipNotifications: true });
+      const pending = member.status === "pending";
+      const label = memberDisplayName(member);
+      Alert.alert(
+        pending ? "Convite enviado" : "Adicionado",
+        pending
+          ? `${label} verá a agenda quando entrar no EGO com o mesmo telefone ou e-mail.`
+          : `${label} já tem acesso à agenda.`
+      );
+    } catch (e) {
+      Alert.alert("Convite", e instanceof Error ? e.message : "Não foi possível convidar.");
+    } finally {
+      setInviting(false);
+    }
+  };
 
   const onDeleteSelectedCalendar = () => {
     if (!selectedCalendar?.id) return;
@@ -252,7 +286,8 @@ export default function AgendaScreen() {
           ) : sharedCalendars.length === 0 ? (
             <Text style={[styles.muted, { color: colors.textMuted }]}>
               Ainda não participa de agendas em grupo. No chat: «cria agenda Família» e
-              «convida email@exemplo.com para a agenda Família». Qualquer membro pode convidar.
+              «convida email@exemplo.com para a agenda Família». Até 10 listas e 100 pessoas
+              por lista. Qualquer membro pode convidar.
             </Text>
           ) : (
             <>
@@ -342,6 +377,32 @@ export default function AgendaScreen() {
                       <SharedEventRow key={String(ev.id)} event={ev} colors={colors} />
                     ))
                   )}
+                  <Text style={[styles.sectionInner, { color: colors.textMuted, marginTop: 14 }]}>
+                    Convidar pessoa
+                  </Text>
+                  <TextInput
+                    value={inviteContact}
+                    onChangeText={setInviteContact}
+                    placeholder="11 99999-9999 ou email@exemplo.com"
+                    placeholderTextColor={colors.textMuted}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    style={[
+                      styles.inviteInput,
+                      { color: colors.text, borderColor: colors.border, backgroundColor: colors.bg },
+                    ]}
+                  />
+                  <Pressable
+                    onPress={onInviteToSelectedCalendar}
+                    disabled={inviting}
+                    style={[styles.inviteBtn, { backgroundColor: colors.primary }]}
+                  >
+                    {inviting ? (
+                      <ActivityIndicator color="#fff" />
+                    ) : (
+                      <Text style={styles.inviteBtnText}>Convidar</Text>
+                    )}
+                  </Pressable>
                   {selectedCalendar.is_owner ? (
                     <>
                       <Pressable
@@ -493,4 +554,19 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: "center",
   },
+  inviteInput: {
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    fontSize: 15,
+    marginBottom: 8,
+  },
+  inviteBtn: {
+    borderRadius: 10,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  inviteBtnText: { color: "#fff", fontWeight: "800", fontSize: 15 },
 });

@@ -1,0 +1,45 @@
+=== COPIAR E ENVIAR NO WHATSAPP (testadores — agenda + funções — 1.0.10) ===
+
+Oi! Você foi convidado(a) a testar o *EGO-AI* 🙌
+
+📲 *IMPORTANTE — instalar de novo*
+Se você *já baixou* o app antes, *apague* e *baixe de novo* pelo link abaixo (versão mais recente para teste).
+
+1) Abra *ESTE link no CELULAR* (não no PC):
+https://play.google.com/apps/internaltest/4700773173398888106
+
+2) Entre com a conta Google que você usa na Play Store
+3) Toque em *Tornar-se testador* / *Aceitar*
+4) Abra a *Play Store* → procure *Ego-IA* → *Instalar*
+
+👤 *Criar conta*
+• Cadastre-se com *todos os seus dados* (nome, telefone e e-mail)
+• Use o *mesmo e-mail* que eu te convidei na agenda compartilhada
+
+🎭 *Primeira vez no app*
+• Ao entrar, o avatar vai fazer um *tutorial* — assista até o fim
+• Depois escolha seu assistente (Leo, Luna, Hana, Sara…)
+
+✅ *Teste tudo e me diga se funcionou ou não*
+
+1. *Chat* — digite *Oi* e veja se responde
+2. *Voz* — grave uma mensagem de voz (se puder)
+3. *Avatar* — troque o assistente em Conta ou no chat
+4. *Agenda* — abra *Agenda* → veja se aparece a agenda compartilhada *360 nas alturas*
+5. *Lembretes* — crie um lembrete simples
+6. *Planos* — abra a tela de planos (só visualizar)
+
+🐛 *Se algo não funcionar*
+Mande:
+• *Print* da tela
+• O que você fez antes do erro
+• *Funcionou* ✅ ou *Não funcionou* ❌ em cada item acima
+
+Obrigado por testar! Sua opinião ajuda muito 🚀
+
+---
+
+=== VOCÊ (antes de enviar) ===
+[ ] Link da Play: https://play.google.com/apps/internaltest/4700773173398888106
+[ ] E-mail do testador convidado na agenda (mesmo que vai cadastrar)
+[ ] E-mail do testador na lista de testadores (Play Console)

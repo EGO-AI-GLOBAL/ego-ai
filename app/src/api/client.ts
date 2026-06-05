@@ -1,5 +1,6 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
 import { API_V1 } from "@/constants/config";
+import { normalizeAccessInfo } from "@/constants/planLimits";
 import { resolveSpeechVoiceId } from "@/constants/personas";
 import type {
   AccessInfo,
@@ -10,7 +11,10 @@ import type {
   MeData,
   LaunchPlanOffer,
   PlanCatalogItem,
+  ChatHistoryPayload,
   SendChatResult,
+  SharedCalendar,
+  SharedCalendarMember,
 } from "./types";
 
 const STORAGE_KEY = "ego_auth_session";
@@ -161,7 +165,7 @@ function parseDashboard(data: unknown): DashboardData {
   return {
     health: body.health ?? null,
     me: body.me ?? null,
-    access: body.access ?? null,
+    access: normalizeAccessInfo(body.access ?? null),
     reminders: body.reminders ?? [],
     agenda: body.agenda ?? [],
     shared_calendars: body.shared_calendars ?? [],
@@ -193,7 +197,7 @@ async function fetchDashboardLegacy(): Promise<DashboardData> {
   return {
     health: healthRes ? unwrap<HealthInfo>(healthRes.data) : null,
     me: meBody,
-    access: accessBody,
+    access: normalizeAccessInfo(accessBody),
     reminders: remBody.reminders ?? [],
     agenda: agBody.agenda ?? [],
     messages: chatBody.messages ?? [],
@@ -263,12 +267,14 @@ export async function login(email: string, password: string): Promise<AuthSessio
 export async function signup(
   email: string,
   password: string,
-  fullName?: string
+  fullName?: string,
+  phone?: string
 ): Promise<AuthSession | null> {
   const { data } = await api.post("auth/signup", {
     email,
     password,
     full_name: fullName || "",
+    phone: phone?.trim() || "",
   });
   const body = unwrap<{ session: AuthSession; message?: string }>(data);
   if (body.session?.access_token || (body as { access_token?: string }).access_token) {
@@ -335,13 +341,20 @@ export async function dismissReminder(reminderId: string): Promise<void> {
   await api.post(`reminders/${reminderId}/dismiss`);
 }
 
+export async function fetchAccessInfo(): Promise<AccessInfo> {
+  const { data } = await api.get("access", { timeout: TIMEOUT_DEFAULT_MS });
+  const body = unwrap<AccessInfo & { ok?: boolean }>(data);
+  return normalizeAccessInfo(body) ?? body;
+}
+
 export async function sendChatMessage(
   message: string,
-  speak = true
+  speak = true,
+  history?: ChatHistoryPayload
 ): Promise<SendChatResult> {
   const { data } = await api.post(
     "chat/messages",
-    { message, speak: speak },
+    { message, speak: speak, history: history ?? [] },
     { timeout: TIMEOUT_CHAT_MS }
   );
   const body = unwrap<SendChatResult>(data);
@@ -484,6 +497,64 @@ export async function updatePersona(
   });
   const body = unwrap<{ avatar_id: string; voice_id: string }>(data);
   return { avatar_id: body.avatar_id, voice_id: body.voice_id };
+}
+
+export async function fetchSharedCalendars(): Promise<SharedCalendar[]> {
+  const { data } = await api.get("shared-calendars");
+  const body = unwrap<{ shared_calendars: SharedCalendar[] }>(data);
+  return body.shared_calendars ?? [];
+}
+
+export async function fetchSharedCalendar(calendarId: string): Promise<SharedCalendar> {
+  const { data } = await api.get(`shared-calendars/${calendarId}`);
+  const body = unwrap<{ calendar: SharedCalendar }>(data);
+  if (!body.calendar) throw new Error("Agenda não encontrada.");
+  return body.calendar;
+}
+
+export async function addSharedCalendarMember(
+  calendarId: string,
+  contact: string
+): Promise<SharedCalendarMember> {
+  const raw = contact.trim();
+  const payload =
+    raw.includes("@") ? { email: raw } : { phone: raw, contact: raw };
+  const { data } = await api.post(`shared-calendars/${calendarId}/members`, payload);
+  const body = unwrap<{ member: SharedCalendarMember }>(data);
+  if (!body.member) throw new Error("Convite não devolvido pelo servidor.");
+  return body.member;
+}
+
+export async function removeSharedCalendarMember(
+  calendarId: string,
+  memberId: string
+): Promise<void> {
+  await api.delete(`shared-calendars/${calendarId}/members/${memberId}`);
+}
+
+export async function createSharedCalendarEvent(
+  calendarId: string,
+  event: { title: string; scheduled_at: string; announce?: string }
+): Promise<void> {
+  await api.post(`shared-calendars/${calendarId}/events`, event);
+}
+
+export async function deleteSharedCalendar(calendarId: string): Promise<void> {
+  await api.delete(`shared-calendars/${calendarId}`);
+}
+
+export function localDateTimeToIso(dateBr: string, timeHm: string): string | null {
+  const dm = dateBr.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  const tm = timeHm.trim().match(/^(\d{1,2}):(\d{2})$/);
+  if (!dm || !tm) return null;
+  const day = Number(dm[1]);
+  const month = Number(dm[2]) - 1;
+  const year = Number(dm[3]);
+  const hour = Number(tm[1]);
+  const minute = Number(tm[2]);
+  const d = new Date(year, month, day, hour, minute, 0, 0);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
 }
 
 export async function logoutApi(): Promise<void> {

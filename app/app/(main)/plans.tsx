@@ -18,13 +18,16 @@ import { ScreenShell } from "@/components/ScreenShell";
 import {
   DISPLAY_PRICE_BRL,
   DISPLAY_PRICE_USD,
+  isLaunchCampaignActive,
+  LAUNCH_OFFER_INTRO_MONTHS,
   LAUNCH_PLAN_OFFER_BR,
   MONTHLY_PLAN_OFFERS,
   fallbackLimitsForTier,
+  sortIndividualOffersByPrice,
   type MonthlyMarket,
 } from "@/constants/stripeMonthly";
 import { TEAM_PLAN_OFFERS } from "@/constants/teamStripeCheckout";
-import { formatMonthlyPrice } from "@/constants/plans";
+import { formatMonthlyPrice, subscribeLabelForTier } from "@/constants/plans";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 import {
@@ -44,7 +47,6 @@ export default function PlansScreen() {
   const { data, loading, refreshing, error, refresh } = useDashboard();
   const [catalog, setCatalog] = useState<PlanCatalogItem[]>([]);
   const [launchOffer, setLaunchOffer] = useState<LaunchPlanOffer | null>(null);
-  const [catalogError, setCatalogError] = useState<string | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [openingKey, setOpeningKey] = useState<string | null>(null);
 
@@ -54,15 +56,12 @@ export default function PlansScreen() {
 
   const loadCatalog = useCallback(async () => {
     setCatalogLoading(true);
-    setCatalogError(null);
     try {
       const { plans, launchOffer: launch } = await fetchPlansCatalog();
       setCatalog(plans);
       setLaunchOffer(launch);
     } catch {
-      // Se a API /plans não existir neste backend, seguimos com os limites fallback.
       setCatalog([]);
-      setCatalogError(null);
     } finally {
       setCatalogLoading(false);
     }
@@ -105,7 +104,8 @@ export default function PlansScreen() {
       await Linking.openURL(checkoutUrl);
       Alert.alert(
         "Pagamento",
-        "Após pagar no Stripe, volte ao app e puxe para atualizar em Conta ou aqui."
+        "Assinatura mensal no Stripe. Após pagar, volte ao app e puxe para atualizar. " +
+          "Para mudar ou cancelar depois, use o mesmo e-mail no portal Stripe."
       );
     } catch (e) {
       Alert.alert(
@@ -123,56 +123,110 @@ export default function PlansScreen() {
   };
 
   const busy = loading || catalogLoading;
-  /** Erro do painel não deve esconder planos — testador ainda pode assinar. */
   const showErrorBanner = Boolean(error);
 
+  const launchCampaignActive =
+    launchOffer != null || isLaunchCampaignActive();
+  const launchUrl = launchCampaignActive
+    ? launchOffer?.checkout_url?.trim() || launchCheckoutUrl(checkout) || null
+    : null;
+  const launchIntroMonths =
+    launchOffer?.intro_months ?? LAUNCH_OFFER_INTRO_MONTHS;
+  const launchPriceNum = launchOffer?.price_brl ?? LAUNCH_PLAN_OFFER_BR.priceNum;
+  const launchTier = (launchOffer?.tier || LAUNCH_PLAN_OFFER_BR.tier) as PlanTier;
+
+  const brIndividualSorted = useMemo(
+    () =>
+      sortIndividualOffersByPrice(
+        MONTHLY_PLAN_OFFERS.filter((o) => o.market === "br")
+      ),
+    []
+  );
+
+  const intIndividualSorted = useMemo(
+    () =>
+      sortIndividualOffersByPrice(
+        MONTHLY_PLAN_OFFERS.filter((o) => o.market === "int")
+      ),
+    []
+  );
+
+  const teamSorted = (market: MonthlyMarket) =>
+    [...TEAM_PLAN_OFFERS.filter((o) => o.market === market)].sort(
+      (a, b) => a.priceNum - b.priceNum
+    );
+
+  const renderEssentialBr = () => {
+    const key = "essential-br";
+    return (
+      <PlanCard
+        key={key}
+        colors={colors}
+        plan={{
+          tier: "essential",
+          label: essentialPlan?.label || "EGO Essencial",
+          price_brl: 0,
+          limits:
+            essentialPlan?.limits ??
+            limitsByTier.get("essential") ??
+            fallbackLimitsForTier("essential"),
+        }}
+        isCurrent={currentTier === "essential"}
+        checkoutUrl={null}
+        onSubscribe={() => {}}
+        busy={false}
+        priceOverride="Grátis"
+        footnote={
+          currentTier !== "essential"
+            ? "Assinatura mensal: cancele no Stripe para voltar ao grátis."
+            : undefined
+        }
+      />
+    );
+  };
+
   const renderLaunchOffer = () => {
-    if (currentTier !== "essential") return null;
-    const url =
-      launchOffer?.checkout_url?.trim() ||
-      launchCheckoutUrl(checkout);
-    if (!url) return null;
-    const label = launchOffer?.label || LAUNCH_PLAN_OFFER_BR.label;
-    const tagline = launchOffer?.tagline || LAUNCH_PLAN_OFFER_BR.tagline;
-    const priceOverride =
-      launchOffer?.price_label || LAUNCH_PLAN_OFFER_BR.displayPrice;
-    const priceNum = launchOffer?.price_brl ?? LAUNCH_PLAN_OFFER_BR.priceNum;
-    const tier = (launchOffer?.tier || LAUNCH_PLAN_OFFER_BR.tier) as PlanTier;
+    if (!launchUrl) return null;
     const key = "launch-br";
     return (
       <PlanCard
         key={key}
         colors={colors}
         plan={{
-          tier,
-          label,
-          price_brl: priceNum,
+          tier: launchTier,
+          label: launchOffer?.label || LAUNCH_PLAN_OFFER_BR.label,
+          price_brl: launchPriceNum,
           limits:
             launchOffer?.limits ??
-            limitsByTier.get(tier) ??
-            fallbackLimitsForTier(tier),
+            limitsByTier.get(launchTier) ??
+            fallbackLimitsForTier(launchTier),
         }}
         isCurrent={false}
         highlighted
-        badgeLabel="Lançamento"
-        checkoutUrl={url}
+        badgeLabel={`Lançamento · ${launchIntroMonths} meses`}
+        checkoutUrl={launchUrl}
         onSubscribe={(_, u) => onSubscribe(key, u)}
         busy={openingKey === key}
-        priceOverride={priceOverride}
+        priceOverride={
+          launchOffer?.price_label || LAUNCH_PLAN_OFFER_BR.displayPrice
+        }
+        subscribeLabel={subscribeLabelForTier(launchTier, currentTier, {
+          isLaunch: true,
+        })}
+        footnote={
+          launchOffer?.tagline ||
+          `Oferta de lançamento: R$ 9,99/mês por ${launchIntroMonths} meses. Depois R$ 19,90/mês por ${launchIntroMonths} meses. Depois R$ 29,90/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`
+        }
       />
     );
   };
 
   const renderIndividual = (market: MonthlyMarket) => {
-    const offers = MONTHLY_PLAN_OFFERS.filter(
-      (o) => o.market === market && o.tier !== "enterprise"
-    );
+    const offers = market === "br" ? brIndividualSorted : intIndividualSorted;
+    const displayPrices = market === "br" ? DISPLAY_PRICE_BRL : DISPLAY_PRICE_USD;
     return offers.map((offer) => {
       const url = checkoutUrlForTier(offer.tier, checkout, market);
-      const priceNum =
-        market === "br"
-          ? DISPLAY_PRICE_BRL[offer.tier]
-          : DISPLAY_PRICE_USD[offer.tier];
+      const priceNum = displayPrices[offer.tier];
       const key = `ind-${market}-${offer.tier}`;
       return (
         <PlanCard
@@ -191,14 +245,14 @@ export default function PlansScreen() {
           onSubscribe={(_, u) => onSubscribe(key, u)}
           busy={openingKey === key}
           priceOverride={market === "int" ? offer.displayPrice : undefined}
+          subscribeLabel={subscribeLabelForTier(offer.tier, currentTier)}
         />
       );
     });
   };
 
   const renderTeam = (market: MonthlyMarket) => {
-    const offers = TEAM_PLAN_OFFERS.filter((o) => o.market === market);
-    return offers.map((offer) => {
+    return teamSorted(market).map((offer) => {
       const url = teamCheckoutUrl(offer.tier, offer.seats, checkout, market);
       const key = `team-${market}-${offer.tier}-${offer.seats}`;
       return (
@@ -218,13 +272,14 @@ export default function PlansScreen() {
           onSubscribe={(_, u) => onSubscribe(key, u)}
           busy={openingKey === key}
           priceOverride={offer.displayPrice}
+          subscribeLabel="Assinar equipe"
         />
       );
     });
   };
 
   return (
-    <ScreenShell title="Planos" subtitle="Individual e equipes · Stripe">
+    <ScreenShell title="Planos" subtitle="Mensal · todos os planos · pode mudar quando quiser">
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
@@ -262,31 +317,30 @@ export default function PlansScreen() {
               <Text style={[styles.currentName, { color: colors.text }]}>
                 {data.access?.plan_label || "EGO Essencial"}
               </Text>
-              {currentTier === "essential" && essentialPlan ? (
-                <Text style={[styles.currentHint, { color: colors.textMuted }]}>
-                  Grátis · {formatMonthlyPrice(0)}
-                </Text>
-              ) : null}
+              <Text style={[styles.currentHint, { color: colors.textMuted }]}>
+                {currentTier === "essential"
+                  ? `Grátis · ${formatMonthlyPrice(0)}`
+                  : "Assinatura mensal · você pode mudar de plano abaixo a qualquer momento"}
+              </Text>
             </View>
-
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              Oferta de lançamento (Brasil)
-            </Text>
-            <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-              Preço promocional com os mesmos benefícios do plano Conexão.
-            </Text>
-            {renderLaunchOffer()}
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               {MARKET_TITLE.br} — individual
             </Text>
+            <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
+              Todos os planos aparecem para todos. Ordem: do mais barato ao mais caro.
+              Pagamento mensal — pode mudar de plano quando quiser. Oferta EGO Lançamento
+              (R$ 9,99) some após {launchIntroMonths} meses; plano Conexão R$ 29,90 fica à parte.
+            </Text>
+            {renderEssentialBr()}
+            {renderLaunchOffer()}
             {renderIndividual("br")}
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               {MARKET_TITLE.br} — equipes (agenda compartilhada)
             </Text>
             <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-              Após pagar, convide até N e-mails em Agenda → Compartilhadas.
+              Planos para várias pessoas · ordenados por preço.
             </Text>
             {renderTeam("br")}
 
@@ -308,7 +362,6 @@ export default function PlansScreen() {
 
 const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 40 },
-  intro: { fontSize: 15, lineHeight: 22, marginBottom: 16 },
   currentBox: {
     borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
@@ -330,7 +383,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginTop: -4,
   },
-  footer: { fontSize: 13, lineHeight: 19, marginTop: 16 },
   errorBanner: { marginBottom: 16 },
   error: { fontSize: 14 },
   link: { fontSize: 14, marginTop: 8, fontWeight: "600" },

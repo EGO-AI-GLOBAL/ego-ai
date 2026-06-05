@@ -1,44 +1,27 @@
 @echo off
-
+cd /d "%~dp0"
 echo.
-
-echo ============================================
-
-echo   ATENCAO: use a pasta COPIA para o build
-
-echo ============================================
-
+echo === EGO-AI 1.0.10 - build Android .aab ===
 echo.
-
-echo O app Android completo esta em:
-
-echo   EGO-AI-APP - Copia
-
-echo.
-
-echo Esta pasta (EGO-AI-APP) e o GitHub: API + SQL.
-
-echo.
-
-set /p GO="Abrir build na Copia agora? (S/N): "
-
-if /I "%GO%"=="S" (
-
-  cd /d "%~dp0..\EGO-AI-APP - Copia"
-
-  call 6-eas-build.bat
-
-) else (
-
+echo Verificacao automatica antes do upload...
+set NODE_TLS_REJECT_UNAUTHORIZED=0
+python scripts\checklist_launch.py --repair
+if errorlevel 1 (
   echo.
-
-  echo Copie e cole no PowerShell:
-
-  echo   cd "C:\Users\Iury\OneDrive\Área de Trabalho\EGO-AI-APP - Copia"
-
-  echo   .\6-eas-build.bat
-
+  echo Build cancelado - corrija os erros acima.
   pause
-
+  exit /b 1
 )
 
+cd /d "%~dp0app"
+set NODE_TLS_REJECT_UNAUTHORIZED=0
+set EAS_BUILD_NO_EXPO_GO_WARNING=true
+echo.
+echo A enviar build para a nuvem Expo - 15 a 30 min...
+echo Nao feche esta janela.
+echo.
+call npx eas-cli env:create --name EXPO_PUBLIC_API_URL --value https://ego-ai-production-a2c2.up.railway.app --environment production --scope project --visibility plaintext --force --non-interactive 2>nul
+call npx eas-cli build --platform android --profile production
+echo.
+echo Fim. Baixe o .aab em https://expo.dev - Builds
+pause

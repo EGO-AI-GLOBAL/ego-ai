@@ -25,6 +25,12 @@ type Props = {
   voiceReady?: boolean;
   error?: string | null;
   notice?: string | null;
+  onPdfPress?: () => void;
+  pdfLoading?: boolean;
+  pdfActive?: boolean;
+  pdfPartCount?: number;
+  onInputFocus?: () => void;
+  placeholder?: string;
 };
 
 function VoiceWaveBars({ color }: { color: string }) {
@@ -85,6 +91,12 @@ export function ChatComposer({
   voiceReady = true,
   error,
   notice,
+  onPdfPress,
+  pdfLoading,
+  pdfActive,
+  pdfPartCount,
+  onInputFocus,
+  placeholder = "Mensagem…",
 }: Props) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -112,10 +124,42 @@ export function ChatComposer({
         },
       ]}
     >
+      <View style={styles.composerRow}>
+        {onPdfPress ? (
+          <Pressable
+            onPress={onPdfPress}
+            disabled={sending || pdfLoading}
+            style={({ pressed }) => [
+              styles.docBtn,
+              {
+                borderColor: pdfActive ? colors.primary : colors.border,
+                backgroundColor: pdfActive ? colors.primaryLight : colors.bgCard,
+                opacity: sending || pdfLoading ? 0.5 : pressed ? 0.85 : 1,
+              },
+            ]}
+            accessibilityRole="button"
+            accessibilityLabel={
+              pdfPartCount && pdfPartCount > 0
+                ? `Documento anexado, ${pdfPartCount} partes`
+                : "Anexar documento ou foto"
+            }
+          >
+            {pdfLoading ? (
+              <ActivityIndicator color={colors.primary} size="small" />
+            ) : (
+              <Ionicons
+                name={pdfActive ? "document" : "document-outline"}
+                size={22}
+                color={colors.primary}
+              />
+            )}
+          </Pressable>
+        ) : null}
       <View
         style={[
           styles.inputWrap,
           {
+            flex: 1,
             backgroundColor: colors.bgCard,
             borderColor: isRecording ? colors.primary : colors.border,
           },
@@ -135,10 +179,11 @@ export function ChatComposer({
               paddingRight: isRecording ? 52 : 48,
             },
           ]}
-          placeholder={isRecording ? "A ouvir…" : "Mensagem…"}
+          placeholder={isRecording ? "A ouvir…" : placeholder}
           placeholderTextColor={colors.textMuted}
           value={value}
           onChangeText={onChangeText}
+          onFocus={onInputFocus}
           editable={!sending && !isRecording}
           multiline
           onSubmitEditing={() => {
@@ -185,6 +230,7 @@ export function ChatComposer({
           ) : null}
         </View>
       </View>
+      </View>
 
       {isRecording ? (
         <Text style={[styles.recordingHint, { color: colors.primary }]}>
@@ -207,6 +253,20 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 16,
     paddingTop: 10,
+  },
+  composerRow: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    gap: 8,
+  },
+  docBtn: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 2,
   },
   inputWrap: {
     flexDirection: "row",

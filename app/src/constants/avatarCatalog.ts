@@ -257,17 +257,49 @@ export const AVATAR_COLLECTION_LABELS: Record<AvatarCollection, string> = {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 export function normalizePlanTier(tier?: string | null): PlanTier {
-  const t = (tier || "essential").toLowerCase();
-  if (t === "empresa" || t === "business" || t === "corporate") return "enterprise";
-  if (
-    t === "connection" ||
-    t === "premium" ||
-    t === "total" ||
-    t === "enterprise"
-  ) {
-    return t;
-  }
+  const t = (tier || "essential").trim().toLowerCase();
+  if (!t) return "essential";
+  const aliases: Record<string, PlanTier> = {
+    free: "essential",
+    gratis: "essential",
+    grátis: "essential",
+    essencial: "essential",
+    "ego essencial": "essential",
+    conexao: "connection",
+    conexão: "connection",
+    "ego conexao": "connection",
+    "ego conexão": "connection",
+    plus: "connection",
+    pro: "connection",
+    premium: "premium",
+    "ego premium": "premium",
+    vip: "total",
+    total: "total",
+    "ego total": "total",
+    "plano total": "total",
+    empresa: "enterprise",
+    business: "enterprise",
+    corporate: "enterprise",
+    enterprise: "enterprise",
+    "ego empresa": "enterprise",
+    connection: "connection",
+  };
+  if (aliases[t]) return aliases[t];
+  if (t.includes("enterprise") || t.includes("empresa")) return "enterprise";
+  if (t.includes("total")) return "total";
+  if (t.includes("premium")) return "premium";
+  if (t.includes("conex") || t.includes("connection")) return "connection";
+  if (t.includes("essencial") || t.includes("essential") || t.includes("gratis"))
+    return "essential";
   return "essential";
+}
+
+/** Plano efetivo para desbloquear avatares (espelha API + contas de teste). */
+export function effectiveAvatarPlanTier(
+  access?: { plan_tier?: string | null; is_test_total?: boolean } | null
+): PlanTier {
+  if (access?.is_test_total) return "total";
+  return normalizePlanTier(access?.plan_tier);
 }
 
 export function isAvatarUnlocked(

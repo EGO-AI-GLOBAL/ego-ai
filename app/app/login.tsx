@@ -40,7 +40,7 @@ export default function LoginScreen() {
     setBusy(true);
     try {
       await signIn(email.trim(), password);
-      router.replace("/(main)/chat");
+      router.replace("/");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Falha no login.");
     } finally {

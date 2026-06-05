@@ -32,6 +32,7 @@ type AuthContextValue = {
     email: string,
     password: string,
     fullName?: string,
+    phone?: string,
     referralCode?: string
   ) => Promise<{ needsEmailConfirm: boolean }>;
   signOut: () => Promise<void>;
@@ -106,9 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       email: string,
       password: string,
       fullName?: string,
+      phone?: string,
       referralCode?: string
     ) => {
-      const s = await apiSignup(email, password, fullName, referralCode);
+      const s = await apiSignup(email, password, fullName, phone);
       if (s?.access_token) {
         await persist(s);
         void preparePlayIntegrity();

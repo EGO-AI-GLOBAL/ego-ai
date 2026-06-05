@@ -34,7 +34,7 @@ function ChatHint({ colors, onPress }: { colors: AppColors; onPress: () => void 
         Criar ou convidar
       </Text>
       <Text style={[styles.chatHintBody, { color: colors.textMuted }]}>
-        No chat, peça ao avatar: «cria agenda Família e convida email@exemplo.com».
+        No chat: «cria agenda Família e convida 11 99999-9999» ou e-mail.
       </Text>
       <Text style={[styles.chatHintLink, { color: colors.primary }]}>Ir para o chat →</Text>
     </Pressable>

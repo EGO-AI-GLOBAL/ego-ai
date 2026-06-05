@@ -90,7 +90,7 @@ export default function SharedCalendarDetailScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [inviteEmail, setInviteEmail] = useState("");
+  const [inviteContact, setInviteContact] = useState("");
   const [inviting, setInviting] = useState(false);
   const [eventTitle, setEventTitle] = useState("Reunião");
   const [eventDate, setEventDate] = useState(defaultDateBr);
@@ -132,24 +132,25 @@ export default function SharedCalendarDetailScreen() {
   const members = cal?.members ?? [];
   const calName = cal?.name?.trim() || "Agenda compartilhada";
 
-  const onInviteByEmail = async () => {
-    const email = inviteEmail.trim().toLowerCase();
-    if (!email || !email.includes("@")) {
-      Alert.alert("E-mail", "Digite um e-mail válido.");
+  const onInviteContact = async () => {
+    const contact = inviteContact.trim();
+    if (!contact) {
+      Alert.alert("Convite", "Digite telefone ou e-mail.");
       return;
     }
     setInviting(true);
     try {
-      const member = await addSharedCalendarMember(calendarId, email);
-      setInviteEmail("");
+      const member = await addSharedCalendarMember(calendarId, contact);
+      setInviteContact("");
       await load();
       await refreshDashboard({ skipNotifications: true }).catch(() => {});
       const pending = member.status === "pending";
+      const label = memberDisplayName(member);
       Alert.alert(
         pending ? "Convite enviado" : "Adicionado",
         pending
-          ? `${email} verá a agenda quando entrar no EGO com este e-mail.`
-          : `${email} já tem acesso à agenda.`
+          ? `${label} verá a agenda quando entrar no EGO com o mesmo telefone ou e-mail.`
+          : `${label} já tem acesso à agenda.`
       );
     } catch (e) {
       Alert.alert("Convite", e instanceof Error ? e.message : "Não foi possível convidar.");
@@ -349,26 +350,25 @@ export default function SharedCalendarDetailScreen() {
             )}
 
             <Text style={[styles.section, { color: colors.textMuted }]}>Gerenciar membros</Text>
-            {isOwner ? (
-              <View style={[styles.inviteBox, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
+            <View style={[styles.inviteBox, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
                 <Text style={[styles.inviteLabel, { color: colors.textMuted }]}>
-                  Convidar por e-mail (sem usar o chat)
+                  Convidar por telefone ou e-mail
                 </Text>
                 <TextInput
-                  value={inviteEmail}
-                  onChangeText={setInviteEmail}
-                  placeholder="email@exemplo.com"
+                  value={inviteContact}
+                  onChangeText={setInviteContact}
+                  placeholder="11 99999-9999 ou email@exemplo.com"
                   placeholderTextColor={colors.textMuted}
                   autoCapitalize="none"
                   autoCorrect={false}
-                  keyboardType="email-address"
+                  keyboardType="default"
                   style={[
                     styles.inviteInput,
                     { color: colors.text, borderColor: colors.border, backgroundColor: colors.bg },
                   ]}
                 />
                 <Pressable
-                  onPress={onInviteByEmail}
+                  onPress={onInviteContact}
                   disabled={inviting}
                   style={[styles.inviteBtn, { backgroundColor: colors.primary }]}
                 >
@@ -379,7 +379,6 @@ export default function SharedCalendarDetailScreen() {
                   )}
                 </Pressable>
               </View>
-            ) : null}
             {members.length === 0 ? (
               <Text style={[styles.muted, { color: colors.textMuted }]}>
                 Nenhum membro listado.

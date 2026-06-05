@@ -14,14 +14,55 @@ export type MonthlyPlanOffer = {
   highlighted?: boolean;
 };
 
+/** Meses com preço promocional (espelha EGO_LAUNCH_OFFER_MONTHS no Railway). */
+export const LAUNCH_OFFER_INTRO_MONTHS = 6;
+
+/** Início da campanha na Play (espelha EGO_LAUNCH_OFFER_START_DATE). */
+export const LAUNCH_OFFER_CAMPAIGN_START = "2026-06-01";
+
 /** Oferta de lançamento BR (fallback se a API não enviar launch_offer). */
 export const LAUNCH_PLAN_OFFER_BR = {
   tier: "connection" as const,
   label: "EGO Conexão — Oferta de lançamento",
-  tagline: "Mesmos benefícios da Conexão · depois R$ 29,90/mês",
-  displayPrice: "R$ 9,90/mês",
-  priceNum: 9.9,
+  tagline: `Oferta de lançamento: R$ 9,99/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 19,90/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 29,90/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`,
+  displayPrice: "R$ 9,99/mês",
+  priceNum: 9.99,
+  introMonths: LAUNCH_OFFER_INTRO_MONTHS,
+  priceAfterBrl: 29.9,
 };
+
+function addMonthsIso(startIso: string, months: number): Date {
+  const [y, m, d] = startIso.slice(0, 10).split("-").map(Number);
+  const start = new Date(y, m - 1, d);
+  const end = new Date(start.getFullYear(), start.getMonth() + months, start.getDate());
+  return end;
+}
+
+/** Campanha global ainda ativa (some do app após 6 meses). */
+export function isLaunchCampaignActive(
+  startIso: string = LAUNCH_OFFER_CAMPAIGN_START,
+  months: number = LAUNCH_OFFER_INTRO_MONTHS
+): boolean {
+  const end = addMonthsIso(startIso, months);
+  return Date.now() < end.getTime();
+}
+
+const TIER_PRICE_ORDER_BR: Record<PlanTier, number> = {
+  essential: 0,
+  connection: 29.9,
+  premium: 49.9,
+  total: 99.9,
+  enterprise: 199.9,
+};
+
+/** Individual BR: do mais barato ao mais caro (sem essencial). */
+export function sortIndividualOffersByPrice(
+  offers: MonthlyPlanOffer[]
+): MonthlyPlanOffer[] {
+  return [...offers].sort(
+    (a, b) => TIER_PRICE_ORDER_BR[a.tier] - TIER_PRICE_ORDER_BR[b.tier]
+  );
+}
 
 export const MONTHLY_PLAN_OFFERS: MonthlyPlanOffer[] = [
   {
@@ -101,6 +142,17 @@ export const DISPLAY_PRICE_USD: Record<Exclude<PlanTier, "essential">, number> =
 };
 
 export function fallbackLimitsForTier(tier: PlanTier): PlanCatalogItem["limits"] {
+  if (tier === "essential") {
+    return {
+      monthly_tokens: 200_000,
+      daily_text_messages: 10,
+      daily_voice_messages: 3,
+      daily_tts_replies: 5,
+      max_agenda_items: 3,
+      max_reminders: 3,
+      audio_speed_multipliers: [1],
+    };
+  }
   if (tier === "connection") {
     return {
       monthly_tokens: 800_000,

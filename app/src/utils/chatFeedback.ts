@@ -1,4 +1,13 @@
-import type { SendChatResult } from "@/api/types";
+import type { DashboardData, SendChatResult } from "@/api/types";
+
+function calendarLabel(data: DashboardData | undefined, calendarId?: string, name?: string): string {
+  if (name?.trim()) return name.trim();
+  if (!calendarId || !data?.shared_calendars?.length) {
+    return data?.shared_calendars?.[0]?.name?.trim() || "Agenda";
+  }
+  const cal = data.shared_calendars.find((c) => String(c.id) === String(calendarId));
+  return cal?.name?.trim() || "Agenda";
+}
 
 export function chatShouldSkipNotificationRefresh(result: SendChatResult): boolean {
   if (
@@ -19,15 +28,19 @@ export function chatChangedSharedCalendar(result: SendChatResult): boolean {
   return chatShouldSkipNotificationRefresh(result);
 }
 
-export function chatSavedNotice(result: SendChatResult): string | null {
+export function chatSavedNotice(
+  result: SendChatResult,
+  data?: DashboardData
+): string | null {
   const parts: string[] = [];
   for (const ev of result.shared_events_saved || []) {
     const title = ev.title || "Compromisso";
-    parts.push(`Agenda: ${title}`);
+    const cal = calendarLabel(data, ev.calendar_id, ev.calendar_name);
+    parts.push(`Agenda «${cal}»: ${title}`);
   }
   for (const cal of result.shared_calendars_saved || []) {
     const name = cal.name || "Agenda";
-    parts.push(`Agenda criada: ${name}`);
+    parts.push(`Agenda criada: «${name}»`);
   }
   for (const a of result.agenda_saved || []) {
     const hor = String(a.horario || "").slice(0, 5);

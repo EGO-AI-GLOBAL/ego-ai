@@ -16,6 +16,7 @@ import {
   AVATAR_COLLECTION_LABELS,
   avatarsByCategory,
   findAvatarInCatalog,
+  effectiveAvatarPlanTier,
   isAvatarUnlocked,
   planLabelForAvatar,
   type AvatarCatalogEntry,
@@ -63,6 +64,9 @@ export function PersonaPicker({
 }: Props) {
   const { session } = useAuth();
   const { data } = useDashboard();
+  const unlockedTier = effectiveAvatarPlanTier(
+    data.access ?? { plan_tier: planTier, is_test_total: false }
+  );
   const isOnboarding = variant === "onboarding";
   const isChat = variant === "chat";
   const isSettings = variant === "settings";
@@ -95,18 +99,21 @@ export function PersonaPicker({
   };
 
   const persist = async (choice: PersonaChoice, preset: PersonaPresetId) => {
+    const isLeoLuna =
+      (choice.avatar_id === "f1" && choice.voice_id === "vf1") ||
+      (choice.avatar_id === "m1" && choice.voice_id === "vm1");
+    // preset male/female só para Luna/Leo; catálogo (Hana, Sara, …) sempre por avatar_id.
+    if (!isLeoLuna) {
+      return await savePersonaChoice(choice);
+    }
     if (preset === "male" || preset === "female") {
       try {
         return await updatePersonaPreset(preset);
       } catch {
-        /* tenta avatar_id/voice_id abaixo */
+        return await savePersonaChoice(choice);
       }
     }
-    try {
-      return await savePersonaChoice(choice);
-    } catch {
-      return await updatePersonaPreset(preset);
-    }
+    return await savePersonaChoice(choice);
   };
 
   const selectPreset = async (preset: PersonaPresetId) => {
@@ -165,7 +172,7 @@ export function PersonaPicker({
 
   const selectCatalogEntry = async (entry: AvatarCatalogEntry) => {
     if (busyId || disabled) return;
-    if (!isAvatarUnlocked(planTier, entry)) {
+    if (!isAvatarUnlocked(unlockedTier, entry)) {
       setError(`Disponível no ${planLabelForAvatar(entry.minPlan)}.`);
       return;
     }
@@ -195,9 +202,23 @@ export function PersonaPicker({
       if (isChat) setExpanded(false);
       await onSaved?.(confirmed);
     } catch (e) {
-      setLocalPersona(previous);
-      onPersonaChange(previous);
-      setError(e instanceof Error ? e.message : "Não foi possível trocar.");
+      const msg = e instanceof Error ? e.message : "Não foi possível trocar.";
+      if (isAvatarUnlocked(unlockedTier, entry)) {
+        lastSavedRef.current = next;
+        await persistLocal(next);
+        await onSaved?.(next);
+        setOkMsg(`${entry.shortName} ativo neste telemóvel.`);
+        setError(
+          msg
+            ? `Servidor: ${msg} — tente sair e entrar de novo.`
+            : "Servidor indisponível — escolha guardada no telemóvel."
+        );
+        if (isChat) setExpanded(false);
+      } else {
+        setLocalPersona(previous);
+        onPersonaChange(previous);
+        setError(msg);
+      }
     } finally {
       setBusyId(null);
     }
@@ -265,7 +286,7 @@ export function PersonaPicker({
                 </Text>
                 <View style={styles.catalogGrid}>
                   {items.map((entry) => {
-                    const unlocked = isAvatarUnlocked(planTier, entry);
+                    const unlocked = isAvatarUnlocked(unlockedTier, entry);
                     const selected = localPersona.avatar_id === entry.avatar_id;
                     const loading = busyId === entry.id;
                     return (
