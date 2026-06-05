@@ -206,6 +206,43 @@ def _daily_limit_message(supabase: Client | None, user_id: str) -> str:
     return base
 
 
+def _is_casual_chat_message(text: str) -> bool:
+    """Mensagens curtas sem agenda — resposta mais rápida (menos DB/parsing)."""
+    t = (text or "").strip().lower()
+    if not t or len(t) > 100:
+        return False
+    keys = (
+        "agenda",
+        "marcar",
+        "reuni",
+        "lembr",
+        "convid",
+        "compromis",
+        "calend",
+        "compartilh",
+        "evento",
+        "stripe",
+        "plano",
+        "pdf",
+    )
+    return not any(k in t for k in keys)
+
+
+def _history_from_client(client_history: list | None) -> list[dict[str, str]]:
+    if not client_history:
+        return []
+    out: list[dict[str, str]] = []
+    for item in client_history:
+        if not isinstance(item, dict):
+            continue
+        role = item.get("role")
+        content = str(item.get("content") or "").strip()
+        if role not in ("user", "assistant") or not content or content == "…":
+            continue
+        out.append({"role": role, "content": content[:8000]})
+    return out[-16:]
+
+
 def process_chat_message(
     supabase: Client | None,
     user_id: str,
@@ -215,6 +252,7 @@ def process_chat_message(
     audio_bytes: bytes | None = None,
     audio_mime: str | None = None,
     speak_reply: bool = False,
+    client_history: list | None = None,
 ) -> tuple[dict | None, str | None]:
     sess = get_session()
     if not sess or sess.user_id != user_id:
@@ -275,14 +313,19 @@ def process_chat_message(
         if not ok_tts:
             return None, _daily_limit_message(supabase, user_id)
 
-    history = db.load_chat_history(supabase, user_id)
+    casual = _is_casual_chat_message(user_display) and not audio_bytes
+    client_hist = _history_from_client(client_history)
+    if client_hist:
+        history = client_hist
+    else:
+        history = db.load_chat_history(supabase, user_id, limit=16)
     lang, _conf = gemini.detect_language(user_display)
     history_for_llm = [*history, {"role": "user", "content": user_display}]
 
     from ego_api import chat_schedule as cs
 
     schedule = cs.load_chat_schedule(prof)
-    scope_hint = cs.detect_scope_from_user_text(
+    scope_hint = None if casual else cs.detect_scope_from_user_text(
         user_display, supabase, user_id
     )
     if scope_hint:
@@ -292,11 +335,14 @@ def process_chat_message(
         elif scope_hint == "personal":
             schedule["step"] = "collect_personal"
 
-    agenda_ctx = db.build_agenda_context_for_llm(supabase, user_id)
-    agenda_ctx += cs.build_shared_calendars_context(supabase, user_id)
-    agenda_ctx += cs.build_schedule_wizard_context(
-        schedule, user_display, supabase, user_id
-    )
+    if casual:
+        agenda_ctx = ""
+    else:
+        agenda_ctx = db.build_agenda_context_for_llm(supabase, user_id)
+        agenda_ctx += cs.build_shared_calendars_context(supabase, user_id)
+        agenda_ctx += cs.build_schedule_wizard_context(
+            schedule, user_display, supabase, user_id
+        )
 
     if cs.looks_like_today_agenda_query(user_display):
         reply = cs.build_today_commitments_reply(supabase, user_id)
@@ -348,7 +394,7 @@ def process_chat_message(
             schedule, user_display, schedule_ref
         )
 
-    skip_schedule_save = bool(scope_choice_reply)
+    skip_schedule_save = bool(scope_choice_reply) or casual
     reply_clean = scope_choice_reply or reply
 
     effective_scope = cs.resolve_effective_schedule_scope(
@@ -730,7 +776,16 @@ def process_chat_message(
         "shared_calendars_deleted": shared_calendars_deleted,
         "access": db.build_plan_access_payload(supabase, user_id, prof),
     }
-    if speak_reply and reply_clean.strip():
+    # Áudio inline atrasa o texto no telemóvel; o app pede TTS depois (/tts ou playVoice).
+    from ego_api.config import read_env
+
+    inline_tts = read_env("EGO_CHAT_INLINE_TTS", "0").lower() in (
+        "1",
+        "true",
+        "yes",
+        "sim",
+    )
+    if inline_tts and speak_reply and reply_clean.strip():
         from ego_api import tts
         from ego_api.persona import resolve_tts_voice
 
@@ -739,8 +794,6 @@ def process_chat_message(
         mp3 = tts.synthesize_speech_mp3(reply_clean, resolved_voice, avatar_id)
         payload["tts_voice_id"] = resolved_voice
         if mp3:
-            import base64
-
             db.increment_daily_tts(supabase, user_id)
             payload["tts_audio_base64"] = base64.b64encode(mp3).decode("ascii")
             payload["tts_mime"] = "audio/mpeg"

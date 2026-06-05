@@ -22,6 +22,13 @@ import { sendChatMessage } from "@/api/client";
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { ChatComposer } from "@/components/ChatComposer";
 import { ChatPreview } from "@/components/ChatPreview";
+import { ChatQuickActions } from "@/components/ChatQuickActions";
+import type { ChatQuickAction } from "@/constants/chatQuickActions";
+import {
+  ChatScheduleBanner,
+  extractScheduleBannerItems,
+} from "@/components/ChatScheduleBanner";
+import { UpcomingEventsCard } from "@/components/UpcomingEventsCard";
 import { AudioSpeedControl } from "@/components/AudioSpeedControl";
 import { TokenUsageBar } from "@/components/TokenUsageBar";
 import { ScreenShell } from "@/components/ScreenShell";
@@ -41,6 +48,30 @@ import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useVoiceChat } from "@/hooks/useVoiceChat";
 import { useColors } from "@/theme/ThemeContext";
 import { chatSavedNotice, chatWarnings } from "@/utils/chatFeedback";
+import { enrichChatError } from "@/utils/chatError";
+import {
+  estimateTokenDelta,
+  patchAccessWithTokenDelta,
+} from "@/utils/usageStats";
+import { collectUpcomingItems } from "@/utils/upcomingEvents";
+import {
+  chatResultChangedData,
+  mergeChatIntoDashboard,
+} from "@/utils/mergeChatDashboard";
+import {
+  presentSharedCalendarEventNow,
+  syncSharedCalendarLocalNotifications,
+} from "@/utils/sharedCalendarNotifications";
+import { saveLastUserIntent } from "@/storage/chatHints";
+import {
+  buildChatOnboardingMessage,
+  buildChatOnboardingSpeech,
+} from "@/constants/chatOnboarding";
+import {
+  isChatOnboardingDone,
+  markChatOnboardingDone,
+} from "@/storage/chatOnboarding";
+import { appendLocalAssistantMessage } from "@/storage/chatHistoryLocal";
 import { loadAutoPlayVoice, saveAutoPlayVoice } from "@/storage/chatPrefs";
 import { iosSafariMicHelpMessage } from "@/utils/webVoiceCapture";
 import {
@@ -62,12 +93,13 @@ export default function ChatScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
-  const { data, loading, refreshing, error, refresh, setPersona } = useDashboard();
+  const { data, loading, refreshing, error, refresh, refreshAccess, setPersona, mergeChatResult } =
+    useDashboard();
   const userId = data.me?.user_id?.trim() ?? session?.user?.id?.trim() ?? "";
 
   const onPersonaSaved = useCallback(
     async (choice: { avatar_id: string; voice_id: string }) => {
-      setPersona(choice.avatar_id, choice.voice_id);
+      await setPersona(choice.avatar_id, choice.voice_id);
       if (userId) {
         await markPersonaConfiguredLocal(userId);
         await saveLocalPersonaChoice(userId, choice);
@@ -82,6 +114,7 @@ export default function ChatScreen() {
   const [pendingChat, setPendingChat] = useState<ChatMessage[]>([]);
   const [autoPlayVoice, setAutoPlayVoice] = useState(false);
   const [lastChatResult, setLastChatResult] = useState<SendChatResult | null>(null);
+  const [scheduleBannerDismissed, setScheduleBannerDismissed] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
   const [pdfCharCount, setPdfCharCount] = useState(0);
   const [pdfPartCount, setPdfPartCount] = useState(0);
@@ -93,6 +126,13 @@ export default function ChatScreen() {
     void loadAutoPlayVoice().then(setAutoPlayVoice);
   }, []);
 
+  const upcomingItems = useMemo(() => collectUpcomingItems(data, 3), [data]);
+
+  const scheduleBannerItems = useMemo(() => {
+    if (!lastChatResult || scheduleBannerDismissed) return [];
+    return extractScheduleBannerItems(lastChatResult, data);
+  }, [lastChatResult, scheduleBannerDismissed, data]);
+
   const persona = accountPersona(data.me?.persona);
   const assistantName =
     findAvatarInCatalog(persona.avatar_id)?.shortName ??
@@ -100,10 +140,12 @@ export default function ChatScreen() {
   const voice = useVoiceChat();
   const {
     messages: localMessages,
+    setMessages: setLocalMessages,
     ready: localChatReady,
     historyForApi,
     saveExchange,
   } = useLocalChatHistory(userId, data.messages);
+  const onboardingSeedRef = useRef(false);
   const micBusyRef = useRef(false);
   const messagesScrollRef = useRef<ScrollView>(null);
   /** Se true, mantém o scroll no fim ao crescer o histórico (entrada no chat / nova msg). */
@@ -396,6 +438,56 @@ export default function ChatScreen() {
     setTimeout(attempt, 320);
   }, []);
 
+  useEffect(() => {
+    if (!localChatReady || !userId || loading || onboardingSeedRef.current) return;
+    if ((data.messages?.length ?? 0) > 0) {
+      void markChatOnboardingDone(userId);
+      return;
+    }
+    if (localMessages.length > 0) return;
+
+    onboardingSeedRef.current = true;
+    void (async () => {
+      if (await isChatOnboardingDone(userId)) return;
+      const displayWho =
+        !nameLooksLikeEmailAlias && profileName ? profileName.trim() : undefined;
+      const text = buildChatOnboardingMessage(assistantName, displayWho);
+      const speech = buildChatOnboardingSpeech(assistantName, displayWho);
+      const next = await appendLocalAssistantMessage(userId, text, { onboarding: true });
+      setLocalMessages(next);
+      setLastChatResult({ reply: speech });
+      await markChatOnboardingDone(userId);
+      stickToBottomRef.current = true;
+      scrollMessagesToEnd(true);
+
+      await new Promise((r) => setTimeout(r, 500));
+      voice.unlockWebPlayback();
+      setChatNotice("Apresentação em voz…");
+      const voiceErr = await voice.replayLastText(
+        speech,
+        persona.voice_id,
+        persona.avatar_id
+      );
+      setChatNotice(
+        voiceErr ? "Leia a mensagem acima. Toque em «Ouvir resposta» para ouvir." : null
+      );
+    })();
+  }, [
+    localChatReady,
+    userId,
+    loading,
+    localMessages.length,
+    data.messages?.length,
+    assistantName,
+    profileName,
+    nameLooksLikeEmailAlias,
+    persona.voice_id,
+    persona.avatar_id,
+    scrollMessagesToEnd,
+    setLocalMessages,
+    voice,
+  ]);
+
   useFocusEffect(
     useCallback(() => {
       stickToBottomRef.current = true;
@@ -474,10 +566,52 @@ export default function ChatScreen() {
     }
   };
 
-  const applyChatResult = (result: SendChatResult) => {
-    setChatNotice(chatSavedNotice(result));
-    setChatError(chatWarnings(result));
-  };
+  const applyChatResult = useCallback(
+    (result: SendChatResult, userLabel?: string) => {
+      if (result.access) {
+        mergeChatResult(result);
+      } else if (result.reply && !chatWarnings(result) && data.access) {
+        const delta = estimateTokenDelta(userLabel || "", result.reply);
+        const patched = patchAccessWithTokenDelta(data.access, delta);
+        if (patched) {
+          mergeChatResult({ reply: result.reply, access: patched });
+        }
+      }
+      setChatNotice(chatSavedNotice(result, data));
+      const warn = chatWarnings(result);
+      setChatError(warn ? enrichChatError(warn, result.access ?? data.access) : null);
+      setScheduleBannerDismissed(false);
+      void refreshAccess();
+    },
+    [data, mergeChatResult, refreshAccess]
+  );
+
+  const afterChatSaved = useCallback(
+    async (result: SendChatResult, userText?: string) => {
+      if (userText?.trim()) {
+        await saveLastUserIntent(userText);
+      }
+      if (chatResultChangedData(result) || result.access) {
+        mergeChatResult(result);
+        const merged = mergeChatIntoDashboard(data, result);
+        void syncSharedCalendarLocalNotifications(merged.shared_calendars ?? []);
+        for (const ev of result.shared_events_saved ?? []) {
+          const cal =
+            data.shared_calendars?.find((c) => String(c.id) === String(ev.calendar_id))
+              ?.name ||
+            ev.calendar_name ||
+            data.shared_calendars?.[0]?.name ||
+            "Agenda";
+          void presentSharedCalendarEventNow({
+            calendarName: cal,
+            title: String(ev.title || "Compromisso"),
+            scheduledAt: String(ev.scheduled_at || ""),
+          });
+        }
+      }
+    },
+    [data, mergeChatResult]
+  );
 
   const pdfSummaryPrompt =
     pdfPartCount > 1
@@ -488,55 +622,6 @@ export default function ChatScreen() {
         "Use tópicos curtos: assunto principal, pontos importantes e conclusão. " +
         "Se for contrato ou relatório, destaque datas, valores e obrigações relevantes.";
 
-  const onSendText = async () => {
-    if (sending || !session) return;
-    if (micActive) {
-      await onMicPressOut();
-      return;
-    }
-    const typed = chatInput.trim();
-    const text =
-      typed ||
-      (pdfCharCount > 0 ? pdfSummaryPrompt : "");
-    if (!text) return;
-    const userLabel = typed || "Resumo do documento";
-    voice.unlockWebPlayback();
-    setChatError(null);
-    setChatNotice(null);
-    setChatInput("");
-    stickToBottomRef.current = true;
-    setPendingChat([
-      { role: "user", content: userLabel },
-      { role: "assistant", content: "…" },
-    ]);
-    scrollMessagesToEnd(true);
-    setSending(true);
-    try {
-      const result = await sendChatMessage(text, autoPlayVoice, historyForApi());
-      setPendingChat([
-        { role: "user", content: userLabel },
-        { role: "assistant", content: result.reply },
-      ]);
-      applyChatResult(result);
-      await saveExchange(userLabel, result.reply);
-      setPendingChat([]);
-      setLastChatResult(result);
-      if (autoPlayVoice) {
-        void playVoice(result).catch((e) => {
-          setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
-        });
-      } else {
-        setChatNotice("Resposta pronta. Toque em «Ouvir resposta» para ouvir.");
-      }
-    } catch (e) {
-      setPendingChat([{ role: "user", content: userLabel }]);
-      setChatError(e instanceof Error ? e.message : "Erro ao enviar.");
-    } finally {
-      void refresh();
-      setSending(false);
-    }
-  };
-
   const onMicPressIn = async () => {
     if (sending || !session || micActive || micBusyRef.current) return;
     setChatError(null);
@@ -544,11 +629,11 @@ export default function ChatScreen() {
     try {
       await voice.startRecording(historyForApi());
       if (voice.activeVoiceMode === "realtime") {
-        setChatNotice("Fale… voz em tempo real (OpenAI). Toque Enviar voz quando terminar.");
+        setChatNotice("A ouvir… toque ↑ para enviar.");
       } else if (voice.webUsesSpeechToText) {
-        setChatNotice("Fale… o Chrome converte em texto (rápido). Toque Enviar voz quando terminar.");
+        setChatNotice("A ouvir… toque ↑ para enviar.");
       } else if (voice.webMicMode === "recorder") {
-        setChatNotice("A gravar… toque no microfone outra vez para enviar.");
+        setChatNotice("A gravar… toque no microfone para enviar.");
       }
     } catch (e) {
       setChatError(e instanceof Error ? e.message : "Microfone indisponível.");
@@ -585,7 +670,8 @@ export default function ChatScreen() {
         { role: "user", content: userLabel },
         { role: "assistant", content: result.reply },
       ]);
-      applyChatResult(result);
+      applyChatResult(result, userLabel);
+      await afterChatSaved(result, userLabel);
       if (result.voice_engine === "openai_realtime") {
         setChatNotice("A responder…");
       }
@@ -603,15 +689,20 @@ export default function ChatScreen() {
       } else if (result.voice_engine === "openai_realtime") {
         setChatNotice("Resposta em voz reproduzida.");
       } else {
-        setChatNotice("Resposta pronta. Toque em «Ouvir resposta» para ouvir.");
+        setChatNotice(null);
       }
     } catch (e) {
       await voice.cancelRecording();
-      setChatError(e instanceof Error ? e.message : "Erro na mensagem de voz.");
+      setChatError(
+        enrichChatError(
+          e instanceof Error ? e.message : "Erro na mensagem de voz.",
+          data.access
+        )
+      );
       setPendingChat([]);
     } finally {
       micBusyRef.current = false;
-      void refresh();
+      void refreshAccess();
       setSending(false);
     }
   };
@@ -638,6 +729,83 @@ export default function ChatScreen() {
       return;
     }
     await onMicPressIn();
+  };
+
+  const sendMessageText = useCallback(
+    async (text: string, userLabel: string) => {
+      if (sending || !session || !text.trim()) return;
+      if (micActive) {
+        await onMicPressOut();
+        return;
+      }
+      voice.unlockWebPlayback();
+      setChatError(null);
+      setChatNotice(null);
+      setChatInput("");
+      stickToBottomRef.current = true;
+      setPendingChat([
+        { role: "user", content: userLabel },
+        { role: "assistant", content: "…" },
+      ]);
+      scrollMessagesToEnd(true);
+      setSending(true);
+      try {
+        const result = await sendChatMessage(text, false, historyForApi());
+        setPendingChat([
+          { role: "user", content: userLabel },
+          { role: "assistant", content: result.reply },
+        ]);
+        applyChatResult(result, userLabel);
+        await afterChatSaved(result, userLabel);
+        await saveExchange(userLabel, result.reply);
+        setPendingChat([]);
+        setLastChatResult(result);
+        if (autoPlayVoice) {
+          void playVoice(result).catch((e) => {
+            setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
+          });
+        } else {
+          setChatNotice(null);
+        }
+      } catch (e) {
+        setPendingChat([{ role: "user", content: userLabel }]);
+        setChatError(
+          enrichChatError(e instanceof Error ? e.message : "Erro ao enviar.", data.access)
+        );
+      } finally {
+        void refreshAccess();
+        setSending(false);
+      }
+    },
+    [
+      sending,
+      session,
+      micActive,
+      onMicPressOut,
+      autoPlayVoice,
+      applyChatResult,
+      afterChatSaved,
+      saveExchange,
+      historyForApi,
+      refreshAccess,
+      playVoice,
+      scrollMessagesToEnd,
+      voice,
+    ]
+  );
+
+  const onQuickAction = useCallback(
+    (action: ChatQuickAction) => {
+      void sendMessageText(action.prompt, action.label);
+    },
+    [sendMessageText]
+  );
+
+  const onSendText = async () => {
+    const typed = chatInput.trim();
+    const text = typed || (pdfCharCount > 0 ? pdfSummaryPrompt : "");
+    if (!text) return;
+    await sendMessageText(text, typed || "Resumo do documento");
   };
 
   useEffect(() => {
@@ -676,7 +844,7 @@ export default function ChatScreen() {
             planTier={userPlanTier}
             persona={persona}
             disabled={personaBusy}
-            onPersonaChange={(p) => setPersona(p.avatar_id, p.voice_id)}
+            onPersonaChange={(p) => void setPersona(p.avatar_id, p.voice_id)}
             onSaved={onPersonaSaved}
           />
           <View style={styles.voiceRow}>
@@ -761,12 +929,31 @@ export default function ChatScreen() {
             <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
           ) : null}
 
+          {chatMessages.length > 0 && upcomingItems.length > 0 ? (
+            <UpcomingEventsCard
+              colors={colors}
+              items={upcomingItems}
+              onPressItem={(item) => {
+                void sendMessageText(`Alterar ou cancelar: ${item.title}`, item.title);
+              }}
+            />
+          ) : null}
+
           {localChatReady && chatMessages.length > 0 ? (
             <ChatPreview messages={chatMessages} assistantLabel={assistantName} />
-          ) : localChatReady && !loading ? (
+          ) : localChatReady && !loading && !isDailyLimitReached ? (
             <Text style={[styles.empty, { color: colors.textMuted }]}>
-              Escreve, anexa documento ou foto (Doc) ou usa o microfone.
+              Toque num atalho abaixo ou escreva para {assistantName}.
             </Text>
+          ) : null}
+
+          {scheduleBannerItems.length > 0 ? (
+            <ChatScheduleBanner
+              colors={colors}
+              items={scheduleBannerItems}
+              assistantName={assistantName}
+              onDismiss={() => setScheduleBannerDismissed(true)}
+            />
           ) : null}
 
           {isDailyLimitReached ? (
@@ -874,10 +1061,18 @@ export default function ChatScreen() {
               </View>
             </View>
           ) : null}
+          {!isDailyLimitReached ? (
+            <ChatQuickActions
+              colors={colors}
+              disabled={sending || micActive}
+              onPick={onQuickAction}
+            />
+          ) : null}
           <ChatComposer
             value={chatInput}
             onChangeText={setChatInput}
             onSend={onSendText}
+            placeholder="Mensagem…"
             sending={sending}
             isRecording={micActive}
             voiceReady={voice.isRecording && !voice.isPhoneCall}

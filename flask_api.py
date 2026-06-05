@@ -296,7 +296,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-05-openai-first",
+        "api_build": "2026-06-05-chat-fast",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -537,6 +537,7 @@ def chat_send():
     audio_bytes: bytes | None = None
     audio_mime = "audio/wav"
     speak_reply = False
+    client_history = None
 
     ctype = (request.content_type or "").lower()
     if "multipart/form-data" in ctype:
@@ -568,6 +569,7 @@ def chat_send():
         audio_b64 = data.get("audio_base64")
         audio_mime = str(data.get("audio_mime") or "audio/wav")
         speak_reply = bool(data.get("speak") or data.get("speak_reply"))
+        client_history = data.get("history")
 
     result, err = services.process_chat_message(
         g.supabase,
@@ -577,6 +579,7 @@ def chat_send():
         audio_bytes=audio_bytes,
         audio_mime=audio_mime,
         speak_reply=speak_reply,
+        client_history=client_history,
     )
     if err:
         return _json_error(err, 402 if "Limite" in err or "expirado" in err.lower() else 400)
