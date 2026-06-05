@@ -301,6 +301,8 @@ def is_gemini_error_reply(text: str | None) -> bool:
     prefixes = (
         "Erro ao chamar o Gemini",
         "A chave da API Gemini",
+        "A API Google bloqueou",
+        "Muitos pedidos seguidos na API Google",
         "Configure GOOGLE_API_KEY",
         "Instale google-generativeai",
         "Cota da API Gemini",
@@ -625,8 +627,8 @@ def generate_reply(
             audio_bytes=None,
             audio_mime=audio_mime,
         )
-        if is_gemini_error_reply(reply) and (
-            _is_quota_reply(reply) or _is_quota_error(Exception(reply))
+        if _is_quota_reply(reply) or (
+            is_gemini_error_reply(reply) and _is_quota_error(Exception(reply))
         ):
             alt = _try_openai_fallback(
                 user_text,
@@ -650,8 +652,9 @@ def generate_reply(
         )
         try:
             reply = fut.result(timeout=timeout_s)
-            if is_gemini_error_reply(reply) and (
-                _is_quota_reply(reply) or _is_quota_error(Exception(str(reply)))
+            if _is_quota_reply(reply) or (
+                is_gemini_error_reply(reply)
+                and _is_quota_error(Exception(str(reply)))
             ):
                 alt = _try_openai_fallback(
                     user_text or "",
