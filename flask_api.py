@@ -584,16 +584,26 @@ def chat_send():
         speak_reply = bool(data.get("speak") or data.get("speak_reply"))
         client_history = data.get("history")
 
-    result, err = services.process_chat_message(
-        g.supabase,
-        g.user_id,
-        message,
-        audio_b64=audio_b64,
-        audio_bytes=audio_bytes,
-        audio_mime=audio_mime,
-        speak_reply=speak_reply,
-        client_history=client_history,
-    )
+    try:
+        result, err = services.process_chat_message(
+            g.supabase,
+            g.user_id,
+            message,
+            audio_b64=audio_b64,
+            audio_bytes=audio_bytes,
+            audio_mime=audio_mime,
+            speak_reply=speak_reply,
+            client_history=client_history,
+        )
+    except Exception as exc:
+        from ego_api.monitoring import log_api_exception
+
+        log_api_exception(exc, route="/api/v1/chat/messages")
+        return _json_error(
+            "Não consegui processar agora. Tente de novo ou diga: "
+            "«marca na agenda pessoal: … amanhã 9h».",
+            500,
+        )
     if err:
         return _json_error(err, 402 if "Limite" in err or "expirado" in err.lower() else 400)
     return _json_ok(result)

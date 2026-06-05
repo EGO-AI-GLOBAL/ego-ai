@@ -325,6 +325,39 @@ def process_chat_message(
     from ego_api import chat_schedule as cs
 
     schedule = cs.load_chat_schedule(prof)
+    from ego_api.schedule_tz import local_now_from_session
+
+    schedule_ref = local_now_from_session(sess)
+
+    # Marcação ambígua (pessoal vs grupo): responde já, sem chamar o LLM (evita erro e demora).
+    if not casual and not audio_bytes:
+        scope_reply = cs.build_schedule_scope_choice_reply(
+            supabase, user_id, user_display
+        )
+        if scope_reply:
+            schedule = cs.stash_pending_schedule_from_text(
+                schedule, user_display, schedule_ref
+            )
+            mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
+            cs.save_chat_schedule(supabase, user_id, prof, schedule)
+            mid_a = db.save_chat_message(
+                supabase, user_id, "assistant", scope_reply
+            )
+            return {
+                "reply": scope_reply,
+                "user_message_id": mid_u,
+                "assistant_message_id": mid_a,
+                "language": lang,
+                "warnings": [],
+                "reminders_saved": [],
+                "agenda_saved": [],
+                "shared_calendars_saved": [],
+                "shared_events_saved": [],
+                "shared_members_saved": [],
+                "shared_calendars_deleted": [],
+                "access": db.build_plan_access_payload(supabase, user_id, prof),
+            }, None
+
     scope_hint = None if casual else cs.detect_scope_from_user_text(
         user_display, supabase, user_id
     )
@@ -378,9 +411,6 @@ def process_chat_message(
         cs.detect_scope_from_user_text(user_display, supabase, user_id) == "personal"
     )
     only_personal_agenda = cs.only_personal_schedule_available(supabase, user_id)
-    from ego_api.schedule_tz import local_now_from_session
-
-    schedule_ref = local_now_from_session(sess)
 
     schedule = cs.apply_scope_follow_up_if_pending(
         schedule, user_display, supabase, user_id, schedule_ref

@@ -27,7 +27,7 @@ _SCHEDULE_INTENT = re.compile(
     r"\b("
     r"marcar|marca|marque|marques|agendar|agenda|agende|"
     r"reunião|reuniao|compromisso|"
-    r"lembrete|lembrar|encontro|call|chamada|consulta"
+    r"lembrete|lembrar|encontro|call|chamada|consulta|atendimento"
     r")\b",
     re.I,
 )
@@ -177,6 +177,7 @@ _EVENT_KEYWORD_TITLES: tuple[tuple[str, str], ...] = (
     (r"\bencontro\b", "Encontro"),
     (r"\bchamada\b|\bcall\b", "Chamada"),
     (r"\bconsulta\b", "Consulta"),
+    (r"\batendimento\b", "Atendimento"),
     (r"\bprova\b", "Prova"),
     (r"\baula\b", "Aula"),
     (r"\btreino\b", "Treino"),
@@ -601,7 +602,7 @@ def parse_reminder_from_plain_text(
 
 
 def is_group_schedule_request(text: str) -> bool:
-    """True se o pedido é para agenda de grupo (não disse «pessoal»)."""
+    """True se o pedido cita agenda de grupo (nome, família, etc.) — não basta «marcar»."""
     t = (text or "").strip()
     if not t or _SCOPE_PERSONAL.search(t):
         return False
@@ -609,7 +610,6 @@ def is_group_schedule_request(text: str) -> bool:
         _SCOPE_SHARED.search(t)
         or _extract_shared_calendar_name(t)
         or _AGENDA_GROUP_NAME.search(t)
-        or _GROUP_SCHEDULE_INTENT.search(t)
     )
 
 

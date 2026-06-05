@@ -1306,8 +1306,11 @@ def delete_agenda(supabase: Client | None, user_id: str, agenda_id: str) -> bool
 def build_agenda_context_for_llm(supabase: Client | None, user_id: str) -> str:
     if not supabase or not user_id:
         return "\n\n=== CURRENT USER AGENDA ===\n(not logged in)\n=== END AGENDA ===\n"
-    recurring = list_agenda(supabase, user_id)
-    reminders = list_reminders(supabase, user_id)
+    try:
+        recurring = list_agenda(supabase, user_id)
+        reminders = list_reminders(supabase, user_id)
+    except Exception:
+        return "\n\n=== CURRENT USER AGENDA ===\n(unavailable)\n=== END AGENDA ===\n"
     now = datetime.datetime.now().astimezone()
     wk = DOW_PT_ORDER[now.weekday()]
     lines = [
