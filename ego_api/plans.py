@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import datetime
 import os
 from dataclasses import dataclass
 from typing import Any
@@ -170,25 +171,46 @@ def _limits_for_tier(tier: str) -> PlanLimits:
 
 def normalize_plan_tier(raw: str | None) -> str:
     tier = (raw or "").strip().lower()
+    if not tier:
+        return PLAN_ESSENTIAL
     aliases = {
         "free": PLAN_ESSENTIAL,
         "gratis": PLAN_ESSENTIAL,
         "grátis": PLAN_ESSENTIAL,
         "essencial": PLAN_ESSENTIAL,
+        "ego essencial": PLAN_ESSENTIAL,
         "conexao": PLAN_CONNECTION,
         "conexão": PLAN_CONNECTION,
+        "ego conexao": PLAN_CONNECTION,
+        "ego conexão": PLAN_CONNECTION,
         "plus": PLAN_CONNECTION,
         "pro": PLAN_CONNECTION,
+        "premium": PLAN_PREMIUM,
+        "ego premium": PLAN_PREMIUM,
         "vip": PLAN_TOTAL,
         "total": PLAN_TOTAL,
+        "ego total": PLAN_TOTAL,
+        "plano total": PLAN_TOTAL,
         "empresa": PLAN_ENTERPRISE,
         "business": PLAN_ENTERPRISE,
         "enterprise": PLAN_ENTERPRISE,
         "corporate": PLAN_ENTERPRISE,
+        "ego empresa": PLAN_ENTERPRISE,
     }
     tier = aliases.get(tier, tier)
     if tier in PLAN_TIERS:
         return tier
+    # Labels vindos do Supabase/UI ("EGO Total", etc.)
+    if "enterprise" in tier or "empresa" in tier:
+        return PLAN_ENTERPRISE
+    if "total" in tier:
+        return PLAN_TOTAL
+    if "premium" in tier:
+        return PLAN_PREMIUM
+    if "conex" in tier or "connection" in tier:
+        return PLAN_CONNECTION
+    if "essencial" in tier or "essential" in tier or "gratis" in tier or "grátis" in tier:
+        return PLAN_ESSENTIAL
     return PLAN_ESSENTIAL
 
 
@@ -234,7 +256,21 @@ def resolve_plan_tier(profile: dict[str, Any] | None) -> str:
         return PLAN_ESSENTIAL
     raw = profile.get("plan_tier")
     if raw and str(raw).strip():
-        return normalize_plan_tier(str(raw))
+        tier = normalize_plan_tier(str(raw))
+        if tier != PLAN_ESSENTIAL:
+            return tier
+    ui = profile.get("ui_state")
+    if isinstance(ui, str) and ui.strip():
+        import json
+
+        try:
+            ui = json.loads(ui)
+        except json.JSONDecodeError:
+            ui = {}
+    if isinstance(ui, dict):
+        ui_tier = normalize_plan_tier(str(ui.get("plan_tier") or ""))
+        if ui_tier != PLAN_ESSENTIAL:
+            return ui_tier
     if bool(profile.get("is_pro")):
         legacy = (os.getenv("EGO_LEGACY_IS_PRO_TIER") or PLAN_CONNECTION).strip().lower()
         return normalize_plan_tier(legacy)
@@ -281,9 +317,102 @@ def stripe_object_to_tier(*, price_id: str = "", product_id: str = "") -> str | 
     return stripe_price_to_tier(price_id) or stripe_product_to_tier(product_id)
 
 
+def launch_offer_intro_months() -> int:
+    """Meses com preço promocional por assinante (Stripe deve espelhar isto)."""
+    return max(1, _int_env("EGO_LAUNCH_OFFER_MONTHS", 6))
+
+
+def launch_offer_price_brl() -> float:
+    return float(os.getenv("EGO_LAUNCH_OFFER_PRICE_BRL", "9.99") or "9.99")
+
+
+def launch_offer_price_after_brl() -> float:
+    return PLAN_PRICES_BRL[PLAN_CONNECTION]
+
+
+def _parse_launch_start_date() -> datetime.date | None:
+    raw = (os.getenv("EGO_LAUNCH_OFFER_START_DATE") or "2026-06-01").strip()
+    if not raw:
+        return None
+    try:
+        return datetime.date.fromisoformat(raw[:10])
+    except ValueError:
+        return None
+
+
+def _add_months(d: datetime.date, months: int) -> datetime.date:
+    month_index = d.month - 1 + months
+    year = d.year + month_index // 12
+    month = month_index % 12 + 1
+    # Último dia do mês alvo
+    if month == 12:
+        next_first = datetime.date(year + 1, 1, 1)
+    else:
+        next_first = datetime.date(year, month + 1, 1)
+    last_day = (next_first - datetime.timedelta(days=1)).day
+    return datetime.date(year, month, min(d.day, last_day))
+
+
+def launch_offer_campaign_active() -> bool:
+    """Campanha visível no app (janela global, ex. 6 meses desde o lançamento na Play)."""
+    start = _parse_launch_start_date()
+    if not start:
+        return True
+    end = _add_months(start, launch_offer_intro_months())
+    return datetime.date.today() < end
+
+
+def launch_offer_campaign_ends_at() -> str | None:
+    start = _parse_launch_start_date()
+    if not start:
+        return None
+    return _add_months(start, launch_offer_intro_months()).isoformat()
+
+
 def stripe_launch_checkout_url() -> str | None:
-    """Oferta de lançamento BR (R$ 9,90/9,99) — mesmos limites EGO Conexão."""
+    """Oferta de lançamento BR (R$ 9,99 · 6 meses) — mesmos limites EGO Conexão."""
+    if not launch_offer_campaign_active():
+        return None
     return _clean_url(os.getenv("STRIPE_CHECKOUT_LAUNCH_URL", ""))
+
+
+def build_launch_offer_payload() -> dict | None:
+    """Payload para GET /api/v1/plans (None se campanha encerrada)."""
+    url = stripe_launch_checkout_url()
+    if not url:
+        return None
+    lim = plan_limits(PLAN_CONNECTION)
+    price = launch_offer_price_brl()
+    after = launch_offer_price_after_brl()
+    months = launch_offer_intro_months()
+
+    def _brl(v: float) -> str:
+        return f"R$ {v:.2f}/mês".replace(".", ",")
+
+    return {
+        "tier": PLAN_CONNECTION,
+        "label": "EGO Conexão — Oferta de lançamento",
+        "price_brl": price,
+        "price_label": _brl(price),
+        "tagline": (
+            f"Oferta de lançamento: {_brl(price)} por {months} meses. "
+            f"Depois R$ 19,90/mês por {months} meses. "
+            f"Depois {_brl(after)} (EGO Conexão). Cancele quando quiser. Sem cupons adicionais."
+        ),
+        "intro_months": months,
+        "price_after_brl": after,
+        "campaign_ends_at": launch_offer_campaign_ends_at(),
+        "checkout_url": url,
+        "limits": {
+            "monthly_tokens": lim.monthly_tokens,
+            "daily_text_messages": lim.daily_text_messages,
+            "daily_voice_messages": lim.daily_voice_messages,
+            "daily_tts_replies": lim.daily_tts_replies,
+            "max_agenda_items": lim.max_agenda_items,
+            "max_reminders": lim.max_reminders,
+            "audio_speed_multipliers": list(lim.audio_speed_multipliers),
+        },
+    }
 
 
 def stripe_checkout_urls() -> dict[str, str | None]:

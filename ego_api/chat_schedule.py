@@ -48,16 +48,20 @@ def parse_invite_from_plain_text(text: str) -> dict | None:
         return None
     if not re.search(r"(?i)\b(convida|convite|adiciona|inclui|adicione|add)\b", raw):
         return None
-    em_match = re.search(
-        r"([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})", raw, re.I
-    )
-    if not em_match:
-        return None
     cal_name = _extract_shared_calendar_name(raw)
-    email = em_match.group(1).strip().lower()
-    payload: dict[str, Any] = {"invite_emails": [email]}
+    payload: dict[str, Any] = {}
     if cal_name:
         payload["calendar_name"] = cal_name
+    emails = _normalize_email_list(
+        re.findall(r"([a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,})", raw, re.I)
+    )
+    phones = _normalize_phone_list_from_text(raw)
+    if emails:
+        payload["invite_emails"] = emails
+    if phones:
+        payload["invite_phones"] = phones
+    if not emails and not phones:
+        return None
     return payload
 
 
@@ -912,6 +916,36 @@ def looks_like_schedule_intent(text: str) -> bool:
     return bool(_SCHEDULE_INTENT.search(text or ""))
 
 
+def _normalize_phone_list(raw: object) -> list[str]:
+    from ego_api.phone_utils import normalize_phone_br
+
+    if raw is None:
+        return []
+    if isinstance(raw, str):
+        parts = re.split(r"[,;\s]+", raw)
+    elif isinstance(raw, list):
+        parts = [str(x) for x in raw]
+    else:
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for p in parts:
+        norm, err = normalize_phone_br(p)
+        if err or not norm or norm in seen:
+            continue
+        seen.add(norm)
+        out.append(norm)
+    return out
+
+
+def _normalize_phone_list_from_text(raw: str) -> list[str]:
+    chunks = re.findall(
+        r"(?:\+?55[\s\-]?)?(?:\(?\d{2}\)?[\s\-]?)?\d{4,5}[\s\-]?\d{4}",
+        raw or "",
+    )
+    return _normalize_phone_list(chunks)
+
+
 def _normalize_email_list(raw: object) -> list[str]:
     if raw is None:
         return []
@@ -1151,7 +1185,10 @@ def extract_shared_invite(text: str) -> tuple[str, dict | None]:
     emails = _normalize_email_list(
         obj.get("invite_emails") or obj.get("emails") or obj.get("members")
     )
-    if has_cal and emails:
+    phones = _normalize_phone_list(
+        obj.get("invite_phones") or obj.get("phones")
+    )
+    if has_cal and (emails or phones):
         return clean, obj
     return text, None
 
@@ -1326,6 +1363,9 @@ def process_shared_setup(
     if not calendar_id:
         return calendars, events, members_added, ["Agenda compartilhada inválida."]
 
+    phones = _normalize_phone_list(
+        data.get("invite_phones") or data.get("phones")
+    )
     for em in emails:
         ok, err, mem = sc.add_member_by_email(
             supabase, user_id, calendar_id, em
@@ -1334,6 +1374,12 @@ def process_shared_setup(
             members_added.append(mem)
         elif err:
             warnings.append(f"{em}: {err}")
+    for ph in phones:
+        ok, err, mem = sc.add_member_by_phone(supabase, user_id, calendar_id, ph)
+        if ok and mem:
+            members_added.append(mem)
+        elif err:
+            warnings.append(f"{ph}: {err}")
 
     if scheduled_at and title:
         ok, err, event = sc.insert_event(
@@ -1379,13 +1425,16 @@ def process_shared_invite(
     emails = _normalize_email_list(
         data.get("invite_emails") or data.get("emails") or data.get("members")
     )
+    phones = _normalize_phone_list(
+        data.get("invite_phones") or data.get("phones")
+    )
     warnings: list[str] = []
     added: list[dict] = []
 
     if not calendar_id:
         return None, ["Agenda compartilhada não encontrada."], []
-    if not emails:
-        return None, ["Informe o e-mail a convidar."], []
+    if not emails and not phones:
+        return None, ["Informe e-mail ou telefone a convidar."], []
 
     for em in emails:
         ok, err, mem = sc.add_member_by_email(supabase, user_id, calendar_id, em)
@@ -1393,10 +1442,16 @@ def process_shared_invite(
             added.append(mem)
         elif err:
             warnings.append(f"{em}: {err}")
+    for ph in phones:
+        ok, err, mem = sc.add_member_by_phone(supabase, user_id, calendar_id, ph)
+        if ok and mem:
+            added.append(mem)
+        elif err:
+            warnings.append(f"{ph}: {err}")
 
     cal = sc.get_calendar(supabase, user_id, calendar_id) if calendar_id else None
     if not added and not warnings:
-        warnings.append("Não foi possível adicionar os e-mails.")
+        warnings.append("Não foi possível adicionar os convites.")
     return cal, warnings, added
 
 

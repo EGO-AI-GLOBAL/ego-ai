@@ -15,12 +15,18 @@ def calendar_name_key(name: str) -> str:
 
 from ego_api.config import (
     AGENDA_HORIZON_DAYS,
+    MAX_MEMBERS_PER_SHARED_CALENDAR,
     MAX_SHARED_CALENDARS_PER_OWNER,
     SUPABASE_SHARED_CALENDAR_EVENTS_TABLE,
     SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE,
     SUPABASE_SHARED_CALENDARS_TABLE,
 )
 from ego_api.db import normalize_scheduled_at
+from ego_api.phone_utils import (
+    format_phone_display,
+    normalize_phone_br,
+    phone_invite_email_placeholder,
+)
 from ego_api.supabase_client import apply_user_auth, create_service_client
 
 try:
@@ -191,6 +197,78 @@ def resolve_user_id_by_email(email: str) -> str | None:
     return None
 
 
+PHONE_NO_ACCOUNT_MSG = (
+    "Este telefone ainda não tem conta no EGO-AI. "
+    "Peça para instalar o app e criar conta com o mesmo número; "
+    "o convite fica guardado até entrarem."
+)
+
+
+def resolve_user_id_by_phone(phone: str) -> str | None:
+    phone_norm, err = normalize_phone_br(phone)
+    if err or not phone_norm:
+        return None
+    admin = create_service_client()
+    if not admin:
+        return None
+    try:
+        res = (
+            admin.table("profiles")
+            .select("id,phone")
+            .eq("phone", phone_norm)
+            .limit(3)
+            .execute()
+        )
+        for row in res.data or []:
+            if str(row.get("phone") or "").strip() == phone_norm:
+                return str(row.get("id") or "") or None
+    except Exception:
+        pass
+    return None
+
+
+def link_shared_memberships_for_user_phone(
+    supabase: Client | None, user_id: str, phone: str
+) -> int:
+    phone_norm, err = normalize_phone_br(phone)
+    if err or not phone_norm or not user_id:
+        return 0
+    admin = create_service_client()
+    if not admin:
+        return 0
+    updated = 0
+    try:
+        placeholder = phone_invite_email_placeholder(phone_norm)
+        for field, value in (
+            ("invited_phone", phone_norm),
+            ("invited_email", placeholder),
+        ):
+            res = (
+                admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                .select("id,user_id,status")
+                .eq(field, value)
+                .execute()
+            )
+            for row in res.data or []:
+                rid = str(row.get("id") or "")
+                if not rid:
+                    continue
+                current = str(row.get("user_id") or "")
+                status = str(row.get("status") or "")
+                if current == user_id and status == "active":
+                    continue
+                admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(
+                    {"user_id": user_id, "status": "active", "invited_phone": phone_norm}
+                ).eq("id", rid).execute()
+                updated += 1
+    except Exception as exc:
+        print(
+            f"[EGO] link_shared_memberships_for_user_phone error user={user_id}: {exc}",
+            flush=True,
+        )
+    return updated
+
+
 def _user_is_member(
     supabase: Client | None, user_id: str, calendar_id: str
 ) -> bool:
@@ -207,9 +285,77 @@ def _user_is_member(
             .limit(1)
             .execute()
         )
-        return bool(res.data)
+        if res.data:
+            return True
+        cal = (
+            supabase.table(SUPABASE_SHARED_CALENDARS_TABLE)
+            .select("owner_user_id")
+            .eq("id", calendar_id)
+            .limit(1)
+            .execute()
+        )
+        if cal.data and str(cal.data[0].get("owner_user_id") or "") == user_id:
+            _ensure_owner_membership_row(supabase, user_id, calendar_id)
+            return True
     except Exception:
-        return False
+        pass
+    return False
+
+
+def _ensure_owner_membership_row(
+    supabase: Client | None, user_id: str, calendar_id: str
+) -> None:
+    """Repara agendas antigas em que o criador não ficou em shared_calendar_members."""
+    if not supabase or not user_id or not calendar_id:
+        return
+    apply_user_auth(supabase)
+    try:
+        existing = (
+            supabase.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+            .select("id")
+            .eq("calendar_id", calendar_id)
+            .eq("user_id", user_id)
+            .limit(1)
+            .execute()
+        )
+        if existing.data:
+            return
+    except Exception:
+        pass
+
+    sess_email = ""
+    try:
+        from ego_api.request_ctx import get_session
+
+        sess = get_session()
+        if sess and sess.email:
+            sess_email = sess.email.strip().lower()
+    except Exception:
+        pass
+    if not sess_email:
+        from ego_api import db
+
+        prof = db.load_profile(supabase, user_id) or {}
+        sess_email = str(prof.get("email") or "").strip().lower()
+
+    owner_row = {
+        "calendar_id": calendar_id,
+        "user_id": user_id,
+        "invited_email": sess_email or f"{user_id}@ego.local",
+        "role": "owner",
+        "status": "active",
+    }
+    from ego_api.supabase_client import insert_with_admin_fallback
+
+    try:
+        insert_with_admin_fallback(
+            supabase,
+            SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE,
+            owner_row,
+            raise_errors=False,
+        )
+    except Exception:
+        pass
 
 
 def _user_day_start_utc() -> datetime.datetime:
@@ -278,6 +424,10 @@ def list_calendars_for_user(supabase: Client | None, user_id: str) -> list[dict]
             em = str(prof.get("email") or "")
         if em:
             link_shared_memberships_for_user(supabase, user_id, em)
+        prof = db.load_profile(supabase, user_id) or {}
+        ph = str(prof.get("phone") or "").strip()
+        if ph:
+            link_shared_memberships_for_user_phone(supabase, user_id, ph)
     except Exception:
         pass
     apply_user_auth(supabase)
@@ -500,9 +650,13 @@ def _profile_full_name_by_email(admin: Client | None, email_norm: str) -> str:
 
 
 def _member_display_name(
-    admin: Client | None, user_id: str | None, email: str
+    admin: Client | None,
+    user_id: str | None,
+    email: str,
+    invited_phone: str | None = None,
 ) -> str:
     """Nome amigável (profiles.full_name = «como quer ser chamado»). Nunca e-mail cru."""
+    phone_norm = (invited_phone or "").strip()
     email_norm, _err = _normalize_invite_email(email)
     if _err:
         email_norm = (email or "").strip().lower()
@@ -522,6 +676,17 @@ def _member_display_name(
         if name:
             return name
 
+    if phone_norm:
+        return format_phone_display(phone_norm)
+
+    from ego_api.phone_utils import is_phone_invite_email
+
+    if is_phone_invite_email(email_norm):
+        digits = email_norm.split("@")[0].replace("phone", "")
+        if digits:
+            return format_phone_display("+" + digits)
+        return "Convidado"
+
     return _pretty_name_from_email(email_norm or email)
 
 
@@ -534,7 +699,9 @@ def list_members(
     try:
         res = (
             supabase.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
-            .select("id,calendar_id,user_id,invited_email,role,status,created_at")
+            .select(
+                "id,calendar_id,user_id,invited_email,invited_phone,role,status,created_at"
+            )
             .eq("calendar_id", calendar_id)
             .order("created_at")
             .execute()
@@ -546,6 +713,7 @@ def list_members(
                 admin,
                 str(row.get("user_id") or "") or None,
                 str(row.get("invited_email") or ""),
+                str(row.get("invited_phone") or "") or None,
             )
         return members
     except Exception:
@@ -629,8 +797,8 @@ def create_calendar(
     if owned >= cap:
         return (
             False,
-            f"Você já tem {owned} agendas compartilhadas (limite {cap}). "
-            "Apague uma no app ou use outro nome só se for convidar/marcar numa existente.",
+            f"Você já tem {owned} agendas compartilhadas (limite {cap} listas). "
+            "Apague uma no app ou convide/marque numa agenda existente.",
             None,
         )
 
@@ -737,6 +905,40 @@ def create_calendar(
     return True, "", cal
 
 
+def calendar_member_cap() -> int:
+    """Pessoas por agenda (membros ativos + convites pendentes)."""
+    return max(1, MAX_MEMBERS_PER_SHARED_CALENDAR)
+
+
+def count_calendar_members(supabase: Client | None, calendar_id: str) -> int:
+    if not supabase or not calendar_id:
+        return 0
+    apply_user_auth(supabase)
+    try:
+        res = (
+            supabase.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+            .select("id")
+            .eq("calendar_id", calendar_id)
+            .execute()
+        )
+        return len(res.data or [])
+    except Exception:
+        return 0
+
+
+def _ensure_calendar_member_capacity(
+    supabase: Client | None, calendar_id: str
+) -> tuple[bool, str]:
+    cap = calendar_member_cap()
+    used = count_calendar_members(supabase, calendar_id)
+    if used >= cap:
+        return (
+            False,
+            f"Esta agenda já tem {used} pessoas (limite {cap} por lista).",
+        )
+    return True, ""
+
+
 def team_seat_limit_for_owner(supabase: Client | None, owner_user_id: str) -> int | None:
     """Limite de e-mails do plano equipe (ui_state.team_seats). None = sem teto."""
     if not supabase or not owner_user_id:
@@ -840,6 +1042,9 @@ def _add_pending_member_by_email(
                 data = (refreshed.data or [prev])[0]
                 return True, PENDING_INVITE_MSG, data
             return False, "Este e-mail já está nesta agenda.", None
+        ok_cap, cap_err = _ensure_calendar_member_capacity(supabase, calendar_id)
+        if not ok_cap:
+            return False, cap_err, None
         row = {
             "calendar_id": calendar_id,
             "user_id": None,
@@ -988,6 +1193,9 @@ def add_member_by_email(
                 except Exception as exc:
                     return False, str(exc), None
             return False, "Este e-mail já está nesta agenda.", None
+        ok_cap, cap_err = _ensure_calendar_member_capacity(supabase, calendar_id)
+        if not ok_cap:
+            return False, cap_err, None
         row = {
             "calendar_id": calendar_id,
             "user_id": target_uid,
@@ -1013,6 +1221,190 @@ def add_member_by_email(
                 None,
             )
         return False, str(exc), None
+
+
+def _add_pending_member_by_phone(
+    supabase: Client | None,
+    owner_user_id: str,
+    calendar_id: str,
+    phone_norm: str,
+) -> tuple[bool, str, dict | None]:
+    apply_user_auth(supabase)
+    placeholder = phone_invite_email_placeholder(phone_norm)
+    try:
+        existing = (
+            supabase.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+            .select("id,user_id,status")
+            .eq("calendar_id", calendar_id)
+            .eq("invited_phone", phone_norm)
+            .limit(1)
+            .execute()
+        )
+        if not existing.data:
+            existing = (
+                supabase.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                .select("id,user_id,status")
+                .eq("calendar_id", calendar_id)
+                .eq("invited_email", placeholder)
+                .limit(1)
+                .execute()
+            )
+        if existing.data:
+            prev = existing.data[0]
+            member_id = str(prev.get("id") or "")
+            if member_id:
+                admin = create_service_client()
+                client = admin or supabase
+                client.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(
+                    {
+                        "invited_phone": phone_norm,
+                        "invited_email": placeholder,
+                        "status": "pending",
+                        "role": "member",
+                    }
+                ).eq("id", member_id).execute()
+                refreshed = (
+                    client.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                    .select("*")
+                    .eq("id", member_id)
+                    .limit(1)
+                    .execute()
+                )
+                data = (refreshed.data or [prev])[0]
+                return True, PENDING_INVITE_MSG, data
+            return False, "Este telefone já está nesta agenda.", None
+        ok_cap, cap_err = _ensure_calendar_member_capacity(supabase, calendar_id)
+        if not ok_cap:
+            return False, cap_err, None
+        row = {
+            "calendar_id": calendar_id,
+            "user_id": None,
+            "invited_email": placeholder,
+            "invited_phone": phone_norm,
+            "role": "member",
+            "status": "pending",
+        }
+        from ego_api.supabase_client import insert_with_admin_fallback
+
+        inserted = insert_with_admin_fallback(
+            supabase, SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE, row, raise_errors=True
+        )
+        data = inserted[0] if inserted else row
+        return True, PENDING_INVITE_MSG, data
+    except Exception as exc:
+        low = str(exc).lower()
+        if "unique" in low or "duplicate" in low:
+            return False, "Este telefone já está nesta agenda.", None
+        return False, str(exc), None
+
+
+def add_member_by_phone(
+    supabase: Client | None,
+    actor_user_id: str,
+    calendar_id: str,
+    phone: str,
+) -> tuple[bool, str, dict | None]:
+    if not supabase or not actor_user_id or not calendar_id:
+        return False, "Sessão indisponível.", None
+    phone_norm, err = normalize_phone_br(phone)
+    if err:
+        return False, err, None
+    if not _user_is_member(supabase, actor_user_id, calendar_id):
+        return False, "Sem acesso a esta agenda.", None
+
+    target_uid = resolve_user_id_by_phone(phone_norm)
+    if not target_uid:
+        if not create_service_client():
+            return (
+                False,
+                "Convites indisponíveis no servidor. Confirme SUPABASE_SERVICE_ROLE_KEY.",
+                None,
+            )
+        return _add_pending_member_by_phone(
+            supabase, actor_user_id, calendar_id, phone_norm
+        )
+
+    placeholder = phone_invite_email_placeholder(phone_norm)
+    apply_user_auth(supabase)
+    try:
+        existing = None
+        for field, value in (
+            ("invited_phone", phone_norm),
+            ("invited_email", placeholder),
+        ):
+            res = (
+                supabase.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                .select("id,user_id")
+                .eq("calendar_id", calendar_id)
+                .eq(field, value)
+                .limit(1)
+                .execute()
+            )
+            if res.data:
+                existing = res
+                break
+        if existing and existing.data:
+            prev = existing.data[0]
+            if str(prev.get("user_id") or "") == target_uid:
+                return False, "Este telefone já está nesta agenda.", None
+            member_id = str(prev.get("id") or "")
+            if member_id:
+                admin = create_service_client()
+                client = admin or supabase
+                client.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(
+                    {
+                        "user_id": target_uid,
+                        "invited_phone": phone_norm,
+                        "invited_email": placeholder,
+                        "status": "active",
+                    }
+                ).eq("id", member_id).execute()
+                refreshed = (
+                    client.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                    .select("*")
+                    .eq("id", member_id)
+                    .limit(1)
+                    .execute()
+                )
+                data = (refreshed.data or [prev])[0]
+                return True, "", data
+        ok_cap, cap_err = _ensure_calendar_member_capacity(supabase, calendar_id)
+        if not ok_cap:
+            return False, cap_err, None
+        row = {
+            "calendar_id": calendar_id,
+            "user_id": target_uid,
+            "invited_email": placeholder,
+            "invited_phone": phone_norm,
+            "role": "member",
+            "status": "active",
+        }
+        from ego_api.supabase_client import insert_with_admin_fallback
+
+        inserted = insert_with_admin_fallback(
+            supabase, SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE, row, raise_errors=True
+        )
+        data = inserted[0] if inserted else row
+        return True, "", data
+    except Exception as exc:
+        low = str(exc).lower()
+        if "unique" in low or "duplicate" in low:
+            return False, "Este telefone já está nesta agenda.", None
+        return False, str(exc), None
+
+
+def add_member_by_contact(
+    supabase: Client | None,
+    actor_user_id: str,
+    calendar_id: str,
+    contact: str,
+) -> tuple[bool, str, dict | None]:
+    raw = (contact or "").strip()
+    if not raw:
+        return False, "Informe e-mail ou telefone.", None
+    if "@" in raw:
+        return add_member_by_email(supabase, actor_user_id, calendar_id, raw)
+    return add_member_by_phone(supabase, actor_user_id, calendar_id, raw)
 
 
 def remove_member(

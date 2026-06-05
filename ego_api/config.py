@@ -26,6 +26,10 @@ SUPABASE_SHARED_CALENDAR_EVENTS_TABLE = "shared_calendar_events"
 
 # Máximo de agendas de grupo que cada utilizador pode criar (ser dono).
 MAX_SHARED_CALENDARS_PER_OWNER = int(os.getenv("EGO_MAX_SHARED_CALENDARS", "10"))
+# Máximo de pessoas (membros + convites pendentes) por agenda compartilhada.
+MAX_MEMBERS_PER_SHARED_CALENDAR = int(
+    os.getenv("EGO_MAX_SHARED_CALENDAR_MEMBERS", "100")
+)
 
 AGENDA_HORIZON_DAYS = int(os.getenv("EGO_AGENDA_HORIZON_DAYS", "90"))
 EGO_TRIAL_DAYS = int(os.getenv("EGO_TRIAL_DAYS", "20"))

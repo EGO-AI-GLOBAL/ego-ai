@@ -677,12 +677,11 @@ def profile_patch():
 @app.get("/api/v1/plans")
 def plans_catalog():
     from ego_api.plans import (
-        PLAN_CONNECTION,
         PLAN_LABELS,
         PLAN_PRICES_BRL,
         PLAN_TIERS,
+        build_launch_offer_payload,
         plan_limits,
-        stripe_launch_checkout_url,
     )
 
     items = []
@@ -704,27 +703,8 @@ def plans_catalog():
                 },
             }
         )
-    launch_url = stripe_launch_checkout_url()
-    launch_offer = None
-    if launch_url:
-        lim = plan_limits(PLAN_CONNECTION)
-        launch_offer = {
-            "tier": PLAN_CONNECTION,
-            "label": "EGO Conexão — Oferta de lançamento",
-            "price_brl": 9.9,
-            "price_label": "R$ 9,90/mês",
-            "tagline": "Mesmos benefícios da Conexão · depois R$ 29,90/mês",
-            "checkout_url": launch_url,
-            "limits": {
-                "monthly_tokens": lim.monthly_tokens,
-                "daily_text_messages": lim.daily_text_messages,
-                "daily_voice_messages": lim.daily_voice_messages,
-                "daily_tts_replies": lim.daily_tts_replies,
-                "max_agenda_items": lim.max_agenda_items,
-                "max_reminders": lim.max_reminders,
-                "audio_speed_multipliers": list(lim.audio_speed_multipliers),
-            },
-        }
+    items.sort(key=lambda row: float(row.get("price_brl") or 0))
+    launch_offer = build_launch_offer_payload()
     return _json_ok({"plans": items, "launch_offer": launch_offer})
 
 
@@ -760,16 +740,25 @@ def persona_put():
     user_tier = str(access.get("plan_tier") or resolve_plan_tier(prof))
 
     preset = str(data.get("preset") or "").strip().lower()
+    raw_avatar = str(data.get("avatar_id") or "").strip()
+    raw_voice = str(data.get("voice_id") or "").strip() or None
+
+    # App 1.0.9: ao escolher Hana/Sara/etc. chama PUT {preset} e cai em Luna/Leo.
+    # Rejeitar preset sem avatar_id faz o cliente usar savePersonaChoice (avatar_id/voice_id).
+    if preset and not raw_avatar:
+        return _json_error(
+            "Envie avatar_id e voice_id para trocar o assistente.",
+            400,
+        )
+
     if preset:
         match = next((p for p in PERSONA_PRESETS if p["id"] == preset), None)
         if not match:
             return _json_error("preset inválido. Use male ou female.", 400)
         avatar_id, voice_id = match["avatar_id"], match["voice_id"]
     else:
-        raw_avatar = str(data.get("avatar_id") or "f1")
-        raw_voice = str(data.get("voice_id") or "") or None
         avatar_id, voice_id, block = validate_avatar_choice(
-            user_tier, raw_avatar, raw_voice
+            user_tier, raw_avatar or "f1", raw_voice
         )
         if block:
             return _json_error(block, 402)
