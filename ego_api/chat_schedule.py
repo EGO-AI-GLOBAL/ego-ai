@@ -217,6 +217,15 @@ def _extract_shared_event_title(raw: str) -> str:
     if kw:
         return kw
 
+    appt = re.search(
+        r"(?i)\batendimento\s+(?:ao|à|a)\s+([A-Za-zÀ-ú][A-Za-zÀ-ú\s'.-]{1,58})",
+        text,
+    )
+    if appt:
+        name = _trim_event_title_tail(appt.group(1))
+        if name:
+            return _format_event_title(f"Atendimento {name}")
+
     verb = re.search(
         r"(?i)\b(?:marca|marcar|marque|marques|agende|agendar|coloca|colocar)\s+"
         r"(?:um|uma|o|a|no|na|n[oa])?\s*(.+)$",
@@ -388,15 +397,19 @@ def _parse_pt_schedule_hint(
         return None
 
     day = ref.date()
+    explicit_day = False
     if re.search(r"\bdepois de amanhã\b|\bdepois de amanha\b", low):
+        explicit_day = True
         day = day + datetime.timedelta(days=2)
     elif re.search(r"\bamanhã\b|\bamanha\b", low):
+        explicit_day = True
         day = day + datetime.timedelta(days=1)
     elif re.search(r"\bhoje\b", low):
-        pass
+        explicit_day = True
     else:
         dm = re.search(r"\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b", low)
         if dm:
+            explicit_day = True
             d_num = int(dm.group(1))
             m_num = int(dm.group(2))
             y_raw = dm.group(3)
@@ -415,6 +428,7 @@ def _parse_pt_schedule_hint(
         else:
             md = _EXPLICIT_DAY_MONTH.search(low)
             if md:
+                explicit_day = True
                 d_num = int(md.group(1))
                 m_key = md.group(2).lower().replace("ç", "c")
                 m_num = _MONTH_PT.get(m_key)
@@ -430,13 +444,15 @@ def _parse_pt_schedule_hint(
                         day = datetime.date(year + 1, m_num, d_num)
                     except ValueError:
                         return None
-            else:
-                return None
 
     try:
-        return datetime.datetime.combine(
+        dt = datetime.datetime.combine(
             day, datetime.time(hour, minute), tzinfo=ref.tzinfo
         )
+        # Só hora (ex.: «às 9:00» sem «amanhã»): hoje se ainda não passou, senão amanhã.
+        if not explicit_day and dt <= ref:
+            dt = dt + datetime.timedelta(days=1)
+        return dt
     except ValueError:
         return None
 
@@ -576,6 +592,33 @@ def override_scheduled_from_user_message(
     ]
 
 
+def parse_personal_reminder_request(
+    text: str,
+    ref: datetime.datetime | None = None,
+    *,
+    implicit_personal: bool = False,
+) -> dict | None:
+    """Marcação na agenda pessoal quando título + hora estão claros."""
+    raw = (text or "").strip()
+    if not raw or not looks_like_schedule_intent(raw):
+        return None
+    if not _SCOPE_PERSONAL.search(raw) and not implicit_personal:
+        return None
+    if not user_message_has_schedule_time(raw):
+        return None
+    when = _parse_pt_schedule_hint(raw, ref)
+    if not when:
+        return None
+    title = _extract_shared_event_title(raw)
+    if not title or title == "Compromisso":
+        title = "Compromisso"
+    return {
+        "title": title,
+        "scheduled_at": when.isoformat(),
+        "announce": title,
+    }
+
+
 def parse_reminder_from_plain_text(
     text: str,
     ref: datetime.datetime | None = None,
@@ -583,22 +626,9 @@ def parse_reminder_from_plain_text(
     implicit_personal: bool = False,
 ) -> dict | None:
     """Fallback: agenda pessoal quando o LLM não envia [[EGO_REMINDER:...]]."""
-    raw = (text or "").strip()
-    if not raw:
-        return None
-    if not _SCOPE_PERSONAL.search(raw) and not implicit_personal:
-        return None
-    if not looks_like_schedule_intent(raw):
-        return None
-    when = _parse_pt_schedule_hint(raw, ref)
-    if not when:
-        return None
-    title = _extract_shared_event_title(raw)
-    return {
-        "title": title,
-        "scheduled_at": when.isoformat(),
-        "announce": title,
-    }
+    return parse_personal_reminder_request(
+        text, ref, implicit_personal=implicit_personal
+    )
 
 
 def is_group_schedule_request(text: str) -> bool:

@@ -329,6 +329,104 @@ def process_chat_message(
 
     schedule_ref = local_now_from_session(sess)
 
+    # Agenda pessoal clara (ex.: «marca na agenda pessoal … às 9h»): grava sem LLM.
+    if not casual and not audio_bytes and cs.looks_like_schedule_intent(user_display):
+        personal_scope = cs.detect_scope_from_user_text(
+            user_display, supabase, user_id
+        ) == "personal" or cs.only_personal_schedule_available(
+            supabase, user_id
+        )
+        if personal_scope and not cs.schedule_scope_is_ambiguous(
+            user_display, supabase, user_id
+        ):
+            if not cs.user_message_has_schedule_time(user_display):
+                hint = (
+                    "Qual horário? Ex.: «marca na agenda pessoal atendimento "
+                    "amanhã às 9h»."
+                )
+                mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
+                mid_a = db.save_chat_message(supabase, user_id, "assistant", hint)
+                return {
+                    "reply": hint,
+                    "user_message_id": mid_u,
+                    "assistant_message_id": mid_a,
+                    "language": lang,
+                    "warnings": [],
+                    "reminders_saved": [],
+                    "agenda_saved": [],
+                    "shared_calendars_saved": [],
+                    "shared_events_saved": [],
+                    "shared_members_saved": [],
+                    "shared_calendars_deleted": [],
+                    "access": db.build_plan_access_payload(supabase, user_id, prof),
+                }, None
+            personal_rem = cs.parse_personal_reminder_request(
+                user_display,
+                schedule_ref,
+                implicit_personal=cs.only_personal_schedule_available(
+                    supabase, user_id
+                ),
+            )
+            if personal_rem:
+                from ego_api.schedule_tz import format_scheduled_for_user
+
+                rem_cap = enforce_reminder_limit(supabase, user_id, prof)
+                reminders_saved: list[dict] = []
+                reply_fast = ""
+                if rem_cap:
+                    reply_fast = rem_cap
+                else:
+                    ok, err, row = db.insert_reminder(
+                        supabase,
+                        user_id,
+                        title=str(personal_rem.get("title") or "Compromisso"),
+                        scheduled_at=personal_rem.get("scheduled_at"),
+                        announce=str(
+                            personal_rem.get("announce")
+                            or personal_rem.get("title")
+                            or ""
+                        ),
+                    )
+                    if ok and row:
+                        reminders_saved.append(row)
+                        title = (
+                            row.get("title") or row.get("announce") or "Compromisso"
+                        ).strip()
+                        when = format_scheduled_for_user(row.get("scheduled_at"))
+                        reply_fast = (
+                            f"Pronto! Agendei «{title}»{when} na agenda pessoal."
+                        )
+                    else:
+                        reply_fast = (
+                            f"Não consegui agendar: {err or 'tente de novo'}. "
+                            "Ex.: «marca na agenda pessoal consulta amanhã às 9h»."
+                        )
+                mid_u = db.save_chat_message(
+                    supabase, user_id, "user", user_display
+                )
+                cs.save_chat_schedule(supabase, user_id, prof, None)
+                mid_a = db.save_chat_message(
+                    supabase, user_id, "assistant", reply_fast
+                )
+                db.add_tokens_used(
+                    supabase, user_id, gemini.count_tokens_approx(user_display, reply_fast), prof
+                )
+                prof = db.load_profile(supabase, user_id) or prof
+                return {
+                    "reply": reply_fast,
+                    "user_message_id": mid_u,
+                    "assistant_message_id": mid_a,
+                    "language": lang,
+                    "warnings": [],
+                    "reminders_saved": reminders_saved,
+                    "agenda_saved": [],
+                    "shared_calendars_saved": [],
+                    "shared_events_saved": [],
+                    "shared_members_saved": [],
+                    "shared_calendars_deleted": [],
+                    "access": db.build_plan_access_payload(supabase, user_id, prof),
+                }, None
+
     # Marcação ambígua (pessoal vs grupo): responde já, sem chamar o LLM (evita erro e demora).
     if not casual and not audio_bytes:
         scope_reply = cs.build_schedule_scope_choice_reply(
@@ -707,7 +805,7 @@ def process_chat_message(
         if fallback_rem := cs.parse_reminder_from_plain_text(
             user_display,
             ref=schedule_ref,
-            implicit_personal=only_personal_agenda,
+            implicit_personal=only_personal_agenda or user_wants_personal,
         ):
             rem_items = [fallback_rem]
     rem_cap = enforce_reminder_limit(supabase, user_id, prof)
