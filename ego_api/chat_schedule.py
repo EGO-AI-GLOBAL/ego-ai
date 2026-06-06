@@ -213,10 +213,6 @@ def _extract_shared_event_title(raw: str) -> str:
     if after_cal and len(after_cal) <= 80:
         return after_cal
 
-    kw = _keyword_event_title(text)
-    if kw:
-        return kw
-
     appt = re.search(
         r"(?i)\batendimento\s+(?:ao|à|a)\s+([A-Za-zÀ-ú][A-Za-zÀ-ú\s'.-]{1,58})",
         text,
@@ -225,6 +221,10 @@ def _extract_shared_event_title(raw: str) -> str:
         name = _trim_event_title_tail(appt.group(1))
         if name:
             return _format_event_title(f"Atendimento {name}")
+
+    kw = _keyword_event_title(text)
+    if kw:
+        return kw
 
     verb = re.search(
         r"(?i)\b(?:marca|marcar|marque|marques|agende|agendar|coloca|colocar)\s+"
