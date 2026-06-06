@@ -1172,11 +1172,15 @@ def insert_reminder(
 
         inserted = insert_returning_rows(supabase, SUPABASE_REMINDERS_TABLE, row)
         data = inserted[0] if inserted else row
-        if isinstance(data, dict) and data.get("scheduled_at"):
-            data = {
-                **data,
-                "scheduled_at": _scheduled_at_api_iso(data.get("scheduled_at")),
-            }
+        if isinstance(data, dict):
+            from ego_api.json_util import sanitize_for_json
+
+            data = sanitize_for_json(data)
+            if data.get("scheduled_at"):
+                data = {
+                    **data,
+                    "scheduled_at": _scheduled_at_api_iso(data.get("scheduled_at")),
+                }
         return True, "", data
     except Exception as e:
         return False, str(e), None

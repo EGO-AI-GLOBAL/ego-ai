@@ -319,7 +319,7 @@ def process_chat_message(
         history = client_hist
     else:
         history = db.load_chat_history(supabase, user_id, limit=16)
-    lang, _conf = gemini.detect_language(user_display)
+    lang = "pt-BR"
     history_for_llm = [*history, {"role": "user", "content": user_display}]
 
     from ego_api import chat_schedule as cs
@@ -474,6 +474,8 @@ def process_chat_message(
         agenda_ctx += cs.build_schedule_wizard_context(
             schedule, user_display, supabase, user_id
         )
+
+    lang, _conf = gemini.detect_language(user_display)
 
     if cs.looks_like_today_agenda_query(user_display):
         reply = cs.build_today_commitments_reply(supabase, user_id)

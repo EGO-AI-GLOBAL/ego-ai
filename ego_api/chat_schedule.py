@@ -214,7 +214,7 @@ def _extract_shared_event_title(raw: str) -> str:
         return after_cal
 
     appt = re.search(
-        r"(?i)\batendimento\s+(?:ao|à|a)\s+([A-Za-zÀ-ú][A-Za-zÀ-ú\s'.-]{1,58})",
+        r"(?i)\batendimento\s+(?:(?:ao|à|a)\s+)?([A-Za-zÀ-ú][A-Za-zÀ-ú\s'.-]{1,58})",
         text,
     )
     if appt:

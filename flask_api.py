@@ -138,9 +138,11 @@ def _json_error(message: str, status: int = 400, **extra: Any):
 
 
 def _json_ok(data: dict | None = None, status: int = 200):
+    from ego_api.json_util import sanitize_for_json
+
     body: dict[str, Any] = {"ok": True}
     if data:
-        body.update(data)
+        body.update(sanitize_for_json(data))
     return jsonify(body), status
 
 
@@ -296,7 +298,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-06-agenda-personal",
+        "api_build": "2026-06-06-chat-json",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -606,7 +608,16 @@ def chat_send():
         )
     if err:
         return _json_error(err, 402 if "Limite" in err or "expirado" in err.lower() else 400)
-    return _json_ok(result)
+    try:
+        return _json_ok(result)
+    except Exception as exc:
+        from ego_api.monitoring import log_api_exception
+
+        log_api_exception(exc, route="/api/v1/chat/messages")
+        return _json_error(
+            "Não consegui devolver a resposta. Tente de novo.",
+            500,
+        )
 
 
 @app.post("/api/v1/tts")
