@@ -8,6 +8,7 @@ import csv
 import io
 import os
 import re
+from urllib.parse import quote
 from datetime import datetime, timezone
 from typing import Any
 
@@ -135,7 +136,7 @@ def append_referral_promo_to_url(url: str, profile: dict | None) -> str:
     if "prefilled_promo_code=" in base:
         return base
     sep = "&" if "?" in base else "?"
-    return f"{base}{sep}prefilled_promo_code={promo}"
+    return f"{base}{sep}prefilled_promo_code={quote(promo, safe='')}"
 
 
 def record_first_payment_commission(

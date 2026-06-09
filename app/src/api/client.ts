@@ -277,19 +277,48 @@ export async function login(email: string, password: string): Promise<AuthSessio
   return session;
 }
 
+export type ReferralValidateResult = {
+  valid: boolean;
+  code?: string;
+  display_name?: string;
+  error?: string | null;
+};
+
+export async function validateReferralCode(
+  code: string
+): Promise<ReferralValidateResult> {
+  const trimmed = code.trim();
+  if (trimmed.length < 3) {
+    return { valid: false, error: null };
+  }
+  const { data } = await axios.get(`${apiBase}referrals/validate`, {
+    params: { code: trimmed },
+    timeout: 15000,
+  });
+  const body = unwrap<ReferralValidateResult>(data);
+  return {
+    valid: Boolean(body.valid),
+    code: body.code,
+    display_name: body.display_name,
+    error: body.error ?? null,
+  };
+}
+
 export async function signup(
   email: string,
   password: string,
   fullName?: string,
-  phone?: string
+  phone?: string,
+  referralCode?: string
 ): Promise<AuthSession | null> {
   const { data } = await api.post("auth/signup", {
     email,
     password,
     full_name: fullName || "",
     phone: phone?.trim() || "",
+    referral_code: referralCode?.trim() || "",
   });
-  const body = unwrap<{ session: AuthSession; message?: string }>(data);
+  const body = unwrap<{ session: AuthSession | null; message?: string }>(data);
   if (body.session?.access_token || (body as { access_token?: string }).access_token) {
     const session = normalizeSession(body.session ?? body);
     setSession(session);

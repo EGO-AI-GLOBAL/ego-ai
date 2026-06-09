@@ -32,6 +32,7 @@ import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 import {
   checkoutUrlForTier,
+  LAUNCH_CHECKOUT_FALLBACK,
   launchCheckoutUrl,
   teamCheckoutUrl,
   withCheckoutUserRef,
@@ -125,10 +126,12 @@ export default function PlansScreen() {
   const busy = loading || catalogLoading;
   const showErrorBanner = Boolean(error);
 
-  const launchCampaignActive =
-    launchOffer != null || isLaunchCampaignActive();
-  const launchUrl = launchCampaignActive
-    ? launchOffer?.checkout_url?.trim() || launchCheckoutUrl(checkout) || null
+  /** Visível para todos os planos (Total, Premium, etc.) enquanto a campanha estiver ativa. */
+  const showLaunchCard = launchOffer != null || isLaunchCampaignActive();
+  const launchUrl = showLaunchCard
+    ? launchCheckoutUrl(checkout) ||
+      launchOffer?.checkout_url?.trim() ||
+      LAUNCH_CHECKOUT_FALLBACK
     : null;
   const launchIntroMonths =
     launchOffer?.intro_months ?? LAUNCH_OFFER_INTRO_MONTHS;
@@ -324,16 +327,27 @@ export default function PlansScreen() {
               </Text>
             </View>
 
+            {showLaunchCard && launchUrl ? (
+              <>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  EGO Lançamento — R$ 9,99
+                </Text>
+                <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
+                  Oferta promocional para todos (mesmo no plano Total ou Premium). Limites do
+                  EGO Conexão · válida por {launchIntroMonths} meses.
+                </Text>
+                {renderLaunchOffer()}
+              </>
+            ) : null}
+
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               {MARKET_TITLE.br} — individual
             </Text>
             <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
               Todos os planos aparecem para todos. Ordem: do mais barato ao mais caro.
-              Pagamento mensal — pode mudar de plano quando quiser. Oferta EGO Lançamento
-              (R$ 9,99) some após {launchIntroMonths} meses; plano Conexão R$ 29,90 fica à parte.
+              Pagamento mensal — pode mudar de plano quando quiser.
             </Text>
             {renderEssentialBr()}
-            {renderLaunchOffer()}
             {renderIndividual("br")}
 
             <Text style={[styles.sectionTitle, { color: colors.text }]}>

@@ -76,7 +76,13 @@ CORS(
     app,
     resources={r"/api/*": {"origins": cors_origins()}},
     supports_credentials=False,
-    allow_headers=["Content-Type", "Authorization", "X-Refresh-Token", "X-Play-Integrity"],
+    allow_headers=[
+        "Content-Type",
+        "Authorization",
+        "X-Refresh-Token",
+        "X-Play-Integrity",
+        "X-Admin-Key",
+    ],
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 )
 
@@ -298,7 +304,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-06-chat-json",
+        "api_build": "2026-06-01-referrals",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -373,10 +379,99 @@ def auth_signup():
         data.get("password", ""),
         data.get("full_name", ""),
         data.get("phone", ""),
+        referral_code=str(data.get("referral_code") or data.get("referralCode") or ""),
     )
     if err:
         return _json_error(err, 400)
-    return _json_ok({"session": payload})
+    if payload.get("access_token"):
+        return _json_ok({"session": payload})
+    return _json_ok({"session": None, "message": payload.get("message"), "user": payload.get("user")})
+
+
+def _check_admin_key() -> str | None:
+    from ego_api.referrals import admin_api_key
+
+    expected = admin_api_key()
+    if not expected:
+        return "Admin não configurado (REFERRAL_ADMIN_SECRET)."
+    provided = request.headers.get("X-Admin-Key", "").strip()
+    if not provided:
+        auth = request.headers.get("Authorization", "")
+        if auth.lower().startswith("bearer "):
+            provided = auth[7:].strip()
+    if not provided or provided != expected:
+        return "Chave de admin inválida."
+    return None
+
+
+def require_admin(f: Callable) -> Callable:
+    @wraps(f)
+    def wrapper(*args, **kwargs):
+        err = _check_admin_key()
+        if err:
+            return _json_error(err, 401)
+        return f(*args, **kwargs)
+
+    return wrapper
+
+
+@app.get("/api/v1/referrals/validate")
+@rate_limit(60, 60, scope="ip")
+def referrals_validate():
+    from ego_api.referrals import validate_referral_code
+
+    code = str(request.args.get("code") or request.args.get("ref") or "")
+    if not code.strip():
+        return _json_ok({"valid": False})
+    info, err = validate_referral_code(code)
+    if err:
+        return _json_ok({"valid": False, "error": err})
+    if not info:
+        return _json_ok({"valid": False, "error": "Código não encontrado."})
+    return _json_ok({"valid": True, **info})
+
+
+@app.post("/api/v1/admin/referrals/partners")
+@require_admin
+def admin_referrals_create_partner():
+    from ego_api.referrals import create_partner, partner_signup_link
+
+    data = request.get_json(silent=True) or {}
+    row, err = create_partner(
+        code=str(data.get("code") or ""),
+        display_name=str(data.get("display_name") or data.get("displayName") or ""),
+        contact_email=str(data.get("contact_email") or data.get("contactEmail") or ""),
+        payout_pix=str(data.get("payout_pix") or data.get("payoutPix") or ""),
+        notes=str(data.get("notes") or ""),
+    )
+    if err:
+        return _json_error(err, 400)
+    code = str((row or {}).get("code") or "")
+    return _json_ok(
+        {
+            "partner": row,
+            "signup_link": partner_signup_link(code),
+        },
+        201,
+    )
+
+
+@app.get("/api/v1/admin/referrals/report.csv")
+@require_admin
+def admin_referrals_report_csv():
+    from ego_api.referrals import commissions_report_csv
+
+    month = str(request.args.get("month") or "").strip()
+    csv_text, err = commissions_report_csv(month)
+    if err:
+        return _json_error(err, 400)
+    return Response(
+        csv_text,
+        mimetype="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="indicacoes-{month}.csv"'
+        },
+    )
 
 
 @app.post("/api/v1/auth/forgot-password")

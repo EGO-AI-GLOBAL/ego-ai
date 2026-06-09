@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       phone?: string,
       referralCode?: string
     ) => {
-      const s = await apiSignup(email, password, fullName, phone);
+      const s = await apiSignup(email, password, fullName, phone, referralCode);
       if (s?.access_token) {
         await persist(s);
         void preparePlayIntegrity();

@@ -91,8 +91,39 @@ def login(email: str, password: str) -> tuple[dict | None, str | None]:
         return None, format_auth_error(e)
 
 
+def _signup_user_id(res: object) -> str:
+    payload = _session_payload(res)
+    uid = str((payload.get("user") or {}).get("id") or "")
+    if uid:
+        return uid
+    user = getattr(res, "user", None)
+    if user:
+        return str(getattr(user, "id", "") or "")
+    return ""
+
+
+def _apply_referral_after_signup(user_id: str, referral_code: str) -> str | None:
+    code = (referral_code or "").strip()
+    if not user_id or not code:
+        return None
+    from ego_api.referrals import attach_referral_to_profile
+    from ego_api.supabase_client import create_service_client
+
+    svc = create_service_client()
+    if not svc:
+        return "Indicação indisponível no momento. Tente novamente."
+    ok, err = attach_referral_to_profile(svc, user_id, code)
+    if not ok and err:
+        return err
+    return None
+
+
 def signup(
-    email: str, password: str, full_name: str = "", phone: str = ""
+    email: str,
+    password: str,
+    full_name: str = "",
+    phone: str = "",
+    referral_code: str = "",
 ) -> tuple[dict | None, str | None]:
     client = create_anon_client()
     if not client:
@@ -119,12 +150,31 @@ def signup(
             }
         )
         payload = _session_payload(res)
+        uid = _signup_user_id(res)
         if not payload.get("access_token"):
+            if uid:
+                from ego_api.supabase_client import create_service_client
+
+                profile_client = create_service_client() or client
+                ensure_user_profile(
+                    profile_client,
+                    uid,
+                    email=email_norm,
+                    full_name=display,
+                    phone=phone_norm,
+                )
+                ref_err = _apply_referral_after_signup(uid, referral_code)
+                if ref_err:
+                    return None, ref_err
+            user_obj = payload.get("user")
+            if not user_obj and uid:
+                user_obj = {"id": uid, "email": email_norm}
             return {
                 "message": "Conta criada. Confirme o e-mail se necessário e faça login.",
-                "user": payload.get("user"),
+                "user": user_obj,
             }, None
-        uid = payload["user"]["id"]
+        if not uid:
+            return None, "Não foi possível criar a conta."
         set_session(
             UserSession(
                 user_id=uid,
@@ -138,6 +188,9 @@ def signup(
         ensure_user_profile(
             client, uid, email=email_norm, full_name=display, phone=phone_norm
         )
+        ref_err = _apply_referral_after_signup(uid, referral_code)
+        if ref_err:
+            return None, ref_err
         if phone_norm:
             from ego_api import shared_calendars as sc
 
@@ -1115,21 +1168,37 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
 
 
 def _stripe_checkout_payload(user_id: str) -> dict:
+    from ego_api.referrals import append_referral_promo_to_url
+    from ego_api.supabase_client import create_service_client
     from ego_api.team_stripe_checkout import team_checkout_nested
 
+    prof: dict = {}
+    try:
+        svc = create_service_client()
+        if svc and user_id:
+            prof = db.load_profile(svc, user_id) or {}
+    except Exception as exc:
+        print(f"[EGO] checkout profile load error: {exc}", flush=True)
+
+    def checkout_link(base: str) -> str | None:
+        url = _stripe_link(base, user_id)
+        if not url:
+            return None
+        return append_referral_promo_to_url(url, prof)
+
     urls = stripe_checkout_urls()
-    legacy_m = _stripe_link(STRIPE_MENSAL_URL, user_id)
-    legacy_a = _stripe_link(STRIPE_ANUAL_URL, user_id)
-    connection = _stripe_link(urls.get(PLAN_CONNECTION) or "", user_id) or legacy_m
-    int_connection = _stripe_link(urls.get("int_connection") or "", user_id)
-    launch = _stripe_link(urls.get("launch") or "", user_id)
+    legacy_m = checkout_link(STRIPE_MENSAL_URL)
+    legacy_a = checkout_link(STRIPE_ANUAL_URL)
+    connection = checkout_link(urls.get(PLAN_CONNECTION) or "") or legacy_m
+    int_connection = checkout_link(urls.get("int_connection") or "")
+    launch = checkout_link(urls.get("launch") or "")
     team: dict[str, dict[str, dict[str, str | None]]] = {"br": {}, "int": {}}
     try:
         team_raw = team_checkout_nested()
         for market in ("br", "int"):
             for tier, seat_map in (team_raw.get(market) or {}).items():
                 team[market][tier] = {
-                    seats: _stripe_link(url, user_id) for seats, url in seat_map.items()
+                    seats: checkout_link(url) for seats, url in seat_map.items()
                 }
     except Exception as exc:
         print(f"[EGO] team_checkout_nested error: {exc}", flush=True)
@@ -1138,19 +1207,15 @@ def _stripe_checkout_payload(user_id: str) -> dict:
         "annual_url": legacy_a,
         "connection_url": connection,
         "launch_url": launch,
-        "premium_url": _stripe_link(urls.get(PLAN_PREMIUM) or "", user_id),
-        "total_url": _stripe_link(urls.get(PLAN_TOTAL) or "", user_id),
-        "enterprise_url": _stripe_link(urls.get(PLAN_ENTERPRISE) or "", user_id),
+        "premium_url": checkout_link(urls.get(PLAN_PREMIUM) or ""),
+        "total_url": checkout_link(urls.get(PLAN_TOTAL) or ""),
+        "enterprise_url": checkout_link(urls.get(PLAN_ENTERPRISE) or ""),
         "int_connection_url": int_connection,
-        "int_premium_url": _stripe_link(urls.get("int_premium") or "", user_id),
-        "int_premium_annual_url": _stripe_link(
-            urls.get("int_premium_annual") or "", user_id
-        ),
-        "int_total_url": _stripe_link(urls.get("int_total") or "", user_id),
-        "int_total_annual_url": _stripe_link(
-            urls.get("int_total_annual") or "", user_id
-        ),
-        "int_enterprise_url": _stripe_link(urls.get("int_enterprise") or "", user_id),
+        "int_premium_url": checkout_link(urls.get("int_premium") or ""),
+        "int_premium_annual_url": checkout_link(urls.get("int_premium_annual") or ""),
+        "int_total_url": checkout_link(urls.get("int_total") or ""),
+        "int_total_annual_url": checkout_link(urls.get("int_total_annual") or ""),
+        "int_enterprise_url": checkout_link(urls.get("int_enterprise") or ""),
         "essential": None,
         "team": team,
     }
