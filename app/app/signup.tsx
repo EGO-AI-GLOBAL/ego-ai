@@ -8,14 +8,15 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AuthTextInput } from "@/components/AuthTextInput";
 import { EgoLogo } from "@/components/EgoLogo";
 import { PasswordField } from "@/components/PasswordField";
 import { validateReferralCode } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
+import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useColors } from "@/theme/ThemeContext";
 import { formatPhoneBrInput } from "@/utils/phoneBr";
 import {
@@ -29,6 +30,7 @@ export default function SignupScreen() {
   const colors = useColors();
   const params = useLocalSearchParams<{ ref?: string }>();
   const { session, loading, signUp } = useAuth();
+  const { bottomInset } = useKeyboardHeight();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [preferredName, setPreferredName] = useState("");
@@ -137,7 +139,10 @@ export default function SignupScreen() {
         keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
       >
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          contentContainerStyle={[
+            styles.scroll,
+            bottomInset > 0 ? { paddingBottom: bottomInset + 16 } : null,
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -150,87 +155,48 @@ export default function SignupScreen() {
               { backgroundColor: colors.bgCard, borderColor: colors.border },
             ]}
           >
-            <Text style={[styles.label, { color: colors.textMuted }]}>Nome</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bgElevated,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
+            <AuthTextInput
+              label="Nome"
               value={firstName}
               onChangeText={setFirstName}
               placeholder="Seu nome"
-              placeholderTextColor={colors.textMuted}
+              autoCapitalize="words"
+              editable={!busy}
             />
-            <Text style={[styles.label, { color: colors.textMuted }]}>Sobrenome</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bgElevated,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
+            <AuthTextInput
+              label="Sobrenome"
               value={lastName}
               onChangeText={setLastName}
               placeholder="Seu sobrenome"
-              placeholderTextColor={colors.textMuted}
+              autoCapitalize="words"
+              editable={!busy}
             />
-            <Text style={[styles.label, { color: colors.textMuted }]}>
-              Como gostaria de ser chamado
-            </Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bgElevated,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
+            <AuthTextInput
+              label="Como gostaria de ser chamado"
               value={preferredName}
               onChangeText={setPreferredName}
               placeholder="Ex.: Reida"
-              placeholderTextColor={colors.textMuted}
+              autoCapitalize="words"
+              editable={!busy}
             />
-            <Text style={[styles.label, { color: colors.textMuted }]}>
-              Telefone (WhatsApp)
-            </Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bgElevated,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
+            <AuthTextInput
+              label="Telefone (WhatsApp)"
               value={phone}
               onChangeText={(t) => setPhone(formatPhoneBrInput(t))}
               placeholder="(11) 99999-9999"
-              placeholderTextColor={colors.textMuted}
               keyboardType="phone-pad"
+              editable={!busy}
             />
-            <Text style={[styles.label, { color: colors.textMuted }]}>E-mail</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bgElevated,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              autoCapitalize="none"
-              keyboardType="email-address"
+            <AuthTextInput
+              label="E-mail"
               value={email}
               onChangeText={setEmail}
               placeholder="seu@email.com"
-              placeholderTextColor={colors.textMuted}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+              textContentType="emailAddress"
+              editable={!busy}
             />
             <PasswordField
               label="Senha"
@@ -265,20 +231,12 @@ export default function SignupScreen() {
                     </Text>
                   </Pressable>
                 </View>
-                <TextInput
-                  style={[
-                    styles.input,
-                    {
-                      backgroundColor: colors.bgElevated,
-                      borderColor: colors.border,
-                      color: colors.text,
-                    },
-                  ]}
-                  autoCapitalize="characters"
+                <AuthTextInput
                   value={referralCode}
                   onChangeText={(t) => setReferralCode(t.toUpperCase())}
                   placeholder="Ex.: MARIA10"
-                  placeholderTextColor={colors.textMuted}
+                  autoCapitalize="characters"
+                  editable={!busy}
                 />
                 {referralHint ? (
                   <Text
@@ -386,13 +344,6 @@ const styles = StyleSheet.create({
   logoSub: { fontSize: 16, fontWeight: "600", textAlign: "center", marginBottom: 16 },
   form: { borderRadius: 20, padding: 20, borderWidth: 1 },
   label: { fontSize: 12, marginBottom: 6, marginTop: 8 },
-  input: {
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    borderWidth: 1,
-  },
   termsRow: { flexDirection: "row", alignItems: "flex-start", marginTop: 14, gap: 10 },
   checkbox: {
     width: 22,
