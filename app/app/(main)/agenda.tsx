@@ -37,7 +37,7 @@ export default function AgendaScreen() {
 
   const subtitle =
     tab === "personal"
-      ? "Botões + para criar · OK ou Remover para apagar"
+      ? "Botões + para criar · Remover para apagar"
       : "Criar agenda · + compromisso · convidar · apagar";
 
   return (

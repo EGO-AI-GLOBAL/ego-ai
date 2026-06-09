@@ -29,9 +29,9 @@ export function ReminderItem({
         <Pressable
           onPress={() => onDismiss(id)}
           style={[styles.delBtn, { borderColor: colors.border }]}
-          accessibilityLabel="Dispensar lembrete"
+          accessibilityLabel="Remover da agenda"
         >
-          <Text style={[styles.delText, { color: colors.textMuted }]}>OK</Text>
+          <Text style={[styles.delText, { color: colors.danger }]}>Remover</Text>
         </Pressable>
       ) : null}
     </View>

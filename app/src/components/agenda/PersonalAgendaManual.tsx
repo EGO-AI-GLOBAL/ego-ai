@@ -109,10 +109,11 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
   const onDismissReminder = (reminderId: string) => {
     const item = reminders.find((r) => String(r.id) === reminderId);
     const title = (item?.title || "Compromisso").trim();
-    Alert.alert("Concluir", `Marcar «${title}» como feito?`, [
+    Alert.alert("Remover", `Remover «${title}» da agenda?`, [
       { text: "Cancelar", style: "cancel" },
       {
-        text: "Concluir",
+        text: "Remover",
+        style: "destructive",
         onPress: async () => {
           try {
             await dismissReminder(reminderId);
@@ -120,7 +121,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
           } catch (e) {
             Alert.alert(
               "Erro",
-              e instanceof Error ? e.message : "Não foi possível concluir o compromisso."
+              e instanceof Error ? e.message : "Não foi possível remover o compromisso."
             );
           }
         },
