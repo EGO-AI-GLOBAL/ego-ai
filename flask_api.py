@@ -300,7 +300,7 @@ def require_auth(f: Callable) -> Callable:
 def stripe_webhook_route():
     """Stripe → ativa plano + comissão indicação (mesmo serviço ego-ai)."""
     sig = request.headers.get("Stripe-Signature", "").strip()
-    from stripe_webhook import handle_stripe_webhook_payload
+    from ego_api.stripe_webhook_handler import handle_stripe_webhook_payload
 
     body, status = handle_stripe_webhook_payload(request.get_data(), sig or None)
     if status >= 400:
@@ -316,7 +316,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-02-stripe-webhook",
+        "api_build": "2026-06-02-webhook-fix",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
