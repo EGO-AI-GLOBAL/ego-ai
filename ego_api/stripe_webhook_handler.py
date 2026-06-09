@@ -9,7 +9,11 @@ import json
 import os
 
 import stripe
-from supabase import Client, create_client
+
+try:
+    from ego_supabase import Client
+except ImportError:
+    from supabase import Client  # type: ignore[assignment]
 
 from ego_api.plans import (
     PLAN_CONNECTION,
@@ -28,19 +32,13 @@ class StripeWebhookError(Exception):
         super().__init__(detail)
 
 
-def get_env(name: str) -> str:
-    value = os.getenv(name, "").strip()
-    if not value:
-        raise RuntimeError(f"Variável obrigatória ausente: {name}")
-    return value
-
-
 def get_supabase_admin() -> Client:
-    url = get_env("SUPABASE_URL")
-    service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY", "").strip()
-    if not service_key:
+    from ego_api.supabase_client import create_service_client
+
+    client = create_service_client()
+    if not client:
         raise RuntimeError("Defina SUPABASE_SERVICE_ROLE_KEY para o webhook.")
-    return create_client(url, service_key)
+    return client
 
 
 def _resolve_team_seats_from_session(session: dict) -> int | None:
