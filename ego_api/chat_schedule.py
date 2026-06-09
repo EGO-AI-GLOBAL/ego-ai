@@ -407,8 +407,40 @@ def _parse_pt_schedule_hint(
     elif re.search(r"\bhoje\b", low):
         explicit_day = True
     else:
+        wd = re.search(
+            r"(?i)\b(?:na\s+)?(?:próxima\s+|proxima\s+)?"
+            r"(segunda|seg|terça|terca|ter|quarta|qua|quinta|qui|sexta|sex|sábado|sabado|sab|domingo|dom)\b",
+            low,
+        )
         dm = re.search(r"\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b", low)
-        if dm:
+        if wd:
+            explicit_day = True
+            key = wd.group(1).lower().replace("ç", "c")
+            weekday_map = {
+                "segunda": 0,
+                "seg": 0,
+                "terca": 1,
+                "terça": 1,
+                "ter": 1,
+                "quarta": 2,
+                "qua": 2,
+                "quinta": 3,
+                "qui": 3,
+                "sexta": 4,
+                "sex": 4,
+                "sabado": 5,
+                "sábado": 5,
+                "sab": 5,
+                "domingo": 6,
+                "dom": 6,
+            }
+            target = weekday_map.get(key)
+            if target is not None:
+                delta = (target - ref.weekday()) % 7
+                if delta == 0 and not re.search(r"\bhoje\b", low):
+                    delta = 7
+                day = ref.date() + datetime.timedelta(days=delta)
+        elif dm:
             explicit_day = True
             d_num = int(dm.group(1))
             m_num = int(dm.group(2))
@@ -1629,6 +1661,183 @@ def process_shared_delete(
         return cal_name or "Agenda", [], True
     warnings.append(err or "Não foi possível apagar a agenda.")
     return cal_name or "Agenda", warnings, False
+
+
+_DISMISS_VERBS = re.compile(
+    r"(?i)\b(cancela|cancelar|apaga|apagar|deleta|deletar|exclui|excluir|"
+    r"remove|remover|elimina|eliminar|desmarca|desmarcar)\b"
+)
+_COMMITMENT_NOUNS = re.compile(
+    r"(?i)\b(reunião|reuniao|reuniões|reunioes|compromisso|compromissos|"
+    r"lembrete|lembretes|marcação|marcacao|marcações|marcacoes|consulta|"
+    r"evento|eventos|agendamento|agendamentos)\b"
+)
+
+
+def looks_like_dismiss_commitment_intent(text: str) -> bool:
+    """Cancelar/apagar um compromisso (não a agenda inteira)."""
+    from ego_api.db import VOICE_MESSAGE_MARKER
+
+    raw = (text or "").strip()
+    if not raw or raw == VOICE_MESSAGE_MARKER:
+        return False
+    if not _DISMISS_VERBS.search(raw):
+        return False
+    cal_del = parse_delete_shared_calendar_from_plain_text(raw)
+    if cal_del and str(cal_del.get("calendar_name") or "").strip():
+        if re.search(
+            r"(?i)(?:apaga|apagar|deleta|deletar|exclui|excluir|remove|remover)\s+"
+            r"(?:a\s+)?agenda\b",
+            raw,
+        ):
+            return False
+    if re.search(r"(?i)\b(hábito|habito|rotina)\b", raw):
+        return True
+    if _COMMITMENT_NOUNS.search(raw):
+        return True
+    if re.search(r"(?i)\b(iss[oa]|aquil[oa]|esse|essa|aquela|aquele)\b", raw):
+        return True
+    return False
+
+
+def _extract_dismiss_title_hint(text: str) -> str:
+    raw = (text or "").strip()
+    patterns = [
+        r"(?i)(?:cancela|cancelar|apaga|apagar|deleta|deletar|exclui|excluir|"
+        r"remove|remover|desmarca|desmarcar)\s+(?:a\s+)?(?:reunião|reuniao|"
+        r"compromisso|lembrete|consulta|marcação|marcacao|evento|agendamento)\s+"
+        r"(?:de\s+|do\s+|da\s+)?[«\"']?([^«\"'\n.?]+)",
+        r"(?i)(?:cancela|cancelar|apaga|apagar|remove|remover)\s+[«\"']?([^«\"'\n.?]+)",
+    ]
+    for pat in patterns:
+        m = re.search(pat, raw)
+        if m:
+            hint = _trim_calendar_name_tail(m.group(1))
+            if hint and len(hint) >= 2:
+                return hint
+    return ""
+
+
+def _title_matches_hint(title: str, hint: str) -> bool:
+    t = (title or "").strip().lower()
+    h = (hint or "").strip().lower()
+    if not h:
+        return True
+    if h in t or t in h:
+        return True
+    t_tokens = set(re.findall(r"\w{3,}", t))
+    h_tokens = set(re.findall(r"\w{3,}", h))
+    return bool(t_tokens & h_tokens)
+
+
+def _when_matches_hint(
+    scheduled_at: str | None, target: datetime.datetime | None, *, slack_hours: int = 18
+) -> bool:
+    if not target:
+        return True
+    from ego_api.schedule_tz import utc_to_session_local
+
+    parsed = _parse_scheduled_local(scheduled_at)
+    if not parsed:
+        return False
+    local = utc_to_session_local(parsed)
+    if local.date() == target.date():
+        if target.hour or target.minute:
+            return abs((local - target).total_seconds()) <= slack_hours * 3600
+        return True
+    return False
+
+
+def process_dismiss_commitments(
+    supabase: Client | None,
+    user_id: str,
+    text: str,
+    *,
+    ref: datetime.datetime | None = None,
+) -> tuple[list[dict], list[dict], list[dict], list[str]]:
+    """Apaga compromissos por comando: lembretes, eventos partilhados, hábitos."""
+    from ego_api import db
+    from ego_api import shared_calendars as sc
+    from ego_api.schedule_tz import local_now_from_session
+
+    ref = ref or local_now_from_session()
+    title_hint = _extract_dismiss_title_hint(text)
+    when_hint = _parse_pt_schedule_hint(text, ref)
+    scope = detect_scope_from_user_text(text, supabase, user_id)
+    cal_name = _extract_shared_calendar_name(text)
+    dismissed_rem: list[dict] = []
+    dismissed_ev: list[dict] = []
+    dismissed_habits: list[dict] = []
+    warnings: list[str] = []
+
+    if re.search(r"(?i)\b(hábito|habito|rotina)\b", text or ""):
+        for habit in db.list_agenda(supabase, user_id):
+            tit = str(habit.get("titulo") or "").strip()
+            if title_hint and not _title_matches_hint(tit, title_hint):
+                continue
+            hid = str(habit.get("id") or "")
+            if hid and db.delete_agenda(supabase, user_id, hid):
+                dismissed_habits.append(habit)
+
+    if scope != "shared":
+        rem_candidates: list[dict] = []
+        for rem in db.list_reminders(supabase, user_id):
+            tit = str(rem.get("title") or "").strip()
+            if title_hint and not _title_matches_hint(tit, title_hint):
+                continue
+            if when_hint and not _when_matches_hint(rem.get("scheduled_at"), when_hint):
+                continue
+            rem_candidates.append(rem)
+        if len(rem_candidates) > 1 and not title_hint and not when_hint:
+            warnings.append(
+                "Há vários compromissos. Diga qual apagar, ex.: «cancela reunião de amanhã»."
+            )
+        else:
+            for rem in rem_candidates[:1] if not title_hint and not when_hint else rem_candidates:
+                rid = str(rem.get("id") or "")
+                if rid and db.dismiss_reminder(supabase, user_id, rid):
+                    dismissed_rem.append(rem)
+
+    if scope != "personal":
+        try:
+            calendars = sc.list_calendars_for_user(supabase, user_id)
+        except Exception:
+            calendars = []
+        ev_candidates: list[tuple[dict, str, str]] = []
+        for cal in calendars:
+            cname = str(cal.get("name") or "").strip()
+            if cal_name and sc.calendar_name_key(cname) != sc.calendar_name_key(cal_name):
+                continue
+            cid = str(cal.get("id") or "")
+            if not cid:
+                continue
+            for ev in cal.get("events") or []:
+                if ev.get("dismissed"):
+                    continue
+                tit = str(ev.get("title") or "").strip()
+                if title_hint and not _title_matches_hint(tit, title_hint):
+                    continue
+                if when_hint and not _when_matches_hint(ev.get("scheduled_at"), when_hint):
+                    continue
+                ev_candidates.append((ev, cid, cname))
+        if len(ev_candidates) > 1 and not title_hint and not when_hint:
+            warnings.append(
+                "Há vários compromissos em grupo. Diga o nome ou a data para apagar."
+            )
+        else:
+            picks = ev_candidates[:1] if not title_hint and not when_hint else ev_candidates
+            for ev, cid, cname in picks:
+                eid = str(ev.get("id") or "")
+                if eid and sc.dismiss_event(supabase, user_id, cid, eid):
+                    dismissed_ev.append({**ev, "calendar_id": cid, "calendar_name": cname})
+
+    if not dismissed_rem and not dismissed_ev and not dismissed_habits:
+        if looks_like_dismiss_commitment_intent(text):
+            warnings.append(
+                "Não encontrei esse compromisso. Diga o nome ou a data, "
+                "ex.: «cancela reunião de amanhã» ou «apaga consulta sexta 10h»."
+            )
+    return dismissed_rem, dismissed_ev, dismissed_habits, warnings
 
 
 _TODAY_AGENDA_QUERY = re.compile(

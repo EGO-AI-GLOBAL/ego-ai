@@ -338,9 +338,11 @@ def process_chat_message(
             return None, "Gravação demasiado curta. Fale pelo menos 1 segundo."
         audio_mime = normalize_audio_mime(audio_mime, audio_bytes)
         if not user_display:
+            from ego_api import gemini as gmi
             from ego_api.db import VOICE_MESSAGE_MARKER
 
-            user_display = VOICE_MESSAGE_MARKER
+            transcript = gmi.transcribe_voice_audio(audio_bytes, audio_mime)
+            user_display = (transcript or "").strip() or VOICE_MESSAGE_MARKER
     elif audio_b64:
         return None, (
             "Áudio inválido. Fale 2–3 segundos, toque na seta para enviar e tente outra vez."
@@ -382,6 +384,47 @@ def process_chat_message(
     from ego_api.schedule_tz import local_now_from_session
 
     schedule_ref = local_now_from_session(sess)
+    from ego_api.db import VOICE_MESSAGE_MARKER
+
+    voice_transcript = (
+        user_display if is_voice_msg and user_display != VOICE_MESSAGE_MARKER else ""
+    )
+
+    # Apagar/cancelar compromisso por comando (texto ou voz transcrita).
+    if not casual and cs.looks_like_dismiss_commitment_intent(user_display):
+        rem_d, ev_d, hab_d, dismiss_warns = cs.process_dismiss_commitments(
+            supabase, user_id, user_display, ref=schedule_ref
+        )
+        if rem_d or ev_d or hab_d:
+            from ego_api.chat_reply import build_dismiss_confirmation_reply
+
+            reply_dismiss = build_dismiss_confirmation_reply(
+                dismissed_reminders=rem_d,
+                dismissed_events=ev_d,
+                dismissed_habits=hab_d,
+                warnings=dismiss_warns,
+            )
+            mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
+            mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_dismiss)
+            prof = db.load_profile(supabase, user_id) or prof
+            return {
+                "reply": reply_dismiss,
+                "user_message_id": mid_u,
+                "assistant_message_id": mid_a,
+                "user_transcript": voice_transcript or None,
+                "language": lang,
+                "warnings": dismiss_warns,
+                "reminders_saved": [],
+                "reminders_dismissed": rem_d,
+                "agenda_deleted": hab_d,
+                "agenda_saved": [],
+                "shared_calendars_saved": [],
+                "shared_events_saved": [],
+                "shared_events_dismissed": ev_d,
+                "shared_members_saved": [],
+                "shared_calendars_deleted": [],
+                "access": db.build_plan_access_payload(supabase, user_id, prof),
+            }, None
 
     # Agenda pessoal clara (ex.: «marca na agenda pessoal … às 9h»): grava sem LLM.
     if not casual and not audio_bytes and cs.looks_like_schedule_intent(user_display):
@@ -960,6 +1003,8 @@ def process_chat_message(
         "shared_calendars_deleted": shared_calendars_deleted,
         "access": db.build_plan_access_payload(supabase, user_id, prof),
     }
+    if voice_transcript:
+        payload["user_transcript"] = voice_transcript
     # Áudio inline atrasa o texto no telemóvel; o app pede TTS depois (/tts ou playVoice).
     from ego_api.config import read_env
 

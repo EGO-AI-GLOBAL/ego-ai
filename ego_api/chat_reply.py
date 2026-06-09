@@ -12,6 +12,36 @@ def _looks_like_false_schedule_success(text: str) -> bool:
     return bool(re.search(r"(?i)\b(pronto|marquei|agendei|confirmado|registrei)\b", text))
 
 
+def build_dismiss_confirmation_reply(
+    *,
+    dismissed_reminders: list[dict] | None = None,
+    dismissed_events: list[dict] | None = None,
+    dismissed_habits: list[dict] | None = None,
+    warnings: list[str] | None = None,
+) -> str:
+    rem = dismissed_reminders or []
+    ev = dismissed_events or []
+    hab = dismissed_habits or []
+    warns = warnings or []
+    parts: list[str] = []
+    if rem:
+        title = (rem[0].get("title") or "Compromisso").strip()
+        when = _format_scheduled_pt(rem[0].get("scheduled_at"))
+        parts.append(f"Pronto! Apaguei «{title}»{when} da sua agenda pessoal.")
+    if ev:
+        title = (ev[0].get("title") or "Compromisso").strip()
+        when = _format_scheduled_pt(ev[0].get("scheduled_at"))
+        cal = (ev[0].get("calendar_name") or "agenda").strip()
+        parts.append(f"Pronto! Apaguei «{title}»{when} da agenda «{cal}».")
+    if hab:
+        title = (hab[0].get("titulo") or "Hábito").strip()
+        parts.append(f"Pronto! Removi o hábito «{title}» da agenda.")
+    if not parts:
+        return warns[0] if warns else "Não encontrei esse compromisso para apagar."
+    extra = f" Avisos: {'; '.join(warns[:2])}" if warns else ""
+    return " ".join(parts) + extra
+
+
 def ensure_visible_chat_reply(
     reply_clean: str,
     *,

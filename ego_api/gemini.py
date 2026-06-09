@@ -684,6 +684,37 @@ def generate_reply(
             )
 
 
+def transcribe_voice_audio(
+    audio_bytes: bytes, audio_mime: str | None = None
+) -> str:
+    """Transcreve áudio do utilizador (pt-BR) para texto — agenda e comandos por voz."""
+    if not audio_bytes or not genai:
+        return ""
+    api_key = gemini_api_key()
+    if not api_key:
+        return ""
+    try:
+        genai.configure(api_key=api_key)
+        mid = _normalize_model_id(GEMINI_MODEL_FLASH)
+        model = genai.GenerativeModel(model_name=mid)
+        resp = model.generate_content(
+            [
+                "Transcreva em português do Brasil exatamente o que o utilizador disse. "
+                "Responda só com o texto falado, sem aspas nem comentários.",
+                {
+                    "mime_type": audio_mime or "audio/webm",
+                    "data": audio_bytes,
+                },
+            ]
+        )
+        text = (resp.text or "").strip()
+        if text.startswith('"') and text.endswith('"'):
+            text = text[1:-1].strip()
+        return text[:500]
+    except Exception:
+        return ""
+
+
 def extract_reminders(text: str) -> tuple[str, list[dict]]:
     marker = "[[EGO_REMINDER:"
     if marker not in text:
