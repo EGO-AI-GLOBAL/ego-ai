@@ -1,12 +1,17 @@
-# EGO Lançamento — R$ 9,90/mês promocional (Stripe cobra 9,99)
+# EGO Lançamento — R$ 10,94/mês (base R$ 9,99 + impostos/taxas embutidos)
 
-**Link de pagamento (Brasil):**
+**Link de pagamento (Brasil) — ativo:**
+
+https://buy.stripe.com/aFa6oJc2q3mW81G7pg4ow0P
+
+**Link antigo — desactivar no Stripe:**
 
 https://buy.stripe.com/7sYfZjfeC3mWfu810S4ow0K
 
 ## Regras
 
-- Preço promocional **R$ 9,99/mês** (depois **R$ 29,90** Conexão — avisar no Termos).
+- Preço cobrado **R$ 10,94/mês** (6 meses) → **R$ 19,90/mês** (6 meses) → **R$ 29,90/mês** (EGO Conexão). Reajuste manual nas assinaturas ativas (ver `marketing/LEMBRETE-STRIPE-PRECOS-MANUAL.txt`).
+- No produto Stripe: preço já inclui **6% impostos + ~3,5% taxa Stripe** sobre a base R$ 9,99. **Não** usar alíquota manual no catálogo.
 - **Sem cupom** neste link (códigos promocionais desligados).
 - Metadado Stripe: `plan_tier` = `connection` (mesmos limites EGO Conexão no app).
 - Cupom indicação **EGOINDICA10** não se aplica a este produto.
@@ -14,7 +19,8 @@ https://buy.stripe.com/7sYfZjfeC3mWfu810S4ow0K
 ## Railway (quando for lançar)
 
 ```env
-STRIPE_CHECKOUT_LAUNCH_URL=https://buy.stripe.com/7sYfZjfeC3mWfu810S4ow0K
+STRIPE_CHECKOUT_LAUNCH_URL=https://buy.stripe.com/aFa6oJc2q3mW81G7pg4ow0P
+EGO_LAUNCH_OFFER_PRICE_BRL=10.94
 ```
 
 ## Teste com utilizador (activar plano no Supabase)
@@ -22,7 +28,7 @@ STRIPE_CHECKOUT_LAUNCH_URL=https://buy.stripe.com/7sYfZjfeC3mWfu810S4ow0K
 O app acrescenta `client_reference_id` = id do utilizador. Teste manual:
 
 ```
-https://buy.stripe.com/7sYfZjfeC3mWfu810S4ow0K?client_reference_id=UUID-DO-USUARIO
+https://buy.stripe.com/aFa6oJc2q3mW81G7pg4ow0P?client_reference_id=UUID-DO-USUARIO
 ```
 
 Cartão teste Stripe: `4242 4242 4242 4242`

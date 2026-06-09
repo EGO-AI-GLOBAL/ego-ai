@@ -7,8 +7,8 @@ import {
 
 export type CheckoutMarket = "br" | "int";
 
-const LAUNCH_CHECKOUT_FALLBACK =
-  "https://buy.stripe.com/7sYfZjfeC3mWfu810S4ow0K";
+export const LAUNCH_CHECKOUT_FALLBACK =
+  "https://buy.stripe.com/aFa6oJc2q3mW81G7pg4ow0P";
 
 export function launchCheckoutUrl(
   links: StripeCheckoutLinks | null | undefined

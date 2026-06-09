@@ -312,7 +312,7 @@ def launch_offer_intro_months() -> int:
 
 
 def launch_offer_price_brl() -> float:
-    return float(os.getenv("EGO_LAUNCH_OFFER_PRICE_BRL", "9.99") or "9.99")
+    return float(os.getenv("EGO_LAUNCH_OFFER_PRICE_BRL", "10.94") or "10.94")
 
 
 def launch_offer_price_after_brl() -> float:
@@ -358,11 +358,15 @@ def launch_offer_campaign_ends_at() -> str | None:
     return _add_months(start, launch_offer_intro_months()).isoformat()
 
 
+_LAUNCH_CHECKOUT_FALLBACK = "https://buy.stripe.com/aFa6oJc2q3mW81G7pg4ow0P"
+
+
 def stripe_launch_checkout_url() -> str | None:
-    """Oferta de lançamento BR (R$ 9,99 · 6 meses) — mesmos limites EGO Conexão."""
+    """Oferta de lançamento BR (R$ 10,94 · 6 meses) — mesmos limites EGO Conexão."""
     if not launch_offer_campaign_active():
         return None
-    return _clean_url(os.getenv("STRIPE_CHECKOUT_LAUNCH_URL", ""))
+    url = _clean_url(os.getenv("STRIPE_CHECKOUT_LAUNCH_URL", ""))
+    return url or _LAUNCH_CHECKOUT_FALLBACK
 
 
 def build_launch_offer_payload() -> dict | None:
@@ -380,11 +384,11 @@ def build_launch_offer_payload() -> dict | None:
 
     return {
         "tier": PLAN_CONNECTION,
-        "label": "EGO Conexão — Oferta de lançamento",
+        "label": "EGO Lançamento",
         "price_brl": price,
         "price_label": _brl(price),
         "tagline": (
-            f"Oferta de lançamento: {_brl(price)} por {months} meses. "
+            f"Oferta de lançamento: {_brl(price)} (inclui impostos e taxas) por {months} meses. "
             f"Depois R$ 19,90/mês por {months} meses. "
             f"Depois {_brl(after)} (EGO Conexão). Cancele quando quiser. Sem cupons adicionais."
         ),

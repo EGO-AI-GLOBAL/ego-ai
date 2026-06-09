@@ -23,10 +23,10 @@ export const LAUNCH_OFFER_CAMPAIGN_START = "2026-06-01";
 /** Oferta de lançamento BR (fallback se a API não enviar launch_offer). */
 export const LAUNCH_PLAN_OFFER_BR = {
   tier: "connection" as const,
-  label: "EGO Conexão — Oferta de lançamento",
-  tagline: `Oferta de lançamento: R$ 9,99/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 19,90/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 29,90/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`,
-  displayPrice: "R$ 9,99/mês",
-  priceNum: 9.99,
+  label: "EGO Lançamento",
+  tagline: `Oferta de lançamento: R$ 10,94/mês (inclui impostos e taxas) por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 19,90/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 29,90/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`,
+  displayPrice: "R$ 10,94/mês",
+  priceNum: 10.94,
   introMonths: LAUNCH_OFFER_INTRO_MONTHS,
   priceAfterBrl: 29.9,
 };
