@@ -19,7 +19,7 @@ export function ManualOrChatHint({ colors, onOpenChat }: Props) {
         Manual ou com avatar — as duas formas
       </Text>
       <Text style={[styles.body, { color: colors.textMuted }]}>
-        Prefere sem chat: use os botões + nesta tela (marcar, remover, convidar). Quem quiser
+        Prefere sem chat: use os botões + nesta tela (marcar, apagar, convidar). Quem quiser
         pode falar ou escrever no avatar — o resultado é o mesmo.
       </Text>
       <Pressable onPress={onOpenChat} hitSlop={8}>

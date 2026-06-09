@@ -29,9 +29,9 @@ export function SharedEventRow({ event, colors, onDismiss, busy }: Props) {
           onPress={() => onDismiss(id)}
           disabled={busy}
           style={[styles.actionBtn, { borderColor: colors.border, opacity: busy ? 0.5 : 1 }]}
-          accessibilityLabel="Remover compromisso"
+          accessibilityLabel="Apagar compromisso"
         >
-          <Text style={[styles.actionText, { color: colors.danger }]}>Remover</Text>
+          <Text style={[styles.actionText, { color: colors.danger }]}>Apagar</Text>
         </Pressable>
       ) : null}
     </View>

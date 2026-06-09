@@ -218,10 +218,10 @@ export default function SharedCalendarDetailScreen() {
   const onDismissEvent = (eventId: string) => {
     const item = events.find((ev) => String(ev.id) === eventId);
     const title = (item?.title || "Compromisso").trim();
-    Alert.alert("Remover", `Remover «${title}» desta agenda?`, [
+    Alert.alert("Apagar", `Apagar «${title}» desta agenda?`, [
       { text: "Cancelar", style: "cancel" },
       {
-        text: "Remover",
+        text: "Apagar",
         style: "destructive",
         onPress: async () => {
           setBusyId(eventId);
@@ -232,7 +232,7 @@ export default function SharedCalendarDetailScreen() {
           } catch (e) {
             Alert.alert(
               "Erro",
-              e instanceof Error ? e.message : "Não foi possível remover o compromisso."
+              e instanceof Error ? e.message : "Não foi possível apagar o compromisso."
             );
           } finally {
             setBusyId(null);
@@ -274,7 +274,7 @@ export default function SharedCalendarDetailScreen() {
   return (
     <ScreenShell
       title={calName}
-      subtitle={isOwner ? "Marcar e remover compromissos manualmente" : "Remover compromissos com o botão"}
+      subtitle={isOwner ? "Marcar e apagar compromissos manualmente" : "Apagar compromissos com o botão"}
     >
       <ScrollView
         contentContainerStyle={styles.scroll}
@@ -389,10 +389,10 @@ export default function SharedCalendarDetailScreen() {
                         styles.eventDismissBtn,
                         { borderColor: colors.border, opacity: busyId === eid ? 0.5 : 1 },
                       ]}
-                      accessibilityLabel="Remover compromisso"
+                      accessibilityLabel="Apagar compromisso"
                     >
                       <Text style={[styles.eventDismissText, { color: colors.danger }]}>
-                        Remover
+                        Apagar
                       </Text>
                     </Pressable>
                   </View>

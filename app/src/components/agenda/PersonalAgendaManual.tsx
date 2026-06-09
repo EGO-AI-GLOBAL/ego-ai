@@ -109,10 +109,10 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
   const onDismissReminder = (reminderId: string) => {
     const item = reminders.find((r) => String(r.id) === reminderId);
     const title = (item?.title || "Compromisso").trim();
-    Alert.alert("Remover", `Remover «${title}» da agenda?`, [
+    Alert.alert("Apagar", `Apagar «${title}» da agenda?`, [
       { text: "Cancelar", style: "cancel" },
       {
-        text: "Remover",
+        text: "Apagar",
         style: "destructive",
         onPress: async () => {
           try {
@@ -121,7 +121,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
           } catch (e) {
             Alert.alert(
               "Erro",
-              e instanceof Error ? e.message : "Não foi possível remover o compromisso."
+              e instanceof Error ? e.message : "Não foi possível apagar o compromisso."
             );
           }
         },
@@ -132,10 +132,10 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
   const onDeleteHabit = (agendaId: string) => {
     const item = habits.find((a) => String(a.id) === agendaId);
     const title = (item?.titulo || "Hábito").trim();
-    Alert.alert("Remover", `Remover «${title}» da agenda?`, [
+    Alert.alert("Apagar", `Apagar «${title}» da agenda?`, [
       { text: "Cancelar", style: "cancel" },
       {
-        text: "Remover",
+        text: "Apagar",
         style: "destructive",
         onPress: async () => {
           try {
@@ -144,7 +144,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
           } catch (e) {
             Alert.alert(
               "Erro",
-              e instanceof Error ? e.message : "Não foi possível remover o hábito."
+              e instanceof Error ? e.message : "Não foi possível apagar o hábito."
             );
           }
         },

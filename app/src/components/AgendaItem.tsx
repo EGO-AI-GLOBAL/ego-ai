@@ -31,9 +31,9 @@ export function AgendaItemRow({
         <Pressable
           onPress={() => onDelete(id)}
           style={[styles.delBtn, { borderColor: colors.border }]}
-          accessibilityLabel="Remover da agenda"
+          accessibilityLabel="Apagar da agenda"
         >
-          <Text style={[styles.delText, { color: colors.danger }]}>Remover</Text>
+          <Text style={[styles.delText, { color: colors.danger }]}>Apagar</Text>
         </Pressable>
       ) : null}
     </View>
