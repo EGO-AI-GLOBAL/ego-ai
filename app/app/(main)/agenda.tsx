@@ -38,7 +38,7 @@ export default function AgendaScreen() {
   const subtitle =
     tab === "personal"
       ? "Botões + para criar · Remover para apagar"
-      : "Criar agenda · + compromisso · convidar · apagar";
+      : "Criar agenda · + compromisso · convidar · Remover";
 
   return (
     <ScreenShell title="Agenda" subtitle={subtitle}>

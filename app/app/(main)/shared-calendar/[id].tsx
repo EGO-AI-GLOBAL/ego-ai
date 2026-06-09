@@ -15,6 +15,7 @@ import {
   addSharedCalendarMember,
   createSharedCalendarEvent,
   deleteSharedCalendar,
+  dismissSharedCalendarEvent,
   fetchSharedCalendar,
   localDateTimeToIso,
   removeSharedCalendarMember,
@@ -67,13 +68,13 @@ function ChatHint({ colors, onPress }: { colors: AppColors; onPress: () => void 
         },
       ]}
     >
-      <Text style={[styles.chatHintTitle, { color: colors.primary }]}>
-        Marcar, criar ou convidar
+      <Text style={[styles.chatHintTitle, { color: colors.text }]}>
+        Manual ou com avatar
       </Text>
       <Text style={[styles.chatHintBody, { color: colors.textMuted }]}>
-        Peça no chat: marcar compromisso, convidar e-mail ou criar agenda Família.
+        Use os formulários abaixo para marcar e convidar. O chat com o avatar é opcional.
       </Text>
-      <Text style={[styles.chatHintLink, { color: colors.primary }]}>Ir para o chat →</Text>
+      <Text style={[styles.chatHintLink, { color: colors.primary }]}>Opcional: abrir o chat →</Text>
     </Pressable>
   );
 }
@@ -214,6 +215,33 @@ export default function SharedCalendarDetailScreen() {
     );
   };
 
+  const onDismissEvent = (eventId: string) => {
+    const item = events.find((ev) => String(ev.id) === eventId);
+    const title = (item?.title || "Compromisso").trim();
+    Alert.alert("Remover", `Remover «${title}» desta agenda?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Remover",
+        style: "destructive",
+        onPress: async () => {
+          setBusyId(eventId);
+          try {
+            await dismissSharedCalendarEvent(calendarId, eventId);
+            await load();
+            await refreshDashboard({ skipNotifications: true });
+          } catch (e) {
+            Alert.alert(
+              "Erro",
+              e instanceof Error ? e.message : "Não foi possível remover o compromisso."
+            );
+          } finally {
+            setBusyId(null);
+          }
+        },
+      },
+    ]);
+  };
+
   const onDeleteCalendar = () => {
     Alert.alert(
       "Apagar agenda",
@@ -244,7 +272,10 @@ export default function SharedCalendarDetailScreen() {
   };
 
   return (
-    <ScreenShell title={calName} subtitle={isOwner ? "Consulta · você criou" : "Consulta · só leitura"}>
+    <ScreenShell
+      title={calName}
+      subtitle={isOwner ? "Marcar e remover compromissos manualmente" : "Remover compromissos com o botão"}
+    >
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
@@ -336,17 +367,37 @@ export default function SharedCalendarDetailScreen() {
                 Nenhuma reunião marcada. Peça no chat para marcar um compromisso.
               </Text>
             ) : (
-              events.map((ev) => (
-                <View
-                  key={String(ev.id)}
-                  style={[styles.eventRow, { borderBottomColor: colors.border }]}
-                >
-                  <Text style={[styles.eventTitle, { color: colors.text }]}>{ev.title || "Reunião"}</Text>
-                  <Text style={[styles.eventWhen, { color: colors.textMuted }]}>
-                    {formatWhen(ev.scheduled_at)}
-                  </Text>
-                </View>
-              ))
+              events.map((ev) => {
+                const eid = String(ev.id);
+                return (
+                  <View
+                    key={eid}
+                    style={[styles.eventRow, { borderBottomColor: colors.border }]}
+                  >
+                    <View style={styles.eventBody}>
+                      <Text style={[styles.eventTitle, { color: colors.text }]}>
+                        {ev.title || "Reunião"}
+                      </Text>
+                      <Text style={[styles.eventWhen, { color: colors.textMuted }]}>
+                        {formatWhen(ev.scheduled_at)}
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={() => onDismissEvent(eid)}
+                      disabled={busyId === eid}
+                      style={[
+                        styles.eventDismissBtn,
+                        { borderColor: colors.border, opacity: busyId === eid ? 0.5 : 1 },
+                      ]}
+                      accessibilityLabel="Remover compromisso"
+                    >
+                      <Text style={[styles.eventDismissText, { color: colors.danger }]}>
+                        Remover
+                      </Text>
+                    </Pressable>
+                  </View>
+                );
+              })
             )}
 
             <Text style={[styles.section, { color: colors.textMuted }]}>Gerenciar membros</Text>
@@ -511,10 +562,24 @@ const styles = StyleSheet.create({
   memberEmail: { fontSize: 15, fontWeight: "600" },
   memberEmailSub: { fontSize: 12, marginTop: 2 },
   memberRole: { fontSize: 12, marginTop: 2 },
-  eventRow: { paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  eventRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  eventBody: { flex: 1 },
   eventTitle: { fontSize: 16, fontWeight: "600" },
   eventCalendar: { fontSize: 12, fontWeight: "600", marginTop: 4 },
   eventWhen: { fontSize: 13, marginTop: 4 },
+  eventDismissBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginLeft: 8,
+  },
+  eventDismissText: { fontSize: 12, fontWeight: "700" },
   error: { fontSize: 14, marginTop: 12 },
   deleteBtn: {
     marginTop: 28,

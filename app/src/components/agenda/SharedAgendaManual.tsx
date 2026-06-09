@@ -171,10 +171,10 @@ export function SharedAgendaManual({
     const item = selectedEvents.find((ev) => String(ev.id) === eventId);
     const title = (item?.title || "Compromisso").trim();
     const calendarId = String(selectedCalendar.id);
-    Alert.alert("Apagar", `Apagar «${title}» desta agenda?`, [
+    Alert.alert("Remover", `Remover «${title}» desta agenda?`, [
       { text: "Cancelar", style: "cancel" },
       {
-        text: "Apagar",
+        text: "Remover",
         style: "destructive",
         onPress: async () => {
           setActionBusy(eventId);
@@ -184,7 +184,7 @@ export function SharedAgendaManual({
           } catch (e) {
             Alert.alert(
               "Erro",
-              e instanceof Error ? e.message : "Não foi possível apagar o compromisso."
+              e instanceof Error ? e.message : "Não foi possível remover o compromisso."
             );
           } finally {
             setActionBusy(null);
