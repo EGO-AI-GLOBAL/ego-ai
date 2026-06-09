@@ -296,6 +296,18 @@ def require_auth(f: Callable) -> Callable:
 # --- Rotas públicas ---
 
 
+@app.post("/stripe/webhook")
+def stripe_webhook_route():
+    """Stripe → ativa plano + comissão indicação (mesmo serviço ego-ai)."""
+    sig = request.headers.get("Stripe-Signature", "").strip()
+    from stripe_webhook import handle_stripe_webhook_payload
+
+    body, status = handle_stripe_webhook_payload(request.get_data(), sig or None)
+    if status >= 400:
+        return _json_error(str(body.get("error") or "Webhook Stripe falhou."), status)
+    return _json_ok(body, status)
+
+
 @app.get("/api/health")
 @app.get("/api/v1/health")
 def health():
@@ -304,7 +316,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-01-referrals",
+        "api_build": "2026-06-02-stripe-webhook",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),

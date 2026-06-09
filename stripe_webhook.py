@@ -119,26 +119,35 @@ def health() -> dict:
     return {"ok": True}
 
 
-@app.post("/stripe/webhook")
-async def stripe_webhook(
-    request: Request,
-    stripe_signature: str | None = Header(default=None, alias="Stripe-Signature"),
-) -> dict:
+def handle_stripe_webhook_payload(
+    payload: bytes, stripe_signature: str | None
+) -> tuple[dict, int]:
+    """Processa evento Stripe (Flask + FastAPI). Retorna (corpo JSON, HTTP status)."""
     if not stripe_signature:
-        raise HTTPException(status_code=400, detail="Header Stripe-Signature ausente.")
+        return {"ok": False, "error": "Header Stripe-Signature ausente."}, 400
 
     webhook_secret = os.getenv("STRIPE_WEBHOOK_SECRET", "").strip()
     if not webhook_secret:
-        raise HTTPException(status_code=500, detail="STRIPE_WEBHOOK_SECRET não configurado.")
+        return {"ok": False, "error": "STRIPE_WEBHOOK_SECRET não configurado."}, 500
 
-    payload = await request.body()
     try:
         event = stripe.Webhook.construct_event(payload, stripe_signature, webhook_secret)
     except stripe.error.SignatureVerificationError:
-        raise HTTPException(status_code=400, detail="Assinatura inválida.")
+        return {"ok": False, "error": "Assinatura inválida."}, 400
     except ValueError:
-        raise HTTPException(status_code=400, detail="Payload inválido.")
+        return {"ok": False, "error": "Payload inválido."}, 400
 
+    try:
+        body = _process_stripe_event(event)
+    except HTTPException as exc:
+        detail = exc.detail if isinstance(exc.detail, str) else str(exc.detail)
+        return {"ok": False, "error": detail}, exc.status_code
+    except Exception as exc:  # noqa: BLE001
+        return {"ok": False, "error": str(exc)[:200]}, 500
+    return body, 200
+
+
+def _process_stripe_event(event: dict) -> dict:
     event_type = event.get("type")
 
     if event_type in ("invoice.paid", "charge.refunded"):
@@ -282,3 +291,15 @@ async def stripe_webhook(
     except Exception as exc:  # noqa: BLE001
         out["finance"] = {"recorded": False, "error": str(exc)[:200]}
     return out
+
+
+@app.post("/stripe/webhook")
+async def stripe_webhook(
+    request: Request,
+    stripe_signature: str | None = Header(default=None, alias="Stripe-Signature"),
+) -> dict:
+    payload = await request.body()
+    body, status = handle_stripe_webhook_payload(payload, stripe_signature)
+    if status >= 400:
+        raise HTTPException(status_code=status, detail=body.get("error") or body)
+    return body
