@@ -361,10 +361,11 @@ def process_chat_message(
         if not ok_txt:
             return None, _daily_limit_message(supabase, user_id)
 
+    # Não bloquear mensagem de voz/texto por limite TTS — o áudio da resposta é opcional.
+    speak_reply_effective = False
     if speak_reply:
         ok_tts, _tts_used = db.daily_tts_ok(supabase, user_id, limits, prof)
-        if not ok_tts:
-            return None, _daily_limit_message(supabase, user_id)
+        speak_reply_effective = ok_tts
 
     casual = _is_casual_chat_message(user_display) and not audio_bytes
     client_hist = _history_from_client(client_history)
@@ -968,7 +969,7 @@ def process_chat_message(
         "yes",
         "sim",
     )
-    if inline_tts and speak_reply and reply_clean.strip():
+    if inline_tts and speak_reply_effective and reply_clean.strip():
         from ego_api import tts
         from ego_api.persona import resolve_tts_voice
 

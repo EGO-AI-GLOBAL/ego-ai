@@ -11,6 +11,7 @@ import {
   getSession,
   login as apiLogin,
   logoutApi,
+  refreshSessionToken,
   setSession,
   setOnAuthFailure,
   setSessionPersistHandler,
@@ -78,6 +79,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (raw) {
           const parsed = JSON.parse(raw) as AuthSession;
           if (parsed?.access_token) {
+            const expiresAt = parsed.expires_at;
+            const expired =
+              typeof expiresAt === "number" &&
+              expiresAt > 0 &&
+              expiresAt * 1000 < Date.now() + 120_000;
+            if (expired && parsed.refresh_token?.trim()) {
+              try {
+                const next = await refreshSessionToken(
+                  parsed.refresh_token,
+                  parsed
+                );
+                await persist(next);
+                void preparePlayIntegrity();
+                return;
+              } catch {
+                /* usa sessão guardada; interceptor tenta refresh depois */
+              }
+            }
             await persist(parsed);
             void preparePlayIntegrity();
           }

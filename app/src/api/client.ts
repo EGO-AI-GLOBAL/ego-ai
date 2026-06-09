@@ -1,4 +1,6 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
+import * as FileSystem from "expo-file-system";
+import { Platform } from "react-native";
 import { API_V1 } from "@/constants/config";
 import { normalizeAccessInfo } from "@/constants/planLimits";
 import { resolveSpeechVoiceId } from "@/constants/personas";
@@ -128,7 +130,7 @@ api.interceptors.response.use(
     ) {
       original._retry = true;
       try {
-        const next = await refreshSessionToken(session.refresh_token);
+        const next = await refreshSessionToken(session.refresh_token, session);
         setSession(next);
         if (onSessionPersist) {
           await onSessionPersist(next);
@@ -328,7 +330,8 @@ export async function signup(
 }
 
 export async function refreshSessionToken(
-  refresh_token: string
+  refresh_token: string,
+  prior?: AuthSession | null
 ): Promise<AuthSession> {
   const { data } = await axios.post(
     `${apiBase}auth/refresh`,
@@ -336,10 +339,13 @@ export async function refreshSessionToken(
     { timeout: 20000, headers: { "Content-Type": "application/json" } }
   );
   const body = unwrap<{ session: AuthSession }>(data);
-  if (!body.session?.access_token) {
-    throw new Error("Não foi possível renovar a sessão.");
-  }
-  return body.session;
+  const session = normalizeSession(body.session ?? body);
+  return {
+    ...session,
+    refresh_token: session.refresh_token || prior?.refresh_token || refresh_token,
+    user: session.user?.id ? session.user : prior?.user ?? session.user,
+    expires_at: session.expires_at ?? prior?.expires_at ?? null,
+  };
 }
 
 export async function requestPasswordReset(email: string): Promise<string> {
@@ -406,10 +412,141 @@ export async function sendChatMessage(
   return body;
 }
 
+function normalizeVoiceMime(mime?: string): string {
+  const m = (mime || "audio/mp4").toLowerCase();
+  if (m.includes("webm")) return "audio/webm";
+  if (m.includes("mp4") || m.includes("m4a")) return "audio/mp4";
+  if (m.includes("wav")) return "audio/wav";
+  return mime || "audio/mp4";
+}
+
+function voiceUploadAuthHeaders(): Record<string, string> {
+  const session = getSession();
+  const token = session?.access_token?.trim();
+  if (!token) {
+    throw new Error("Sessão expirada. Saia e entre novamente.");
+  }
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${token}`,
+  };
+  if (session?.refresh_token) {
+    headers["X-Refresh-Token"] = session.refresh_token;
+  }
+  return headers;
+}
+
+/** Android/iOS: upload nativo (axios FormData falha com frequência em produção). */
+export async function sendChatVoiceFileNative(opts: {
+  uri: string;
+  audioMime?: string;
+  speak?: boolean;
+  history?: ChatHistoryPayload;
+}): Promise<SendChatResult> {
+  const uri = (opts.uri || "").trim();
+  if (!uri) {
+    throw new Error("Gravação vazia.");
+  }
+  const audio_mime = normalizeVoiceMime(opts.audioMime);
+  const base = API_V1.endsWith("/") ? API_V1 : `${API_V1}/`;
+  const url = `${base}chat/messages`;
+  const res = await FileSystem.uploadAsync(url, uri, {
+    httpMethod: "POST",
+    uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+    fieldName: "audio",
+    mimeType: audio_mime,
+    headers: voiceUploadAuthHeaders(),
+    parameters: {
+      message: "",
+      audio_mime,
+      speak: opts.speak !== false ? "true" : "false",
+      history: JSON.stringify(opts.history ?? []),
+    },
+  });
+  if (res.status < 200 || res.status >= 300) {
+    let detail = `Erro ${res.status} ao enviar áudio.`;
+    try {
+      const parsed = JSON.parse(res.body) as { error?: string };
+      if (parsed.error) detail = parsed.error;
+    } catch {
+      /* ignore */
+    }
+    throw new ApiClientError(detail, res.status);
+  }
+  try {
+    const body = unwrap<SendChatResult>(JSON.parse(res.body));
+    if (!body.reply) {
+      throw new Error("A API não devolveu resposta do assistente.");
+    }
+    return body;
+  } catch (e) {
+    if (e instanceof ApiClientError) throw e;
+    throw new Error("Resposta inválida do servidor ao processar voz.");
+  }
+}
+
+/** Envio de voz nativo (Android/iOS) — multipart via axios (fallback). */
+export async function sendChatVoiceFile(opts: {
+  uri: string;
+  audioMime?: string;
+  speak?: boolean;
+  history?: ChatHistoryPayload;
+}): Promise<SendChatResult> {
+  const uri = (opts.uri || "").trim();
+  if (!uri) {
+    throw new Error("Gravação vazia.");
+  }
+  const audio_mime = normalizeVoiceMime(opts.audioMime);
+  const ext = audio_mime.includes("webm") ? "webm" : audio_mime.includes("wav") ? "wav" : "m4a";
+  const form = new FormData();
+  form.append(
+    "audio",
+    {
+      uri,
+      name: `voice.${ext}`,
+      type: audio_mime,
+    } as unknown as Blob
+  );
+  form.append("message", "");
+  form.append("audio_mime", audio_mime);
+  form.append("speak", opts.speak !== false ? "true" : "false");
+  form.append("history", JSON.stringify(opts.history ?? []));
+
+  const { data } = await api.post("chat/messages", form, {
+    timeout: TIMEOUT_CHAT_MS,
+  });
+  const body = unwrap<SendChatResult>(data);
+  if (!body.reply) {
+    throw new Error("A API não devolveu resposta do assistente.");
+  }
+  return body;
+}
+
+/** Telefone: upload nativo primeiro; browser usa blob/axios. */
+export async function sendChatVoiceFromUri(opts: {
+  uri: string;
+  audioMime?: string;
+  speak?: boolean;
+  history?: ChatHistoryPayload;
+}): Promise<SendChatResult> {
+  if (Platform.OS !== "web") {
+    try {
+      return await sendChatVoiceFileNative(opts);
+    } catch (nativeErr) {
+      try {
+        return await sendChatVoiceFile(opts);
+      } catch {
+        throw nativeErr;
+      }
+    }
+  }
+  return sendChatVoiceFile(opts);
+}
+
 /** Envio de voz no browser (Safari) — ficheiro binário, sem base64 no JSON. */
 export async function sendChatVoiceBlob(opts: {
   blob: Blob;
   speak?: boolean;
+  history?: ChatHistoryPayload;
 }): Promise<SendChatResult> {
   if (!opts.blob || opts.blob.size < 256) {
     throw new Error("Gravação demasiado curta. Fale pelo menos 1 segundo.");
@@ -421,6 +558,7 @@ export async function sendChatVoiceBlob(opts: {
   form.append("message", "");
   form.append("audio_mime", mime.includes("mp4") || mime.includes("m4a") ? "audio/mp4" : mime);
   form.append("speak", opts.speak !== false ? "true" : "false");
+  form.append("history", JSON.stringify(opts.history ?? []));
 
   const { data } = await api.post("chat/messages", form, {
     timeout: TIMEOUT_CHAT_MS,
@@ -436,6 +574,7 @@ export async function sendChatVoiceMessage(opts: {
   audioBase64: string;
   audioMime?: string;
   speak?: boolean;
+  history?: ChatHistoryPayload;
 }): Promise<SendChatResult> {
   const audioBase64 = (opts.audioBase64 || "").trim();
   if (!audioBase64 || audioBase64.length < 400) {
@@ -457,6 +596,7 @@ export async function sendChatVoiceMessage(opts: {
       audio_base64: audioBase64,
       audio_mime,
       speak: opts.speak !== false,
+      history: opts.history ?? [],
     },
     { timeout: TIMEOUT_CHAT_MS }
   );

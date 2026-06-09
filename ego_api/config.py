@@ -225,7 +225,7 @@ def beta_unlimited() -> bool:
 
 def latest_app_version() -> str:
     """Versão mais recente na Play — app antigo mostra aviso de atualização."""
-    return read_env("EGO_LATEST_APP_VERSION", "1.0.11")
+    return read_env("EGO_LATEST_APP_VERSION", "1.0.13")
 
 
 def play_store_update_url() -> str:

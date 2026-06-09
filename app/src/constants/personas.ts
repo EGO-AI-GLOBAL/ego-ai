@@ -44,7 +44,7 @@ export const PERSONA_PRESETS: {
 
     label: "Feminina",
 
-    description: "Luna · voz Ana",
+    description: "Luna · voz Francisca",
 
     avatar_id: "f1",
 
@@ -60,7 +60,7 @@ export const PERSONA_PRESETS: {
 
     label: "Masculino",
 
-    description: "Leo · voz Bruno",
+    description: "Leo · voz António",
 
     avatar_id: "m1",
 

@@ -48,7 +48,7 @@ export function PasswordField({
         style={[
           styles.field,
           {
-            backgroundColor: colors.bgElevated,
+            backgroundColor: colors.bgCard,
             borderColor: colors.border,
           },
         ]}
@@ -68,6 +68,8 @@ export function PasswordField({
           onSubmitEditing={onSubmitEditing}
           returnKeyType={returnKeyType}
           editable={editable}
+          selectionColor={colors.primary}
+          underlineColorAndroid="transparent"
         />
         <Pressable
           onPress={() => setVisible((v) => !v)}
@@ -100,9 +102,11 @@ const styles = StyleSheet.create({
   field: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: 12,
-    borderWidth: 1,
+    borderRadius: 24,
+    borderWidth: StyleSheet.hairlineWidth,
     minHeight: 48,
+    paddingLeft: 4,
+    ...(Platform.OS === "web" ? ({ touchAction: "manipulation" } as object) : {}),
   },
   input: {
     flex: 1,

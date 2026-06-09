@@ -623,7 +623,12 @@ export default function ChatScreen() {
         "Se for contrato ou relatório, destaque datas, valores e obrigações relevantes.";
 
   const onMicPressIn = async () => {
-    if (sending || !session || micActive || micBusyRef.current) return;
+    if (sending || micBusyRef.current) return;
+    if (!session) {
+      setChatError("Sessão expirada. Faça login de novo para usar o microfone.");
+      return;
+    }
+    if (micActive) return;
     setChatError(null);
     setChatNotice(null);
     try {
@@ -633,7 +638,7 @@ export default function ChatScreen() {
       } else if (voice.webUsesSpeechToText) {
         setChatNotice("A ouvir… toque ↑ para enviar.");
       } else if (voice.webMicMode === "recorder") {
-        setChatNotice("A gravar… toque no microfone para enviar.");
+        setChatNotice("A gravar… toque na seta ↑ para enviar.");
       }
     } catch (e) {
       setChatError(e instanceof Error ? e.message : "Microfone indisponível.");
@@ -643,8 +648,13 @@ export default function ChatScreen() {
   const onMicPressOut = async () => {
     if (!micActive || micBusyRef.current) return;
     if (!voice.isRecording) {
-      setChatNotice("A preparar microfone… aguarde um instante.");
-      return;
+      const ready = await voice.waitForRecording(2500);
+      if (!ready) {
+        await voice.cancelRecording();
+        setChatNotice(null);
+        setChatError("Microfone não iniciou. Toque no microfone, fale 2s e toque na seta ↑.");
+        return;
+      }
     }
     micBusyRef.current = true;
     voice.unlockWebPlayback();
@@ -656,7 +666,8 @@ export default function ChatScreen() {
       { role: "assistant", content: "…" },
     ]);
     try {
-      const result = await voice.stopRecordingAndSend(autoPlayVoice, historyForApi(), {
+      // speak=false no upload: TTS da resposta fica no cliente (playVoice / /tts).
+      const result = await voice.stopRecordingAndSend(false, historyForApi(), {
         onDelta: (_chunk, full) => {
           setChatNotice("A responder…");
           setPendingChat([
@@ -708,7 +719,11 @@ export default function ChatScreen() {
   };
 
   const onMicPress = async () => {
-    if (sending || !session || micBusyRef.current) return;
+    if (sending || micBusyRef.current) return;
+    if (!session) {
+      setChatError("Sessão expirada. Faça login de novo para usar o microfone.");
+      return;
+    }
     if (voice.isPhoneCall) {
       setChatNotice("Use «Encerrar chamada» para sair do modo telefone.");
       return;
@@ -802,6 +817,10 @@ export default function ChatScreen() {
   );
 
   const onSendText = async () => {
+    if (voice.isRecording || voice.micSessionActive) {
+      await onMicPressOut();
+      return;
+    }
     const typed = chatInput.trim();
     const text = typed || (pdfCharCount > 0 ? pdfSummaryPrompt : "");
     if (!text) return;
@@ -1074,8 +1093,9 @@ export default function ChatScreen() {
             onSend={onSendText}
             placeholder="Mensagem…"
             sending={sending}
-            isRecording={micActive}
-            voiceReady={voice.isRecording && !voice.isPhoneCall}
+            isRecording={voice.isRecording}
+            micSessionActive={voice.micSessionActive}
+            voiceReady={voice.isRecording}
             onMicPress={onMicPress}
             onPdfPress={() => onDocPress()}
             pdfLoading={pdfLoading}

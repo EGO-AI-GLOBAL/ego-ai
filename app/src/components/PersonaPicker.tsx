@@ -315,7 +315,7 @@ export function PersonaPicker({
                           {entry.shortName}
                         </Text>
                         <Text style={[styles.catalogMeta, { color: colors.textMuted }]} numberOfLines={1}>
-                          {AVATAR_COLLECTION_LABELS[entry.collection]}
+                          {entry.voiceLabel} · {AVATAR_COLLECTION_LABELS[entry.collection]}
                         </Text>
                         {loading ? (
                           <ActivityIndicator color={colors.primary} size="small" />

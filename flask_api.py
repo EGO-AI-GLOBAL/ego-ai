@@ -14,6 +14,7 @@ Ou:
 
 from __future__ import annotations
 
+import json
 import os
 import time
 from functools import wraps
@@ -673,6 +674,12 @@ def chat_send():
             "yes",
         )
         audio_mime = str(request.form.get("audio_mime") or "audio/mp4")
+        raw_hist = request.form.get("history")
+        if raw_hist:
+            try:
+                client_history = json.loads(raw_hist)
+            except (json.JSONDecodeError, TypeError):
+                client_history = None
         upload = request.files.get("audio")
         if upload:
             audio_bytes = upload.read()

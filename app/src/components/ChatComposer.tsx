@@ -19,6 +19,7 @@ type Props = {
   onSend: () => void;
   sending: boolean;
   isRecording?: boolean;
+  micSessionActive?: boolean;
   onMicPressIn?: () => void;
   onMicPressOut?: () => void;
   onMicPress?: () => void;
@@ -87,6 +88,7 @@ export function ChatComposer({
   onSend,
   sending,
   isRecording,
+  micSessionActive,
   onMicPress,
   voiceReady = true,
   error,
@@ -103,13 +105,14 @@ export function ChatComposer({
   const isWeb = Platform.OS === "web";
   const bottomPad = Math.max(insets.bottom, isWeb ? 12 : 8);
   const hasText = value.trim().length > 0;
-  const showSend = hasText || Boolean(isRecording);
+  const voiceUiActive = Boolean(isRecording || micSessionActive);
+  const showSend = hasText || voiceUiActive;
   const showMic = !showSend && !sending;
-  const sendDisabled =
-    sending || (isRecording && !voiceReady) || (!isRecording && !hasText);
+  /** Durante gravação: ↑ sempre activo (voiceReady só informativo). */
+  const sendDisabled = sending || (!voiceUiActive && !hasText);
 
   const onMicTap = () => {
-    if (sending || isRecording) return;
+    if (sending) return;
     void onMicPress?.();
   };
 
@@ -161,13 +164,13 @@ export function ChatComposer({
           {
             flex: 1,
             backgroundColor: colors.bgCard,
-            borderColor: isRecording ? colors.primary : colors.border,
+            borderColor: voiceUiActive ? colors.primary : colors.border,
           },
         ]}
       >
-        {isRecording ? (
+        {voiceUiActive ? (
           <View style={styles.waveSlot}>
-            <VoiceWaveBars color={colors.primary} />
+            {isRecording ? <VoiceWaveBars color={colors.primary} /> : null}
           </View>
         ) : null}
 
@@ -176,15 +179,15 @@ export function ChatComposer({
             styles.input,
             {
               color: colors.text,
-              paddingRight: isRecording ? 52 : 48,
+              paddingRight: voiceUiActive ? 52 : 48,
             },
           ]}
-          placeholder={isRecording ? "A ouvir…" : placeholder}
+          placeholder={voiceUiActive ? "A ouvir…" : placeholder}
           placeholderTextColor={colors.textMuted}
           value={value}
           onChangeText={onChangeText}
           onFocus={onInputFocus}
-          editable={!sending && !isRecording}
+          editable={!sending && !voiceUiActive}
           multiline
           onSubmitEditing={() => {
             if (!sendDisabled) onSend();
@@ -208,7 +211,7 @@ export function ChatComposer({
               disabled={sendDisabled}
               accessibilityRole="button"
               accessibilityLabel={
-                isRecording ? "Enviar mensagem de voz" : "Enviar mensagem"
+                voiceUiActive ? "Enviar mensagem de voz" : "Enviar mensagem"
               }
             >
               <Ionicons name="arrow-up" size={22} color="#fff" />
@@ -232,14 +235,14 @@ export function ChatComposer({
       </View>
       </View>
 
-      {isRecording ? (
+      {voiceUiActive ? (
         <Text style={[styles.recordingHint, { color: colors.primary }]}>
           {voiceReady
             ? "A gravar… toque na seta ↑ para enviar"
-            : "A preparar microfone…"}
+            : "A preparar microfone… toque na seta ↑ quando estiver pronto"}
         </Text>
       ) : null}
-      {notice && !isRecording ? (
+      {notice && !voiceUiActive ? (
         <Text style={[styles.notice, { color: colors.success }]}>{notice}</Text>
       ) : null}
       {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}

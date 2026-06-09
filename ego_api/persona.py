@@ -25,14 +25,14 @@ PERSONA_PRESETS: list[dict] = [
     {
         "id": "female",
         "label": "Assistente feminina",
-        "description": "Luna · voz Ana (PT-BR)",
+        "description": "Luna · voz Francisca (PT-BR)",
         "avatar_id": FEMALE_AVATAR_ID,
         "voice_id": FEMALE_VOICE_ID,
     },
     {
         "id": "male",
         "label": "Assistente masculino",
-        "description": "Leo · voz Bruno (PT-BR)",
+        "description": "Leo · voz António (PT-BR)",
         "avatar_id": MALE_AVATAR_ID,
         "voice_id": MALE_VOICE_ID,
     },
@@ -124,6 +124,12 @@ def apply_assistant_name_from_avatar(avatar_id: str | None) -> str:
     return name
 
 
+def _voice_label_for_catalog_entry(voice_id: str) -> str:
+    from ego_api.tts import EDGE_TTS_VOICE_LABELS
+
+    return EDGE_TTS_VOICE_LABELS.get((voice_id or "").strip().lower(), voice_id or "")
+
+
 def persona_options_payload() -> dict:
     return {
         "presets": PERSONA_PRESETS,
@@ -135,6 +141,7 @@ def persona_options_payload() -> dict:
                 "collection": a["collection"],
                 "min_plan": a["min_plan"],
                 "voice_id": a["voice_id"],
+                "voice_label": _voice_label_for_catalog_entry(a["voice_id"]),
             }
             for a in AVATAR_CATALOG
         ],

@@ -5,21 +5,24 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AuthTextInput } from "@/components/AuthTextInput";
 import { EgoLogo } from "@/components/EgoLogo";
 import { PasswordField } from "@/components/PasswordField";
 import { useAuth } from "@/context/AuthContext";
+import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useColors } from "@/theme/ThemeContext";
 import { validateEmail, validatePassword } from "@/utils/validation";
 
 export default function LoginScreen() {
   const colors = useColors();
   const { session, loading, signIn } = useAuth();
+  const { bottomInset } = useKeyboardHeight();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
@@ -52,10 +55,18 @@ export default function LoginScreen() {
     <SafeAreaView style={[styles.fill, { backgroundColor: colors.bg }]}>
       <KeyboardAvoidingView
         style={styles.fill}
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
       >
-        <View style={styles.inner}>
-          <EgoLogo width={300} style={styles.logoImage} />
+        <ScrollView
+          contentContainerStyle={[
+            styles.scroll,
+            bottomInset > 0 ? { paddingBottom: bottomInset + 16 } : null,
+          ]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <EgoLogo width={280} style={styles.logoImage} />
 
           <View
             style={[
@@ -63,22 +74,16 @@ export default function LoginScreen() {
               { backgroundColor: colors.bgCard, borderColor: colors.border },
             ]}
           >
-            <Text style={[styles.label, { color: colors.textMuted }]}>E-mail</Text>
-            <TextInput
-              style={[
-                styles.input,
-                {
-                  backgroundColor: colors.bgElevated,
-                  borderColor: colors.border,
-                  color: colors.text,
-                },
-              ]}
-              autoCapitalize="none"
-              keyboardType="email-address"
+            <AuthTextInput
+              label="E-mail"
               value={email}
               onChangeText={setEmail}
               placeholder="nome@exemplo.com"
-              placeholderTextColor={colors.textMuted}
+              keyboardType="email-address"
+              autoComplete="email"
+              textContentType="emailAddress"
+              returnKeyType="next"
+              editable={!busy}
             />
             <PasswordField
               label="Senha"
@@ -87,6 +92,8 @@ export default function LoginScreen() {
               kind="login"
               returnKeyType="done"
               onSubmitEditing={() => void onSubmit()}
+              editable={!busy}
+              containerStyle={styles.passwordWrap}
             />
             <Link href="/forgot-password" asChild>
               <Pressable style={styles.forgotWrap} hitSlop={8}>
@@ -95,9 +102,15 @@ export default function LoginScreen() {
                 </Text>
               </Pressable>
             </Link>
-            {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
+            {error ? (
+              <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
+            ) : null}
             <Pressable
-              style={[styles.btn, { backgroundColor: colors.primary }, busy && styles.btnDisabled]}
+              style={[
+                styles.btn,
+                { backgroundColor: colors.primary },
+                busy && styles.btnDisabled,
+              ]}
               onPress={onSubmit}
               disabled={busy}
             >
@@ -124,7 +137,7 @@ export default function LoginScreen() {
               </Text>
             </Pressable>
           </Link>
-        </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -132,20 +145,18 @@ export default function LoginScreen() {
 
 const styles = StyleSheet.create({
   fill: { flex: 1 },
-  inner: { flex: 1, justifyContent: "center", paddingHorizontal: 24 },
+  scroll: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
   logoImage: {
     alignSelf: "center",
-    marginBottom: 28,
+    marginBottom: 24,
   },
   form: { borderRadius: 20, padding: 20, borderWidth: 1 },
-  label: { fontSize: 12, marginBottom: 6, marginTop: 8 },
-  input: {
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 16,
-    borderWidth: 1,
-  },
+  passwordWrap: { marginTop: 4 },
   forgotWrap: { alignSelf: "flex-end", marginTop: 8 },
   forgot: { fontSize: 14, fontWeight: "600" },
   error: { marginTop: 12, fontSize: 14 },

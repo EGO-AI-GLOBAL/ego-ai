@@ -3,8 +3,13 @@ import * as FileSystem from "expo-file-system";
 import * as Speech from "expo-speech";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
-import { fetchTtsAudio, sendChatVoiceBlob, sendChatVoiceMessage } from "@/api/client";
-import type { SendChatResult } from "@/api/types";
+import {
+  fetchTtsAudio,
+  sendChatVoiceBlob,
+  sendChatVoiceFromUri,
+  sendChatVoiceMessage,
+} from "@/api/client";
+import type { ChatHistoryPayload, SendChatResult } from "@/api/types";
 import type { AudioPlaybackSpeed } from "@/constants/audioSpeed";
 import { resolveSpeechVoiceId } from "@/constants/personas";
 import { plainTextForSpeech } from "@/utils/speechText";
@@ -415,6 +420,7 @@ export function useVoiceChat() {
   const recordingRef = useRef<Audio.Recording | null>(null);
   const webRecorderRef = useRef<WebRecorderState | null>(null);
   const recordingStartedAtRef = useRef<number>(0);
+  const isRecordingRef = useRef(false);
   const soundRef = useRef<Audio.Sound | null>(null);
   const webAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioSpeedRef = useRef<AudioPlaybackSpeed>(1);
@@ -422,6 +428,19 @@ export function useVoiceChat() {
   useEffect(() => {
     audioSpeedRef.current = audioSpeed;
   }, [audioSpeed]);
+
+  useEffect(() => {
+    isRecordingRef.current = isRecording;
+  }, [isRecording]);
+
+  const waitForRecording = useCallback(async (timeoutMs = 2500): Promise<boolean> => {
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+      if (isRecordingRef.current) return true;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    return isRecordingRef.current;
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -613,7 +632,7 @@ export function useVoiceChat() {
     [playBase64Audio]
   );
 
-  const startRecording = useCallback(async () => {
+  const startRecording = useCallback(async (_history?: ChatHistoryPayload) => {
     unlockWebAudioPlayback();
     await stopPlayback();
     if (isWeb) {
@@ -666,9 +685,19 @@ export function useVoiceChat() {
       allowsRecordingIOS: true,
       playsInSilentModeIOS: true,
     });
-    const { recording } = await Audio.Recording.createAsync(
-      Audio.RecordingOptionsPresets.HIGH_QUALITY
-    );
+    const recordingOptions: Audio.RecordingOptions = {
+      ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
+      android: {
+        extension: ".m4a",
+        outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+        audioEncoder: Audio.AndroidAudioEncoder.AAC,
+        sampleRate: 44100,
+        numberOfChannels: 1,
+        bitRate: 128000,
+      },
+      ios: Audio.RecordingOptionsPresets.HIGH_QUALITY.ios,
+    };
+    const { recording } = await Audio.Recording.createAsync(recordingOptions);
     recordingRef.current = recording;
     recordingStartedAtRef.current = Date.now();
     setMicSessionActive(true);
@@ -722,7 +751,12 @@ export function useVoiceChat() {
   }, []);
 
   const stopRecordingAndSend = useCallback(
-    async (speak = true): Promise<SendChatResult> => {
+    async (
+      speak = true,
+      history?: ChatHistoryPayload,
+      _opts?: { onDelta?: (chunk: string, full: string) => void }
+    ): Promise<SendChatResult> => {
+      const hist = history ?? [];
       if (isWeb) {
         if (!webRecorderRef.current) {
           throw new Error("Nenhuma gravação ativa. Toque no microfone para gravar.");
@@ -737,7 +771,7 @@ export function useVoiceChat() {
         recordingStartedAtRef.current = 0;
         // Multipart é mais fiável no browser (evita base64 corrompido no proxy Metro).
         try {
-          return await sendChatVoiceBlob({ blob, speak });
+          return await sendChatVoiceBlob({ blob, speak, history: hist });
         } catch (multipartErr) {
           const { base64 } = await blobToBase64(blob);
           try {
@@ -745,6 +779,7 @@ export function useVoiceChat() {
               audioBase64: base64,
               audioMime: mime,
               speak,
+              history: hist,
             });
           } catch {
             throw multipartErr;
@@ -756,22 +791,47 @@ export function useVoiceChat() {
       if (!rec) {
         throw new Error("Nenhuma gravação ativa.");
       }
+      const elapsed = Date.now() - recordingStartedAtRef.current;
+      if (elapsed < 900) {
+        throw new Error("Fale pelo menos 2 segundos antes de tocar em Enviar.");
+      }
       setIsRecording(false);
       recordingRef.current = null;
       setMicSessionActive(false);
       await safeStopNativeRecording(rec);
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
       const uri = rec.getURI();
       if (!uri) {
         throw new Error("Gravação vazia.");
       }
-      const audioBase64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      return sendChatVoiceMessage({
-        audioBase64,
-        audioMime: mimeFromUri(uri),
-        speak,
-      });
+      const audioMime = mimeFromUri(uri);
+      try {
+        return await sendChatVoiceFromUri({
+          uri,
+          audioMime,
+          speak,
+          history: hist,
+        });
+      } catch (multipartErr) {
+        const audioBase64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        try {
+          return await sendChatVoiceMessage({
+            audioBase64,
+            audioMime,
+            speak,
+            history: hist,
+          });
+        } catch {
+          throw multipartErr;
+        }
+      }
     },
     [finishWebRecording]
   );
@@ -814,7 +874,14 @@ export function useVoiceChat() {
     audioSpeed,
     setAudioSpeed,
     webMicMode: isWeb ? webMicMode() : ("native" as const),
+    isPhoneCall: false,
+    isPreparingAudio: false,
+    isAssistantThinking: false,
+    isUserSpeaking: false,
+    activeVoiceMode: "recorder" as const,
+    webUsesSpeechToText: false,
     startRecording,
+    waitForRecording,
     stopRecordingAndSend,
     cancelRecording,
     playReplyAudio,

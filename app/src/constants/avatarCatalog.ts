@@ -26,6 +26,8 @@ export type AvatarCatalogEntry = {
   targetRegions: string[];
   avatar_id: string;
   voice_id: string;
+  /** Nome da voz TTS (Edge) — única por avatar */
+  voiceLabel: string;
   minPlan: PlanTier;
   /** Prompt para geração de imagem / briefing para designer */
   visualBrief: string;
@@ -62,6 +64,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["BR", "LATAM"],
     avatar_id: "f1",
     voice_id: "vf1",
+    voiceLabel: "Francisca (BR)",
     minPlan: "essential",
     visualBrief:
       "Mulher brasileira latina, ~26 anos, pele cor mel, cabelos cacheados ruivos/cobreados médios, olhos castanhos calorosos, suéter terracota ou verde-sálvia, fundo minimalista sage green, expressão acolhedora e serena, estilo original EGO-AI (não copiar referências externas).",
@@ -77,6 +80,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["BR", "LATAM"],
     avatar_id: "m1",
     voice_id: "vm1",
+    voiceLabel: "António (BR)",
     minPlan: "essential",
     visualBrief:
       "Homem latino (colombiano-brasileiro), ~29 anos, pele caramelo, cabelo curto fade com topo ondulado, rosto limpo ou barba de um dia, camisa chambray azul clara de mangas arregaçadas, fundo desfocado de café/clara, sorriso confiante, visual original EGO-AI.",
@@ -94,6 +98,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["MENA", "EU", "NA"],
     avatar_id: "f2",
     voice_id: "vf2",
+    voiceLabel: "Salma (árabe)",
     minPlan: "connection",
     visualBrief:
       "Mulher árabe-mediterrânea (Líbano/Egito), ~33 anos, pele oliva, cabelo castanho escuro ondulado até os ombros, brincos dourados discretos, blazer azul-petróleo moderno, fundo creme com sombra geométrica suave, expressão serena e profissional, visual original EGO-AI.",
@@ -109,6 +114,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["JP", "KR", "SEA", "NA"],
     avatar_id: "f3",
     voice_id: "vf3",
+    voiceLabel: "Nanami (asiática)",
     minPlan: "connection",
     visualBrief:
       "Mulher leste-asiática, ~24 anos, pele clara, cabelo preto curto com franja, sorriso alegre, maquiagem leve, roupa jovem colorida, fundo branco limpo com detalhe colorido.",
@@ -124,6 +130,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["SEA", "NA", "EU"],
     avatar_id: "m2",
     voice_id: "vm2",
+    voiceLabel: "Brian (jovem)",
     minPlan: "connection",
     visualBrief:
       "Homem jovem miscigenado (traços sul-americano + asiático), ~25 anos, pele média, cabelo preto com leve textura, sorriso grande, moletom ou hoodie casual, fundo urbano desfocado.",
@@ -139,6 +146,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["MENA", "EU", "AF"],
     avatar_id: "m3",
     voice_id: "vm3",
+    voiceLabel: "Shakir (árabe)",
     minPlan: "connection",
     visualBrief:
       "Homem árabe, ~38 anos, pele morena escura, barba bem cuidada, olhos escuros, expressão calma e madura, camisa social azul marinho, fundo bege claro, iluminação natural lateral.",
@@ -156,6 +164,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["AF", "EU", "NA", "BR"],
     avatar_id: "f4",
     voice_id: "vf4",
+    voiceLabel: "Ava (calorosa)",
     minPlan: "premium",
     visualBrief:
       "Mulher negra africana, ~30 anos, pele negra profunda, cabelo natural afro volumoso, sorriso caloroso, brincos simples, blusa colorida com estampa sutil, fundo com luz quente dourada.",
@@ -171,6 +180,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["IN", "SEA", "EU", "NA"],
     avatar_id: "m4",
     voice_id: "vm4",
+    voiceLabel: "Madhur (índia)",
     minPlan: "premium",
     visualBrief:
       "Homem sul-asiático (indiano), ~35 anos, pele morena escura, cabelo escuro bem cortado, barba curta, expressão intelectual e amigável, camisa polo ou social, fundo neutro acinzentado.",
@@ -186,6 +196,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["Global"],
     avatar_id: "g1",
     voice_id: "vg1",
+    voiceLabel: "Seraphina (neutra)",
     minPlan: "premium",
     visualBrief:
       "Pessoa não-binária, ~27 anos, pele clara-média, cabelo curto platinado ou colorido nas pontas, estilo andrógino moderno, expressão aberta e acolhedora, camiseta com mensagem positiva sutil, fundo colorido pastel.",
@@ -203,6 +214,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["EU", "NA", "BR"],
     avatar_id: "f5",
     voice_id: "vf5",
+    voiceLabel: "Raquel (PT)",
     minPlan: "total",
     visualBrief:
       "Mulher europeia, ~40 anos, pele clara, cabelo loiro ou castanho claro liso, expressão madura e elegante, blazer neutro, acessório discreto, fundo escritório moderno desfocado.",
@@ -218,6 +230,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["BR", "AF", "EU", "NA"],
     avatar_id: "m5",
     voice_id: "vm5",
+    voiceLabel: "Hyunsu (urbano)",
     minPlan: "total",
     visualBrief:
       "Homem afro-brasileiro, ~28 anos, pele negra, cabelo dread curto ou crespo volumoso, sorriso confiante, moletom streetwear moderno, cordão discreto, fundo urbano vibrante.",
@@ -233,6 +246,7 @@ export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
     targetRegions: ["Global"],
     avatar_id: "g2",
     voice_id: "vg2",
+    voiceLabel: "Vivienne (neutra)",
     minPlan: "total",
     visualBrief:
       "Pessoa não-binária, ~32 anos, pele média-escura, cabelo preto ondulado médio, óculos modernos finos, expressão serena e reflexiva, camisa desabotoada em cima de camiseta branca, fundo biblioteca ou natureza desfocada.",
