@@ -218,7 +218,7 @@ export default function PlansScreen() {
         })}
         footnote={
           launchOffer?.tagline ||
-          `Oferta de lançamento: R$ 9,99/mês por ${launchIntroMonths} meses. Depois R$ 19,90/mês por ${launchIntroMonths} meses. Depois R$ 29,90/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`
+          `Oferta de lançamento: R$ 10,94/mês (inclui impostos e taxas) por ${launchIntroMonths} meses. Depois R$ 19,90/mês por ${launchIntroMonths} meses. Depois R$ 29,90/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`
         }
       />
     );
@@ -330,7 +330,7 @@ export default function PlansScreen() {
             {showLaunchCard && launchUrl ? (
               <>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  EGO Lançamento — R$ 9,99
+                  EGO Lançamento — R$ 10,94
                 </Text>
                 <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
                   Oferta promocional para todos (mesmo no plano Total ou Premium). Limites do
