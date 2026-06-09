@@ -1,238 +1,44 @@
-import { useFocusEffect, useRouter, type Href } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
-  Pressable,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
-  View,
 } from "react-native";
-import { addSharedCalendarMember, deleteSharedCalendar } from "@/api/client";
-import type { SharedCalendar, SharedCalendarEvent } from "@/api/types";
-import { AgendaItemRow } from "@/components/AgendaItem";
-import { ReminderItem } from "@/components/ReminderItem";
+import { AgendaTabBar, type AgendaTab } from "@/components/agenda/AgendaTabBar";
+import { ManualOrChatHint } from "@/components/agenda/ManualOrChatHint";
+import { PersonalAgendaManual } from "@/components/agenda/PersonalAgendaManual";
+import { SharedAgendaManual } from "@/components/agenda/SharedAgendaManual";
 import { ScreenShell } from "@/components/ScreenShell";
 import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
-import type { AppColors } from "@/theme/colors";
-import {
-  memberDisplayName,
-  membersCardLine,
-  membersGroupLine,
-} from "@/utils/sharedCalendarMembers";
-import { formatScheduledLocal } from "@/utils/scheduleTime";
 
-type AgendaTab = "personal" | "shared";
-
-/** Se não vir isto na aba compartilhada, o telefone não carregou o código novo (Expo). */
-const AGENDA_UI_VERSION = "jun/2025 · nomes + layout claro";
-
-function sortEvents(events: SharedCalendarEvent[]) {
-  return [...events].sort((a, b) => {
-    const ta = a.scheduled_at ? new Date(a.scheduled_at).getTime() : 0;
-    const tb = b.scheduled_at ? new Date(b.scheduled_at).getTime() : 0;
-    return ta - tb;
-  });
-}
-
-function SharedEventRow({
-  event,
-  colors,
-}: {
-  event: SharedCalendarEvent;
-  colors: AppColors;
-}) {
-  return (
-    <View style={[styles.eventRow, { borderBottomColor: colors.border }]}>
-      <View style={[styles.dotShared, { backgroundColor: colors.primary }]} />
-      <View style={styles.eventBody}>
-        <Text style={[styles.eventTitle, { color: colors.text }]} numberOfLines={2}>
-          {event.title || "Compromisso"}
-        </Text>
-        <Text style={[styles.eventWhen, { color: colors.textMuted }]}>
-          {formatScheduledLocal(event.scheduled_at)}
-        </Text>
-      </View>
-    </View>
-  );
-}
-
-function TabBar({
-  tab,
-  onChange,
-  colors,
-}: {
-  tab: AgendaTab;
-  onChange: (t: AgendaTab) => void;
-  colors: AppColors;
-}) {
-  return (
-    <View style={[styles.tabBar, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
-      {(
-        [
-          ["personal", "Agenda pessoal"],
-          ["shared", "Agenda compartilhada"],
-        ] as const
-      ).map(([id, label]) => {
-        const active = tab === id;
-        return (
-          <Pressable
-            key={id}
-            onPress={() => onChange(id)}
-            style={[
-              styles.tabBtn,
-              active && {
-                backgroundColor: colors.bgCard,
-                borderBottomWidth: 3,
-                borderBottomColor: colors.primary,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.tabBtnText,
-                { color: active ? colors.text : colors.textMuted, fontWeight: active ? "800" : "700" },
-              ]}
-              numberOfLines={1}
-            >
-              {label}
-            </Text>
-          </Pressable>
-        );
-      })}
-    </View>
-  );
-}
-
-function ChatHint({ colors, onPress }: { colors: AppColors; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [
-        styles.chatHint,
-        {
-          borderColor: colors.primary,
-          backgroundColor: colors.bgCard,
-          opacity: pressed ? 0.88 : 1,
-        },
-      ]}
-    >
-      <Text style={[styles.chatHintTitle, { color: colors.primary }]}>
-        Marcar, criar ou convidar
-      </Text>
-      <Text style={[styles.chatHintBody, { color: colors.textMuted }]}>
-        No chat: «marca reunião amanhã 15h» (Família por omissão), «convida email@exemplo.com
-        para a agenda Família». Até 10 listas · 100 pessoas por lista.
-      </Text>
-      <Text style={[styles.chatHintLink, { color: colors.primary }]}>Ir para o chat →</Text>
-    </Pressable>
-  );
-}
-
+/** Ecrã fino: só tabs + refresh. Lógica manual em components/agenda/ */
 export default function AgendaScreen() {
   const colors = useColors();
   const router = useRouter();
   const { session } = useAuth();
   const { data, loading, refreshing, error, refresh } = useDashboard();
   const [tab, setTab] = useState<AgendaTab>("personal");
-  const [selectedSharedId, setSelectedSharedId] = useState<string | null>(null);
-  const [inviteContact, setInviteContact] = useState("");
-  const [inviting, setInviting] = useState(false);
 
-  const sharedCalendars = data.shared_calendars ?? [];
-
-  const selectedCalendar = useMemo(() => {
-    if (!selectedSharedId) return null;
-    return sharedCalendars.find((c) => String(c.id) === selectedSharedId) ?? null;
-  }, [sharedCalendars, selectedSharedId]);
-
-  useEffect(() => {
-    if (sharedCalendars.length === 0) {
-      setSelectedSharedId(null);
-      return;
-    }
-    const ids = sharedCalendars.map((c) => String(c.id));
-    if (!selectedSharedId || !ids.includes(selectedSharedId)) {
-      setSelectedSharedId(String(sharedCalendars[0].id));
-    }
-  }, [sharedCalendars, selectedSharedId]);
-
-  const selectedEvents = useMemo(() => {
-    if (!selectedCalendar) return [];
-    return sortEvents((selectedCalendar.events ?? []).filter((ev) => !ev.dismissed));
-  }, [selectedCalendar]);
-
-  const onInviteToSelectedCalendar = async () => {
-    if (!selectedCalendar?.id) return;
-    const contact = inviteContact.trim();
-    if (!contact) {
-      Alert.alert("Convite", "Digite telefone ou e-mail.");
-      return;
-    }
-    setInviting(true);
-    try {
-      const member = await addSharedCalendarMember(String(selectedCalendar.id), contact);
-      setInviteContact("");
-      await refresh({ skipNotifications: true });
-      const pending = member.status === "pending";
-      const label = memberDisplayName(member);
-      Alert.alert(
-        pending ? "Convite enviado" : "Adicionado",
-        pending
-          ? `${label} verá a agenda quando entrar no EGO com o mesmo telefone ou e-mail.`
-          : `${label} já tem acesso à agenda.`
-      );
-    } catch (e) {
-      Alert.alert("Convite", e instanceof Error ? e.message : "Não foi possível convidar.");
-    } finally {
-      setInviting(false);
-    }
-  };
-
-  const onDeleteSelectedCalendar = () => {
-    if (!selectedCalendar?.id) return;
-    const cid = String(selectedCalendar.id);
-    const name = (selectedCalendar.name || "Agenda").trim();
-    Alert.alert(
-      "Apagar agenda",
-      `Apagar «${name}» para todos? Esta ação não pode ser desfeita.`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Apagar",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteSharedCalendar(cid);
-              await refresh();
-              setSelectedSharedId(null);
-            } catch (e) {
-              Alert.alert(
-                "Erro",
-                e instanceof Error ? e.message : "Não foi possível apagar a agenda."
-              );
-            }
-          },
-        },
-      ]
-    );
-  };
+  const onRefresh = useCallback(
+    () => refresh({ skipNotifications: true }),
+    [refresh]
+  );
 
   useFocusEffect(
     useCallback(() => {
-      if (session) void refresh({ skipNotifications: true });
-    }, [session, refresh])
+      if (session) void onRefresh();
+    }, [session, onRefresh])
   );
 
   const subtitle =
     tab === "personal"
-      ? "Consulta · só leitura"
-      : "Toque numa agenda para ver os compromissos";
+      ? "Botões + para criar · OK ou Remover para apagar"
+      : "Criar agenda · + compromisso · convidar · apagar";
 
   return (
     <ScreenShell title="Agenda" subtitle={subtitle}>
@@ -246,8 +52,8 @@ export default function AgendaScreen() {
           />
         }
       >
-        <TabBar tab={tab} onChange={setTab} colors={colors} />
-        <ChatHint colors={colors} onPress={() => router.push("/(main)/chat")} />
+        <AgendaTabBar tab={tab} onChange={setTab} colors={colors} />
+        <ManualOrChatHint colors={colors} onOpenChat={() => router.push("/(main)/chat")} />
 
         {loading && !refreshing ? (
           <ActivityIndicator color={colors.primary} style={{ marginTop: 24 }} />
@@ -259,189 +65,19 @@ export default function AgendaScreen() {
 
         {!loading && !error ? (
           tab === "personal" ? (
-            <>
-              <Text style={[styles.section, { color: colors.textMuted }]}>Compromissos</Text>
-              {data.reminders.length === 0 ? (
-                <Text style={[styles.muted, { color: colors.textMuted }]}>
-                  Nenhum. Peça ao avatar no chat, ex.: «marca consulta sexta às 10h na minha
-                  agenda».
-                </Text>
-              ) : (
-                data.reminders.map((r) => (
-                  <ReminderItem key={String(r.id)} item={r} colors={colors} />
-                ))
-              )}
-
-              <Text style={[styles.section, { color: colors.textMuted }]}>Hábitos semanais</Text>
-              {data.agenda.length === 0 ? (
-                <Text style={[styles.muted, { color: colors.textMuted }]}>
-                  Nenhum. Ex.: «academia seg–sex às 8h» no chat.
-                </Text>
-              ) : (
-                data.agenda.map((a) => (
-                  <AgendaItemRow key={String(a.id)} item={a} colors={colors} />
-                ))
-              )}
-            </>
-          ) : sharedCalendars.length === 0 ? (
-            <Text style={[styles.muted, { color: colors.textMuted }]}>
-              Ainda não participa de agendas em grupo. No chat: «cria agenda Família» e
-              «convida email@exemplo.com para a agenda Família». Até 10 listas e 100 pessoas
-              por lista. Qualquer membro pode convidar.
-            </Text>
+            <PersonalAgendaManual
+              colors={colors}
+              reminders={data.reminders}
+              habits={data.agenda}
+              onRefresh={onRefresh}
+            />
           ) : (
-            <>
-              <Text style={[styles.uiVersion, { color: colors.primary }]}>
-                {AGENDA_UI_VERSION}
-              </Text>
-              <Text style={[styles.section, { color: colors.textMuted }]}>
-                Suas agendas ({sharedCalendars.length})
-              </Text>
-              {sharedCalendars.map((cal) => {
-                const cid = String(cal.id || "");
-                const calName = (cal.name || "Agenda").trim();
-                const nmem = cal.member_count ?? cal.members?.length ?? 0;
-                const peopleLine = membersCardLine(
-                  cal.members,
-                  nmem,
-                  session?.user?.id
-                );
-                const active = selectedSharedId === cid;
-                const evCount = (cal.events ?? []).filter((e) => !e.dismissed).length;
-                return (
-                  <Pressable
-                    key={cid}
-                    onPress={() => setSelectedSharedId(cid)}
-                    style={({ pressed }) => [
-                      styles.calPick,
-                      {
-                        borderColor: colors.border,
-                        backgroundColor: active ? colors.bgElevated : colors.bgCard,
-                        borderWidth: 1.5,
-                        opacity: pressed ? 0.88 : 1,
-                      },
-                      active && {
-                        borderLeftWidth: 4,
-                        borderLeftColor: colors.primary,
-                        paddingLeft: 12,
-                      },
-                    ]}
-                  >
-                    <Text style={[styles.calPickTitle, { color: colors.text }]} numberOfLines={2}>
-                      {calName}
-                    </Text>
-                    {peopleLine ? (
-                      <>
-                        <Text style={[styles.calPickPeopleLabel, { color: colors.textMuted }]}>
-                          Pessoas no grupo
-                        </Text>
-                        <Text style={[styles.calPickMembers, { color: colors.text }]} numberOfLines={6}>
-                          {peopleLine}
-                        </Text>
-                      </>
-                    ) : null}
-                    <Text style={[styles.calPickMeta, { color: colors.textMuted }]}>
-                      {nmem > 0
-                        ? `${nmem} membro${nmem === 1 ? "" : "s"}`
-                        : "Sem membros"}
-                      {cal.is_owner ? " · você criou" : ""}
-                      {" · "}
-                      {evCount} compromisso{evCount === 1 ? "" : "s"}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-
-              {selectedCalendar ? (
-                <View
-                  style={[
-                    styles.calDetail,
-                    { borderColor: colors.border, backgroundColor: colors.bgCard },
-                  ]}
-                >
-                  <Text style={[styles.calDetailTitle, { color: colors.text }]}>
-                    {(selectedCalendar.name || "Agenda").trim()}
-                  </Text>
-                  <Text style={[styles.calDetailMembers, { color: colors.textMuted }]}>
-                    {membersGroupLine(selectedCalendar.members, session?.user?.id)}
-                  </Text>
-                  <Text style={[styles.sectionInner, { color: colors.textMuted }]}>
-                    Compromissos marcados
-                  </Text>
-                  {selectedEvents.length === 0 ? (
-                    <Text style={[styles.muted, { color: colors.textMuted }]}>
-                      Nenhum nesta agenda. Peça no chat para marcar um compromisso aqui.
-                    </Text>
-                  ) : (
-                    selectedEvents.map((ev) => (
-                      <SharedEventRow key={String(ev.id)} event={ev} colors={colors} />
-                    ))
-                  )}
-                  <Text style={[styles.sectionInner, { color: colors.textMuted, marginTop: 14 }]}>
-                    Convidar pessoa
-                  </Text>
-                  <TextInput
-                    value={inviteContact}
-                    onChangeText={setInviteContact}
-                    placeholder="11 99999-9999 ou email@exemplo.com"
-                    placeholderTextColor={colors.textMuted}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    style={[
-                      styles.inviteInput,
-                      { color: colors.text, borderColor: colors.border, backgroundColor: colors.bg },
-                    ]}
-                  />
-                  <Pressable
-                    onPress={onInviteToSelectedCalendar}
-                    disabled={inviting}
-                    style={[styles.inviteBtn, { backgroundColor: colors.primary }]}
-                  >
-                    {inviting ? (
-                      <ActivityIndicator color="#fff" />
-                    ) : (
-                      <Text style={styles.inviteBtnText}>Convidar</Text>
-                    )}
-                  </Pressable>
-                  {selectedCalendar.is_owner ? (
-                    <>
-                      <Pressable
-                        onPress={() =>
-                          router.push(
-                            `/(main)/shared-calendar/${String(selectedCalendar.id)}` as Href
-                          )
-                        }
-                        style={({ pressed }) => [
-                          styles.manageBtn,
-                          {
-                            borderColor: colors.primary,
-                            opacity: pressed ? 0.88 : 1,
-                          },
-                        ]}
-                      >
-                        <Text style={{ color: colors.primary, fontWeight: "600" }}>
-                          Gerir agenda (convidar, membros)
-                        </Text>
-                      </Pressable>
-                      <Pressable
-                        onPress={onDeleteSelectedCalendar}
-                        style={({ pressed }) => [
-                          styles.deleteBtn,
-                          {
-                            borderColor: colors.danger,
-                            opacity: pressed ? 0.88 : 1,
-                          },
-                        ]}
-                      >
-                        <Text style={{ color: colors.danger, fontWeight: "600" }}>
-                          Apagar esta agenda
-                        </Text>
-                      </Pressable>
-                    </>
-                  ) : null}
-                </View>
-              ) : null}
-            </>
+            <SharedAgendaManual
+              colors={colors}
+              sharedCalendars={data.shared_calendars ?? []}
+              currentUserId={session?.user?.id}
+              onRefresh={onRefresh}
+            />
           )
         ) : null}
       </ScrollView>
@@ -451,122 +87,5 @@ export default function AgendaScreen() {
 
 const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 32 },
-  tabBar: {
-    flexDirection: "row",
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 4,
-    marginBottom: 12,
-    gap: 4,
-  },
-  tabBtn: {
-    flex: 1,
-    borderRadius: 9,
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    alignItems: "center",
-  },
-  tabBtnText: { fontSize: 13, fontWeight: "700" },
-  chatHint: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 16,
-  },
-  chatHintTitle: { fontSize: 14, fontWeight: "800", marginBottom: 6 },
-  chatHintBody: { fontSize: 13, lineHeight: 18 },
-  chatHintLink: { fontSize: 13, fontWeight: "700", marginTop: 10 },
-  uiVersion: {
-    fontSize: 12,
-    fontWeight: "700",
-    marginBottom: 8,
-  },
-  section: {
-    fontSize: 11,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-    marginTop: 4,
-    marginBottom: 10,
-  },
-  sectionInner: {
-    fontSize: 11,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.6,
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  muted: { fontSize: 14, lineHeight: 20, marginBottom: 8 },
   error: { fontSize: 14, marginTop: 12 },
-  calPick: {
-    borderWidth: 1.5,
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 8,
-  },
-  calPickTitle: { fontSize: 16, fontWeight: "700" },
-  calPickPeopleLabel: {
-    fontSize: 11,
-    fontWeight: "700",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  calPickMembers: { fontSize: 14, lineHeight: 21, fontWeight: "600" },
-  calPickMeta: { fontSize: 12, marginTop: 4 },
-  calDetail: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 14,
-    marginTop: 12,
-  },
-  calDetailTitle: { fontSize: 17, fontWeight: "800", marginBottom: 6 },
-  calDetailMembers: { fontSize: 14, lineHeight: 20, marginBottom: 12 },
-  eventRow: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    paddingVertical: 8,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  dotShared: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    marginTop: 6,
-    marginRight: 10,
-  },
-  eventBody: { flex: 1 },
-  eventTitle: { fontSize: 15, fontWeight: "600" },
-  eventWhen: { fontSize: 13, marginTop: 2 },
-  manageBtn: {
-    marginTop: 16,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  deleteBtn: {
-    marginTop: 10,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingVertical: 12,
-    alignItems: "center",
-  },
-  inviteInput: {
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    fontSize: 15,
-    marginBottom: 8,
-  },
-  inviteBtn: {
-    borderRadius: 10,
-    paddingVertical: 12,
-    alignItems: "center",
-    marginBottom: 4,
-  },
-  inviteBtnText: { color: "#fff", fontWeight: "800", fontSize: 15 },
 });

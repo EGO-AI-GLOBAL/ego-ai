@@ -1,5 +1,5 @@
 import { Link, Redirect, router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,6 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthTextInput } from "@/components/AuthTextInput";
 import { EgoLogo } from "@/components/EgoLogo";
 import { PasswordField } from "@/components/PasswordField";
+import { loadLastLoginEmail } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useColors } from "@/theme/ThemeContext";
@@ -27,6 +28,12 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    void loadLastLoginEmail().then((saved) => {
+      if (saved) setEmail(saved);
+    });
+  }, []);
 
   if (!loading && session) {
     return <Redirect href="/" />;
@@ -95,6 +102,10 @@ export default function LoginScreen() {
               editable={!busy}
               containerStyle={styles.passwordWrap}
             />
+            <Text style={[styles.sessionHint, { color: colors.textMuted }]}>
+              A sessão fica guardada neste telefone. A senha pode ser preenchida pelo
+              gestor de senhas do Android.
+            </Text>
             <Link href="/forgot-password" asChild>
               <Pressable style={styles.forgotWrap} hitSlop={8}>
                 <Text style={[styles.forgot, { color: colors.primaryLight }]}>
@@ -157,6 +168,7 @@ const styles = StyleSheet.create({
   },
   form: { borderRadius: 20, padding: 20, borderWidth: 1 },
   passwordWrap: { marginTop: 4 },
+  sessionHint: { marginTop: 10, fontSize: 12, lineHeight: 17 },
   forgotWrap: { alignSelf: "flex-end", marginTop: 8 },
   forgot: { fontSize: 14, fontWeight: "600" },
   error: { marginTop: 12, fontSize: 14 },

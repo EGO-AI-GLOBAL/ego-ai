@@ -12,6 +12,7 @@ import {
   login as apiLogin,
   logoutApi,
   refreshSessionToken,
+  saveLastLoginEmail,
   setSession,
   setOnAuthFailure,
   setSessionPersistHandler,
@@ -79,22 +80,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (raw) {
           const parsed = JSON.parse(raw) as AuthSession;
           if (parsed?.access_token) {
+            const refreshTok = parsed.refresh_token?.trim();
             const expiresAt = parsed.expires_at;
-            const expired =
-              typeof expiresAt === "number" &&
-              expiresAt > 0 &&
-              expiresAt * 1000 < Date.now() + 120_000;
-            if (expired && parsed.refresh_token?.trim()) {
+            const needsRefresh =
+              Boolean(refreshTok) &&
+              (typeof expiresAt !== "number" ||
+                expiresAt <= 0 ||
+                expiresAt * 1000 < Date.now() + 300_000);
+            if (needsRefresh) {
               try {
-                const next = await refreshSessionToken(
-                  parsed.refresh_token,
-                  parsed
-                );
+                const next = await refreshSessionToken(refreshTok!, parsed);
                 await persist(next);
                 void preparePlayIntegrity();
                 return;
               } catch {
-                /* usa sessão guardada; interceptor tenta refresh depois */
+                /* mantém sessão — interceptor tenta de novo; evita logout por rede */
               }
             }
             await persist(parsed);
@@ -115,6 +115,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!s?.access_token) {
         throw new Error("Resposta de login sem token.");
       }
+      await saveLastLoginEmail(email.trim());
       await persist(s);
       void preparePlayIntegrity();
     },

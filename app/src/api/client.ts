@@ -21,6 +21,16 @@ import type {
 } from "./types";
 
 const STORAGE_KEY = "ego_auth_session";
+export const LAST_EMAIL_KEY = "ego_last_email";
+
+function deviceTimezonePayload(): { timezone: string; tz_offset_min: number } {
+  const tz_offset_min = -new Date().getTimezoneOffset();
+  const timezone =
+    typeof Intl !== "undefined"
+      ? Intl.DateTimeFormat().resolvedOptions().timeZone || ""
+      : "";
+  return { timezone, tz_offset_min };
+}
 
 const apiBase = API_V1.endsWith("/") ? API_V1 : `${API_V1}/`;
 
@@ -228,11 +238,7 @@ function isNotFound(err: unknown): boolean {
 
 export async function fetchDashboard(): Promise<DashboardData> {
   try {
-    const tz_offset_min = -new Date().getTimezoneOffset();
-    const timezone =
-      typeof Intl !== "undefined"
-        ? Intl.DateTimeFormat().resolvedOptions().timeZone || ""
-        : "";
+    const { timezone, tz_offset_min } = deviceTimezonePayload();
     const { data } = await api.post(
       "app/bootstrap",
       { timezone, tz_offset_min },
@@ -277,6 +283,30 @@ export async function login(email: string, password: string): Promise<AuthSessio
   const session = normalizeSession(body.session ?? body);
   setSession(session);
   return session;
+}
+
+export async function loadLastLoginEmail(): Promise<string> {
+  try {
+    const { getSecureItem } = await import("@/storage/sessionStorage");
+    const raw = await getSecureItem(LAST_EMAIL_KEY);
+    return (raw || "").trim();
+  } catch {
+    return "";
+  }
+}
+
+export async function saveLastLoginEmail(email: string): Promise<void> {
+  const trimmed = email.trim();
+  try {
+    const { saveSecureItem, deleteSecureItem } = await import("@/storage/sessionStorage");
+    if (trimmed) {
+      await saveSecureItem(LAST_EMAIL_KEY, trimmed);
+    } else {
+      await deleteSecureItem(LAST_EMAIL_KEY);
+    }
+  } catch {
+    /* ignore */
+  }
 }
 
 export type ReferralValidateResult = {
@@ -389,6 +419,29 @@ export async function dismissReminder(reminderId: string): Promise<void> {
   await api.post(`reminders/${reminderId}/dismiss`);
 }
 
+export async function createReminder(payload: {
+  title: string;
+  scheduled_at: string;
+  announce?: string;
+}): Promise<void> {
+  await api.post("reminders", payload);
+}
+
+export async function createAgendaItem(payload: {
+  titulo: string;
+  horario: string;
+  dias_da_semana: string;
+}): Promise<void> {
+  await api.post("agenda", payload);
+}
+
+export async function createSharedCalendar(name: string): Promise<SharedCalendar> {
+  const { data } = await api.post("shared-calendars", { name: name.trim() });
+  const body = unwrap<{ calendar: SharedCalendar }>(data);
+  if (!body.calendar) throw new Error("Agenda não devolvida pelo servidor.");
+  return body.calendar;
+}
+
 export async function fetchAccessInfo(): Promise<AccessInfo> {
   const { data } = await api.get("access", { timeout: TIMEOUT_DEFAULT_MS });
   const body = unwrap<AccessInfo & { ok?: boolean }>(data);
@@ -402,7 +455,7 @@ export async function sendChatMessage(
 ): Promise<SendChatResult> {
   const { data } = await api.post(
     "chat/messages",
-    { message, speak: speak, history: history ?? [] },
+    { message, speak: speak, history: history ?? [], ...deviceTimezonePayload() },
     { timeout: TIMEOUT_CHAT_MS }
   );
   const body = unwrap<SendChatResult>(data);
@@ -460,6 +513,9 @@ export async function sendChatVoiceFileNative(opts: {
       audio_mime,
       speak: opts.speak !== false ? "true" : "false",
       history: JSON.stringify(opts.history ?? []),
+      ...Object.fromEntries(
+        Object.entries(deviceTimezonePayload()).map(([k, v]) => [k, String(v)])
+      ),
     },
   });
   if (res.status < 200 || res.status >= 300) {
@@ -510,6 +566,9 @@ export async function sendChatVoiceFile(opts: {
   form.append("audio_mime", audio_mime);
   form.append("speak", opts.speak !== false ? "true" : "false");
   form.append("history", JSON.stringify(opts.history ?? []));
+  const tz = deviceTimezonePayload();
+  form.append("timezone", tz.timezone);
+  form.append("tz_offset_min", String(tz.tz_offset_min));
 
   const { data } = await api.post("chat/messages", form, {
     timeout: TIMEOUT_CHAT_MS,
@@ -559,6 +618,9 @@ export async function sendChatVoiceBlob(opts: {
   form.append("audio_mime", mime.includes("mp4") || mime.includes("m4a") ? "audio/mp4" : mime);
   form.append("speak", opts.speak !== false ? "true" : "false");
   form.append("history", JSON.stringify(opts.history ?? []));
+  const tzBlob = deviceTimezonePayload();
+  form.append("timezone", tzBlob.timezone);
+  form.append("tz_offset_min", String(tzBlob.tz_offset_min));
 
   const { data } = await api.post("chat/messages", form, {
     timeout: TIMEOUT_CHAT_MS,
@@ -597,6 +659,7 @@ export async function sendChatVoiceMessage(opts: {
       audio_mime,
       speak: opts.speak !== false,
       history: opts.history ?? [],
+      ...deviceTimezonePayload(),
     },
     { timeout: TIMEOUT_CHAT_MS }
   );
@@ -719,6 +782,13 @@ export async function createSharedCalendarEvent(
   event: { title: string; scheduled_at: string; announce?: string }
 ): Promise<void> {
   await api.post(`shared-calendars/${calendarId}/events`, event);
+}
+
+export async function dismissSharedCalendarEvent(
+  calendarId: string,
+  eventId: string
+): Promise<void> {
+  await api.post(`shared-calendars/${calendarId}/events/${eventId}/dismiss`);
 }
 
 export async function deleteSharedCalendar(calendarId: string): Promise<void> {
