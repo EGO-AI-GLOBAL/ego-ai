@@ -906,6 +906,12 @@ def process_chat_message(
             implicit_personal=only_personal_agenda or user_wants_personal,
         ):
             rem_items = [fallback_rem]
+    if not skip_schedule_save and rem_items:
+        patched_rem = cs.override_title_from_user_message(user_display, rem_items)
+        if patched_rem is not None:
+            rem_items = (
+                patched_rem if isinstance(patched_rem, list) else [patched_rem]
+            )
     rem_cap = enforce_reminder_limit(supabase, user_id, prof)
     for it in rem_items if not skip_schedule_save else []:
         if rem_cap:

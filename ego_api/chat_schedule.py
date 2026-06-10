@@ -128,19 +128,40 @@ def _extract_shared_calendar_name(raw: str) -> str:
     return ""
 
 
+def _strip_schedule_scope_prefix(fragment: str) -> str:
+    """Remove «na agenda pessoal», «um», etc. — mantém o título completo como no manual."""
+    s = (fragment or "").strip().strip("«»\"' ")
+    prefix_patterns = (
+        r"(?:(?:na|no|n[oa]|da|do|de|para|pra|em)\s+)?"
+        r"(?:(?:minha|sua)\s+)?agenda\s+(?:pessoal\s+)?",
+        r"(?:um|uma|o|a)\s+",
+    )
+    for _ in range(4):
+        changed = False
+        for pat in prefix_patterns:
+            nxt = re.sub(rf"(?i)^{pat}", "", s).strip()
+            if nxt != s:
+                s = nxt
+                changed = True
+        if not changed:
+            break
+    return s
+
+
 def _trim_event_title_tail(fragment: str) -> str:
     """Remove hora, data e nome da agenda do que o utilizador disse."""
-    s = (fragment or "").strip().strip("«»\"' ")
+    s = _strip_schedule_scope_prefix(fragment)
     if not s:
         return ""
     s = re.split(
         r"(?i)\s+(?:"
-        r"na|no|n[oa]|da|do|de|para|pra|em|com|"
         r"pra\s+dia|para\s+o\s+dia|para\s+dia|no\s+dia|"
-        r"às|as|hoje|amanh|depois|"
-        r"segunda|terça|terca|quarta|quinta|sexta|sábado|sabado|domingo|"
-        r"agenda|grupo|compartilhada|família|familia"
-        r"|\d{1,2}[:/h]\d*"
+        r"às|as\s+\d{1,2}\b|"
+        r"hoje|amanh\w*|depois|"
+        r"segunda|ter[cç]a|quarta|quinta|sexta|s[aá]bado|domingo|"
+        r"\bna\s+agenda\b|\bno\s+dia\b|\bpara\s+o\s+dia\b|"
+        r"\bagenda\b|\bgrupo\b|compartilhad[ao]|fam[ií]lia|"
+        r"\d{1,2}[:/h]\d*"
         r")",
         s,
         maxsplit=1,
@@ -201,7 +222,7 @@ def _extract_shared_event_title(raw: str) -> str:
         return "Compromisso"
 
     m = re.search(
-        r"(?i)(?:título|titulo)\s+[«\"']?\s*([^«\"'\n.?]+)",
+        r"(?i)(?:título|titulo)\s*:?\s*[«\"']?\s*([^«\"'\n]+)",
         text,
     )
     if m:
@@ -222,19 +243,20 @@ def _extract_shared_event_title(raw: str) -> str:
         if name:
             return _format_event_title(f"Atendimento {name}")
 
-    kw = _keyword_event_title(text)
-    if kw:
-        return kw
-
     verb = re.search(
         r"(?i)\b(?:marca|marcar|marque|marques|agende|agendar|coloca|colocar)\s+"
-        r"(?:um|uma|o|a|no|na|n[oa])?\s*(.+)$",
+        r"(?:(?:um|uma|o|a)\s+|(?:na|no)\s+)?"
+        r"(.+)$",
         text,
     )
     if verb:
         title = _format_event_title(verb.group(1))
-        if title and not re.search(r"(?i)\bagenda\b", title[:20]):
+        if title and not re.search(r"(?i)^agenda\b", title[:24]):
             return title
+
+    kw = _keyword_event_title(text)
+    if kw:
+        return kw
 
     return "Compromisso"
 
