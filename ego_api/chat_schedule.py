@@ -975,7 +975,11 @@ def detect_scope_from_user_text(
 
 
 def looks_like_schedule_intent(text: str) -> bool:
-    return bool(_SCHEDULE_INTENT.search(text or ""))
+    raw = text or ""
+    # «desmarca compromisso» contém «compromisso» mas é apagar, não marcar.
+    if _DISMISS_VERBS.search(raw):
+        return False
+    return bool(_SCHEDULE_INTENT.search(raw))
 
 
 def _normalize_phone_list(raw: object) -> list[str]:
@@ -1707,7 +1711,7 @@ def _extract_dismiss_title_hint(text: str) -> str:
         r"remove|remover|desmarca|desmarcar)\s+(?:a\s+)?(?:reunião|reuniao|"
         r"compromisso|lembrete|consulta|marcação|marcacao|evento|agendamento)\s+"
         r"(?:de\s+|do\s+|da\s+)?[«\"']?([^«\"'\n.?]+)",
-        r"(?i)(?:cancela|cancelar|apaga|apagar|remove|remover)\s+[«\"']?([^«\"'\n.?]+)",
+        r"(?i)(?:cancela|cancelar|apaga|apagar|remove|remover|desmarca|desmarcar)\s+[«\"']?([^«\"'\n.?]+)",
     ]
     for pat in patterns:
         m = re.search(pat, raw)

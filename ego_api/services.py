@@ -395,36 +395,35 @@ def process_chat_message(
         rem_d, ev_d, hab_d, dismiss_warns = cs.process_dismiss_commitments(
             supabase, user_id, user_display, ref=schedule_ref
         )
-        if rem_d or ev_d or hab_d:
-            from ego_api.chat_reply import build_dismiss_confirmation_reply
+        from ego_api.chat_reply import build_dismiss_confirmation_reply
 
-            reply_dismiss = build_dismiss_confirmation_reply(
-                dismissed_reminders=rem_d,
-                dismissed_events=ev_d,
-                dismissed_habits=hab_d,
-                warnings=dismiss_warns,
-            )
-            mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
-            mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_dismiss)
-            prof = db.load_profile(supabase, user_id) or prof
-            return {
-                "reply": reply_dismiss,
-                "user_message_id": mid_u,
-                "assistant_message_id": mid_a,
-                "user_transcript": voice_transcript or None,
-                "language": lang,
-                "warnings": dismiss_warns,
-                "reminders_saved": [],
-                "reminders_dismissed": rem_d,
-                "agenda_deleted": hab_d,
-                "agenda_saved": [],
-                "shared_calendars_saved": [],
-                "shared_events_saved": [],
-                "shared_events_dismissed": ev_d,
-                "shared_members_saved": [],
-                "shared_calendars_deleted": [],
-                "access": db.build_plan_access_payload(supabase, user_id, prof),
-            }, None
+        reply_dismiss = build_dismiss_confirmation_reply(
+            dismissed_reminders=rem_d,
+            dismissed_events=ev_d,
+            dismissed_habits=hab_d,
+            warnings=dismiss_warns,
+        )
+        mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
+        mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_dismiss)
+        prof = db.load_profile(supabase, user_id) or prof
+        return {
+            "reply": reply_dismiss,
+            "user_message_id": mid_u,
+            "assistant_message_id": mid_a,
+            "user_transcript": voice_transcript or None,
+            "language": lang,
+            "warnings": dismiss_warns,
+            "reminders_saved": [],
+            "reminders_dismissed": rem_d,
+            "agenda_deleted": hab_d,
+            "agenda_saved": [],
+            "shared_calendars_saved": [],
+            "shared_events_saved": [],
+            "shared_events_dismissed": ev_d,
+            "shared_members_saved": [],
+            "shared_calendars_deleted": [],
+            "access": db.build_plan_access_payload(supabase, user_id, prof),
+        }, None
 
     # Agenda pessoal clara (ex.: «marca na agenda pessoal … às 9h»): grava sem LLM.
     if not casual and not audio_bytes and cs.looks_like_schedule_intent(user_display):
