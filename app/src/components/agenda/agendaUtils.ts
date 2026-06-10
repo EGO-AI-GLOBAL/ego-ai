@@ -1,4 +1,4 @@
-import type { SharedCalendarEvent } from "@/api/types";
+import type { Reminder, SharedCalendarEvent } from "@/api/types";
 
 export const AGENDA_TIME_MINUTE_INTERVAL = 30;
 
@@ -62,6 +62,26 @@ export function combineDateAndTime(dateBr: string, timeHm: string): Date {
   const d = new Date(base);
   d.setHours(hour, minute, 0, 0);
   return d;
+}
+
+/** Alinhado à agenda pessoal: compromissos passados deixam de aparecer na lista. */
+export const AGENDA_PAST_GRACE_MS = 60_000;
+
+export function isScheduledStillVisible(
+  scheduledAt?: string | null,
+  nowMs = Date.now()
+): boolean {
+  if (!scheduledAt) return false;
+  const ms = new Date(scheduledAt).getTime();
+  return !Number.isNaN(ms) && ms >= nowMs - AGENDA_PAST_GRACE_MS;
+}
+
+export function filterVisibleReminders(reminders: Reminder[]) {
+  return reminders.filter((r) => !r.dismissed && isScheduledStillVisible(r.scheduled_at));
+}
+
+export function filterVisibleSharedEvents(events: SharedCalendarEvent[]) {
+  return events.filter((ev) => !ev.dismissed && isScheduledStillVisible(ev.scheduled_at));
 }
 
 export function sortSharedEvents(events: SharedCalendarEvent[]) {

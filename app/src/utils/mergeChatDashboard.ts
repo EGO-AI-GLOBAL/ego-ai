@@ -1,4 +1,8 @@
 import type { DashboardData, SendChatResult } from "@/api/types";
+import {
+  filterVisibleReminders,
+  filterVisibleSharedEvents,
+} from "@/components/agenda/agendaUtils";
 
 /** Atualiza o painel com o que o chat gravou — sem refresh (evita crash no Android). */
 export function mergeChatIntoDashboard(
@@ -80,9 +84,14 @@ export function mergeChatIntoDashboard(
     });
   }
 
+  sharedCalendars = sharedCalendars.map((cal) => ({
+    ...cal,
+    events: filterVisibleSharedEvents(cal.events ?? []),
+  }));
+
   return {
     ...data,
-    reminders,
+    reminders: filterVisibleReminders(reminders),
     agenda,
     shared_calendars: sharedCalendars,
   };

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -20,7 +20,7 @@ import { ReminderItem } from "@/components/ReminderItem";
 import type { AppColors } from "@/theme/colors";
 import { AgendaDateTimeFields, AgendaTimeField } from "./AgendaDateTimeFields";
 import { agendaFormStyles as s } from "./agendaFormStyles";
-import { defaultDateBr, defaultTimeHm } from "./agendaUtils";
+import { defaultDateBr, defaultTimeHm, filterVisibleReminders } from "./agendaUtils";
 
 type Props = {
   colors: AppColors;
@@ -44,6 +44,17 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
   const [habitTime, setHabitTime] = useState(defaultTimeHm(8, 0));
   const [habitDays, setHabitDays] = useState("seg,ter,qua,qui,sex");
   const [savingHabit, setSavingHabit] = useState(false);
+  const [listTick, setListTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setListTick((t) => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+  const visibleReminders = useMemo(
+    () => filterVisibleReminders(reminders),
+    [reminders, listTick]
+  );
 
   const inputStyle = [
     s.inviteInput,
@@ -108,7 +119,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
   };
 
   const onDismissReminder = (reminderId: string) => {
-    const item = reminders.find((r) => String(r.id) === reminderId);
+    const item = visibleReminders.find((r) => String(r.id) === reminderId);
     const title = (item?.title || "Compromisso").trim();
     Alert.alert("Apagar", `Apagar «${title}» da agenda?`, [
       { text: "Cancelar", style: "cancel" },
@@ -205,12 +216,12 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
           </Pressable>
         </View>
       ) : null}
-      {reminders.length === 0 ? (
+      {visibleReminders.length === 0 ? (
         <Text style={[s.muted, { color: colors.textMuted }]}>
           Nenhum compromisso. Toque em «+ Novo compromisso» ou use o avatar no chat.
         </Text>
       ) : (
-        reminders.map((r) => {
+        visibleReminders.map((r) => {
           const rid = String(r.id);
           return (
             <ReminderItem

@@ -358,19 +358,6 @@ def _ensure_owner_membership_row(
         pass
 
 
-def _user_day_start_utc() -> datetime.datetime:
-    """Início do dia local do utilizador (para listar compromissos de hoje)."""
-    try:
-        from ego_api.schedule_tz import local_now_from_session
-
-        now_local = local_now_from_session()
-        day_start = now_local.replace(hour=0, minute=0, second=0, microsecond=0)
-        return day_start.astimezone(datetime.timezone.utc)
-    except Exception:
-        pass
-    return datetime.datetime.now(datetime.timezone.utc)
-
-
 def link_shared_memberships_for_user(
     supabase: Client | None, user_id: str, email: str
 ) -> int:
@@ -726,11 +713,9 @@ def list_events(
     if not supabase or not calendar_id or not _user_is_member(supabase, user_id, calendar_id):
         return []
     apply_user_auth(supabase)
-    start = _user_day_start_utc().isoformat()
-    end = (
-        datetime.datetime.now(datetime.timezone.utc)
-        + datetime.timedelta(days=AGENDA_HORIZON_DAYS)
-    ).isoformat()
+    now = datetime.datetime.now(datetime.timezone.utc)
+    start = now.isoformat()
+    end = (now + datetime.timedelta(days=AGENDA_HORIZON_DAYS)).isoformat()
     try:
         res = (
             supabase.table(SUPABASE_SHARED_CALENDAR_EVENTS_TABLE)

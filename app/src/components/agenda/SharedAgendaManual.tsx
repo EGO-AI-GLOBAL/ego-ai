@@ -26,7 +26,12 @@ import {
 } from "@/utils/sharedCalendarMembers";
 import { AgendaDateTimeFields } from "./AgendaDateTimeFields";
 import { agendaFormStyles as s } from "./agendaFormStyles";
-import { defaultDateBr, defaultTimeHm, sortSharedEvents } from "./agendaUtils";
+import {
+  defaultDateBr,
+  defaultTimeHm,
+  filterVisibleSharedEvents,
+  sortSharedEvents,
+} from "./agendaUtils";
 import { SharedEventRow } from "./SharedEventRow";
 
 const AGENDA_UI_VERSION = "jun/2025 · nomes + layout claro";
@@ -59,6 +64,12 @@ export function SharedAgendaManual({
   const [sharedEventDate, setSharedEventDate] = useState(defaultDateBr);
   const [sharedEventTime, setSharedEventTime] = useState(defaultTimeHm(15, 0));
   const [savingSharedEvent, setSavingSharedEvent] = useState(false);
+  const [listTick, setListTick] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => setListTick((t) => t + 1), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   const selectedCalendar = useMemo(() => {
     if (!selectedSharedId) return null;
@@ -78,8 +89,8 @@ export function SharedAgendaManual({
 
   const selectedEvents = useMemo(() => {
     if (!selectedCalendar) return [];
-    return sortSharedEvents((selectedCalendar.events ?? []).filter((ev) => !ev.dismissed));
-  }, [selectedCalendar]);
+    return sortSharedEvents(filterVisibleSharedEvents(selectedCalendar.events ?? []));
+  }, [selectedCalendar, listTick]);
 
   const inputStyle = [
     s.inviteInput,
@@ -267,7 +278,7 @@ export function SharedAgendaManual({
         const nmem = cal.member_count ?? cal.members?.length ?? 0;
         const peopleLine = membersCardLine(cal.members, nmem, currentUserId);
         const active = selectedSharedId === cid;
-        const evCount = (cal.events ?? []).filter((e) => !e.dismissed).length;
+        const evCount = filterVisibleSharedEvents(cal.events ?? []).length;
         return (
           <Pressable
             key={cid}
