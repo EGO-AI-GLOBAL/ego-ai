@@ -10,20 +10,20 @@ from functools import lru_cache
 
 _EDGE_EXECUTOR = ThreadPoolExecutor(max_workers=2)
 
-# 12 avatares → 12 vozes Edge distintas (testadas com texto pt-BR).
-# pt-BR nativo só tem 3; usamos multilíngues + regionais para timbre único por persona.
+# 12 avatares → 12 vozes Edge distintas (texto sempre pt-BR).
+# Só vozes multilíngues ou pt-BR/pt-PT — vozes árabe/japonês/hindi falavam outro idioma.
 EDGE_TTS_VOICE_MAP: dict[str, str] = {
     # Grátis
     "vf1": "pt-BR-FranciscaNeural",  # Luna — acolhedora BR
     "vm1": "pt-BR-AntonioNeural",  # Leo — profissional BR
     # Conexão
-    "vf2": "ar-EG-SalmaNeural",  # Aisha — feminina MENA
-    "vf3": "ja-JP-NanamiNeural",  # Hana — feminina leste-asiática
+    "vf2": "en-US-EmmaMultilingualNeural",  # Aisha — feminina calorosa, fala pt-BR
+    "vf3": "pt-BR-ThalitaMultilingualNeural",  # Hana — feminina suave, fala pt-BR
     "vm2": "en-US-BrianMultilingualNeural",  # Kai — jovem energético
-    "vm3": "ar-EG-ShakirNeural",  # Omar — masculina calma MENA
+    "vm3": "pt-PT-DuarteNeural",  # Omar — masculina calma, fala português
     # Premium
     "vf4": "en-US-AvaMultilingualNeural",  # Amara — feminina calorosa
-    "vm4": "hi-IN-MadhurNeural",  # Ravi — masculina sul-asiática
+    "vm4": "pt-PT-DuarteNeural",  # Ravi — português nativo (europeu)
     "vg1": "de-DE-SeraphinaMultilingualNeural",  # Alex — neutra jovem
     # Total
     "vf5": "pt-PT-RaquelNeural",  # Sara — feminina europeia madura
@@ -47,12 +47,12 @@ EDGE_TTS_VOICE_MAP: dict[str, str] = {
 EDGE_TTS_VOICE_LABELS: dict[str, str] = {
     "vf1": "Francisca (BR)",
     "vm1": "António (BR)",
-    "vf2": "Salma (árabe)",
-    "vf3": "Nanami (asiática)",
+    "vf2": "Emma (pt-BR)",
+    "vf3": "Thalita (pt-BR)",
     "vm2": "Brian (jovem)",
-    "vm3": "Shakir (árabe)",
+    "vm3": "Duarte (PT)",
     "vf4": "Ava (calorosa)",
-    "vm4": "Madhur (índia)",
+    "vm4": "Duarte (PT)",
     "vg1": "Seraphina (neutra)",
     "vf5": "Raquel (PT)",
     "vm5": "Hyunsu (urbano)",
@@ -61,14 +61,14 @@ EDGE_TTS_VOICE_LABELS: dict[str, str] = {
 
 EDGE_TTS_FALLBACKS: dict[str, tuple[str, ...]] = {
     "vf1": ("pt-BR-ThalitaMultilingualNeural", "pt-PT-RaquelNeural"),
-    "vf2": ("ar-LB-LaylaNeural", "pt-BR-FranciscaNeural"),
-    "vf3": ("ko-KR-SunHiNeural", "pt-BR-ThalitaMultilingualNeural"),
+    "vf2": ("pt-BR-ThalitaMultilingualNeural", "pt-BR-FranciscaNeural"),
+    "vf3": ("pt-BR-FranciscaNeural", "en-US-EmmaMultilingualNeural"),
     "vf4": ("en-US-EmmaMultilingualNeural", "pt-BR-FranciscaNeural"),
     "vf5": ("pt-BR-FranciscaNeural", "pt-BR-ThalitaMultilingualNeural"),
     "vm1": ("pt-PT-DuarteNeural", "en-US-AndrewMultilingualNeural"),
     "vm2": ("en-US-AndrewMultilingualNeural", "pt-BR-AntonioNeural"),
-    "vm3": ("ar-LB-RamiNeural", "pt-BR-AntonioNeural"),
-    "vm4": ("hi-IN-SwaraNeural", "pt-BR-AntonioNeural"),
+    "vm3": ("pt-BR-AntonioNeural", "en-US-AndrewMultilingualNeural"),
+    "vm4": ("pt-BR-AntonioNeural", "en-US-AndrewMultilingualNeural"),
     "vm5": ("ko-KR-InJoonNeural", "en-US-BrianMultilingualNeural"),
     "vg1": ("en-US-EmmaMultilingualNeural", "pt-BR-ThalitaMultilingualNeural"),
     "vg2": ("fr-FR-RemyMultilingualNeural", "pt-PT-RaquelNeural"),
@@ -146,8 +146,8 @@ def _fallbacks_for_voice(voice_id: str, avatar_id: str | None = None) -> tuple[s
 
 
 def _cache_key(text: str, voice_id: str) -> str:
-    # v4: 12 vozes únicas por avatar (multilíngues Edge TTS)
-    payload = f"v4:{voice_id}:{text[:2400]}".encode("utf-8", errors="ignore")
+    # v8: avatares Conexão/Premium — vozes pt-BR/pt-PT nativas
+    payload = f"v8:{voice_id}:{text[:2400]}".encode("utf-8", errors="ignore")
     return hashlib.sha256(payload).hexdigest()
 
 
