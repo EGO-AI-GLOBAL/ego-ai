@@ -13,8 +13,8 @@ TEAM_SEAT_VALUES: tuple[int, ...] = (10, 20, 30, 40, 50, 100)
 # Brasil (R$)
 TEAM_STRIPE_URLS_BR: dict[str, dict[int, str]] = {
     "connection": {
-        10: "https://buy.stripe.com/bJeaEZ4zYcXw95K3904ow0a",
-        20: "https://buy.stripe.com/dRmcN7d6ucXwgyc8tk4ow0b",
+        10: "https://buy.stripe.com/dRmfZj6I6cXwdm05h84ow0T",
+        20: "https://buy.stripe.com/aFa14peay6z8a9O3904ow0U",
         30: "https://buy.stripe.com/00w7sNd6ue1A5TybFw4ow0c",
         40: "https://buy.stripe.com/dRm9AVeaycXw4Pu8tk4ow0d",
         50: "https://buy.stripe.com/fZu3cx3vUcXweq4aBs4ow0e",
