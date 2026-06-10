@@ -15,10 +15,10 @@ TEAM_STRIPE_URLS_BR: dict[str, dict[int, str]] = {
     "connection": {
         10: "https://buy.stripe.com/dRmfZj6I6cXwdm05h84ow0T",
         20: "https://buy.stripe.com/aFa14peay6z8a9O3904ow0U",
-        30: "https://buy.stripe.com/00w7sNd6ue1A5TybFw4ow0c",
-        40: "https://buy.stripe.com/dRm9AVeaycXw4Pu8tk4ow0d",
-        50: "https://buy.stripe.com/fZu3cx3vUcXweq4aBs4ow0e",
-        100: "https://buy.stripe.com/fZu00l0jI3mWdm0cJA4ow0f",
+        30: "https://buy.stripe.com/00w3cx2rQ0aK0ze3904ow0V",
+        40: "https://buy.stripe.com/14A5kFeay4r081G6lc4ow0W",
+        50: "https://buy.stripe.com/5kQaEZ7Ma6z81Di5h84ow0X",
+        100: "https://buy.stripe.com/bJe4gB3vUbTs0ze8tk4ow0Y",
     },
     "premium": {
         10: "https://buy.stripe.com/8x26oJ5E2bTs6XCcJA4ow0g",

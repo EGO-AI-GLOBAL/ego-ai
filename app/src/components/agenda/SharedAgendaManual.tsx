@@ -24,8 +24,9 @@ import {
   membersCardLine,
   membersGroupLine,
 } from "@/utils/sharedCalendarMembers";
+import { AgendaDateTimeFields } from "./AgendaDateTimeFields";
 import { agendaFormStyles as s } from "./agendaFormStyles";
-import { defaultDateBr, sortSharedEvents } from "./agendaUtils";
+import { defaultDateBr, defaultTimeHm, sortSharedEvents } from "./agendaUtils";
 import { SharedEventRow } from "./SharedEventRow";
 
 const AGENDA_UI_VERSION = "jun/2025 · nomes + layout claro";
@@ -56,7 +57,7 @@ export function SharedAgendaManual({
   const [showSharedEventForm, setShowSharedEventForm] = useState(false);
   const [sharedEventTitle, setSharedEventTitle] = useState("Reunião");
   const [sharedEventDate, setSharedEventDate] = useState(defaultDateBr);
-  const [sharedEventTime, setSharedEventTime] = useState("15:00");
+  const [sharedEventTime, setSharedEventTime] = useState(defaultTimeHm(15, 0));
   const [savingSharedEvent, setSavingSharedEvent] = useState(false);
 
   const selectedCalendar = useMemo(() => {
@@ -113,7 +114,7 @@ export function SharedAgendaManual({
     const title = sharedEventTitle.trim() || "Reunião";
     const iso = localDateTimeToIso(sharedEventDate.trim(), sharedEventTime.trim());
     if (!iso) {
-      Alert.alert("Data/hora", "Use DD/MM/AAAA e HH:MM (ex.: 30/06/2026 e 15:00).");
+      Alert.alert("Data/hora", "Toque na data e na hora para escolher no calendário.");
       return;
     }
     setSavingSharedEvent(true);
@@ -126,7 +127,7 @@ export function SharedAgendaManual({
       setShowSharedEventForm(false);
       setSharedEventTitle("Reunião");
       setSharedEventDate(defaultDateBr());
-      setSharedEventTime("15:00");
+      setSharedEventTime(defaultTimeHm(15, 0));
       await onRefresh();
       Alert.alert("Marcado", `«${title}» foi adicionado à agenda «${selectedCalendar.name}».`);
     } catch (e) {
@@ -355,40 +356,13 @@ export function SharedAgendaManual({
                   },
                 ]}
               />
-              <View style={s.eventRowInputs}>
-                <TextInput
-                  value={sharedEventDate}
-                  onChangeText={setSharedEventDate}
-                  placeholder="DD/MM/AAAA"
-                  placeholderTextColor={colors.textMuted}
-                  keyboardType="numbers-and-punctuation"
-                  style={[
-                    s.inviteInput,
-                    s.eventDateInput,
-                    {
-                      color: colors.text,
-                      borderColor: colors.border,
-                      backgroundColor: colors.bgCard,
-                    },
-                  ]}
-                />
-                <TextInput
-                  value={sharedEventTime}
-                  onChangeText={setSharedEventTime}
-                  placeholder="HH:MM"
-                  placeholderTextColor={colors.textMuted}
-                  keyboardType="numbers-and-punctuation"
-                  style={[
-                    s.inviteInput,
-                    s.eventTimeInput,
-                    {
-                      color: colors.text,
-                      borderColor: colors.border,
-                      backgroundColor: colors.bgCard,
-                    },
-                  ]}
-                />
-              </View>
+              <AgendaDateTimeFields
+                colors={colors}
+                dateValue={sharedEventDate}
+                timeValue={sharedEventTime}
+                onDateChange={setSharedEventDate}
+                onTimeChange={setSharedEventTime}
+              />
               <Pressable
                 onPress={onAddSharedEvent}
                 disabled={savingSharedEvent}

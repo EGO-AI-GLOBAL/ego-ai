@@ -18,8 +18,9 @@ import type { AgendaItem, Reminder } from "@/api/types";
 import { AgendaItemRow } from "@/components/AgendaItem";
 import { ReminderItem } from "@/components/ReminderItem";
 import type { AppColors } from "@/theme/colors";
+import { AgendaDateTimeFields, AgendaTimeField } from "./AgendaDateTimeFields";
 import { agendaFormStyles as s } from "./agendaFormStyles";
-import { defaultDateBr } from "./agendaUtils";
+import { defaultDateBr, defaultTimeHm } from "./agendaUtils";
 
 type Props = {
   colors: AppColors;
@@ -36,11 +37,11 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
   const [showPersonalForm, setShowPersonalForm] = useState(false);
   const [personalTitle, setPersonalTitle] = useState("Compromisso");
   const [personalDate, setPersonalDate] = useState(defaultDateBr);
-  const [personalTime, setPersonalTime] = useState("10:00");
+  const [personalTime, setPersonalTime] = useState(defaultTimeHm(10, 0));
   const [savingPersonal, setSavingPersonal] = useState(false);
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [habitTitle, setHabitTitle] = useState("Academia");
-  const [habitTime, setHabitTime] = useState("08:00");
+  const [habitTime, setHabitTime] = useState(defaultTimeHm(8, 0));
   const [habitDays, setHabitDays] = useState("seg,ter,qua,qui,sex");
   const [savingHabit, setSavingHabit] = useState(false);
 
@@ -53,7 +54,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
     const title = personalTitle.trim() || "Compromisso";
     const iso = localDateTimeToIso(personalDate.trim(), personalTime.trim());
     if (!iso) {
-      Alert.alert("Data/hora", "Use DD/MM/AAAA e HH:MM (ex.: 30/06/2026 e 15:00).");
+      Alert.alert("Data/hora", "Toque na data e na hora para escolher no calendário.");
       return;
     }
     setSavingPersonal(true);
@@ -62,7 +63,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
       setShowPersonalForm(false);
       setPersonalTitle("Compromisso");
       setPersonalDate(defaultDateBr());
-      setPersonalTime("10:00");
+      setPersonalTime(defaultTimeHm(10, 0));
       await onRefresh();
       Alert.alert("Marcado", `«${title}» foi adicionado à sua agenda pessoal.`);
     } catch (e) {
@@ -92,7 +93,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
       await createAgendaItem({ titulo, horario, dias_da_semana: dias });
       setShowHabitForm(false);
       setHabitTitle("Academia");
-      setHabitTime("08:00");
+      setHabitTime(defaultTimeHm(8, 0));
       setHabitDays("seg,ter,qua,qui,sex");
       await onRefresh();
       Alert.alert("Hábito criado", `«${titulo}» foi adicionado à agenda semanal.`);
@@ -182,24 +183,15 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
             placeholderTextColor={colors.textMuted}
             style={inputStyle}
           />
-          <View style={s.eventRowInputs}>
-            <TextInput
-              value={personalDate}
-              onChangeText={setPersonalDate}
-              placeholder="DD/MM/AAAA"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="numbers-and-punctuation"
-              style={[...inputStyle, s.eventDateInput]}
-            />
-            <TextInput
-              value={personalTime}
-              onChangeText={setPersonalTime}
-              placeholder="HH:MM"
-              placeholderTextColor={colors.textMuted}
-              keyboardType="numbers-and-punctuation"
-              style={[...inputStyle, s.eventTimeInput]}
-            />
-          </View>
+          <AgendaDateTimeFields
+            colors={colors}
+            dateValue={personalDate}
+            timeValue={personalTime}
+            onDateChange={setPersonalDate}
+            onTimeChange={setPersonalTime}
+            dateInputStyle={[{ backgroundColor: colors.bg }]}
+            timeInputStyle={[{ backgroundColor: colors.bg }]}
+          />
           <Pressable
             onPress={onAddPersonalReminder}
             disabled={savingPersonal}
@@ -259,14 +251,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
             placeholderTextColor={colors.textMuted}
             style={inputStyle}
           />
-          <TextInput
-            value={habitTime}
-            onChangeText={setHabitTime}
-            placeholder="HH:MM"
-            placeholderTextColor={colors.textMuted}
-            keyboardType="numbers-and-punctuation"
-            style={inputStyle}
-          />
+          <AgendaTimeField colors={colors} value={habitTime} onChange={setHabitTime} inputStyle={inputStyle} />
           <TextInput
             value={habitDays}
             onChangeText={setHabitDays}
