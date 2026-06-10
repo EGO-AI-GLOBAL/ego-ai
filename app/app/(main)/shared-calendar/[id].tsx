@@ -72,7 +72,7 @@ function ChatHint({ colors, onPress }: { colors: AppColors; onPress: () => void 
         Manual ou com avatar
       </Text>
       <Text style={[styles.chatHintBody, { color: colors.textMuted }]}>
-        Use os formulários abaixo para marcar e convidar. O chat com o avatar é opcional.
+        Marque aqui ou no chat com o avatar — na lista, Apagar funciona igual nos dois casos.
       </Text>
       <Text style={[styles.chatHintLink, { color: colors.primary }]}>Opcional: abrir o chat →</Text>
     </Pressable>
@@ -274,7 +274,11 @@ export default function SharedCalendarDetailScreen() {
   return (
     <ScreenShell
       title={calName}
-      subtitle={isOwner ? "Marcar e apagar compromissos manualmente" : "Apagar compromissos com o botão"}
+      subtitle={
+        isOwner
+          ? "Marcar no chat ou aqui · Apagar compromissos na lista"
+          : "Compromissos do grupo · Apagar na lista"
+      }
     >
       <ScrollView
         contentContainerStyle={styles.scroll}
