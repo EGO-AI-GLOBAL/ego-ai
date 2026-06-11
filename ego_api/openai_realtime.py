@@ -19,6 +19,7 @@ from ego_api.config import (
     openai_realtime_voice_male,
 )
 from ego_api.gemini import GEMINI_SYSTEM_INSTRUCTION, _identity_instruction
+from ego_api.wellness_coach import WELLNESS_COACH_INSTRUCTION
 from ego_api.persona import apply_assistant_name_from_avatar, is_male_avatar
 from ego_api.request_ctx import UserSession, get_session
 
@@ -105,7 +106,12 @@ def build_phone_instructions(
         core = _phone_core_turbo(sess) + _REALTIME_PHONE_PERSONA_TURBO
     else:
         hist = _history_snippet(client_history or [], max_turns=6, max_chars=500)
-        core = GEMINI_SYSTEM_INSTRUCTION + _identity_instruction(sess) + _REALTIME_PHONE_PERSONA
+        core = (
+            GEMINI_SYSTEM_INSTRUCTION
+            + WELLNESS_COACH_INSTRUCTION
+            + _identity_instruction(sess)
+            + _REALTIME_PHONE_PERSONA
+        )
     if hist:
         return core + hist
     return core

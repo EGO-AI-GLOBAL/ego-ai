@@ -17,6 +17,7 @@ from ego_api.config import (
 )
 from ego_api.reminder_schedule import reminder_llm_instruction_block
 from ego_api.request_ctx import UserSession, get_session
+from ego_api.wellness_coach import WELLNESS_COACH_INSTRUCTION
 
 try:
     from zoneinfo import ZoneInfo
@@ -186,6 +187,7 @@ def build_system_instruction(
 ) -> str:
     return (
         GEMINI_SYSTEM_INSTRUCTION
+        + WELLNESS_COACH_INSTRUCTION
         + language_instruction(lang_code)
         + _identity_instruction(sess)
         + _datetime_instruction(sess)
@@ -201,6 +203,7 @@ def build_system_instruction_voice(sess: UserSession, lang_code: str) -> str:
     """Prompt para voz — inclui marcadores de agenda (pessoal e compartilhada)."""
     return (
         GEMINI_SYSTEM_INSTRUCTION
+        + WELLNESS_COACH_INSTRUCTION
         + language_instruction(lang_code)
         + _identity_instruction(sess)
         + _datetime_instruction(sess)
