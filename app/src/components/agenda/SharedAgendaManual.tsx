@@ -59,6 +59,7 @@ export function SharedAgendaManual({
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [newCalendarName, setNewCalendarName] = useState("Família");
   const [creatingCalendar, setCreatingCalendar] = useState(false);
+  const [showCreateCalendarForm, setShowCreateCalendarForm] = useState(false);
   const [showSharedEventForm, setShowSharedEventForm] = useState(false);
   const [sharedEventTitle, setSharedEventTitle] = useState("Reunião");
   const [sharedEventDate, setSharedEventDate] = useState(defaultDateBr);
@@ -107,6 +108,7 @@ export function SharedAgendaManual({
     try {
       const cal = await createSharedCalendar(name);
       setNewCalendarName("Família");
+      setShowCreateCalendarForm(false);
       setSelectedSharedId(String(cal.id));
       await onRefresh();
       Alert.alert("Agenda criada", `«${name}» está pronta. Marque compromissos ou convide pessoas.`);
@@ -272,6 +274,52 @@ export function SharedAgendaManual({
       <Text style={[s.section, { color: colors.textMuted }]}>
         Suas agendas ({sharedCalendars.length})
       </Text>
+      <Pressable
+        onPress={() => setShowCreateCalendarForm((v) => !v)}
+        style={({ pressed }) => [
+          s.addBtn,
+          {
+            borderColor: colors.primary,
+            backgroundColor: showCreateCalendarForm ? colors.primaryLight : colors.bgCard,
+            opacity: pressed ? 0.88 : 1,
+            marginBottom: 10,
+          },
+        ]}
+      >
+        <Text style={[s.addBtnText, { color: colors.primary }]}>
+          {showCreateCalendarForm ? "Fechar formulário" : "+ Nova agenda compartilhada"}
+        </Text>
+      </Pressable>
+      {showCreateCalendarForm ? (
+        <View
+          style={[
+            s.formBox,
+            { borderColor: colors.border, backgroundColor: colors.bgCard, marginBottom: 12 },
+          ]}
+        >
+          <Text style={[s.formLabel, { color: colors.textMuted }]}>
+            Nova agenda em grupo (sem usar o chat)
+          </Text>
+          <TextInput
+            value={newCalendarName}
+            onChangeText={setNewCalendarName}
+            placeholder="Nome (ex.: Trabalho, Família)"
+            placeholderTextColor={colors.textMuted}
+            style={inputStyle}
+          />
+          <Pressable
+            onPress={onCreateSharedCalendar}
+            disabled={creatingCalendar}
+            style={[s.inviteBtn, { backgroundColor: colors.primary }]}
+          >
+            {creatingCalendar ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={s.inviteBtnText}>Criar agenda</Text>
+            )}
+          </Pressable>
+        </View>
+      ) : null}
       {sharedCalendars.map((cal) => {
         const cid = String(cal.id || "");
         const calName = (cal.name || "Agenda").trim();
