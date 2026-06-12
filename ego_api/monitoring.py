@@ -161,16 +161,18 @@ def register_flask_handlers(app) -> None:
         from flask import jsonify, request
 
         capture_exception(err)
+        root = getattr(err, "__cause__", None) or err
+        detail = str(root).strip() or str(err).strip()
         record_error_report(
             source="api",
-            message=str(err),
+            message=detail[:2000],
             stack=traceback.format_exc(),
             route=request.path,
             alert=True,
         )
         from ego_api.api_errors import friendly_api_error
 
-        return jsonify({"ok": False, "error": friendly_api_error(err, context="api")}), 500
+        return jsonify({"ok": False, "error": friendly_api_error(root, context="api")}), 500
 
 
 def log_api_exception(exc: BaseException, *, route: str = "") -> None:
