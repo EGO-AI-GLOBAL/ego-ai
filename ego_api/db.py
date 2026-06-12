@@ -1171,7 +1171,13 @@ def insert_reminder(
         from ego_api.supabase_client import insert_returning_rows
 
         inserted = insert_returning_rows(supabase, SUPABASE_REMINDERS_TABLE, row)
-        data = inserted[0] if inserted else row
+        if not inserted:
+            return (
+                False,
+                "Não foi possível gravar o compromisso. Saia e entre de novo.",
+                None,
+            )
+        data = inserted[0]
         if isinstance(data, dict):
             from ego_api.json_util import sanitize_for_json
 
@@ -1288,8 +1294,13 @@ def insert_agenda(
         from ego_api.supabase_client import insert_returning_rows
 
         inserted = insert_returning_rows(supabase, SUPABASE_AGENDA_TABLE, row)
-        data = inserted[0] if inserted else row
-        return True, "", data
+        if not inserted:
+            return (
+                False,
+                "Não foi possível gravar o hábito. Saia e entre de novo.",
+                None,
+            )
+        return True, "", inserted[0]
     except Exception as e:
         return False, str(e), None
 

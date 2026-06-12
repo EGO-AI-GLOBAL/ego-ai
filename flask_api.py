@@ -238,58 +238,70 @@ def require_auth(f: Callable) -> Callable:
                 refresh_token=refresh,
             )
         )
-        prof = db.load_profile(client, uid) or {}
-        ui = services.ui_state_from_profile(prof)
-        from ego_api.persona import (
-            apply_assistant_name_from_avatar,
-            assistant_display_name_for_avatar,
-            normalize_persona_pair,
-        )
+        try:
+            prof = db.load_profile(client, uid) or {}
+            ui = services.ui_state_from_profile(prof)
+            from ego_api.persona import (
+                apply_assistant_name_from_avatar,
+                assistant_display_name_for_avatar,
+                normalize_persona_pair,
+            )
 
-        stored_a, stored_v = db.load_persona(client, uid)
-        persona_avatar, _persona_voice = normalize_persona_pair(stored_a, stored_v)
-        persona_name = assistant_display_name_for_avatar(persona_avatar)
-        sess = get_session()
-        if sess:
-            prof_name = str(prof.get("full_name") or "").strip()
-            prof_name_is_email_alias = bool(
-                prof_name and email_local and prof_name.lower() == email_local
-            )
-            sess.user_name = str(
-                body.get("user_name")
-                or meta_name
-                or ("" if prof_name_is_email_alias else prof_name)
-                or ui.get("user_name")
-                or ""
-            )[:200]
-            sess.assistant_name = str(
-                body.get("assistant_name") or persona_name or ui.get("ego_assistant_display_name") or "EGO-AI"
-            )[:48]
-            apply_assistant_name_from_avatar(persona_avatar)
-            sess.timezone = str(body.get("timezone") or ui.get("ego_client_timezone") or "")[
-                :120
-            ]
-            raw_tz = body.get("tz_offset_min", ui.get("ego_client_tz_offset_min"))
-            try:
-                sess.tz_offset_min = int(raw_tz) if raw_tz is not None else None
-            except (TypeError, ValueError):
-                sess.tz_offset_min = None
-            sess.pdf_context = str(body.get("pdf_context") or ui.get("pdf_context") or "")
-            sess.gemini_model_preference = str(
-                body.get("gemini_model")
-                or ui.get("gemini_model_preference")
-                or GEMINI_MODEL_FLASH
-            )
-            if body.get("timezone") or body.get("tz_offset_min") is not None:
-                services.persist_client_timezone(
-                    client,
-                    uid,
-                    timezone=str(sess.timezone or ""),
-                    tz_offset_min=sess.tz_offset_min,
+            stored_a, stored_v = db.load_persona(client, uid)
+            persona_avatar, _persona_voice = normalize_persona_pair(stored_a, stored_v)
+            persona_name = assistant_display_name_for_avatar(persona_avatar)
+            sess = get_session()
+            if sess:
+                prof_name = str(prof.get("full_name") or "").strip()
+                prof_name_is_email_alias = bool(
+                    prof_name and email_local and prof_name.lower() == email_local
                 )
-        g.supabase = client
-        g.user_id = uid
-        return f(*args, **kwargs)
+                sess.user_name = str(
+                    body.get("user_name")
+                    or meta_name
+                    or ("" if prof_name_is_email_alias else prof_name)
+                    or ui.get("user_name")
+                    or ""
+                )[:200]
+                sess.assistant_name = str(
+                    body.get("assistant_name")
+                    or persona_name
+                    or ui.get("ego_assistant_display_name")
+                    or "EGO-AI"
+                )[:48]
+                apply_assistant_name_from_avatar(persona_avatar)
+                sess.timezone = str(
+                    body.get("timezone") or ui.get("ego_client_timezone") or ""
+                )[:120]
+                raw_tz = body.get("tz_offset_min", ui.get("ego_client_tz_offset_min"))
+                try:
+                    sess.tz_offset_min = int(raw_tz) if raw_tz is not None else None
+                except (TypeError, ValueError):
+                    sess.tz_offset_min = None
+                sess.pdf_context = str(
+                    body.get("pdf_context") or ui.get("pdf_context") or ""
+                )
+                sess.gemini_model_preference = str(
+                    body.get("gemini_model")
+                    or ui.get("gemini_model_preference")
+                    or GEMINI_MODEL_FLASH
+                )
+                if body.get("timezone") or body.get("tz_offset_min") is not None:
+                    services.persist_client_timezone(
+                        client,
+                        uid,
+                        timezone=str(sess.timezone or ""),
+                        tz_offset_min=sess.tz_offset_min,
+                    )
+            g.supabase = client
+            g.user_id = uid
+            return f(*args, **kwargs)
+        except Exception as exc:  # noqa: BLE001
+            from ego_api.api_errors import friendly_api_error
+            from ego_api.monitoring import log_api_exception
+
+            log_api_exception(exc, route=request.path)
+            return _json_error(friendly_api_error(exc, context="auth"), 500)
 
     return wrapper
 
@@ -715,26 +727,21 @@ def chat_send():
             client_history=client_history,
         )
     except Exception as exc:
+        from ego_api.api_errors import friendly_api_error
         from ego_api.monitoring import log_api_exception
 
         log_api_exception(exc, route="/api/v1/chat/messages")
-        return _json_error(
-            "Não consegui processar agora. Tente de novo ou diga: "
-            "«marca na agenda pessoal: … amanhã 9h».",
-            500,
-        )
+        return _json_error(friendly_api_error(exc, context="chat"), 500)
     if err:
         return _json_error(err, 402 if "Limite" in err or "expirado" in err.lower() else 400)
     try:
         return _json_ok(result)
     except Exception as exc:
+        from ego_api.api_errors import friendly_api_error
         from ego_api.monitoring import log_api_exception
 
         log_api_exception(exc, route="/api/v1/chat/messages")
-        return _json_error(
-            "Não consegui devolver a resposta. Tente de novo.",
-            500,
-        )
+        return _json_error(friendly_api_error(exc, context="chat"), 500)
 
 
 @app.post("/api/v1/tts")
@@ -941,24 +948,34 @@ def reminders_list():
 @app.post("/api/v1/reminders")
 @require_auth
 def reminders_create():
-    data = request.get_json(silent=True) or {}
-    title = str(data.get("title") or "").strip()
-    scheduled_at = data.get("scheduled_at")
-    if not title or scheduled_at is None:
-        return _json_error("title e scheduled_at são obrigatórios.")
-    cap = services.enforce_reminder_limit(g.supabase, g.user_id)
-    if cap:
-        return _json_error(cap, 402)
-    ok, err, row = db.insert_reminder(
-        g.supabase,
-        g.user_id,
-        title=title,
-        scheduled_at=scheduled_at,
-        announce=str(data.get("announce") or title),
-    )
-    if not ok:
-        return _json_error(err or "Não foi possível criar o lembrete.")
-    return _json_ok({"reminder": row}, 201)
+    from ego_api.api_errors import friendly_api_error
+    from ego_api.monitoring import log_api_exception
+
+    try:
+        data = request.get_json(silent=True) or {}
+        title = str(data.get("title") or "").strip()
+        scheduled_at = data.get("scheduled_at")
+        if not title or scheduled_at is None:
+            return _json_error("title e scheduled_at são obrigatórios.")
+        cap = services.enforce_reminder_limit(g.supabase, g.user_id)
+        if cap:
+            return _json_error(cap, 402)
+        ok, err, row = db.insert_reminder(
+            g.supabase,
+            g.user_id,
+            title=title,
+            scheduled_at=scheduled_at,
+            announce=str(data.get("announce") or title),
+        )
+        if not ok:
+            return _json_error(
+                friendly_api_error(err or "", context="reminder")
+                or "Não foi possível criar o lembrete."
+            )
+        return _json_ok({"reminder": row}, 201)
+    except Exception as exc:  # noqa: BLE001
+        log_api_exception(exc, route="/api/v1/reminders")
+        return _json_error(friendly_api_error(exc, context="reminder"), 500)
 
 
 @app.post("/api/v1/reminders/<reminder_id>/dismiss")
@@ -987,22 +1004,35 @@ def agenda_list():
 @app.post("/api/v1/agenda")
 @require_auth
 def agenda_create():
-    data = request.get_json(silent=True) or {}
-    cap = services.enforce_agenda_limit(g.supabase, g.user_id)
-    if cap:
-        return _json_error(cap, 402)
-    ok, err, row = db.insert_agenda(
-        g.supabase,
-        g.user_id,
-        titulo=str(data.get("titulo") or data.get("title") or ""),
-        horario=data.get("horario") or data.get("time"),
-        dias_da_semana=str(
-            data.get("dias_da_semana") or data.get("weekdays") or data.get("dias") or ""
-        ),
-    )
-    if not ok:
-        return _json_error(err or "Não foi possível criar na agenda.")
-    return _json_ok({"item": row}, 201)
+    from ego_api.api_errors import friendly_api_error
+    from ego_api.monitoring import log_api_exception
+
+    try:
+        data = request.get_json(silent=True) or {}
+        cap = services.enforce_agenda_limit(g.supabase, g.user_id)
+        if cap:
+            return _json_error(cap, 402)
+        ok, err, row = db.insert_agenda(
+            g.supabase,
+            g.user_id,
+            titulo=str(data.get("titulo") or data.get("title") or ""),
+            horario=data.get("horario") or data.get("time"),
+            dias_da_semana=str(
+                data.get("dias_da_semana")
+                or data.get("weekdays")
+                or data.get("dias")
+                or ""
+            ),
+        )
+        if not ok:
+            return _json_error(
+                friendly_api_error(err or "", context="agenda")
+                or "Não foi possível criar na agenda."
+            )
+        return _json_ok({"item": row}, 201)
+    except Exception as exc:  # noqa: BLE001
+        log_api_exception(exc, route="/api/v1/agenda")
+        return _json_error(friendly_api_error(exc, context="agenda"), 500)
 
 
 @app.delete("/api/v1/agenda/<agenda_id>")

@@ -168,7 +168,9 @@ def register_flask_handlers(app) -> None:
             route=request.path,
             alert=True,
         )
-        return jsonify({"ok": False, "error": "Erro interno."}), 500
+        from ego_api.api_errors import friendly_api_error
+
+        return jsonify({"ok": False, "error": friendly_api_error(err, context="api")}), 500
 
 
 def log_api_exception(exc: BaseException, *, route: str = "") -> None:
