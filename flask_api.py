@@ -238,6 +238,9 @@ def require_auth(f: Callable) -> Callable:
                 refresh_token=refresh,
             )
         )
+        g.supabase = client
+        g.user_id = uid
+
         try:
             prof = db.load_profile(client, uid) or {}
             ui = services.ui_state_from_profile(prof)
@@ -293,15 +296,12 @@ def require_auth(f: Callable) -> Callable:
                         timezone=str(sess.timezone or ""),
                         tz_offset_min=sess.tz_offset_min,
                     )
-            g.supabase = client
-            g.user_id = uid
-            return f(*args, **kwargs)
         except Exception as exc:  # noqa: BLE001
-            from ego_api.api_errors import friendly_api_error
             from ego_api.monitoring import log_api_exception
 
-            log_api_exception(exc, route=request.path)
-            return _json_error(friendly_api_error(exc, context="auth"), 500)
+            log_api_exception(exc, route=f"{request.path} (session enrich)")
+
+        return f(*args, **kwargs)
 
     return wrapper
 
@@ -332,7 +332,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-12-friendly-errors-v2",
+        "api_build": "2026-06-12-session-fix-v3",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),

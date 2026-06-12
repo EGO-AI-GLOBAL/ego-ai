@@ -1168,9 +1168,11 @@ def insert_reminder(
         "announce": (announce or title or "")[:2000],
     }
     try:
-        from ego_api.supabase_client import insert_returning_rows
+        from ego_api.supabase_client import insert_returning_rows, insert_with_admin_fallback
 
         inserted = insert_returning_rows(supabase, SUPABASE_REMINDERS_TABLE, row)
+        if not inserted:
+            inserted = insert_with_admin_fallback(supabase, SUPABASE_REMINDERS_TABLE, row)
         if not inserted:
             return (
                 False,
