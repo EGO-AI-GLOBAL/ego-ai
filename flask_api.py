@@ -459,6 +459,63 @@ def referrals_validate():
     return _json_ok({"valid": True, **info})
 
 
+@app.post("/api/v1/admin/test-signup-email")
+@require_admin
+def admin_test_signup_email():
+    """Envia e-mail de boas-vindas de teste (não cria conta, não grava no perfil)."""
+    from ego_api.signup_emails import (
+        _first_name,
+        _play_url,
+        _welcome_bodies,
+        send_smtp_email,
+        signup_emails_enabled,
+        smtp_configured,
+    )
+
+    if not signup_emails_enabled():
+        return _json_error("EGO_SIGNUP_EMAIL_ENABLED está desligado.", 503)
+    if not smtp_configured():
+        return _json_error("EGO_SMTP_PASSWORD não configurado no Railway.", 503)
+    data = request.get_json(silent=True) or {}
+    email = str(data.get("email") or "").strip()
+    if not email or "@" not in email:
+        return _json_error("Informe um e-mail válido no JSON: {\"email\":\"...\"}", 400)
+    display = str(data.get("full_name") or data.get("fullName") or "").strip()
+    name = _first_name(display, email)
+    subject, text_body, html_body = _welcome_bodies(name, _play_url())
+    try:
+        send_smtp_email(
+            to_email=email,
+            subject=subject,
+            text_body=text_body,
+            html_body=html_body,
+        )
+        return _json_ok({"ok": True, "sent_to": email, "subject": subject})
+    except Exception as exc:
+        return _json_error(str(exc)[:400], 500)
+
+
+@app.post("/api/v1/admin/cron/signup-reminders")
+@require_admin
+def admin_cron_signup_reminders():
+    """Lembrete 24h: quem criou conta, recebeu boas-vindas e nunca fez login."""
+    from ego_api.signup_emails import process_signup_reminders
+
+    data = request.get_json(silent=True) or {}
+    try:
+        min_hours = int(data.get("min_hours") or request.args.get("min_hours") or 24)
+        max_days = int(data.get("max_days") or request.args.get("max_days") or 7)
+        limit = int(data.get("limit") or request.args.get("limit") or 50)
+    except (TypeError, ValueError):
+        return _json_error("min_hours, max_days e limit devem ser números.", 400)
+    stats = process_signup_reminders(
+        min_hours=max(1, min_hours),
+        max_days=max(1, max_days),
+        limit=min(200, max(1, limit)),
+    )
+    return _json_ok({"ok": True, "stats": stats})
+
+
 @app.post("/api/v1/admin/referrals/partners")
 @require_admin
 def admin_referrals_create_partner():

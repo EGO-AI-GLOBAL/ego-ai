@@ -166,6 +166,9 @@ def signup(
                 ref_err = _apply_referral_after_signup(uid, referral_code)
                 if ref_err:
                     return None, ref_err
+                from ego_api.signup_emails import queue_welcome_email
+
+                queue_welcome_email(uid, email_norm, display)
             user_obj = payload.get("user")
             if not user_obj and uid:
                 user_obj = {"id": uid, "email": email_norm}
@@ -195,6 +198,9 @@ def signup(
             from ego_api import shared_calendars as sc
 
             sc.link_shared_memberships_for_user_phone(client, uid, phone_norm)
+        from ego_api.signup_emails import queue_welcome_email
+
+        queue_welcome_email(uid, email_norm, display)
         return payload, None
     except Exception as e:  # noqa: BLE001
         return None, format_auth_error(e)
