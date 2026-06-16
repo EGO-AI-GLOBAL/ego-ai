@@ -22,11 +22,7 @@ import { sendChatMessage } from "@/api/client";
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { ChatComposer } from "@/components/ChatComposer";
 import { ChatPreview } from "@/components/ChatPreview";
-import { ChatQuickActions } from "@/components/ChatQuickActions";
-import {
-  getComposerPlaceholder,
-  getContextualQuickActions,
-} from "@/constants/chatQuickActions";
+import { getComposerPlaceholder } from "@/constants/chatQuickActions";
 import {
   ChatScheduleBanner,
   extractScheduleBannerItems,
@@ -63,7 +59,6 @@ import {
   syncSharedCalendarLocalNotifications,
 } from "@/utils/sharedCalendarNotifications";
 import { AudioSpeedControl } from "@/components/AudioSpeedControl";
-import type { ChatQuickAction } from "@/constants/chatQuickActions";
 import { ritualChatPrompt } from "@/constants/dailyRituals";
 import type { DailyRitualId } from "@/constants/dailyRituals";
 import {
@@ -72,7 +67,6 @@ import {
   chatResultHasScheduleSave,
 } from "@/constants/saveCelebration";
 import { consumePendingRitual } from "@/storage/pendingRitual";
-import { loadLastUserIntent, saveLastUserIntent } from "@/storage/chatHints";
 import { computeDayProgress } from "@/utils/dayProgress";
 import {
   buildChatOnboardingMessage,
@@ -134,19 +128,13 @@ export default function ChatScreen() {
   const pdfCountRef = useRef(0);
   const ritualHandledRef = useRef(false);
   const ritualPendingRef = useRef<DailyRitualId | null>(null);
-  const [lastIntent, setLastIntent] = useState<string | null>(null);
   const [saveCelebrationLine, setSaveCelebrationLine] = useState<string | null>(null);
 
   useEffect(() => {
     void loadAutoPlayVoice().then(setAutoPlayVoice);
-    void loadLastUserIntent().then(setLastIntent);
   }, []);
 
   const dayProgress = useMemo(() => computeDayProgress(data), [data]);
-  const contextualActions = useMemo(
-    () => getContextualQuickActions(dayProgress.period, lastIntent),
-    [dayProgress.period, lastIntent]
-  );
   const composerPlaceholder = useMemo(
     () => getComposerPlaceholder(dayProgress.period),
     [dayProgress.period]
@@ -622,11 +610,7 @@ export default function ChatScreen() {
   );
 
   const afterChatSaved = useCallback(
-    async (result: SendChatResult, userText?: string) => {
-      if (userText?.trim()) {
-        await saveLastUserIntent(userText);
-        setLastIntent(userText.trim());
-      }
+    async (result: SendChatResult, _userText?: string) => {
       if (chatResultHasScheduleSave(result)) {
         const line = buildSaveCelebrationLine(assistantName, result);
         setSaveCelebrationLine(line);
@@ -857,13 +841,6 @@ export default function ChatScreen() {
     ]
   );
 
-  const onQuickAction = useCallback(
-    (action: ChatQuickAction) => {
-      void sendMessageText(action.prompt, action.label);
-    },
-    [sendMessageText]
-  );
-
   useEffect(() => {
     if (!localChatReady || loading || sending || ritualHandledRef.current) return;
     void (async () => {
@@ -946,52 +923,55 @@ export default function ChatScreen() {
             onPersonaChange={(p) => void setPersona(p.avatar_id, p.voice_id)}
             onSaved={onPersonaSaved}
           />
-          <View style={styles.voiceRow}>
-            <Text style={[styles.voiceLabel, { color: colors.textMuted }]}>
-              Ouvir ao responder
-            </Text>
-            <Switch
-              value={autoPlayVoice}
-              onValueChange={onAutoPlayVoiceChange}
-              trackColor={{ true: colors.primaryLight, false: colors.border }}
-              thumbColor={autoPlayVoice ? colors.primary : "#e4e4e7"}
-            />
-            {lastChatResult?.reply ? (
-              <Pressable
-                onPress={() => void onListenLastReply()}
-                disabled={voice.isPreparingAudio || sending}
-                style={({ pressed }) => [
-                  styles.listenBtnInline,
-                  {
-                    borderColor: colors.primary,
-                    backgroundColor: colors.bgCard,
-                    opacity:
-                      voice.isPreparingAudio || sending
-                        ? 0.5
-                        : pressed
-                          ? 0.9
-                          : 1,
-                  },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel="Ouvir resposta do assistente"
-              >
-                <Text style={[styles.listenBtnInlineText, { color: colors.primary }]}>
-                  {voice.isPreparingAudio ? "A preparar…" : "Ouvir resposta"}
-                </Text>
-              </Pressable>
-            ) : null}
-            {showSpeedControl ? (
-              <>
-                <View style={styles.speedDivider} />
-                <AudioSpeedControl
-                  colors={colors}
-                  value={voice.audioSpeed}
-                  onChange={voice.setAudioSpeed}
-                  disabled={!autoPlayVoice || voice.isPreparingAudio}
-                  allowedSpeeds={allowedSpeeds}
-                />
-              </>
+          <View style={styles.voiceControls}>
+            <View style={styles.voiceToggleRow}>
+              <Text style={[styles.voiceLabel, { color: colors.textMuted }]}>
+                Ouvir ao responder
+              </Text>
+              <Switch
+                value={autoPlayVoice}
+                onValueChange={onAutoPlayVoiceChange}
+                trackColor={{ true: colors.primaryLight, false: colors.border }}
+                thumbColor={autoPlayVoice ? colors.primary : "#e4e4e7"}
+              />
+            </View>
+            {lastChatResult?.reply || showSpeedControl ? (
+              <View style={styles.voiceActionsRow}>
+                {lastChatResult?.reply ? (
+                  <Pressable
+                    onPress={() => void onListenLastReply()}
+                    disabled={voice.isPreparingAudio || sending}
+                    style={({ pressed }) => [
+                      styles.listenBtnInline,
+                      {
+                        borderColor: colors.primary,
+                        backgroundColor: colors.bgCard,
+                        opacity:
+                          voice.isPreparingAudio || sending
+                            ? 0.5
+                            : pressed
+                              ? 0.9
+                              : 1,
+                      },
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Ouvir resposta do assistente"
+                  >
+                    <Text style={[styles.listenBtnInlineText, { color: colors.primary }]}>
+                      {voice.isPreparingAudio ? "A preparar…" : "Ouvir"}
+                    </Text>
+                  </Pressable>
+                ) : null}
+                {showSpeedControl ? (
+                  <AudioSpeedControl
+                    colors={colors}
+                    value={voice.audioSpeed}
+                    onChange={voice.setAudioSpeed}
+                    disabled={!autoPlayVoice || voice.isPreparingAudio}
+                    allowedSpeeds={allowedSpeeds}
+                  />
+                ) : null}
+              </View>
             ) : null}
           </View>
           {audioStatusLabel ? (
@@ -1047,7 +1027,7 @@ export default function ChatScreen() {
             <ChatPreview messages={chatMessages} assistantLabel={assistantName} />
           ) : localChatReady && !loading && !isDailyLimitReached ? (
             <Text style={[styles.empty, { color: colors.textMuted }]}>
-              Toque num atalho abaixo ou escreva para {assistantName}.
+              Escreva ou fale com {assistantName}.
             </Text>
           ) : null}
 
@@ -1169,14 +1149,6 @@ export default function ChatScreen() {
               </View>
             </View>
           ) : null}
-          {!isDailyLimitReached ? (
-            <ChatQuickActions
-              colors={colors}
-              disabled={sending || micActive}
-              actions={contextualActions}
-              onPick={onQuickAction}
-            />
-          ) : null}
           <ChatComposer
             value={chatInput}
             onChangeText={setChatInput}
@@ -1224,6 +1196,8 @@ const styles = StyleSheet.create({
   composerWrap: {
     flexShrink: 0,
     zIndex: 2,
+    width: "100%",
+    maxWidth: "100%",
   },
   listenBtnInline: {
     paddingVertical: 6,
@@ -1235,6 +1209,8 @@ const styles = StyleSheet.create({
   listenBtnInlineText: { fontSize: 12, fontWeight: "700" },
   avatarSection: {
     flexShrink: 0,
+    width: "100%",
+    maxWidth: "100%",
     paddingHorizontal: 16,
     paddingBottom: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -1246,18 +1222,25 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 12,
   },
-  voiceRow: {
+  voiceControls: {
+    width: "100%",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 4,
+  },
+  voiceToggleRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 10,
+  },
+  voiceActionsRow: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     flexWrap: "wrap",
     gap: 8,
-    marginBottom: 4,
-  },
-  speedDivider: {
-    width: StyleSheet.hairlineWidth,
-    height: 22,
-    backgroundColor: "#d4d4d8",
+    maxWidth: "100%",
   },
   voiceLabel: { fontSize: 13, fontWeight: "500" },
   audioStatus: {

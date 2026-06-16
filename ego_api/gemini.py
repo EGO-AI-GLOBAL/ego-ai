@@ -11,10 +11,12 @@ from ego_api.config import (
     GEMINI_MODEL_IDS,
     GEMINI_MODEL_PRO,
     PDF_CONTEXT_IN_SYSTEM_CHARS,
+    chat_agenda_actions_enabled,
     gemini_api_key,
     gemini_flash_only,
     voice_max_output_tokens,
 )
+from ego_api.app_guide import APP_GUIDE_LLM_INSTRUCTION
 from ego_api.reminder_schedule import reminder_llm_instruction_block
 from ego_api.request_ctx import UserSession, get_session
 from ego_api.wellness_coach import WELLNESS_COACH_INSTRUCTION
@@ -48,18 +50,18 @@ médico/legal definitivo; encaminhe a profissionais quando necessário).
 
 LUNA_PERSONALITY = """
 PERSONALIDADE LUNA (assistente feminina):
-- Tom caloroso, leve e humano — como uma amiga organizada, nunca como manual de instruções.
-- Pode usar humor suave e perguntas curtas antes de listar tarefas («Como acordou?», «Uma coisa de cada vez»).
-- Celebre pequenas vitórias ao marcar compromissos («Pronto, cuidei disso para você»).
-- Evite jargão corporativo e listas longas demais; prefira frases naturais em português do Brasil.
+- Tom caloroso, leve e humano — como uma amiga organizada e acolhedora, nunca como manual frio.
+- Pode usar humor suave e perguntas curtas («Como acordou?», «Uma coisa de cada vez»).
+- Celebre pequenas vitórias emocionais e quando a pessoa aprende a usar o app («Boa, você conseguiu!»).
+- Ensine passo a passo com paciência; evite jargão corporativo e listas longas demais.
 """
 
 LEO_PERSONALITY = """
 PERSONALIDADE LEO (assistente masculino):
-- Tom direto, confiante e parceiro — como um amigo prático que ajuda a organizar o dia.
+- Tom direto, confiante e parceiro — como um amigo prático que escuta de verdade.
 - Frases curtas, sem enrolação; pode usar humor seco leve («Bora resolver isso»).
-- Ao marcar compromissos, confirme com energia positiva («Fechado», «Tá na agenda»).
-- Evite soar frio ou burocrático; seja humano e presente.
+- Ao ensinar o app, confirme com energia positiva («Fechado», «É só tocar em Agenda»).
+- Evite soar frio ou burocrático; seja humano, presente e acolhedor.
 """
 
 DEFAULT_ASSISTANT_PERSONALITY = """
@@ -105,6 +107,29 @@ Exemplos do utilizador: «marca reunião amanhã 15h», «marca na agenda Famíl
 «amanhã» = dia seguinte no relógio local (feriado ou fim de semana não muda a data).
 Uma pergunta de cada vez só se faltar data/hora ou se houver várias agendas de grupo sem nome.
 """
+
+_AGENDA_MARKER_RE = re.compile(r"\[\[EGO_[A-Z_]+:.*?\]\]", re.DOTALL)
+
+
+def _agenda_llm_instructions() -> str:
+    if chat_agenda_actions_enabled():
+        return (
+            REMINDER_LLM_INSTRUCTION
+            + AGENDA_RECURRING_LLM_INSTRUCTION
+            + SCHEDULE_WIZARD_LLM_INSTRUCTION
+        )
+    return APP_GUIDE_LLM_INSTRUCTION
+
+
+def strip_agenda_markers_from_reply(text: str) -> str:
+    """Remove marcadores de agenda da resposta visível (modo guia)."""
+    out = (text or "").strip()
+    while True:
+        cleaned = _AGENDA_MARKER_RE.sub("", out).strip()
+        cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+        if cleaned == out:
+            return cleaned
+        out = cleaned
 
 
 def detect_language(text: str) -> tuple[str, float]:
@@ -224,15 +249,13 @@ def build_system_instruction(
         + _identity_instruction(sess)
         + _datetime_instruction(sess)
         + _pdf_instruction(sess.pdf_context)
-        + REMINDER_LLM_INSTRUCTION
-        + AGENDA_RECURRING_LLM_INSTRUCTION
-        + SCHEDULE_WIZARD_LLM_INSTRUCTION
+        + _agenda_llm_instructions()
         + (agenda_context or "")
     )
 
 
 def build_system_instruction_voice(sess: UserSession, lang_code: str) -> str:
-    """Prompt para voz — inclui marcadores de agenda (pessoal e compartilhada)."""
+    """Prompt para voz — tom acolhedor; agenda só se EGO_CHAT_AGENDA_ACTIONS=1."""
     return (
         GEMINI_SYSTEM_INSTRUCTION
         + _persona_personality_instruction(sess)
@@ -240,9 +263,7 @@ def build_system_instruction_voice(sess: UserSession, lang_code: str) -> str:
         + language_instruction(lang_code)
         + _identity_instruction(sess)
         + _datetime_instruction(sess)
-        + REMINDER_LLM_INSTRUCTION
-        + AGENDA_RECURRING_LLM_INSTRUCTION
-        + SCHEDULE_WIZARD_LLM_INSTRUCTION
+        + _agenda_llm_instructions()
         + "\n\n"
         + VOICE_REPLY_INSTRUCTION
     )

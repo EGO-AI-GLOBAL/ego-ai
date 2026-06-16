@@ -217,6 +217,16 @@ def gemini_flash_only() -> bool:
     return read_env("EGO_GEMINI_FLASH_ONLY", "").lower() in ("1", "true", "yes", "sim")
 
 
+def chat_agenda_actions_enabled() -> bool:
+    """False = avatar só ensina a usar a agenda; não marca/apaga pelo chat."""
+    return read_env("EGO_CHAT_AGENDA_ACTIONS", "0").lower() in (
+        "1",
+        "true",
+        "yes",
+        "sim",
+    )
+
+
 def beta_unlimited() -> bool:
     if read_env("EGO_BETA_SEM_LIMITE", "").lower() in ("1", "true", "yes", "sim"):
         return True

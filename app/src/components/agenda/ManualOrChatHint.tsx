@@ -16,15 +16,16 @@ export function ManualOrChatHint({ colors, onOpenChat }: Props) {
       ]}
     >
       <Text style={[styles.title, { color: colors.text }]}>
-        Manual ou com avatar — as duas formas
+        Marque aqui — 3 toques e pronto
       </Text>
       <Text style={[styles.body, { color: colors.textMuted }]}>
-        Marque pelo botão + ou pelo avatar no chat — aparece na mesma lista. Para tirar:
-        use Apagar (manual ou avatar, pessoal ou compartilhada).
+        1) + Novo compromisso · 2) nome e data/hora (use Hoje ou Amanhã) · 3) Marcar compromisso.
+        {"\n"}
+        Dúvida? Pergunte ao avatar no chat — ele explica qualquer função do app.
       </Text>
       <Pressable onPress={onOpenChat} hitSlop={8}>
         <Text style={[styles.link, { color: colors.primary }]}>
-          Opcional: abrir o chat →
+          Tirar dúvida no chat →
         </Text>
       </Pressable>
     </View>

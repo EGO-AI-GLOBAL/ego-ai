@@ -19,8 +19,14 @@ import { AgendaItemRow } from "@/components/AgendaItem";
 import { ReminderItem } from "@/components/ReminderItem";
 import type { AppColors } from "@/theme/colors";
 import { AgendaDateTimeFields, AgendaTimeField } from "./AgendaDateTimeFields";
+import { AgendaQuickPick } from "./AgendaQuickPick";
+import { AgendaWeekdayChips } from "./AgendaWeekdayChips";
 import { agendaFormStyles as s } from "./agendaFormStyles";
-import { defaultDateBr, defaultTimeHm, filterVisibleReminders } from "./agendaUtils";
+import {
+  defaultScheduleSlot,
+  defaultTimeHm,
+  filterVisibleReminders,
+} from "./agendaUtils";
 
 type Props = {
   colors: AppColors;
@@ -34,10 +40,11 @@ type Props = {
  * Alterações aqui não devem tocar em useVoiceChat / login.
  */
 export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: Props) {
+  const initialSlot = defaultScheduleSlot();
   const [showPersonalForm, setShowPersonalForm] = useState(false);
-  const [personalTitle, setPersonalTitle] = useState("Compromisso");
-  const [personalDate, setPersonalDate] = useState(defaultDateBr);
-  const [personalTime, setPersonalTime] = useState(defaultTimeHm(10, 0));
+  const [personalTitle, setPersonalTitle] = useState("");
+  const [personalDate, setPersonalDate] = useState(initialSlot.date);
+  const [personalTime, setPersonalTime] = useState(initialSlot.time);
   const [savingPersonal, setSavingPersonal] = useState(false);
   const [showHabitForm, setShowHabitForm] = useState(false);
   const [habitTitle, setHabitTitle] = useState("Academia");
@@ -45,6 +52,21 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
   const [habitDays, setHabitDays] = useState("seg,ter,qua,qui,sex");
   const [savingHabit, setSavingHabit] = useState(false);
   const [listTick, setListTick] = useState(0);
+
+  const openPersonalForm = () => {
+    const slot = defaultScheduleSlot();
+    setPersonalDate(slot.date);
+    setPersonalTime(slot.time);
+    setPersonalTitle("");
+    setShowPersonalForm(true);
+  };
+
+  const resetPersonalForm = () => {
+    const slot = defaultScheduleSlot();
+    setPersonalTitle("");
+    setPersonalDate(slot.date);
+    setPersonalTime(slot.time);
+  };
 
   useEffect(() => {
     const id = setInterval(() => setListTick((t) => t + 1), 60_000);
@@ -65,18 +87,15 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
     const title = personalTitle.trim() || "Compromisso";
     const iso = localDateTimeToIso(personalDate.trim(), personalTime.trim());
     if (!iso) {
-      Alert.alert("Data/hora", "Toque na data e na hora para escolher no calendário.");
+      Alert.alert("Data/hora", "Escolha data e hora e toque OK em cada uma.");
       return;
     }
     setSavingPersonal(true);
     try {
       await createReminder({ title, scheduled_at: iso, announce: title });
       setShowPersonalForm(false);
-      setPersonalTitle("Compromisso");
-      setPersonalDate(defaultDateBr());
-      setPersonalTime(defaultTimeHm(10, 0));
+      resetPersonalForm();
       await onRefresh();
-      Alert.alert("Marcado", `«${title}» foi adicionado à sua agenda pessoal.`);
     } catch (e) {
       Alert.alert(
         "Erro",
@@ -96,7 +115,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
       return;
     }
     if (!dias) {
-      Alert.alert("Dias", "Indique os dias (ex.: seg,ter,qua,qui,sex).");
+      Alert.alert("Dias", "Toque nos dias da semana (ex.: seg–sex).");
       return;
     }
     setSavingHabit(true);
@@ -107,7 +126,6 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
       setHabitTime(defaultTimeHm(8, 0));
       setHabitDays("seg,ter,qua,qui,sex");
       await onRefresh();
-      Alert.alert("Hábito criado", `«${titulo}» foi adicionado à agenda semanal.`);
     } catch (e) {
       Alert.alert(
         "Erro",
@@ -168,7 +186,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
     <>
       <Text style={[s.section, { color: colors.textMuted }]}>Compromissos</Text>
       <Pressable
-        onPress={() => setShowPersonalForm((v) => !v)}
+        onPress={() => (showPersonalForm ? setShowPersonalForm(false) : openPersonalForm())}
         style={({ pressed }) => [
           s.addBtn,
           {
@@ -184,15 +202,20 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
       </Pressable>
       {showPersonalForm ? (
         <View style={[s.formBox, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
-          <Text style={[s.formLabel, { color: colors.textMuted }]}>
-            Marcar na agenda pessoal (sem usar o chat)
-          </Text>
           <TextInput
             value={personalTitle}
             onChangeText={setPersonalTitle}
-            placeholder="Título (ex.: Consulta)"
+            placeholder="O que é? (ex.: consulta, reunião)"
             placeholderTextColor={colors.textMuted}
             style={inputStyle}
+            autoFocus
+          />
+          <AgendaQuickPick
+            colors={colors}
+            dateValue={personalDate}
+            onDatePick={setPersonalDate}
+            titleValue={personalTitle}
+            onTitlePick={setPersonalTitle}
           />
           <AgendaDateTimeFields
             colors={colors}
@@ -211,14 +234,14 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
             {savingPersonal ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={s.inviteBtnText}>Marcar</Text>
+              <Text style={s.inviteBtnText}>Marcar compromisso</Text>
             )}
           </Pressable>
         </View>
       ) : null}
       {visibleReminders.length === 0 ? (
         <Text style={[s.muted, { color: colors.textMuted }]}>
-          Nenhum compromisso. Toque em «+ Novo compromisso» ou use o avatar no chat.
+          Nenhum compromisso. Toque em «+ Novo compromisso» — leva menos de 10 segundos.
         </Text>
       ) : (
         visibleReminders.map((r) => {
@@ -263,14 +286,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
             style={inputStyle}
           />
           <AgendaTimeField colors={colors} value={habitTime} onChange={setHabitTime} inputStyle={inputStyle} />
-          <TextInput
-            value={habitDays}
-            onChangeText={setHabitDays}
-            placeholder="Dias: seg,ter,qua,qui,sex"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-            style={inputStyle}
-          />
+          <AgendaWeekdayChips colors={colors} value={habitDays} onChange={setHabitDays} />
           <Pressable
             onPress={onAddHabit}
             disabled={savingHabit}
@@ -286,7 +302,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
       ) : null}
       {habits.length === 0 ? (
         <Text style={[s.muted, { color: colors.textMuted }]}>
-          Nenhum hábito. Toque em «+ Novo hábito» ou use o avatar no chat.
+          Nenhum hábito. Toque em «+ Novo hábito» e escolha os dias da semana.
         </Text>
       ) : (
         habits.map((a) => {

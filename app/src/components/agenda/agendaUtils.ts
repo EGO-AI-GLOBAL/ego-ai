@@ -2,10 +2,60 @@ import type { Reminder, SharedCalendarEvent } from "@/api/types";
 
 export const AGENDA_TIME_MINUTE_INTERVAL = 30;
 
-export function defaultDateBr(): string {
+export const WEEKDAY_KEYS = ["seg", "ter", "qua", "qui", "sex", "sab", "dom"] as const;
+export const WEEKDAY_LABELS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
+
+export function todayDateBr(): string {
+  return formatDateBr(new Date());
+}
+
+export function tomorrowDateBr(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);
   return formatDateBr(d);
+}
+
+/** @deprecated Prefer defaultScheduleSlot() — mantido para compatibilidade. */
+export function defaultDateBr(): string {
+  return tomorrowDateBr();
+}
+
+/** Próximo slot de 30 min — padrão de apps de calendário modernos. */
+export function defaultScheduleSlot(): { date: string; time: string } {
+  const now = new Date();
+  const slot = new Date(now);
+  const remainder = slot.getMinutes() % AGENDA_TIME_MINUTE_INTERVAL;
+  const addMin =
+    remainder === 0 ? AGENDA_TIME_MINUTE_INTERVAL : AGENDA_TIME_MINUTE_INTERVAL - remainder;
+  slot.setMinutes(slot.getMinutes() + addMin, 0, 0);
+  return { date: formatDateBr(slot), time: formatTimeHm(slot) };
+}
+
+export function formatDateFriendly(dateBr: string): string {
+  const parsed = parseDateBr(dateBr);
+  if (!parsed) return dateBr || "Data";
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+  const target = new Date(parsed);
+  target.setHours(12, 0, 0, 0);
+  const diffDays = Math.round((target.getTime() - today.getTime()) / 86_400_000);
+  if (diffDays === 0) return `Hoje · ${dateBr}`;
+  if (diffDays === 1) return `Amanhã · ${dateBr}`;
+  const weekdays = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  return `${weekdays[target.getDay()]} · ${dateBr}`;
+}
+
+export function toggleWeekdayCsv(current: string, key: string): string {
+  const set = new Set(
+    current
+      .split(",")
+      .map((s) => s.trim().toLowerCase())
+      .filter(Boolean)
+  );
+  const k = key.toLowerCase();
+  if (set.has(k)) set.delete(k);
+  else set.add(k);
+  return WEEKDAY_KEYS.filter((d) => set.has(d)).join(",");
 }
 
 export function defaultTimeHm(hour = 10, minute = 0): string {

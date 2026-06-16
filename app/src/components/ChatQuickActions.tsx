@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, ScrollView, StyleSheet, Text } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { CHAT_QUICK_ACTIONS, type ChatQuickAction } from "@/constants/chatQuickActions";
 import type { AppColors } from "@/theme/colors";
 
@@ -13,12 +13,7 @@ type Props = {
 export function ChatQuickActions({ colors, disabled, onPick, actions }: Props) {
   const items = actions?.length ? actions : CHAT_QUICK_ACTIONS;
   return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={styles.row}
-      keyboardShouldPersistTaps="handled"
-    >
+    <View style={styles.wrap}>
       {items.map((action) => (
         <Pressable
           key={action.id}
@@ -27,26 +22,40 @@ export function ChatQuickActions({ colors, disabled, onPick, actions }: Props) {
           style={({ pressed }) => [
             styles.chip,
             {
-              backgroundColor: pressed ? colors.primaryLight : "transparent",
+              backgroundColor: pressed ? colors.primaryLight : colors.bgCard,
+              borderColor: colors.border,
               opacity: disabled ? 0.45 : 1,
             },
           ]}
         >
-          <Text style={[styles.chipText, { color: colors.primary }]}>{action.label}</Text>
+          <Text style={[styles.chipText, { color: colors.primary }]} numberOfLines={1}>
+            {action.label}
+          </Text>
         </Pressable>
       ))}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: { gap: 8, paddingVertical: 4 },
+  wrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
+    width: "100%",
+  },
   chip: {
     borderRadius: 20,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    minHeight: 44,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minHeight: 40,
     justifyContent: "center",
+    maxWidth: "48%",
   },
-  chipText: { fontSize: 15, fontWeight: "800" },
+  chipText: { fontSize: 14, fontWeight: "700", textAlign: "center" },
 });

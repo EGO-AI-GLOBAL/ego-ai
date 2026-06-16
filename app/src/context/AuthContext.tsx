@@ -24,6 +24,11 @@ import {
   getSecureItem,
   saveSecureItem,
 } from "@/storage/sessionStorage";
+import {
+  clearAuthAppVersion,
+  saveAuthAppVersion,
+  shouldClearSessionForAppUpdate,
+} from "@/storage/authAppVersion";
 import { preparePlayIntegrity } from "@/security/playIntegrity";
 
 type AuthContextValue = {
@@ -51,8 +56,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLocalSession(s);
     if (s) {
       await saveSecureItem(STORAGE_KEY, JSON.stringify(s));
+      await saveAuthAppVersion();
     } else {
       await deleteSecureItem(STORAGE_KEY);
+      await clearAuthAppVersion();
     }
   }, []);
 
@@ -78,6 +85,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const raw = await getSecureItem(STORAGE_KEY);
         if (raw) {
+          if (await shouldClearSessionForAppUpdate()) {
+            await deleteSecureItem(STORAGE_KEY);
+            await clearAuthAppVersion();
+          } else {
           const parsed = JSON.parse(raw) as AuthSession;
           if (parsed?.access_token) {
             const refreshTok = parsed.refresh_token?.trim();
@@ -99,6 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             }
             await persist(parsed);
             void preparePlayIntegrity();
+          }
           }
         }
       } catch {

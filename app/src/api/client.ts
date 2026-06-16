@@ -147,11 +147,21 @@ api.interceptors.response.use(
         }
         applyAuthHeaders(original.headers, next);
         return api(original);
-      } catch {
-        setSession(null);
-        onAuthFailure?.();
+      } catch (refreshErr) {
+        const ax = refreshErr as AxiosError;
+        const refreshStatus = ax.response?.status;
+        const networkish =
+          !ax.response ||
+          ax.code === "ERR_NETWORK" ||
+          ax.code === "ECONNABORTED" ||
+          ax.code === "ETIMEDOUT" ||
+          (typeof refreshStatus === "number" && refreshStatus >= 500);
+        if (!networkish) {
+          setSession(null);
+          onAuthFailure?.();
+        }
       }
-    } else if (status === 401) {
+    } else if (status === 401 && !session?.refresh_token) {
       setSession(null);
       onAuthFailure?.();
     }

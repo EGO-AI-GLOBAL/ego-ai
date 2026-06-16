@@ -25,16 +25,14 @@ import {
   membersGroupLine,
 } from "@/utils/sharedCalendarMembers";
 import { AgendaDateTimeFields } from "./AgendaDateTimeFields";
+import { AgendaQuickPick } from "./AgendaQuickPick";
 import { agendaFormStyles as s } from "./agendaFormStyles";
 import {
-  defaultDateBr,
-  defaultTimeHm,
+  defaultScheduleSlot,
   filterVisibleSharedEvents,
   sortSharedEvents,
 } from "./agendaUtils";
 import { SharedEventRow } from "./SharedEventRow";
-
-const AGENDA_UI_VERSION = "jun/2025 · nomes + layout claro";
 
 type Props = {
   colors: AppColors;
@@ -53,6 +51,7 @@ export function SharedAgendaManual({
   onRefresh,
 }: Props) {
   const router = useRouter();
+  const initialSlot = defaultScheduleSlot();
   const [selectedSharedId, setSelectedSharedId] = useState<string | null>(null);
   const [inviteContact, setInviteContact] = useState("");
   const [inviting, setInviting] = useState(false);
@@ -61,11 +60,26 @@ export function SharedAgendaManual({
   const [creatingCalendar, setCreatingCalendar] = useState(false);
   const [showCreateCalendarForm, setShowCreateCalendarForm] = useState(false);
   const [showSharedEventForm, setShowSharedEventForm] = useState(false);
-  const [sharedEventTitle, setSharedEventTitle] = useState("Reunião");
-  const [sharedEventDate, setSharedEventDate] = useState(defaultDateBr);
-  const [sharedEventTime, setSharedEventTime] = useState(defaultTimeHm(15, 0));
+  const [sharedEventTitle, setSharedEventTitle] = useState("");
+  const [sharedEventDate, setSharedEventDate] = useState(initialSlot.date);
+  const [sharedEventTime, setSharedEventTime] = useState(initialSlot.time);
   const [savingSharedEvent, setSavingSharedEvent] = useState(false);
   const [listTick, setListTick] = useState(0);
+
+  const openSharedEventForm = () => {
+    const slot = defaultScheduleSlot();
+    setSharedEventDate(slot.date);
+    setSharedEventTime(slot.time);
+    setSharedEventTitle("");
+    setShowSharedEventForm(true);
+  };
+
+  const resetSharedEventForm = () => {
+    const slot = defaultScheduleSlot();
+    setSharedEventTitle("");
+    setSharedEventDate(slot.date);
+    setSharedEventTime(slot.time);
+  };
 
   useEffect(() => {
     const id = setInterval(() => setListTick((t) => t + 1), 60_000);
@@ -111,7 +125,6 @@ export function SharedAgendaManual({
       setShowCreateCalendarForm(false);
       setSelectedSharedId(String(cal.id));
       await onRefresh();
-      Alert.alert("Agenda criada", `«${name}» está pronta. Marque compromissos ou convide pessoas.`);
     } catch (e) {
       Alert.alert(
         "Erro",
@@ -138,11 +151,8 @@ export function SharedAgendaManual({
         announce: title,
       });
       setShowSharedEventForm(false);
-      setSharedEventTitle("Reunião");
-      setSharedEventDate(defaultDateBr());
-      setSharedEventTime(defaultTimeHm(15, 0));
+      resetSharedEventForm();
       await onRefresh();
-      Alert.alert("Marcado", `«${title}» foi adicionado à agenda «${selectedCalendar.name}».`);
     } catch (e) {
       Alert.alert(
         "Erro",
@@ -241,7 +251,7 @@ export function SharedAgendaManual({
     return (
       <View style={[s.formBox, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
         <Text style={[s.formLabel, { color: colors.textMuted }]}>
-          Criar agenda em grupo (sem usar o chat)
+          Crie uma agenda em grupo (Família, Trabalho…)
         </Text>
         <TextInput
           value={newCalendarName}
@@ -270,7 +280,6 @@ export function SharedAgendaManual({
 
   return (
     <>
-      <Text style={[styles.uiVersion, { color: colors.primary }]}>{AGENDA_UI_VERSION}</Text>
       <Text style={[s.section, { color: colors.textMuted }]}>
         Suas agendas ({sharedCalendars.length})
       </Text>
@@ -298,7 +307,7 @@ export function SharedAgendaManual({
           ]}
         >
           <Text style={[s.formLabel, { color: colors.textMuted }]}>
-            Nova agenda em grupo (sem usar o chat)
+            Nova agenda em grupo
           </Text>
           <TextInput
             value={newCalendarName}
@@ -379,7 +388,9 @@ export function SharedAgendaManual({
           </Text>
           <Text style={[s.sectionInner, { color: colors.textMuted }]}>Compromissos marcados</Text>
           <Pressable
-            onPress={() => setShowSharedEventForm((v) => !v)}
+            onPress={() =>
+              showSharedEventForm ? setShowSharedEventForm(false) : openSharedEventForm()
+            }
             style={({ pressed }) => [
               s.addBtn,
               {
@@ -404,8 +415,9 @@ export function SharedAgendaManual({
               <TextInput
                 value={sharedEventTitle}
                 onChangeText={setSharedEventTitle}
-                placeholder="Título (ex.: Reunião)"
+                placeholder="O que é? (ex.: reunião, festa)"
                 placeholderTextColor={colors.textMuted}
+                autoFocus
                 style={[
                   s.inviteInput,
                   {
@@ -414,6 +426,13 @@ export function SharedAgendaManual({
                     backgroundColor: colors.bgCard,
                   },
                 ]}
+              />
+              <AgendaQuickPick
+                colors={colors}
+                dateValue={sharedEventDate}
+                onDatePick={setSharedEventDate}
+                titleValue={sharedEventTitle}
+                onTitlePick={setSharedEventTitle}
               />
               <AgendaDateTimeFields
                 colors={colors}
@@ -430,7 +449,7 @@ export function SharedAgendaManual({
                 {savingSharedEvent ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={s.inviteBtnText}>Marcar</Text>
+                  <Text style={s.inviteBtnText}>Marcar compromisso</Text>
                 )}
               </Pressable>
             </View>

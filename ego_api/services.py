@@ -385,6 +385,9 @@ def process_chat_message(
     history_for_llm = [*history, {"role": "user", "content": user_display}]
 
     from ego_api import chat_schedule as cs
+    from ego_api.config import chat_agenda_actions_enabled
+
+    chat_agenda = chat_agenda_actions_enabled()
 
     schedule = cs.load_chat_schedule(prof)
     from ego_api.schedule_tz import local_now_from_session
@@ -397,7 +400,7 @@ def process_chat_message(
     )
 
     # Apagar/cancelar compromisso por comando (texto ou voz transcrita).
-    if not casual and cs.looks_like_dismiss_commitment_intent(user_display):
+    if chat_agenda and not casual and cs.looks_like_dismiss_commitment_intent(user_display):
         rem_d, ev_d, hab_d, dismiss_warns = cs.process_dismiss_commitments(
             supabase, user_id, user_display, ref=schedule_ref
         )
@@ -432,7 +435,7 @@ def process_chat_message(
         }, None
 
     # Agenda pessoal clara (ex.: «marca na agenda pessoal … às 9h»): grava sem LLM.
-    if not casual and not audio_bytes and cs.looks_like_schedule_intent(user_display):
+    if chat_agenda and not casual and not audio_bytes and cs.looks_like_schedule_intent(user_display):
         personal_scope = cs.detect_scope_from_user_text(
             user_display, supabase, user_id
         ) == "personal" or cs.only_personal_schedule_available(
@@ -530,7 +533,7 @@ def process_chat_message(
                 }, None
 
     # Marcação ambígua (pessoal vs grupo): responde já, sem chamar o LLM (evita erro e demora).
-    if not casual and not audio_bytes:
+    if chat_agenda and not casual and not audio_bytes:
         scope_reply = cs.build_schedule_scope_choice_reply(
             supabase, user_id, user_display
         )
@@ -558,9 +561,11 @@ def process_chat_message(
                 "access": db.build_plan_access_payload(supabase, user_id, prof),
             }, None
 
-    scope_hint = None if casual else cs.detect_scope_from_user_text(
-        user_display, supabase, user_id
-    )
+    scope_hint = None
+    if chat_agenda and not casual:
+        scope_hint = cs.detect_scope_from_user_text(
+            user_display, supabase, user_id
+        )
     if scope_hint:
         schedule = cs.merge_schedule_draft(schedule, {"draft": {"scope": scope_hint}})
         if scope_hint == "shared":
@@ -573,9 +578,14 @@ def process_chat_message(
     else:
         agenda_ctx = db.build_agenda_context_for_llm(supabase, user_id)
         agenda_ctx += cs.build_shared_calendars_context(supabase, user_id)
-        agenda_ctx += cs.build_schedule_wizard_context(
-            schedule, user_display, supabase, user_id
-        )
+        if chat_agenda:
+            agenda_ctx += cs.build_schedule_wizard_context(
+                schedule, user_display, supabase, user_id
+            )
+        else:
+            from ego_api.app_guide import app_guide_context_block
+
+            agenda_ctx += app_guide_context_block()
 
     lang, _conf = gemini.detect_language(user_display)
 
@@ -593,6 +603,9 @@ def process_chat_message(
 
     if gemini.is_gemini_error_reply(reply):
         return None, str(reply or "Erro ao chamar o Gemini.").strip()
+
+    if not chat_agenda:
+        reply = gemini.strip_agenda_markers_from_reply(reply)
 
     mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
 
@@ -614,26 +627,35 @@ def process_chat_message(
     )
     only_personal_agenda = cs.only_personal_schedule_available(supabase, user_id)
 
-    schedule = cs.apply_scope_follow_up_if_pending(
-        schedule, user_display, supabase, user_id, schedule_ref
-    ) or schedule
+    if chat_agenda:
+        schedule = cs.apply_scope_follow_up_if_pending(
+            schedule, user_display, supabase, user_id, schedule_ref
+        ) or schedule
 
-    scope_choice_reply = cs.build_schedule_scope_choice_reply(
-        supabase, user_id, user_display
-    )
-    if scope_choice_reply:
-        schedule = cs.stash_pending_schedule_from_text(
-            schedule, user_display, schedule_ref
+    scope_choice_reply = None
+    if chat_agenda:
+        scope_choice_reply = cs.build_schedule_scope_choice_reply(
+            supabase, user_id, user_display
         )
+        if scope_choice_reply:
+            schedule = cs.stash_pending_schedule_from_text(
+                schedule, user_display, schedule_ref
+            )
 
-    skip_schedule_save = bool(scope_choice_reply) or casual
+    skip_schedule_save = bool(scope_choice_reply) or casual or not chat_agenda
     reply_clean = scope_choice_reply or reply
 
-    effective_scope = cs.resolve_effective_schedule_scope(
-        schedule, user_display, supabase, user_id
+    effective_scope = (
+        cs.resolve_effective_schedule_scope(
+            schedule, user_display, supabase, user_id
+        )
+        if chat_agenda
+        else None
     )
 
-    reply_clean, draft_patch = cs.extract_schedule_draft(reply_clean)
+    draft_patch = None
+    if chat_agenda:
+        reply_clean, draft_patch = cs.extract_schedule_draft(reply_clean)
     if draft_patch:
         schedule = cs.merge_schedule_draft(schedule, draft_patch)
 
@@ -985,6 +1007,9 @@ def process_chat_message(
         shared_calendars_created=shared_calendars_created,
         user_requested_cal_name=user_requested_cal_name,
     )
+
+    if not chat_agenda:
+        schedule = {"step": "", "draft": {}}
 
     cs.save_chat_schedule(
         supabase,
