@@ -31,7 +31,7 @@ export const PAID_PLAN_TIERS: PlanTier[] = [
 ];
 
 export const PLAN_TAGLINES: Record<PlanTier, string> = {
-  essential: "Conheça a Luna ou o Leo",
+  essential: "12 assistentes · limite diário de conversa",
   connection: "Seu assistente no dia a dia",
   premium: "Mais conversa, voz e agenda",
   total: "Uso intenso, quase sem limites",
@@ -91,11 +91,7 @@ export function planFeatureLines(plan: PlanCatalogItem): string[] {
     formatCap(lim.max_reminders, "lembretes"),
     speeds,
     ...(plan.tier === "total" || plan.tier === "enterprise"
-      ? [
-          "Até 10 agendas compartilhadas",
-          "Até 100 pessoas por agenda",
-          "Todos os assistentes desbloqueados",
-        ]
+      ? ["Até 10 agendas compartilhadas", "Até 100 pessoas por agenda"]
       : []),
   ];
 }

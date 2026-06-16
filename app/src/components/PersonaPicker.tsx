@@ -16,9 +16,6 @@ import {
   AVATAR_COLLECTION_LABELS,
   avatarsByCategory,
   findAvatarInCatalog,
-  effectiveAvatarPlanTier,
-  isAvatarUnlocked,
-  planLabelForAvatar,
   type AvatarCatalogEntry,
   type AvatarCategory,
 } from "@/constants/avatarCatalog";
@@ -64,9 +61,6 @@ export function PersonaPicker({
 }: Props) {
   const { session } = useAuth();
   const { data } = useDashboard();
-  const unlockedTier = effectiveAvatarPlanTier(
-    data.access ?? { plan_tier: planTier, is_test_total: false }
-  );
   const isOnboarding = variant === "onboarding";
   const isChat = variant === "chat";
   const isSettings = variant === "settings";
@@ -172,10 +166,6 @@ export function PersonaPicker({
 
   const selectCatalogEntry = async (entry: AvatarCatalogEntry) => {
     if (busyId || disabled) return;
-    if (!isAvatarUnlocked(unlockedTier, entry)) {
-      setError(`Disponível no ${planLabelForAvatar(entry.minPlan)}.`);
-      return;
-    }
     if (localPersona.avatar_id === entry.avatar_id) {
       if (isChat) setExpanded(false);
       return;
@@ -203,22 +193,16 @@ export function PersonaPicker({
       await onSaved?.(confirmed);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Não foi possível trocar.";
-      if (isAvatarUnlocked(unlockedTier, entry)) {
-        lastSavedRef.current = next;
-        await persistLocal(next);
-        await onSaved?.(next);
-        setOkMsg(`${entry.shortName} ativo neste telemóvel.`);
-        setError(
-          msg
-            ? `Servidor: ${msg} — tente sair e entrar de novo.`
-            : "Servidor indisponível — escolha guardada no telemóvel."
-        );
-        if (isChat) setExpanded(false);
-      } else {
-        setLocalPersona(previous);
-        onPersonaChange(previous);
-        setError(msg);
-      }
+      lastSavedRef.current = next;
+      await persistLocal(next);
+      await onSaved?.(next);
+      setOkMsg(`${entry.shortName} ativo neste telemóvel.`);
+      setError(
+        msg
+          ? `Servidor: ${msg} — tente sair e entrar de novo.`
+          : "Servidor indisponível — escolha guardada no telemóvel."
+      );
+      if (isChat) setExpanded(false);
     } finally {
       setBusyId(null);
     }
@@ -268,7 +252,7 @@ export function PersonaPicker({
         </Pressable>
       ) : (
         <Text style={[styles.hint, { color: colors.textMuted }]}>
-          12 assistentes · desbloqueie mais com o plano
+          12 assistentes · escolha o seu favorito
         </Text>
       )}
       <ScrollView
@@ -286,7 +270,6 @@ export function PersonaPicker({
                 </Text>
                 <View style={styles.catalogGrid}>
                   {items.map((entry) => {
-                    const unlocked = isAvatarUnlocked(unlockedTier, entry);
                     const selected = localPersona.avatar_id === entry.avatar_id;
                     const loading = busyId === entry.id;
                     return (
@@ -297,7 +280,7 @@ export function PersonaPicker({
                           {
                             borderColor: selected ? colors.primary : colors.border,
                             backgroundColor: selected ? colors.userBubble : colors.bgCard,
-                            opacity: disabled && !selected ? 0.5 : unlocked ? 1 : 0.88,
+                            opacity: disabled && !selected ? 0.5 : 1,
                           },
                         ]}
                         onPress={() => void selectCatalogEntry(entry)}
@@ -305,7 +288,7 @@ export function PersonaPicker({
                       >
                         <Image
                           source={avatarImageSource(entry.avatar_id)}
-                          style={[styles.catalogThumb, !unlocked && styles.catalogThumbLocked]}
+                          style={styles.catalogThumb}
                           resizeMode="cover"
                         />
                         <Text
@@ -319,13 +302,6 @@ export function PersonaPicker({
                         </Text>
                         {loading ? (
                           <ActivityIndicator color={colors.primary} size="small" />
-                        ) : !unlocked ? (
-                          <Text
-                            style={[styles.catalogLock, { color: colors.textMuted }]}
-                            numberOfLines={2}
-                          >
-                            {planLabelForAvatar(entry.minPlan)}
-                          </Text>
                         ) : selected ? (
                           <Text style={[styles.catalogActive, { color: colors.primary }]}>●</Text>
                         ) : null}
@@ -460,10 +436,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   catalogThumb: { width: 44, height: 44, borderRadius: 22 },
-  catalogThumbLocked: { opacity: 0.5 },
   catalogName: { marginTop: 4, fontSize: 12, fontWeight: "700" },
   catalogMeta: { marginTop: 1, fontSize: 9, textAlign: "center" },
-  catalogLock: { marginTop: 2, fontSize: 9, textAlign: "center", lineHeight: 11 },
   catalogActive: { marginTop: 2, fontSize: 10, fontWeight: "700" },
   okChat: { marginTop: 4 },
   errChat: { marginTop: 4 },

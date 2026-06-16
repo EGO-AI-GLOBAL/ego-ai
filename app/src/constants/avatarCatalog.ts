@@ -42,14 +42,11 @@ const TIER_RANK: Record<PlanTier, number> = {
 };
 
 /**
- * FASE 1 — 12 avatares: 2 grátis + 4 Conexão + 3 Premium + 3 Total.
+ * FASE 1 — 12 avatares, todos liberados em qualquer plano.
  * FASE 2 — expandir para 24 quando tiver assets prontos para cada um.
  *
- * Lógica de desbloqueio:
- *   Essencial (free) → Luna + Leo
- *   Conexão → + Aisha + Hana + Kai + Omar
- *   Premium → + Amara + Ravi + Alex
- *   Total   → + Sara + Malik + Jordan
+ * Limites de msgs/voz/TTS/lembretes vêm do plano (plans), não do avatar.
+ * minPlan no catálogo é legado/metadata — não bloqueia escolha.
  */
 export const AVATAR_CATALOG: AvatarCatalogEntry[] = [
   // ── GRÁTIS ──────────────────────────────────────────────
@@ -317,11 +314,10 @@ export function effectiveAvatarPlanTier(
 }
 
 export function isAvatarUnlocked(
-  userTier: PlanTier | string | undefined,
-  entry: AvatarCatalogEntry
+  _userTier: PlanTier | string | undefined,
+  _entry: AvatarCatalogEntry
 ): boolean {
-  const u = normalizePlanTier(userTier);
-  return TIER_RANK[u] >= TIER_RANK[entry.minPlan];
+  return true;
 }
 
 export function planLabelForAvatar(minPlan: PlanTier): string {

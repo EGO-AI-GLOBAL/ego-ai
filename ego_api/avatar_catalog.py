@@ -1,4 +1,4 @@
-"""Catálogo fase 1: 12 avatares com desbloqueio por plano."""
+"""Catálogo fase 1: 12 avatares — todos liberados; limites de uso vêm do plano."""
 
 from __future__ import annotations
 
@@ -56,9 +56,9 @@ def plan_label_for_avatar(min_plan: str) -> str:
 
 
 def is_avatar_unlocked(user_tier: str | None, entry: dict) -> bool:
-    u = normalize_plan_tier(user_tier)
-    need = normalize_plan_tier(entry.get("min_plan"))
-    return TIER_RANK.get(u, 0) >= TIER_RANK.get(need, 0)
+    """Todos os 12 avatares estão disponíveis em qualquer plano."""
+    _ = user_tier, entry
+    return True
 
 
 def validate_avatar_choice(
