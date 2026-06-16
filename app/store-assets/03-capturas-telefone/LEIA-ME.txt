@@ -1,0 +1,7 @@
+PLAY CONSOLE: Capturas de tela do telefone *
+Envie as 4 imagens (minimo 2):
+  01-login.png
+  02-chat.png
+  03-agenda.png
+  04-home.png
+Proporcao 9:16 (vertical)

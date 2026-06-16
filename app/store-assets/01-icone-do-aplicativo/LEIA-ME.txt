@@ -1,0 +1,3 @@
+PLAY CONSOLE: Ícone do aplicativo *
+Envie: icone-512x512.png
+Tamanho: 512 x 512 px, PNG, max 1 MB

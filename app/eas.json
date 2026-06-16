@@ -19,6 +19,9 @@
     },
     "production": {
       "autoIncrement": true,
+      "ios": {
+        "image": "macos-sequoia-15.6-xcode-26.2"
+      },
       "android": {
         "buildType": "app-bundle",
         "image": "latest"
@@ -37,6 +40,10 @@
   },
   "submit": {
     "production": {
+      "ios": {
+        "appleTeamId": "7XVMZQ2Z33",
+        "ascAppId": "6780595396"
+      },
       "android": {
         "serviceAccountKeyPath": "./play-store-service-account.json",
         "track": "internal"

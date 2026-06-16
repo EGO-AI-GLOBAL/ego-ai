@@ -23,14 +23,15 @@ import type { ChatMessage, SendChatResult } from "@/api/types";
 import { ChatComposer } from "@/components/ChatComposer";
 import { ChatPreview } from "@/components/ChatPreview";
 import { ChatQuickActions } from "@/components/ChatQuickActions";
-import type { ChatQuickAction } from "@/constants/chatQuickActions";
+import {
+  getComposerPlaceholder,
+  getContextualQuickActions,
+} from "@/constants/chatQuickActions";
 import {
   ChatScheduleBanner,
   extractScheduleBannerItems,
 } from "@/components/ChatScheduleBanner";
-import { UpcomingEventsCard } from "@/components/UpcomingEventsCard";
-import { AudioSpeedControl } from "@/components/AudioSpeedControl";
-import { TokenUsageBar } from "@/components/TokenUsageBar";
+import { ChatDayStrip } from "@/components/ChatDayStrip";
 import { ScreenShell } from "@/components/ScreenShell";
 import { PersonaPicker } from "@/components/PersonaPicker";
 import { SpeakingAvatar } from "@/components/SpeakingAvatar";
@@ -53,7 +54,6 @@ import {
   estimateTokenDelta,
   patchAccessWithTokenDelta,
 } from "@/utils/usageStats";
-import { collectUpcomingItems } from "@/utils/upcomingEvents";
 import {
   chatResultChangedData,
   mergeChatIntoDashboard,
@@ -62,7 +62,18 @@ import {
   presentSharedCalendarEventNow,
   syncSharedCalendarLocalNotifications,
 } from "@/utils/sharedCalendarNotifications";
-import { saveLastUserIntent } from "@/storage/chatHints";
+import { AudioSpeedControl } from "@/components/AudioSpeedControl";
+import type { ChatQuickAction } from "@/constants/chatQuickActions";
+import { ritualChatPrompt } from "@/constants/dailyRituals";
+import type { DailyRitualId } from "@/constants/dailyRituals";
+import {
+  buildSaveCelebrationLine,
+  buildSaveCelebrationSpeech,
+  chatResultHasScheduleSave,
+} from "@/constants/saveCelebration";
+import { consumePendingRitual } from "@/storage/pendingRitual";
+import { loadLastUserIntent, saveLastUserIntent } from "@/storage/chatHints";
+import { computeDayProgress } from "@/utils/dayProgress";
 import {
   buildChatOnboardingMessage,
   buildChatOnboardingSpeech,
@@ -121,12 +132,25 @@ export default function ChatScreen() {
   /** Evita perder anexos se o utilizador adicionar outro PDF antes do refresh do perfil. */
   const pdfAccumRef = useRef("");
   const pdfCountRef = useRef(0);
+  const ritualHandledRef = useRef(false);
+  const ritualPendingRef = useRef<DailyRitualId | null>(null);
+  const [lastIntent, setLastIntent] = useState<string | null>(null);
+  const [saveCelebrationLine, setSaveCelebrationLine] = useState<string | null>(null);
 
   useEffect(() => {
     void loadAutoPlayVoice().then(setAutoPlayVoice);
+    void loadLastUserIntent().then(setLastIntent);
   }, []);
 
-  const upcomingItems = useMemo(() => collectUpcomingItems(data, 3), [data]);
+  const dayProgress = useMemo(() => computeDayProgress(data), [data]);
+  const contextualActions = useMemo(
+    () => getContextualQuickActions(dayProgress.period, lastIntent),
+    [dayProgress.period, lastIntent]
+  );
+  const composerPlaceholder = useMemo(
+    () => getComposerPlaceholder(dayProgress.period),
+    [dayProgress.period]
+  );
 
   const scheduleBannerItems = useMemo(() => {
     if (!lastChatResult || scheduleBannerDismissed) return [];
@@ -358,14 +382,18 @@ export default function ChatScreen() {
     Boolean(emailAlias) &&
     profileName.trim().toLowerCase() === emailAlias;
   const who = !nameLooksLikeEmailAlias && profileName ? profileName : "você";
+  const displayWho = !nameLooksLikeEmailAlias && profileName ? profileName.trim() : undefined;
   const avatarSubtitle = voice.isPhoneCall
-    ? voice.liveCallSubtitle?.trim() ||
-      (voice.isAssistantThinking
-        ? "Só um instante…"
-        : voice.isUserSpeaking
-          ? "Estou a ouvir-te."
-          : "Conversa naturalmente — estou na linha.")
-    : `Olá, ${who}. Como posso te ajudar hoje?`;
+    ? voice.isAssistantThinking
+      ? `${assistantName} está pensando…`
+      : voice.isUserSpeaking
+        ? `${assistantName} está ouvindo…`
+        : `Conversa com ${assistantName} — fale quando quiser.`
+    : voice.isSpeaking
+      ? `${assistantName} está falando…`
+      : micActive
+        ? `${assistantName} está ouvindo…`
+        : `${assistantName} · pronto para ajudar`;
   const checkout = data.me?.stripe_checkout;
   const access = data.access;
   const userPlanTier = access?.plan_tier || "essential";
@@ -448,11 +476,18 @@ export default function ChatScreen() {
 
     onboardingSeedRef.current = true;
     void (async () => {
+      const pendingRitual = await consumePendingRitual();
+      if (pendingRitual) {
+        ritualPendingRef.current = pendingRitual;
+        await markChatOnboardingDone(userId);
+        return;
+      }
       if (await isChatOnboardingDone(userId)) return;
-      const displayWho =
+      const displayName =
         !nameLooksLikeEmailAlias && profileName ? profileName.trim() : undefined;
-      const text = buildChatOnboardingMessage(assistantName, displayWho);
-      const speech = buildChatOnboardingSpeech(assistantName, displayWho);
+      const male = isMaleAvatar(persona.avatar_id);
+      const text = buildChatOnboardingMessage(assistantName, displayName, male);
+      const speech = buildChatOnboardingSpeech(assistantName, displayName, male);
       const next = await appendLocalAssistantMessage(userId, text, { onboarding: true });
       setLocalMessages(next);
       setLastChatResult({ reply: speech });
@@ -590,6 +625,19 @@ export default function ChatScreen() {
     async (result: SendChatResult, userText?: string) => {
       if (userText?.trim()) {
         await saveLastUserIntent(userText);
+        setLastIntent(userText.trim());
+      }
+      if (chatResultHasScheduleSave(result)) {
+        const line = buildSaveCelebrationLine(assistantName, result);
+        setSaveCelebrationLine(line);
+        if (line) {
+          setChatNotice(line);
+        }
+        const speech = buildSaveCelebrationSpeech(assistantName, result);
+        if (speech) {
+          voice.unlockWebPlayback();
+          void voice.replayLastText(speech, persona.voice_id, persona.avatar_id);
+        }
       }
       if (chatResultChangedData(result) || result.access) {
         mergeChatResult(result);
@@ -610,7 +658,7 @@ export default function ChatScreen() {
         }
       }
     },
-    [data, mergeChatResult]
+    [data, mergeChatResult, assistantName, persona.avatar_id, persona.voice_id, voice]
   );
 
   const pdfSummaryPrompt =
@@ -747,7 +795,7 @@ export default function ChatScreen() {
   };
 
   const sendMessageText = useCallback(
-    async (text: string, userLabel: string) => {
+    async (text: string, userLabel: string, opts?: { forceVoice?: boolean }) => {
       if (sending || !session || !text.trim()) return;
       if (micActive) {
         await onMicPressOut();
@@ -775,7 +823,7 @@ export default function ChatScreen() {
         await saveExchange(userLabel, result.reply);
         setPendingChat([]);
         setLastChatResult(result);
-        if (autoPlayVoice) {
+        if (autoPlayVoice || opts?.forceVoice) {
           void playVoice(result).catch((e) => {
             setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
           });
@@ -815,6 +863,38 @@ export default function ChatScreen() {
     },
     [sendMessageText]
   );
+
+  useEffect(() => {
+    if (!localChatReady || loading || sending || ritualHandledRef.current) return;
+    void (async () => {
+      if (!ritualPendingRef.current) {
+        const stored = await consumePendingRitual();
+        if (stored) ritualPendingRef.current = stored;
+      }
+      const ritual = ritualPendingRef.current;
+      if (!ritual) return;
+      ritualHandledRef.current = true;
+      ritualPendingRef.current = null;
+      const labels: Record<DailyRitualId, string> = {
+        morning: "Briefing",
+        afternoon: "Ponto",
+        evening: "Descarrego",
+      };
+      const prompt = ritualChatPrompt(ritual, assistantName);
+      if (ritual === "morning" && !autoPlayVoice) {
+        setAutoPlayVoice(true);
+        void saveAutoPlayVoice(true);
+      }
+      await sendMessageText(prompt, labels[ritual], { forceVoice: ritual === "morning" });
+    })();
+  }, [
+    localChatReady,
+    loading,
+    sending,
+    assistantName,
+    sendMessageText,
+    autoPlayVoice,
+  ]);
 
   const onSendText = async () => {
     if (voice.isRecording || voice.micSessionActive) {
@@ -919,7 +999,6 @@ export default function ChatScreen() {
               {audioStatusLabel}
             </Text>
           ) : null}
-          <TokenUsageBar colors={colors} access={data.access} />
         </View>
         ) : null}
 
@@ -948,12 +1027,18 @@ export default function ChatScreen() {
             <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
           ) : null}
 
-          {chatMessages.length > 0 && upcomingItems.length > 0 ? (
-            <UpcomingEventsCard
+          {!loading || refreshing ? (
+            <ChatDayStrip
               colors={colors}
-              items={upcomingItems}
-              onPressItem={(item) => {
-                void sendMessageText(`Alterar ou cancelar: ${item.title}`, item.title);
+              progress={dayProgress}
+              access={data.access}
+              assistantName={assistantName}
+              displayName={displayWho}
+              onPressNext={() => {
+                const item = dayProgress.nextItem;
+                if (item) {
+                  void sendMessageText(`Alterar ou cancelar: ${item.title}`, item.title);
+                }
               }}
             />
           ) : null}
@@ -971,7 +1056,11 @@ export default function ChatScreen() {
               colors={colors}
               items={scheduleBannerItems}
               assistantName={assistantName}
-              onDismiss={() => setScheduleBannerDismissed(true)}
+              celebrationLine={saveCelebrationLine}
+              onDismiss={() => {
+                setScheduleBannerDismissed(true);
+                setSaveCelebrationLine(null);
+              }}
             />
           ) : null}
 
@@ -1084,6 +1173,7 @@ export default function ChatScreen() {
             <ChatQuickActions
               colors={colors}
               disabled={sending || micActive}
+              actions={contextualActions}
               onPick={onQuickAction}
             />
           ) : null}
@@ -1091,7 +1181,7 @@ export default function ChatScreen() {
             value={chatInput}
             onChangeText={setChatInput}
             onSend={onSendText}
-            placeholder="Mensagem…"
+            placeholder={composerPlaceholder}
             sending={sending}
             isRecording={voice.isRecording}
             micSessionActive={voice.micSessionActive}

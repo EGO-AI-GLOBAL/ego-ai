@@ -229,10 +229,10 @@ def latest_app_version() -> str:
 
 
 def play_store_update_url() -> str:
-    """Link Play (teste interno ou loja pública)."""
+    """Link Play (teste fechado opt-in ou loja pública)."""
     url = read_env(
         "EGO_PLAY_STORE_URL",
-        "https://play.google.com/apps/internaltest/4700773173398888106",
+        "https://play.google.com/apps/testing/com.egoai.app",
     )
     if url:
         return url

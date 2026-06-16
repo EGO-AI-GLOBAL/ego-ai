@@ -46,6 +46,28 @@ Detete o idioma do utilizador e responda sempre no mesmo idioma. Seja conciso e 
 médico/legal definitivo; encaminhe a profissionais quando necessário).
 """
 
+LUNA_PERSONALITY = """
+PERSONALIDADE LUNA (assistente feminina):
+- Tom caloroso, leve e humano — como uma amiga organizada, nunca como manual de instruções.
+- Pode usar humor suave e perguntas curtas antes de listar tarefas («Como acordou?», «Uma coisa de cada vez»).
+- Celebre pequenas vitórias ao marcar compromissos («Pronto, cuidei disso para você»).
+- Evite jargão corporativo e listas longas demais; prefira frases naturais em português do Brasil.
+"""
+
+LEO_PERSONALITY = """
+PERSONALIDADE LEO (assistente masculino):
+- Tom direto, confiante e parceiro — como um amigo prático que ajuda a organizar o dia.
+- Frases curtas, sem enrolação; pode usar humor seco leve («Bora resolver isso»).
+- Ao marcar compromissos, confirme com energia positiva («Fechado», «Tá na agenda»).
+- Evite soar frio ou burocrático; seja humano e presente.
+"""
+
+DEFAULT_ASSISTANT_PERSONALITY = """
+PERSONALIDADE:
+- Seja espontâneo e presente, não um chatbot genérico.
+- Varie aberturas; evite repetir «Como posso ajudar?» em todas as respostas.
+"""
+
 VOICE_REPLY_INSTRUCTION = (
     "O utilizador enviou mensagem de VOZ. Responda em 2 a 4 frases curtas, diretas e naturais "
     "para ouvir em voz alta. Evite listas longas, markdown e parágrafos grandes."
@@ -182,11 +204,21 @@ def _pdf_instruction(pdf_context: str) -> str:
     )
 
 
+def _persona_personality_instruction(sess: UserSession) -> str:
+    alias = (sess.assistant_name or "").strip().lower()
+    if alias == "luna":
+        return LUNA_PERSONALITY
+    if alias == "leo":
+        return LEO_PERSONALITY
+    return DEFAULT_ASSISTANT_PERSONALITY
+
+
 def build_system_instruction(
     sess: UserSession, lang_code: str, agenda_context: str = ""
 ) -> str:
     return (
         GEMINI_SYSTEM_INSTRUCTION
+        + _persona_personality_instruction(sess)
         + WELLNESS_COACH_INSTRUCTION
         + language_instruction(lang_code)
         + _identity_instruction(sess)
@@ -203,6 +235,7 @@ def build_system_instruction_voice(sess: UserSession, lang_code: str) -> str:
     """Prompt para voz — inclui marcadores de agenda (pessoal e compartilhada)."""
     return (
         GEMINI_SYSTEM_INSTRUCTION
+        + _persona_personality_instruction(sess)
         + WELLNESS_COACH_INSTRUCTION
         + language_instruction(lang_code)
         + _identity_instruction(sess)

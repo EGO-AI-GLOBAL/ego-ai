@@ -80,10 +80,17 @@ type Props = {
   colors: AppColors;
   items: ScheduleBannerItem[];
   assistantName: string;
+  celebrationLine?: string | null;
   onDismiss?: () => void;
 };
 
-export function ChatScheduleBanner({ colors, items, assistantName, onDismiss }: Props) {
+export function ChatScheduleBanner({
+  colors,
+  items,
+  assistantName,
+  celebrationLine,
+  onDismiss,
+}: Props) {
   const ev = items[0];
   if (!ev) return null;
 
@@ -98,6 +105,9 @@ export function ChatScheduleBanner({ colors, items, assistantName, onDismiss }: 
         { backgroundColor: colors.bgCard, borderColor: colors.success },
       ]}
     >
+      {celebrationLine ? (
+        <Text style={[styles.celebration, { color: colors.success }]}>{celebrationLine}</Text>
+      ) : null}
       <Text style={[styles.line, { color: colors.text }]}>{line}</Text>
       <Text style={[styles.sub, { color: colors.textMuted }]}>{ev.calendarName}</Text>
       <View style={styles.row}>
@@ -131,6 +141,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 10,
   },
+  celebration: { fontSize: 15, fontWeight: "800", marginBottom: 6 },
   line: { fontSize: 15, fontWeight: "700" },
   sub: { fontSize: 13, marginTop: 4, marginBottom: 10 },
   row: { flexDirection: "row", alignItems: "center", gap: 12 },

@@ -1,0 +1,3 @@
+PLAY CONSOLE: Recurso gráfico *
+Envie: banner-1024x500.png
+Tamanho: 1024 x 500 px, PNG, max 15 MB

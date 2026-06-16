@@ -251,15 +251,15 @@ export function SpeakingAvatar({
   }, [aid]);
 
   const statusLabel = thinking
-    ? "A pensar…"
+    ? `${name} está pensando…`
     : listening
-      ? "A ouvir…"
+      ? `${name} está ouvindo…`
       : speaking
-        ? "A falar…"
+        ? `${name} está falando…`
         : null;
   const showVideo = speaking && Boolean(videoUri) && videoReady;
   const frameBorderColor =
-    thinking || listening ? colors.primary : colors.bgCard;
+    thinking || listening || speaking ? colors.primarySoft : colors.border;
 
   return (
     <View style={[styles.wrap, compact && styles.wrapCompact]}>
@@ -269,7 +269,7 @@ export function SpeakingAvatar({
           compact && styles.frameCompact,
           {
             backgroundColor: colors.bgCard,
-            borderWidth: thinking || listening ? 2 : 0,
+            borderWidth: thinking || listening || speaking ? 2 : StyleSheet.hairlineWidth,
             borderColor: frameBorderColor,
             transform: [{ scale: pulse }],
           },

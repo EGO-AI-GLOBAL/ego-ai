@@ -7,9 +7,11 @@ type Props = {
   colors: AppColors;
   disabled?: boolean;
   onPick: (action: ChatQuickAction) => void;
+  actions?: ChatQuickAction[];
 };
 
-export function ChatQuickActions({ colors, disabled, onPick }: Props) {
+export function ChatQuickActions({ colors, disabled, onPick, actions }: Props) {
+  const items = actions?.length ? actions : CHAT_QUICK_ACTIONS;
   return (
     <ScrollView
       horizontal
@@ -17,7 +19,7 @@ export function ChatQuickActions({ colors, disabled, onPick }: Props) {
       contentContainerStyle={styles.row}
       keyboardShouldPersistTaps="handled"
     >
-      {CHAT_QUICK_ACTIONS.map((action) => (
+      {items.map((action) => (
         <Pressable
           key={action.id}
           disabled={disabled}
@@ -40,9 +42,11 @@ export function ChatQuickActions({ colors, disabled, onPick }: Props) {
 const styles = StyleSheet.create({
   row: { gap: 8, paddingVertical: 4 },
   chip: {
-    borderRadius: 18,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    minHeight: 44,
+    justifyContent: "center",
   },
   chipText: { fontSize: 15, fontWeight: "800" },
 });

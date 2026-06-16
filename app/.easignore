@@ -1,0 +1,9 @@
+node_modules/
+android/
+ios/
+.expo/
+dist/
+.git/
+.expo-web-test/
+**/*.md
+scripts/

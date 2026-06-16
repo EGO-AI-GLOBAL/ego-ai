@@ -7,12 +7,14 @@ import { PersonaGate } from "@/components/PersonaGate";
 import { DashboardProvider } from "@/context/DashboardContext";
 import { DrawerProvider } from "@/context/DrawerContext";
 import { useAuth } from "@/context/AuthContext";
+import { useDailyRitualNotifications } from "@/hooks/useDailyRitualNotifications";
 import { useColors } from "@/theme/ThemeContext";
 
 function MainShell() {
   const colors = useColors();
   const segments = useSegments();
   const hideDrawer = segments.includes("choose-avatar");
+  useDailyRitualNotifications();
 
   return (
     <PersonaGate>

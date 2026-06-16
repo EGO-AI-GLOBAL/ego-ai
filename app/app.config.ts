@@ -34,6 +34,7 @@ const config: ExpoConfig = {
     bundleIdentifier: "com.egoai.app",
     buildNumber: "1",
     infoPlist: {
+      ITSAppUsesNonExemptEncryption: false,
       NSMicrophoneUsageDescription:
         "O EGO-AI usa o microfone para mensagens de voz e chamada ao vivo com o assistente.",
       NSPhotoLibraryUsageDescription:
@@ -100,6 +101,7 @@ const config: ExpoConfig = {
         },
       },
     ],
+    "./plugins/withXcode26FmtFix",
   ],
   experiments: {
     typedRoutes: true,

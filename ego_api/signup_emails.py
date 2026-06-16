@@ -15,6 +15,9 @@ from ego_api.config import play_store_update_url, read_env
 
 logger = logging.getLogger(__name__)
 
+_welcome_locks: dict[str, threading.Lock] = {}
+_welcome_locks_guard = threading.Lock()
+
 DEFAULT_FROM = "contato@egoai.com.br"
 DEFAULT_FROM_NAME = "Ego-IA"
 DEFAULT_SMTP_HOST = "smtp.uol.com.br"
@@ -169,6 +172,36 @@ def send_smtp_email(*, to_email: str, subject: str, text_body: str, html_body: s
         smtp.send_message(msg)
 
 
+def _welcome_user_lock(user_id: str) -> threading.Lock:
+    with _welcome_locks_guard:
+        lock = _welcome_locks.get(user_id)
+        if lock is None:
+            lock = threading.Lock()
+            _welcome_locks[user_id] = lock
+        return lock
+
+
+def _welcome_already_sent(user_id: str) -> bool:
+    from ego_api.supabase_client import create_service_client
+
+    svc = create_service_client()
+    if not svc or not user_id:
+        return False
+    try:
+        res = (
+            svc.table("profiles")
+            .select("welcome_email_sent_at")
+            .eq("id", user_id)
+            .limit(1)
+            .execute()
+        )
+        row = (res.data or [None])[0]
+        return bool(row and row.get("welcome_email_sent_at"))
+    except Exception as exc:
+        logger.warning("welcome_email check failed: %s", exc)
+        return False
+
+
 def _mark_profile_email_flag(user_id: str, column: str) -> None:
     from ego_api.supabase_client import create_service_client
 
@@ -187,22 +220,26 @@ def _mark_profile_email_flag(user_id: str, column: str) -> None:
 def send_welcome_email(user_id: str, email: str, full_name: str = "") -> bool:
     if not signup_emails_enabled() or not smtp_configured():
         return False
-    name = _first_name(full_name, email)
-    play_url = _play_url()
-    subject, text_body, html_body = _welcome_bodies(name, play_url)
-    try:
-        send_smtp_email(
-            to_email=email,
-            subject=subject,
-            text_body=text_body,
-            html_body=html_body,
-        )
-        _mark_profile_email_flag(user_id, "welcome_email_sent_at")
-        logger.info("welcome_email sent to %s", email)
-        return True
-    except Exception as exc:
-        logger.warning("welcome_email failed for %s: %s", email, exc)
-        return False
+    with _welcome_user_lock(user_id):
+        if _welcome_already_sent(user_id):
+            logger.info("welcome_email skip (já enviado): %s", email)
+            return False
+        name = _first_name(full_name, email)
+        play_url = _play_url()
+        subject, text_body, html_body = _welcome_bodies(name, play_url)
+        try:
+            send_smtp_email(
+                to_email=email,
+                subject=subject,
+                text_body=text_body,
+                html_body=html_body,
+            )
+            _mark_profile_email_flag(user_id, "welcome_email_sent_at")
+            logger.info("welcome_email sent to %s", email)
+            return True
+        except Exception as exc:
+            logger.warning("welcome_email failed for %s: %s", email, exc)
+            return False
 
 
 def send_reminder_email(user_id: str, email: str, full_name: str = "") -> bool:

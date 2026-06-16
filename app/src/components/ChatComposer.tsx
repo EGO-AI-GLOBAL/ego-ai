@@ -13,6 +13,20 @@ import { Ionicons } from "@expo/vector-icons";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useColors } from "@/theme/ThemeContext";
 
+function micHaptic(): void {
+  if (Platform.OS === "web") return;
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Haptics = require("expo-haptics") as {
+      impactAsync?: (style: number) => Promise<void>;
+      ImpactFeedbackStyle?: { Medium: number };
+    };
+    void Haptics.impactAsync?.(Haptics.ImpactFeedbackStyle?.Medium ?? 1);
+  } catch {
+    /* expo-haptics opcional */
+  }
+}
+
 type Props = {
   value: string;
   onChangeText: (t: string) => void;
@@ -113,6 +127,7 @@ export function ChatComposer({
 
   const onMicTap = () => {
     if (sending) return;
+    micHaptic();
     void onMicPress?.();
   };
 
@@ -221,14 +236,14 @@ export function ChatComposer({
               style={[
                 styles.actionBtn,
                 styles.micCircle,
-                { borderColor: colors.border },
+                { backgroundColor: colors.micBg, borderColor: colors.micBg },
               ]}
               onPress={onMicTap}
               disabled={sending}
               accessibilityRole="button"
-              accessibilityLabel="Microfone — toque para gravar"
+              accessibilityLabel="Microfone — toque para falar"
             >
-              <Ionicons name="mic-outline" size={22} color={colors.primary} />
+              <Ionicons name="mic" size={26} color="#fff" />
             </Pressable>
           ) : null}
         </View>
@@ -308,24 +323,28 @@ const styles = StyleSheet.create({
   },
   trailing: {
     position: "absolute",
-    right: 6,
+    right: 4,
     top: 0,
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    width: 44,
+    width: 52,
   },
   actionBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
   },
   sendCircle: {},
   micCircle: {
-    backgroundColor: "transparent",
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 0,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
   },
   actionDisabled: { opacity: 0.45 },
   recordingHint: {
