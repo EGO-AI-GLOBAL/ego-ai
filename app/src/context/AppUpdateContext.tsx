@@ -16,6 +16,7 @@ type AppUpdateContextValue = {
   message: string;
   latestVersion: string;
   playStoreUrl: string;
+  iosUpdateUrl: string;
   currentVersion: string;
   refresh: () => Promise<void>;
 };
@@ -33,6 +34,7 @@ export function AppUpdateProvider({ children }: { children: React.ReactNode }) {
   const [message, setMessage] = useState("Nova versão disponível na Play Store.");
   const [latestVersion, setLatestVersion] = useState("");
   const [playStoreUrl, setPlayStoreUrl] = useState("");
+  const [iosUpdateUrl, setIosUpdateUrl] = useState("");
   const currentVersion = currentAppVersion();
 
   const refresh = useCallback(async () => {
@@ -44,8 +46,10 @@ export function AppUpdateProvider({ children }: { children: React.ReactNode }) {
     }
     const latest = info.latest_version.trim();
     const url = (info.play_store_url || "").trim();
+    const iosUrl = (info.ios_update_url || "").trim();
     setLatestVersion(latest);
     setPlayStoreUrl(url);
+    setIosUpdateUrl(iosUrl);
     setMessage(
       (info.message || "").trim() ||
         `Versão ${latest} disponível. Você está na ${currentVersion}.`
@@ -71,10 +75,11 @@ export function AppUpdateProvider({ children }: { children: React.ReactNode }) {
       message,
       latestVersion,
       playStoreUrl,
+      iosUpdateUrl,
       currentVersion,
       refresh,
     }),
-    [showBanner, message, latestVersion, playStoreUrl, currentVersion, refresh]
+    [showBanner, message, latestVersion, playStoreUrl, iosUpdateUrl, currentVersion, refresh]
   );
 
   return (

@@ -251,6 +251,7 @@ export type SendChatResult = {
 export type AppUpdateInfo = {
   latest_version: string;
   play_store_url: string;
+  ios_update_url?: string;
   message?: string;
 };
 

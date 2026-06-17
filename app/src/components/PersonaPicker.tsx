@@ -13,7 +13,6 @@ import type { PlanTier } from "@/api/types";
 import {
   AVATAR_CATALOG,
   AVATAR_CATEGORY_LABELS,
-  AVATAR_COLLECTION_LABELS,
   avatarsByCategory,
   findAvatarInCatalog,
   type AvatarCatalogEntry,
@@ -296,9 +295,6 @@ export function PersonaPicker({
                           numberOfLines={1}
                         >
                           {entry.shortName}
-                        </Text>
-                        <Text style={[styles.catalogMeta, { color: colors.textMuted }]} numberOfLines={1}>
-                          {entry.voiceLabel} · {AVATAR_COLLECTION_LABELS[entry.collection]}
                         </Text>
                         {loading ? (
                           <ActivityIndicator color={colors.primary} size="small" />

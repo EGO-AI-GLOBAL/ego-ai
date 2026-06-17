@@ -17,7 +17,7 @@ if (isProd && apiUrl && !apiUrl.startsWith("https://")) {
 const config: ExpoConfig = {
   name: "Ego-IA",
   slug: "ego-ai",
-  version: "1.0.25",
+  version: "1.0.26",
   orientation: "portrait",
   scheme: "egoai",
   userInterfaceStyle: "automatic",
@@ -47,8 +47,9 @@ const config: ExpoConfig = {
     versionCode: 44,
     package: "com.egoai.app",
     adaptiveIcon: {
-      foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#0A122A",
+      /** Mesmo PNG do iOS — evita ícone minúsculo dentro do círculo no launcher. */
+      foregroundImage: "./assets/icon.png",
+      backgroundColor: "#121c2c",
     },
     permissions: [
       "RECORD_AUDIO",

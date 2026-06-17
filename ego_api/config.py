@@ -236,8 +236,8 @@ def beta_unlimited() -> bool:
 
 
 def latest_app_version() -> str:
-    """Versão mais recente na Play — app antigo mostra aviso de atualização."""
-    return read_env("EGO_LATEST_APP_VERSION", "1.0.14")
+    """Versão mais recente na loja — app antigo mostra aviso de atualização."""
+    return read_env("EGO_LATEST_APP_VERSION", "1.0.26")
 
 
 def play_store_update_url() -> str:
@@ -254,8 +254,15 @@ def play_store_update_url() -> str:
 def app_update_message() -> str:
     return read_env(
         "EGO_APP_UPDATE_MESSAGE",
-        "Nova versão disponível na Play Store.",
+        "Nova versão disponível. Toque em Atualizar agora.",
     )
+
+
+def testflight_update_url() -> str:
+    return read_env(
+        "EGO_TESTFLIGHT_URL",
+        "https://testflight.apple.com/join/eNDKdFWF",
+    ).strip()
 
 
 def maintenance_mode() -> bool:
@@ -273,6 +280,7 @@ def app_update_payload() -> dict[str, str]:
     return {
         "latest_version": latest_app_version(),
         "play_store_url": play_store_update_url(),
+        "ios_update_url": testflight_update_url(),
         "message": app_update_message(),
     }
 

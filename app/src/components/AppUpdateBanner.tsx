@@ -4,19 +4,23 @@ import { useAppUpdate } from "@/context/AppUpdateContext";
 import { useColors } from "@/theme/ThemeContext";
 
 const PLAY_FALLBACK = "market://details?id=com.egoai.app";
+const TESTFLIGHT_FALLBACK = "https://testflight.apple.com/join/eNDKdFWF";
 
 export function AppUpdateBanner() {
   const colors = useColors();
-  const { showBanner, message, latestVersion, playStoreUrl } = useAppUpdate();
+  const { showBanner, message, latestVersion, playStoreUrl, iosUpdateUrl } = useAppUpdate();
 
   if (!showBanner) return null;
 
-  const onOpenPlay = async () => {
-    const candidates = [
-      playStoreUrl,
-      PLAY_FALLBACK,
-      "https://play.google.com/store/apps/details?id=com.egoai.app",
-    ].filter(Boolean);
+  const onUpdate = async () => {
+    const candidates =
+      Platform.OS === "ios"
+        ? [iosUpdateUrl, TESTFLIGHT_FALLBACK].filter(Boolean)
+        : [
+            playStoreUrl,
+            PLAY_FALLBACK,
+            "https://play.google.com/store/apps/details?id=com.egoai.app",
+          ].filter(Boolean);
     for (const url of candidates) {
       try {
         const can = await Linking.canOpenURL(url);
@@ -30,6 +34,8 @@ export function AppUpdateBanner() {
     }
     if (Platform.OS === "android") {
       await Linking.openURL(PLAY_FALLBACK);
+    } else {
+      await Linking.openURL(TESTFLIGHT_FALLBACK);
     }
   };
 
@@ -48,12 +54,12 @@ export function AppUpdateBanner() {
         <Text style={styles.body}>{message}</Text>
       </View>
       <Pressable
-        onPress={() => void onOpenPlay()}
+        onPress={() => void onUpdate()}
         style={({ pressed }) => [styles.btn, pressed && { opacity: 0.88 }]}
         accessibilityRole="button"
-        accessibilityLabel="Ir para a Play Store"
+        accessibilityLabel="Atualizar agora"
       >
-        <Text style={styles.btnText}>Ir para a Play</Text>
+        <Text style={styles.btnText}>Atualizar agora</Text>
       </Pressable>
     </View>
   );
