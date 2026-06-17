@@ -1159,13 +1159,28 @@ def bootstrap_payload_fallback(supabase: Client | None, user_id: str) -> dict:
         "access": {"ok": True, **access},
         "reminders": [],
         "agenda": [],
+        "agenda_drafts": [],
+        "shopping_orphans": [],
         "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
         "messages": [],
     }
 
 
+def list_reminders_enriched(supabase: Client | None, user_id: str) -> list[dict]:
+    from ego_api import habits_db
+
+    rows = db.list_reminders(supabase, user_id)
+    ids = [str(r.get("id") or "") for r in rows if r.get("id")]
+    by_rem = habits_db.shopping_by_reminder_ids(supabase, user_id, ids)
+    for row in rows:
+        rid = str(row.get("id") or "")
+        row["shopping_items"] = by_rem.get(rid, [])
+    return rows
+
+
 def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
     """Um único payload para o painel (evita vários GET no cliente)."""
+    from ego_api import habits_db
     from ego_api.config import gemini_api_key, supabase_anon_key, supabase_url
 
     access = _bootstrap_section(
@@ -1184,9 +1199,19 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
         "me": me,
         "access": {"ok": True, **access},
         "reminders": _bootstrap_section(
-            "reminders", lambda: db.list_reminders(supabase, user_id), []
+            "reminders", lambda: list_reminders_enriched(supabase, user_id), []
         ),
         "agenda": _bootstrap_section("agenda", lambda: db.list_agenda(supabase, user_id), []),
+        "agenda_drafts": _bootstrap_section(
+            "agenda_drafts",
+            lambda: habits_db.list_pending_drafts(supabase, user_id),
+            [],
+        ),
+        "shopping_orphans": _bootstrap_section(
+            "shopping_orphans",
+            lambda: habits_db.list_shopping_items(supabase, user_id, orphans_only=True),
+            [],
+        ),
         "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
         "messages": _bootstrap_section(
             "messages", lambda: db.load_chat_history(supabase, user_id), []

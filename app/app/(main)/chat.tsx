@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { checkoutUrlForTier } from "@/utils/planCheckout";
-import { sendChatMessage } from "@/api/client";
+import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText } from "@/api/client";
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { ChatComposer } from "@/components/ChatComposer";
 import { ChatPreview } from "@/components/ChatPreview";
@@ -128,6 +128,7 @@ export default function ChatScreen() {
   const pdfCountRef = useRef(0);
   const ritualHandledRef = useRef(false);
   const ritualPendingRef = useRef<DailyRitualId | null>(null);
+  const [nightDumpMode, setNightDumpMode] = useState(false);
   const [saveCelebrationLine, setSaveCelebrationLine] = useState<string | null>(null);
 
   useEffect(() => {
@@ -698,6 +699,30 @@ export default function ChatScreen() {
       { role: "assistant", content: "…" },
     ]);
     try {
+      if (nightDumpMode) {
+        setChatNotice("A processar descarrego…");
+        const raw = await voice.stopRecordingRaw();
+        const dump = raw.blob
+          ? await submitNightDumpBlob(raw.blob)
+          : await submitNightDumpFromUri({ uri: raw.uri || "", audioMime: raw.mime });
+        const userLabel = dump.transcript?.trim() || "Descarrego da noite";
+        const reply =
+          dump.comfort_reply?.trim() ||
+          "Recebi o que você compartilhou. Amanhã confirme na Agenda.";
+        setPendingChat([
+          { role: "user", content: userLabel },
+          { role: "assistant", content: reply },
+        ]);
+        await saveExchange(userLabel, reply, { userWasVoice: true });
+        setPendingChat([]);
+        setNightDumpMode(false);
+        setChatNotice("Amanhã de manhã abra a Agenda e toque «Confirmar na agenda».");
+        void refresh({ skipNotifications: true });
+        if (autoPlayVoice) {
+          await voice.replayLastText(reply, persona.voice_id, persona.avatar_id);
+        }
+        return;
+      }
       // speak=false no upload: TTS da resposta fica no cliente (playVoice / /tts).
       const result = await voice.stopRecordingAndSend(false, historyForApi(), {
         onDelta: (_chunk, full) => {
@@ -852,6 +877,17 @@ export default function ChatScreen() {
       if (!ritual) return;
       ritualHandledRef.current = true;
       ritualPendingRef.current = null;
+      if (ritual === "evening") {
+        setNightDumpMode(true);
+        if (!autoPlayVoice) {
+          setAutoPlayVoice(true);
+          void saveAutoPlayVoice(true);
+        }
+        const intro =
+          "Descarrego da noite: segure o microfone e fale tudo que está na cabeça. Amanhã você confirma na Agenda.";
+        setChatNotice(intro);
+        return;
+      }
       const labels: Record<DailyRitualId, string> = {
         morning: "Briefing",
         afternoon: "Ponto",
@@ -879,6 +915,30 @@ export default function ChatScreen() {
       return;
     }
     const typed = chatInput.trim();
+    if (nightDumpMode && typed) {
+      setSending(true);
+      setChatError(null);
+      setChatNotice("A processar descarrego…");
+      try {
+        const dump = await submitNightDumpText(typed);
+        const reply =
+          dump.comfort_reply?.trim() ||
+          "Recebi. Amanhã confirme na Agenda.";
+        await saveExchange(typed, reply, { userWasVoice: false });
+        setChatInput("");
+        setNightDumpMode(false);
+        setChatNotice("Amanhã de manhã abra a Agenda e toque «Confirmar na agenda».");
+        void refresh({ skipNotifications: true });
+        if (autoPlayVoice) {
+          await voice.replayLastText(reply, persona.voice_id, persona.avatar_id);
+        }
+      } catch (e) {
+        setChatError(e instanceof Error ? e.message : "Erro no descarrego.");
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
     const text = typed || (pdfCharCount > 0 ? pdfSummaryPrompt : "");
     if (!text) return;
     await sendMessageText(text, typed || "Resumo do documento");

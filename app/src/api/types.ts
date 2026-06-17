@@ -138,6 +138,38 @@ export type Reminder = {
   scheduled_at?: string;
   announce?: string;
   dismissed?: boolean;
+  shopping_items?: ShoppingListItem[];
+};
+
+export type ShoppingListItem = {
+  id: string;
+  reminder_id?: string | null;
+  title?: string;
+  category?: string;
+  done?: boolean;
+};
+
+export type AgendaDraftItem = {
+  type: "reminder" | "shopping_orphan";
+  title?: string;
+  scheduled_at?: string;
+  shopping_items?: { title: string; category?: string }[];
+  category?: string;
+};
+
+export type AgendaDraft = {
+  id: string;
+  comfort_reply?: string;
+  items?: AgendaDraftItem[];
+  created_at?: string;
+  status?: string;
+};
+
+export type NightDumpResult = {
+  comfort_reply: string;
+  items: AgendaDraftItem[];
+  transcript?: string;
+  draft?: AgendaDraft;
 };
 
 export type AgendaItem = {
@@ -243,6 +275,8 @@ export type DashboardData = {
   access: AccessInfo | null;
   reminders: Reminder[];
   agenda: AgendaItem[];
+  agenda_drafts?: AgendaDraft[];
+  shopping_orphans?: ShoppingListItem[];
   shared_calendars?: SharedCalendar[];
   messages: ChatMessage[];
   chat_local_history?: boolean;

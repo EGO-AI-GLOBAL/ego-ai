@@ -1,0 +1,36 @@
+EGO-AI 1.0.25 — notas para testadores (Play + TestFlight)
+==========================================================
+
+NOVIDADES
+---------
+• Descarrego da noite — às 21h o app lembra: grave um áudio e solte o que está na cabeça.
+  Amanhã, na Agenda, você confirma em 1 toque (a IA não grava sozinha).
+• Lista de compras — ligada ao compromisso «Ir ao mercado» ou itens avulsos «Comprar quando puder».
+• Luna — vídeo de fala atualizado (foto parada → vídeo ao falar).
+
+TESTAR NO CELULAR
+-----------------
+1. Chat → ritual 21h ou modo descarrego: grave 30–60 s falando compromissos + «preciso de leite».
+2. Agenda (manhã): card «Organizei sua mente» → Confirmar blocos.
+3. Lista: + leite/remédio → marcar comprado.
+4. Voz: avatar Luna deve animar enquanto fala.
+
+ANDROID (Play — teste fechado)
+------------------------------
+Link testadores: https://play.google.com/apps/testing/com.egoai.app
+
+Notas da versão (colar na Play):
+Nova versão 1.0.25: Descarrego da noite (grave à noite, confirme de manhã na Agenda) e Lista de compras nos compromissos. Vídeo da Luna ao falar. Obrigado por testar!
+
+iOS (TestFlight)
+----------------
+Build 1.0.25 (4) — adicionar testadores internos/externos após processamento Apple.
+
+WHATSAPP (copiar)
+-----------------
+Nova 1.0.25 no ar 🌙
+• Noite: fale o que está na cabeça (descarrego).
+• Manhã: confirma na Agenda em 1 toque.
+• Lista de compras no compromisso do mercado.
+Android: https://play.google.com/apps/testing/com.egoai.app
+iPhone: responda com seu e-mail que enviamos o TestFlight.

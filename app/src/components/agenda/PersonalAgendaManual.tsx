@@ -14,13 +14,15 @@ import {
   dismissReminder,
   localDateTimeToIso,
 } from "@/api/client";
-import type { AgendaItem, Reminder } from "@/api/types";
+import type { AgendaDraft, AgendaItem, Reminder, ShoppingListItem } from "@/api/types";
 import { AgendaItemRow } from "@/components/AgendaItem";
 import { ReminderItem } from "@/components/ReminderItem";
 import type { AppColors } from "@/theme/colors";
 import { AgendaDateTimeFields, AgendaTimeField } from "./AgendaDateTimeFields";
 import { AgendaQuickPick } from "./AgendaQuickPick";
 import { AgendaWeekdayChips } from "./AgendaWeekdayChips";
+import { AgendaDraftsBanner } from "./AgendaDraftsBanner";
+import { OrphanShoppingSection } from "./OrphanShoppingSection";
 import { agendaFormStyles as s } from "./agendaFormStyles";
 import {
   defaultScheduleSlot,
@@ -32,6 +34,8 @@ type Props = {
   colors: AppColors;
   reminders: Reminder[];
   habits: AgendaItem[];
+  agendaDrafts: AgendaDraft[];
+  shoppingOrphans: ShoppingListItem[];
   onRefresh: () => Promise<void>;
 };
 
@@ -39,7 +43,14 @@ type Props = {
  * Agenda pessoal 100% manual — não importa chat, voz nem AuthContext.
  * Alterações aqui não devem tocar em useVoiceChat / login.
  */
-export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: Props) {
+export function PersonalAgendaManual({
+  colors,
+  reminders,
+  habits,
+  agendaDrafts,
+  shoppingOrphans,
+  onRefresh,
+}: Props) {
   const initialSlot = defaultScheduleSlot();
   const [showPersonalForm, setShowPersonalForm] = useState(false);
   const [personalTitle, setPersonalTitle] = useState("");
@@ -184,6 +195,8 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
 
   return (
     <>
+      <AgendaDraftsBanner colors={colors} drafts={agendaDrafts} onRefresh={onRefresh} />
+      <OrphanShoppingSection colors={colors} items={shoppingOrphans} onRefresh={onRefresh} />
       <Text style={[s.section, { color: colors.textMuted }]}>Compromissos</Text>
       <Pressable
         onPress={() => (showPersonalForm ? setShowPersonalForm(false) : openPersonalForm())}
@@ -252,6 +265,7 @@ export function PersonalAgendaManual({ colors, reminders, habits, onRefresh }: P
               item={r}
               colors={colors}
               onDismiss={onDismissReminder}
+              onShoppingChange={onRefresh}
             />
           );
         })

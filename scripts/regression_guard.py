@@ -30,6 +30,9 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "export async function dismissReminder",
             "export async function createReminder",
             "deviceTimezonePayload",
+            "submitNightDumpFromUri",
+            "fetchPendingAgendaDrafts",
+            "createShoppingItem",
         ],
     ),
     (
@@ -57,6 +60,9 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "reminders_dismiss",
             '@app.delete("/api/v1/agenda/<agenda_id>")',
             "shared_calendars_events_dismiss",
+            '@app.post("/api/v1/night-dump")',
+            "agenda_drafts_pending",
+            "shopping_list_get",
         ],
     ),
     (
@@ -75,6 +81,14 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     (
         "ego_api/db.py",
         ["def dismiss_reminder", "def insert_reminder", "def check_token_allowance"],
+    ),
+    (
+        "ego_api/habits_db.py",
+        ["list_pending_drafts", "insert_shopping_item", "SUPABASE_AGENDA_DRAFTS_TABLE"],
+    ),
+    (
+        "ego_api/night_dump.py",
+        ["process_night_dump", "confirm_draft_items", "NIGHT_DUMP_EXTRACT_PROMPT"],
     ),
 ]
 

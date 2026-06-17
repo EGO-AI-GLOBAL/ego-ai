@@ -23,6 +23,8 @@ SUPABASE_AGENDA_TABLE = "agenda"
 SUPABASE_SHARED_CALENDARS_TABLE = "shared_calendars"
 SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE = "shared_calendar_members"
 SUPABASE_SHARED_CALENDAR_EVENTS_TABLE = "shared_calendar_events"
+SUPABASE_AGENDA_DRAFTS_TABLE = "agenda_drafts"
+SUPABASE_SHOPPING_LIST_TABLE = "shopping_list_items"
 
 # Máximo de agendas de grupo que cada utilizador pode criar (ser dono).
 MAX_SHARED_CALENDARS_PER_OWNER = int(os.getenv("EGO_MAX_SHARED_CALENDARS", "10"))

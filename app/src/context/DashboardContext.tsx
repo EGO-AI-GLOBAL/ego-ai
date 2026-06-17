@@ -38,6 +38,8 @@ const empty: DashboardData = {
   access: null,
   reminders: [],
   agenda: [],
+  agenda_drafts: [],
+  shopping_orphans: [],
   shared_calendars: [],
   messages: [],
 };

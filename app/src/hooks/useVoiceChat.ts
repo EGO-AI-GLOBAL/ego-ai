@@ -836,6 +836,52 @@ export function useVoiceChat() {
     [finishWebRecording]
   );
 
+  const stopRecordingRaw = useCallback(async (): Promise<{
+    blob?: Blob;
+    uri?: string;
+    mime: string;
+  }> => {
+    if (isWeb) {
+      if (!webRecorderRef.current) {
+        throw new Error("Nenhuma gravação ativa. Toque no microfone para gravar.");
+      }
+      const elapsed = Date.now() - recordingStartedAtRef.current;
+      if (elapsed < 900) {
+        throw new Error("Fale pelo menos 2 segundos antes de enviar.");
+      }
+      const { blob, mime } = await finishWebRecording();
+      setMicSessionActive(false);
+      setIsRecording(false);
+      recordingStartedAtRef.current = 0;
+      return { blob, mime };
+    }
+
+    const rec = recordingRef.current;
+    if (!rec) {
+      throw new Error("Nenhuma gravação ativa.");
+    }
+    const elapsed = Date.now() - recordingStartedAtRef.current;
+    if (elapsed < 900) {
+      throw new Error("Fale pelo menos 2 segundos antes de enviar.");
+    }
+    setIsRecording(false);
+    recordingRef.current = null;
+    setMicSessionActive(false);
+    await safeStopNativeRecording(rec);
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
+    });
+    const uri = rec.getURI();
+    if (!uri) {
+      throw new Error("Gravação vazia.");
+    }
+    recordingStartedAtRef.current = 0;
+    return { uri, mime: mimeFromUri(uri) };
+  }, [finishWebRecording]);
+
   const cancelRecording = useCallback(async () => {
     setMicSessionActive(false);
     setIsRecording(false);
@@ -883,6 +929,7 @@ export function useVoiceChat() {
     startRecording,
     waitForRecording,
     stopRecordingAndSend,
+    stopRecordingRaw,
     cancelRecording,
     playReplyAudio,
     replayLastText,

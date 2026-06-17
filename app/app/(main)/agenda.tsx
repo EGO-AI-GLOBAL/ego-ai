@@ -69,6 +69,8 @@ export default function AgendaScreen() {
               colors={colors}
               reminders={data.reminders}
               habits={data.agenda}
+              agendaDrafts={data.agenda_drafts ?? []}
+              shoppingOrphans={data.shopping_orphans ?? []}
               onRefresh={onRefresh}
             />
           ) : (

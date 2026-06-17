@@ -1,0 +1,106 @@
+SPEC — Lista de compras CONECTADA à Agenda (1.0.25)
+==================================================
+
+IDEIA (melhor que tela fria de supermercado)
+  A lista vive DENTRO do compromisso — contexto, não app separado.
+
+EXEMPLO
+-------
+Noite (Descarrego): «Amanhã preciso passar no mercado para comprar leite e sabão em pó»
+
+Manhã — card de confirmação:
+  [18:00 — Ir ao mercado]  [Confirmar] [Editar]
+    └ Lista (2 itens): ☐ Leite  ☐ Sabão em pó
+
+Usuário confirma → na Agenda pessoal aparece:
+
+  ● Ir ao mercado — hoje 18:00
+    ▼ Lista de compras (2)
+      ☐ Leite
+      ☐ Sabão em pó
+    [+ Adicionar item]
+
+No mercado: expande o compromisso, marca ☐, não esquece nada.
+
+──────────────────────────────────────────────────────
+
+FLUXO COMPLETO
+--------------
+
+1. DESCARREGO (áudio)
+   Gemini extrai:
+   {
+     "reminders": [{
+       "title": "Ir ao mercado",
+       "scheduled_at": "…18:00…",
+       "shopping_items": ["Leite", "Sabão em pó"]
+     }]
+   }
+
+2. MANHÃ — confirmar (igual Night Dump)
+   Um bloco só: compromisso + itens embutidos
+
+3. AGENDA — ReminderItem expansível
+   • Toque na seta ▼ abre checklist
+   • Marcar item = PATCH done
+   • + Adicionar item manual (acabou o café em casa, sem áudio)
+
+4. ITENS AVULSOS (sem hora de mercado)
+   Se no áudio só disser «comprar remédio» sem «ir ao mercado»:
+   → Card: «Adicionar à lista geral?» ou anexar ao próximo «Ir ao mercado»
+   → Seção fixa no topo da Agenda: «Comprar quando puder (3)» expansível
+
+──────────────────────────────────────────────────────
+
+BANCO (Supabase)
+----------------
+
+Opção A — JSON no reminder (MVP mais rápido):
+  alter table reminders add column if not exists shopping_items jsonb default '[]';
+  -- [{ "id": "uuid", "title": "Leite", "done": false }]
+
+Opção B — tabela filha (escala melhor):
+  shopping_list_items (
+    id, user_id, reminder_id nullable,  -- null = lista geral
+    title, category, done, created_at
+  )
+
+Recomendação amanhã: **Opção B** (reminder_id liga ao compromisso)
+
+──────────────────────────────────────────────────────
+
+UI (app)
+--------
+ReminderItem.tsx → virar expansível se tiver shopping_items
+  • Chevron ▼/▲
+  • Checkboxes
+  • Contador: «2 de 5 comprados»
+
+PersonalAgendaManual: ao criar compromisso, opcional «+ Itens de compra»
+
+SEM tela «Supermercado» isolada no MVP — só lista geral colapsada no topo se houver itens sem compromisso.
+
+──────────────────────────────────────────────────────
+
+AVATAR (ensina)
+---------------
+«Quando falar no Descarrego que vai ao mercado, amanhã o compromisso
+já vem com a lista embaixo. No mercado, abre a Agenda e marca cada item.»
+
+CUSTO
+-----
+Igual lista simples: ~US$ 0 extra (só Supabase)
+Descarrego: já conta no Gemini do Night Dump
+
+DEV
+---
++1 dia vs lista separada (UI expansível no ReminderItem)
+Total com Night Dump: ~2–3 semanas → amanhã MVP mínimo se focar só expansível + night dump básico
+
+──────────────────────────────────────────────────────
+
+POR QUE ESTOURA COM 35–55
+-------------------------
+• Não é «app de lista» — é «não esquecer no mercado depois do dia pesado»
+• Um lugar só: Agenda = hora + o que comprar
+• Confirmação manual mantém confiança (sem erro da IA gravando errado)

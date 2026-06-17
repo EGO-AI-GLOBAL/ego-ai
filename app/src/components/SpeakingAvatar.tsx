@@ -38,17 +38,22 @@ type WebVideoProps = {
 
 function WebAvatarVideo({ uri, active, style, onReady }: WebVideoProps) {
   const ref = useRef<HTMLVideoElement | null>(null);
+  const wasActiveRef = useRef(false);
 
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
     if (active) {
-      el.currentTime = 0;
+      if (!wasActiveRef.current) {
+        el.currentTime = 0;
+      }
       void el.play().catch(() => undefined);
+      wasActiveRef.current = true;
       return;
     }
     el.pause();
     el.currentTime = 0;
+    wasActiveRef.current = false;
   }, [active, uri]);
 
   const flat = StyleSheet.flatten(style) as Record<string, unknown>;
@@ -76,6 +81,7 @@ function NativeSpeakingVideo({
 }) {
   const { Audio, Video, ResizeMode } = require("expo-av") as typeof import("expo-av");
   const videoRef = useRef<InstanceType<typeof Video>>(null);
+  const wasSpeakingRef = useRef(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const [videoReady, setVideoReady] = useState(false);
   const [loadError, setLoadError] = useState(false);
@@ -113,12 +119,14 @@ function NativeSpeakingVideo({
     };
   }, [avatarId]);
 
-  const syncPlayback = useCallback(async (play: boolean) => {
+  const syncPlayback = useCallback(async (play: boolean, resetPosition: boolean) => {
     const player = videoRef.current;
     if (!player) return;
     try {
       if (play) {
-        await player.setPositionAsync(0);
+        if (resetPosition) {
+          await player.setPositionAsync(0);
+        }
         await player.playAsync();
       } else {
         await player.pauseAsync();
@@ -132,11 +140,14 @@ function NativeSpeakingVideo({
   useEffect(() => {
     if (!videoUri || loadError) return;
     if (speaking && videoReady) {
-      void syncPlayback(true);
+      const reset = !wasSpeakingRef.current;
+      wasSpeakingRef.current = true;
+      void syncPlayback(true, reset);
       return;
     }
     if (!speaking) {
-      void syncPlayback(false);
+      wasSpeakingRef.current = false;
+      void syncPlayback(false, true);
     }
   }, [speaking, videoReady, videoUri, loadError, syncPlayback]);
 
@@ -145,7 +156,9 @@ function NativeSpeakingVideo({
   const onVideoReady = useCallback(() => {
     setVideoReady(true);
     if (speaking) {
-      void syncPlayback(true);
+      const reset = !wasSpeakingRef.current;
+      wasSpeakingRef.current = true;
+      void syncPlayback(true, reset);
     }
   }, [speaking, syncPlayback]);
 

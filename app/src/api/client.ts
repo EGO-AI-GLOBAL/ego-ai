@@ -14,10 +14,13 @@ import type {
   MeData,
   LaunchPlanOffer,
   PlanCatalogItem,
+  AgendaDraft,
   ChatHistoryPayload,
+  NightDumpResult,
   SendChatResult,
   SharedCalendar,
   SharedCalendarMember,
+  ShoppingListItem,
 } from "./types";
 
 const STORAGE_KEY = "ego_auth_session";
@@ -203,6 +206,8 @@ function parseDashboard(data: unknown): DashboardData {
     access: normalizeAccessInfo(body.access ?? null),
     reminders: body.reminders ?? [],
     agenda: body.agenda ?? [],
+    agenda_drafts: body.agenda_drafts ?? [],
+    shopping_orphans: body.shopping_orphans ?? [],
     shared_calendars: body.shared_calendars ?? [],
     messages: body.messages ?? [],
     chat_local_history: Boolean(body.chat_local_history),
@@ -435,6 +440,116 @@ export async function createReminder(payload: {
   announce?: string;
 }): Promise<void> {
   await api.post("reminders", payload);
+}
+
+export async function submitNightDumpText(text: string): Promise<NightDumpResult> {
+  const { data } = await api.post(
+    "night-dump",
+    { text: text.trim(), ...deviceTimezonePayload() },
+    { timeout: TIMEOUT_CHAT_MS }
+  );
+  return unwrap<NightDumpResult>(data);
+}
+
+export async function submitNightDumpBlob(blob: Blob): Promise<NightDumpResult> {
+  if (!blob || blob.size < 256) {
+    throw new Error("Gravação demasiado curta. Fale pelo menos 1 segundo.");
+  }
+  const mime = (blob.type || "audio/mp4").toLowerCase();
+  const ext = mime.includes("webm") ? "webm" : "m4a";
+  const form = new FormData();
+  form.append("audio", blob, `night-dump.${ext}`);
+  form.append("audio_mime", mime.includes("mp4") || mime.includes("m4a") ? "audio/mp4" : mime);
+  const tz = deviceTimezonePayload();
+  form.append("timezone", tz.timezone);
+  form.append("tz_offset_min", String(tz.tz_offset_min));
+  const { data } = await api.post("night-dump", form, { timeout: TIMEOUT_CHAT_MS });
+  return unwrap<NightDumpResult>(data);
+}
+
+export async function submitNightDumpFromUri(opts: {
+  uri: string;
+  audioMime?: string;
+}): Promise<NightDumpResult> {
+  const uri = (opts.uri || "").trim();
+  if (!uri) throw new Error("Gravação vazia.");
+  const audio_mime = normalizeVoiceMime(opts.audioMime);
+  if (Platform.OS !== "web") {
+    const base = API_V1.endsWith("/") ? API_V1 : `${API_V1}/`;
+    const url = `${base}night-dump`;
+    const res = await FileSystem.uploadAsync(url, uri, {
+      httpMethod: "POST",
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      fieldName: "audio",
+      mimeType: audio_mime,
+      headers: voiceUploadAuthHeaders(),
+      parameters: Object.fromEntries(
+        Object.entries(deviceTimezonePayload()).map(([k, v]) => [k, String(v)])
+      ),
+    });
+    if (res.status < 200 || res.status >= 300) {
+      let detail = `Erro ${res.status} ao enviar descarrego.`;
+      try {
+        const parsed = JSON.parse(res.body) as { error?: string };
+        if (parsed.error) detail = parsed.error;
+      } catch {
+        /* ignore */
+      }
+      throw new ApiClientError(detail, res.status);
+    }
+    return unwrap<NightDumpResult>(JSON.parse(res.body));
+  }
+  const audioBase64 = await FileSystem.readAsStringAsync(uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  const { data } = await api.post(
+    "night-dump",
+    { audio_base64: audioBase64, audio_mime, ...deviceTimezonePayload() },
+    { timeout: TIMEOUT_CHAT_MS }
+  );
+  return unwrap<NightDumpResult>(data);
+}
+
+export async function fetchPendingAgendaDrafts(): Promise<AgendaDraft[]> {
+  const { data } = await api.get("agenda-drafts/pending");
+  const body = unwrap<{ drafts: AgendaDraft[] }>(data);
+  return body.drafts ?? [];
+}
+
+export async function confirmAgendaDraft(
+  draftId: string,
+  itemIndices?: number[]
+): Promise<{ confirmed: boolean; errors?: string[] }> {
+  const { data } = await api.post(`agenda-drafts/${draftId}/confirm`, {
+    item_indices: itemIndices,
+  });
+  return unwrap(data);
+}
+
+export async function dismissAgendaDraft(draftId: string): Promise<void> {
+  await api.post(`agenda-drafts/${draftId}/dismiss`);
+}
+
+export async function createShoppingItem(payload: {
+  title: string;
+  reminder_id?: string | null;
+  category?: string;
+}): Promise<ShoppingListItem> {
+  const { data } = await api.post("shopping-list", payload);
+  const body = unwrap<{ item: ShoppingListItem }>(data);
+  if (!body.item) throw new Error("Item não devolvido pelo servidor.");
+  return body.item;
+}
+
+export async function patchShoppingItem(
+  itemId: string,
+  patch: { done?: boolean; title?: string }
+): Promise<void> {
+  await api.patch(`shopping-list/${itemId}`, patch);
+}
+
+export async function deleteShoppingItem(itemId: string): Promise<void> {
+  await api.delete(`shopping-list/${itemId}`);
 }
 
 export async function createAgendaItem(payload: {

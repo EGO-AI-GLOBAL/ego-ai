@@ -37,10 +37,10 @@ export function ritualChatPrompt(ritual: DailyRitualId, assistantName: string): 
     case "evening":
       return (
         `[Ritual 21h — descarrego] Sou ${assistantName}. ` +
-        `Pergunte o que tenho AMANHÃ e o que ainda está na cabeça sem estar marcado. ` +
-        `Depois peça para eu ABRIR a Agenda, tocar «Amanhã» e marcar cada compromisso antes de dormir. ` +
-        `Tom calmo mas firme: «Não durma com isso solto — vai na Agenda agora e marca. Depois me conta como ficou.» ` +
-        `Breve e humano.`
+        `Peça para eu SEGURAR o microfone e desabafar tudo que está na cabeça (compromissos de amanhã, mercado, remédios). ` +
+        `Explique que amanhã de manhã abro a Agenda e confirmo cada item — nada entra sozinho. ` +
+        `Tom calmo e acolhedor: «Solte agora, durma leve. Amanhã organizamos juntos na Agenda.» ` +
+        `Não peça para marcar manualmente hoje — o fluxo é gravar agora e confirmar de manhã.`
       );
   }
 }
@@ -65,8 +65,8 @@ export function ritualNotificationCopy(
       };
     case "evening":
       return {
-        title: "Antes de dormir: marque amanhã",
-        body: `${assistantName}: toque, descarregue a cabeça e marque na Agenda agora.`,
+        title: "Descarrego da noite",
+        body: `${assistantName}: toque, grave o que está na cabeça. Amanhã confirma na Agenda.`,
       };
   }
 }
