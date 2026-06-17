@@ -1,0 +1,36 @@
+EGO-AI — Brevo API (resolve "timed out" no Railway)
+==================================================
+
+O Railway BLOQUEIA porta SMTP (587/465). Use API HTTPS do Brevo.
+
+PASSO 1 — Chave API no Brevo (NÃO é chave SMTP)
+-----------------------------------------------
+1. Brevo → menu esquerdo → SMTP & API
+2. Aba "Chaves API" / "API keys" (ao lado de "Chaves SMTP")
+3. "Gerar uma nova chave API"
+4. Nome: EGO-AI Railway
+5. Copie a chave (começa com xkeysib-...) — só aparece uma vez
+
+PASSO 2 — Railway → Variables (serviço API)
+-------------------------------------------
+EGO_EMAIL_PROVIDER=brevo
+BREVO_API_KEY=xkeysib-COLE-AQUI
+EGO_SMTP_FROM=contato@egoai.com.br
+EGO_SMTP_FROM_NAME=Ego-IA
+EGO_SIGNUP_EMAIL_ENABLED=1
+EGO_PLAY_STORE_URL=https://play.google.com/apps/testing/com.egoai.app
+
+(Pode apagar ou ignorar EGO_SMTP_HOST/PORT/PASSWORD — não usa SMTP)
+
+PASSO 3 — Push do código (obrigatório uma vez)
+----------------------------------------------
+O servidor precisa do código novo com Brevo API.
+Diga ao Cursor: "pode dar push do e-mail"
+
+PASSO 4 — Testar
+----------------
+TESTAR-EMAIL-CADASTRO.bat
+Chave admin: EgoIndica2026Maria
+E-mail: economizzerep@gmail.com (ou outro)
+
+Esperado: ok true em ~3 segundos (sem timed out)

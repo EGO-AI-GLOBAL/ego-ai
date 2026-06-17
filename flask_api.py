@@ -332,7 +332,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-12-session-fix-v3",
+        "api_build": "2026-06-17-email-brevo-api",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -370,6 +370,12 @@ def health():
         if maintenance_mode():
             payload["maintenance"] = True
             payload["maintenance_message"] = maintenance_message()
+    except Exception:
+        pass
+    try:
+        from ego_api.signup_emails import signup_emails_status
+
+        payload["signup_emails"] = signup_emails_status()
     except Exception:
         pass
     include_details = os.getenv("EGO_HEALTH_DETAILS", "").lower() in ("1", "true", "yes")
@@ -467,15 +473,19 @@ def admin_test_signup_email():
         _first_name,
         _play_url,
         _welcome_bodies,
-        send_smtp_email,
+        email_configured,
+        email_provider,
+        send_signup_email,
         signup_emails_enabled,
-        smtp_configured,
     )
 
     if not signup_emails_enabled():
         return _json_error("EGO_SIGNUP_EMAIL_ENABLED está desligado.", 503)
-    if not smtp_configured():
-        return _json_error("EGO_SMTP_PASSWORD não configurado no Railway.", 503)
+    if not email_configured():
+        return _json_error(
+            "E-mail não configurado: BREVO_API_KEY, RESEND_API_KEY ou EGO_SMTP_PASSWORD.",
+            503,
+        )
     data = request.get_json(silent=True) or {}
     email = str(data.get("email") or "").strip()
     if not email or "@" not in email:
@@ -484,13 +494,20 @@ def admin_test_signup_email():
     name = _first_name(display, email)
     subject, text_body, html_body = _welcome_bodies(name, _play_url())
     try:
-        send_smtp_email(
+        send_signup_email(
             to_email=email,
             subject=subject,
             text_body=text_body,
             html_body=html_body,
         )
-        return _json_ok({"ok": True, "sent_to": email, "subject": subject})
+        return _json_ok(
+            {
+                "ok": True,
+                "sent_to": email,
+                "subject": subject,
+                "provider": email_provider(),
+            }
+        )
     except Exception as exc:
         return _json_error(str(exc)[:400], 500)
 
@@ -998,8 +1015,160 @@ def persona_put():
 @app.get("/api/v1/reminders")
 @require_auth
 def reminders_list():
-    rows = db.list_reminders(g.supabase, g.user_id)
+    rows = services.list_reminders_enriched(g.supabase, g.user_id)
     return _json_ok({"reminders": rows})
+
+
+def _audio_from_request():
+    """Extrai áudio (multipart ou JSON base64) do pedido atual."""
+    import base64
+
+    audio_b64 = None
+    audio_bytes: bytes | None = None
+    audio_mime = "audio/wav"
+    ctype = (request.content_type or "").lower()
+    if "multipart/form-data" in ctype:
+        audio_mime = str(request.form.get("audio_mime") or "audio/mp4")
+        upload = request.files.get("audio")
+        if upload:
+            audio_bytes = upload.read()
+            if upload.content_type:
+                audio_mime = upload.content_type
+    else:
+        data = request.get_json(silent=True) or {}
+        audio_b64 = data.get("audio_base64")
+        audio_mime = str(data.get("audio_mime") or "audio/wav")
+        if audio_b64 and not audio_bytes:
+            try:
+                audio_bytes = base64.b64decode(str(audio_b64))
+            except Exception:
+                audio_bytes = None
+    return audio_bytes, audio_mime
+
+
+@app.post("/api/v1/night-dump")
+@require_auth
+@rate_limit(12, 60, scope="user")
+def night_dump_submit():
+    from ego_api import night_dump
+    from ego_api.api_errors import friendly_api_error
+    from ego_api.monitoring import log_api_exception
+
+    data = request.get_json(silent=True) or {}
+    text = str(request.form.get("text") or data.get("text") or "").strip()
+    audio_bytes, audio_mime = _audio_from_request()
+    try:
+        result, err = night_dump.process_night_dump(
+            g.supabase,
+            g.user_id,
+            text=text,
+            audio_bytes=audio_bytes,
+            audio_mime=audio_mime,
+        )
+    except Exception as exc:
+        log_api_exception(exc, route="/api/v1/night-dump")
+        return _json_error(friendly_api_error(exc, context="chat"), 500)
+    if err:
+        return _json_error(err, 400)
+    return _json_ok(result or {}, 201)
+
+
+@app.get("/api/v1/agenda-drafts/pending")
+@require_auth
+def agenda_drafts_pending():
+    from ego_api import habits_db
+
+    rows = habits_db.list_pending_drafts(g.supabase, g.user_id)
+    return _json_ok({"drafts": rows})
+
+
+@app.post("/api/v1/agenda-drafts/<draft_id>/confirm")
+@require_auth
+def agenda_drafts_confirm(draft_id: str):
+    from ego_api import night_dump
+
+    data = request.get_json(silent=True) or {}
+    indices = data.get("item_indices")
+    if indices is not None and not isinstance(indices, list):
+        indices = None
+    reminders, shopping, errors = night_dump.confirm_draft_items(
+        g.supabase, g.user_id, draft_id, indices
+    )
+    return _json_ok(
+        {"reminders": reminders, "shopping": shopping, "errors": errors, "confirmed": bool(reminders or shopping)}
+    )
+
+
+@app.post("/api/v1/agenda-drafts/<draft_id>/dismiss")
+@require_auth
+def agenda_drafts_dismiss(draft_id: str):
+    from ego_api import habits_db
+
+    ok = habits_db.dismiss_draft(g.supabase, g.user_id, draft_id)
+    return _json_ok({"dismissed": ok})
+
+
+@app.get("/api/v1/shopping-list")
+@require_auth
+def shopping_list_get():
+    from ego_api import habits_db
+
+    orphan = request.args.get("orphans") in ("1", "true", "yes")
+    reminder_id = str(request.args.get("reminder_id") or "").strip() or None
+    rows = habits_db.list_shopping_items(
+        g.supabase,
+        g.user_id,
+        reminder_id=reminder_id,
+        orphans_only=orphan,
+    )
+    return _json_ok({"items": rows})
+
+
+@app.post("/api/v1/shopping-list")
+@require_auth
+def shopping_list_create():
+    from ego_api import habits_db
+
+    data = request.get_json(silent=True) or {}
+    title = str(data.get("title") or "").strip()
+    if not title:
+        return _json_error("title é obrigatório.")
+    reminder_id = str(data.get("reminder_id") or "").strip() or None
+    row = habits_db.insert_shopping_item(
+        g.supabase,
+        g.user_id,
+        title=title,
+        category=str(data.get("category") or "mercado"),
+        reminder_id=reminder_id,
+    )
+    if not row:
+        return _json_error("Não foi possível adicionar o item.")
+    return _json_ok({"item": row}, 201)
+
+
+@app.patch("/api/v1/shopping-list/<item_id>")
+@require_auth
+def shopping_list_patch(item_id: str):
+    from ego_api import habits_db
+
+    data = request.get_json(silent=True) or {}
+    ok = habits_db.patch_shopping_item(
+        g.supabase,
+        g.user_id,
+        item_id,
+        done=data.get("done") if "done" in data else None,
+        title=str(data.get("title")) if data.get("title") is not None else None,
+    )
+    return _json_ok({"updated": ok})
+
+
+@app.delete("/api/v1/shopping-list/<item_id>")
+@require_auth
+def shopping_list_delete(item_id: str):
+    from ego_api import habits_db
+
+    ok = habits_db.delete_shopping_item(g.supabase, g.user_id, item_id)
+    return _json_ok({"deleted": ok})
 
 
 @app.post("/api/v1/reminders")
@@ -1227,6 +1396,11 @@ def auth_logout():
         pass
     set_session(None)
     return _json_ok({"logged_out": True})
+
+
+from ego_api.signup_emails import start_background_jobs
+
+start_background_jobs()
 
 
 if __name__ == "__main__":
