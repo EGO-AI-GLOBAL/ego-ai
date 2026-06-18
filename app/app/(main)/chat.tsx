@@ -40,7 +40,6 @@ import {
   saveLocalPersonaChoice,
 } from "@/storage/personaPrefs";
 import { useLocalChatHistory } from "@/hooks/useLocalChatHistory";
-import type { AudioPlaybackSpeed } from "@/constants/audioSpeed";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useVoiceChat } from "@/hooks/useVoiceChat";
 import { useColors } from "@/theme/ThemeContext";
@@ -58,7 +57,6 @@ import {
   presentSharedCalendarEventNow,
   syncSharedCalendarLocalNotifications,
 } from "@/utils/sharedCalendarNotifications";
-import { AudioSpeedControl } from "@/components/AudioSpeedControl";
 import { ritualChatPrompt } from "@/constants/dailyRituals";
 import type { DailyRitualId } from "@/constants/dailyRituals";
 import {
@@ -139,8 +137,13 @@ export default function ChatScreen() {
     setNightDumpMode(true);
     setChatError(null);
     setChatNotice(
-      "Modo descarrego: segure o microfone ou escreva e envie. Depois abra a Agenda — Agendar ou Excluir cada item."
+      "Modo descarrego: segure o microfone ou escreva e envie. Depois abra a Agenda — Agendar ou Excluir."
     );
+  }, []);
+
+  const cancelNightDump = useCallback(() => {
+    setNightDumpMode(false);
+    setChatNotice(null);
   }, []);
 
   const finishNightDump = useCallback(
@@ -190,17 +193,6 @@ export default function ChatScreen() {
   const keyboardOpen = keyboardHeight > 0;
   const micActive = voice.isRecording || voice.micSessionActive || voice.isPhoneCall;
   const personaBusy = sending || micActive;
-  /** Planos pagos: só 1,5x e 2x no UI; Essencial: sem botões (velocidade normal). */
-  const allowedSpeeds = useMemo((): AudioPlaybackSpeed[] => {
-    const raw = data.access?.audio_speed_allowed;
-    if (!raw?.length) return [];
-    const out: AudioPlaybackSpeed[] = [];
-    if (raw.includes(1.5)) out.push(1.5);
-    if (raw.includes(2)) out.push(2);
-    return out;
-  }, [data.access?.audio_speed_allowed]);
-
-  const showSpeedControl = autoPlayVoice && allowedSpeeds.length > 0;
   const audioStatusLabel = voice.isPhoneCall
     ? voice.isSpeaking
       ? "Em chamada — a falar…"
@@ -214,12 +206,6 @@ export default function ChatScreen() {
       : voice.isSpeaking
         ? "A falar…"
         : null;
-
-  useEffect(() => {
-    if (allowedSpeeds.length === 0 && voice.audioSpeed !== 1) {
-      voice.setAudioSpeed(1);
-    }
-  }, [allowedSpeeds.length, voice.audioSpeed, voice.setAudioSpeed]);
 
   useEffect(() => {
     void voice.stopPlayback();
@@ -904,7 +890,7 @@ export default function ChatScreen() {
           void saveAutoPlayVoice(true);
         }
         const intro =
-          "Descarrego da noite: segure o microfone ou escreva. Depois confirme na Agenda (Agendar / Excluir).";
+          "Descarrego agora: segure o microfone ou escreva. Depois confirme na Agenda (Agendar / Excluir).";
         setChatNotice(intro);
         return;
       }
@@ -1015,42 +1001,80 @@ export default function ChatScreen() {
                 thumbColor={autoPlayVoice ? colors.primary : "#e4e4e7"}
               />
             </View>
-            {lastChatResult?.reply || showSpeedControl ? (
-              <View style={styles.voiceActionsRow}>
-                {lastChatResult?.reply ? (
-                  <Pressable
-                    onPress={() => void onListenLastReply()}
-                    disabled={voice.isPreparingAudio || sending}
-                    style={({ pressed }) => [
-                      styles.listenBtnInline,
-                      {
-                        borderColor: colors.primary,
-                        backgroundColor: colors.bgCard,
-                        opacity:
-                          voice.isPreparingAudio || sending
-                            ? 0.5
-                            : pressed
-                              ? 0.9
-                              : 1,
-                      },
-                    ]}
-                    accessibilityRole="button"
-                    accessibilityLabel="Ouvir resposta do assistente"
-                  >
-                    <Text style={[styles.listenBtnInlineText, { color: colors.primary }]}>
-                      {voice.isPreparingAudio ? "A preparar…" : "Ouvir"}
-                    </Text>
-                  </Pressable>
-                ) : null}
-                {showSpeedControl ? (
-                  <AudioSpeedControl
-                    colors={colors}
-                    value={voice.audioSpeed}
-                    onChange={voice.setAudioSpeed}
-                    disabled={!autoPlayVoice || voice.isPreparingAudio}
-                    allowedSpeeds={allowedSpeeds}
-                  />
-                ) : null}
+            <View style={styles.voiceActionsRow}>
+              <Pressable
+                onPress={nightDumpMode ? cancelNightDump : startNightDump}
+                disabled={sending || isDailyLimitReached || (micActive && !nightDumpMode)}
+                style={({ pressed }) => [
+                  styles.actionChip,
+                  {
+                    borderColor: colors.primary,
+                    backgroundColor: nightDumpMode ? colors.primary : colors.bgCard,
+                    opacity:
+                      sending || isDailyLimitReached || (micActive && !nightDumpMode)
+                        ? 0.5
+                        : pressed
+                          ? 0.88
+                          : 1,
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  nightDumpMode ? "Cancelar descarrego" : "Descarrego agora"
+                }
+              >
+                <Text
+                  style={[
+                    styles.actionChipText,
+                    { color: nightDumpMode ? "#fff" : colors.primary },
+                  ]}
+                >
+                  Descarrego agora
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void onListenLastReply()}
+                disabled={!lastChatResult?.reply || voice.isPreparingAudio || sending}
+                style={({ pressed }) => [
+                  styles.actionChip,
+                  {
+                    borderColor: colors.primary,
+                    backgroundColor: colors.bgCard,
+                    opacity:
+                      !lastChatResult?.reply || voice.isPreparingAudio || sending
+                        ? 0.45
+                        : pressed
+                          ? 0.88
+                          : 1,
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="Ouvir resposta do assistente"
+              >
+                <Text style={[styles.actionChipText, { color: colors.primary }]}>
+                  {voice.isPreparingAudio ? "A preparar…" : "Ouvir"}
+                </Text>
+              </Pressable>
+            </View>
+            {nightDumpMode ? (
+              <View
+                style={[
+                  styles.nightDumpBanner,
+                  { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+                ]}
+              >
+                <Text style={[styles.nightDumpTitle, { color: colors.text }]}>
+                  Modo descarrego ativo
+                </Text>
+                <Text style={[styles.nightDumpBody, { color: colors.textMuted }]}>
+                  Segure o microfone ou escreva e envie. Os itens vão para a Agenda (Agendar /
+                  Excluir).
+                </Text>
+                <Pressable onPress={cancelNightDump} hitSlop={8}>
+                  <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 13 }}>
+                    Cancelar descarrego
+                  </Text>
+                </Pressable>
               </View>
             ) : null}
           </View>
@@ -1229,52 +1253,6 @@ export default function ChatScreen() {
               </View>
             </View>
           ) : null}
-          {nightDumpMode ? (
-            <View
-              style={[
-                styles.nightDumpBanner,
-                { backgroundColor: colors.primaryLight, borderColor: colors.primary },
-              ]}
-            >
-              <Text style={[styles.nightDumpTitle, { color: colors.text }]}>
-                Modo descarrego ativo
-              </Text>
-              <Text style={[styles.nightDumpBody, { color: colors.textMuted }]}>
-                Segure o microfone ou escreva e envie. Não use o chat normal — os itens vão para a Agenda.
-              </Text>
-              <Pressable
-                onPress={() => {
-                  setNightDumpMode(false);
-                  setChatNotice(null);
-                }}
-                hitSlop={8}
-              >
-                <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 13 }}>
-                  Cancelar descarrego
-                </Text>
-              </Pressable>
-            </View>
-          ) : pdfCharCount === 0 && !isDailyLimitReached ? (
-            <Pressable
-              onPress={startNightDump}
-              disabled={sending || micActive}
-              style={({ pressed }) => [
-                styles.nightDumpBtn,
-                {
-                  borderColor: colors.primary,
-                  backgroundColor: colors.bgCard,
-                  opacity: pressed || sending || micActive ? 0.75 : 1,
-                },
-              ]}
-            >
-              <Text style={[styles.nightDumpTitle, { color: colors.primary }]}>
-                Descarrego da noite
-              </Text>
-              <Text style={[styles.nightDumpBody, { color: colors.textMuted }]}>
-                Grave ou escreva tudo — confirme na Agenda com Agendar / Excluir
-              </Text>
-            </Pressable>
-          ) : null}
           <ChatComposer
             value={chatInput}
             onChangeText={setChatInput}
@@ -1337,6 +1315,15 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   listenBtnInlineText: { fontSize: 12, fontWeight: "700" },
+  actionChip: {
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+    borderRadius: 999,
+    borderWidth: 1,
+    minWidth: 128,
+    alignItems: "center",
+  },
+  actionChipText: { fontSize: 13, fontWeight: "800" },
   avatarSection: {
     flexShrink: 0,
     width: "100%",
@@ -1404,18 +1391,9 @@ const styles = StyleSheet.create({
   },
   pdfSendBtnText: { color: "#fff", fontSize: 13, fontWeight: "800" },
   pdfClearLink: { fontSize: 12, fontWeight: "700" },
-  nightDumpBtn: {
-    marginHorizontal: 16,
-    marginBottom: 6,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    gap: 4,
-  },
   nightDumpBanner: {
-    marginHorizontal: 16,
-    marginBottom: 6,
+    width: "100%",
+    marginTop: 4,
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 12,
