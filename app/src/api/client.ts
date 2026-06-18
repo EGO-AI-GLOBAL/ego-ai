@@ -530,6 +530,13 @@ export async function dismissAgendaDraft(draftId: string): Promise<void> {
   await api.post(`agenda-drafts/${draftId}/dismiss`);
 }
 
+export async function dismissAgendaDraftItem(
+  draftId: string,
+  itemIndex: number
+): Promise<void> {
+  await api.post(`agenda-drafts/${draftId}/items/${itemIndex}/dismiss`);
+}
+
 export async function createShoppingItem(payload: {
   title: string;
   reminder_id?: string | null;

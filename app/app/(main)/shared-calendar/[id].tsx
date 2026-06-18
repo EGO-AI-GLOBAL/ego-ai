@@ -69,12 +69,14 @@ function ChatHint({ colors, onPress }: { colors: AppColors; onPress: () => void 
       ]}
     >
       <Text style={[styles.chatHintTitle, { color: colors.text }]}>
-        Manual ou com avatar
+        Marque aqui na agenda
       </Text>
       <Text style={[styles.chatHintBody, { color: colors.textMuted }]}>
-        Marque aqui ou no chat com o avatar — na lista, Apagar funciona igual nos dois casos.
+        Use + Novo compromisso abaixo. Apagar funciona na lista.
       </Text>
-      <Text style={[styles.chatHintLink, { color: colors.primary }]}>Opcional: abrir o chat →</Text>
+      <Text style={[styles.chatHintLink, { color: colors.primary }]}>
+        Dúvida? Pergunte no chat como fazer →
+      </Text>
     </Pressable>
   );
 }
@@ -276,7 +278,7 @@ export default function SharedCalendarDetailScreen() {
       title={calName}
       subtitle={
         isOwner
-          ? "Marcar no chat ou aqui · Apagar compromissos na lista"
+          ? "+ Novo compromisso · Apagar na lista"
           : "Compromissos do grupo · Apagar na lista"
       }
     >
@@ -368,7 +370,7 @@ export default function SharedCalendarDetailScreen() {
             </View>
             {events.length === 0 ? (
               <Text style={[styles.muted, { color: colors.textMuted }]}>
-                Nenhuma reunião marcada. Peça no chat para marcar um compromisso.
+                Nenhuma reunião marcada. Toque em + Novo compromisso.
               </Text>
             ) : (
               events.map((ev) => {

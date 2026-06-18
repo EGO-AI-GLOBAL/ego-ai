@@ -34,9 +34,11 @@ function ChatHint({ colors, onPress }: { colors: AppColors; onPress: () => void 
         Criar ou convidar
       </Text>
       <Text style={[styles.chatHintBody, { color: colors.textMuted }]}>
-        No chat: «cria agenda Família e convida 11 99999-9999» ou e-mail.
+        Use a aba Agenda compartilhada: + Nova agenda, convide por e-mail ou telefone.
       </Text>
-      <Text style={[styles.chatHintLink, { color: colors.primary }]}>Ir para o chat →</Text>
+      <Text style={[styles.chatHintLink, { color: colors.primary }]}>
+        Dúvida? Pergunte no chat como fazer →
+      </Text>
     </Pressable>
   );
 }

@@ -527,6 +527,117 @@ def stash_pending_schedule_from_text(
     )
 
 
+def user_text_for_schedule_actions(
+    text: str, *, is_voice: bool, voice_marker: str
+) -> str:
+    """Texto para parsing de agenda — voz normal nunca grava (só descarrego 21h)."""
+    if is_voice:
+        return ""
+    t = (text or "").strip()
+    if not t or t == voice_marker:
+        return ""
+    return t
+
+
+def should_clear_stale_schedule_wizard(
+    text: str,
+    schedule: dict[str, Any],
+    supabase: Client | None,
+    user_id: str,
+) -> bool:
+    """Limpa wizard preso quando o utilizador muda de assunto."""
+    if schedule.get("step") not in (
+        "choose_scope",
+        "collect_personal",
+        "collect_shared",
+    ):
+        return False
+    t = (text or "").strip()
+    if not t:
+        return False
+    if looks_like_dismiss_commitment_intent(t):
+        return False
+    if looks_like_schedule_intent(t):
+        return False
+    if detect_scope_from_user_text(t, supabase, user_id):
+        return False
+    if _SCOPE_PERSONAL.search(t) or user_named_shared_calendar(t):
+        return False
+    return True
+
+
+def absorb_scope_choice_reply(
+    schedule: dict[str, Any],
+    user_text: str,
+    supabase: Client | None,
+    user_id: str,
+    ref: datetime.datetime | None = None,
+) -> tuple[dict[str, Any], str | None]:
+    """Resposta curta «agenda pessoal» / «família» após pedido ambíguo."""
+    if schedule.get("step") != "choose_scope":
+        return schedule, None
+    scope = detect_scope_from_user_text(user_text, supabase, user_id)
+    t = (user_text or "").strip()
+    if not scope and _SCOPE_PERSONAL.search(t):
+        scope = "personal"
+    if not scope and user_named_shared_calendar(t):
+        scope = "shared"
+    if not scope:
+        return schedule, None
+
+    draft = dict(schedule.get("draft") or {})
+    draft["scope"] = scope
+    when = _parse_pt_schedule_hint(t, ref)
+    if when:
+        draft["scheduled_at"] = when.isoformat()
+    if scope == "shared":
+        cal = _extract_shared_calendar_name(t) or str(draft.get("calendar_name") or "")
+        if cal:
+            draft["calendar_name"] = cal
+
+    if not draft.get("scheduled_at"):
+        step = "collect_personal" if scope == "personal" else "collect_shared"
+        hint = (
+            "Perfeito, agenda pessoal. Qual dia e hora? Ex.: «amanhã às 9h»."
+            if scope == "personal"
+            else "Qual dia e hora para marcar na agenda de grupo? Ex.: «amanhã às 15h»."
+        )
+        return merge_schedule_draft(schedule, {"draft": draft, "step": step}), hint
+
+    return merge_schedule_draft(schedule, {"draft": draft, "step": ""}), None
+
+
+def complete_collect_schedule_step(
+    schedule: dict[str, Any],
+    user_text: str,
+    ref: datetime.datetime | None = None,
+) -> dict[str, Any] | None:
+    """Completa data/hora após «Qual dia e hora?»."""
+    step = schedule.get("step")
+    if step not in ("collect_personal", "collect_shared"):
+        return None
+    when = _parse_pt_schedule_hint(user_text, ref)
+    if not when:
+        return None
+    draft = dict(schedule.get("draft") or {})
+    draft["scheduled_at"] = when.isoformat()
+    if not draft.get("title"):
+        draft["title"] = _extract_shared_event_title(user_text) or "Compromisso"
+    return merge_schedule_draft(schedule, {"draft": draft, "step": ""})
+
+
+def try_save_personal_from_schedule_draft(
+    schedule: dict[str, Any],
+    user_text: str,
+    ref: datetime.datetime | None = None,
+) -> dict | None:
+    """Lembrete pessoal pronto no rascunho (scope + hora)."""
+    merged = complete_collect_schedule_step(schedule, user_text, ref)
+    if merged:
+        schedule = merged
+    return reminder_from_schedule_draft(schedule)
+
+
 def apply_scope_follow_up_if_pending(
     schedule: dict[str, Any],
     user_text: str,
@@ -550,7 +661,10 @@ def apply_scope_follow_up_if_pending(
     when = _parse_pt_schedule_hint(t, ref)
     scheduled_at = when.isoformat() if when else draft.get("scheduled_at")
     if not scheduled_at:
-        return None
+        draft = dict(draft)
+        draft["scope"] = scope
+        step = "collect_personal" if scope == "personal" else "collect_shared"
+        return merge_schedule_draft(schedule, {"draft": draft, "step": step})
     title = str(draft.get("title") or _extract_shared_event_title(t) or "Compromisso")[
         :500
     ]

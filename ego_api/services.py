@@ -398,6 +398,125 @@ def process_chat_message(
     voice_transcript = (
         user_display if is_voice_msg and user_display != VOICE_MESSAGE_MARKER else ""
     )
+    schedule_text = cs.user_text_for_schedule_actions(
+        user_display,
+        is_voice=is_voice_msg,
+        voice_marker=VOICE_MESSAGE_MARKER,
+    )
+
+    if chat_agenda and schedule_text and cs.should_clear_stale_schedule_wizard(
+        schedule_text, schedule, supabase, user_id
+    ):
+        schedule = {"step": "", "draft": {}}
+
+    def _save_personal_reminder_fast(
+        rem: dict,
+    ) -> tuple[dict | None, str | None]:
+        from ego_api.schedule_tz import format_scheduled_for_user
+
+        rem_cap = enforce_reminder_limit(supabase, user_id, prof)
+        if rem_cap:
+            return None, rem_cap
+        ok, err, row = db.insert_reminder(
+            supabase,
+            user_id,
+            title=str(rem.get("title") or "Compromisso"),
+            scheduled_at=rem.get("scheduled_at"),
+            announce=str(rem.get("announce") or rem.get("title") or ""),
+        )
+        if ok and row:
+            title = (row.get("title") or row.get("announce") or "Compromisso").strip()
+            when = format_scheduled_for_user(row.get("scheduled_at"))
+            return row, f"Pronto! Agendei «{title}»{when} na agenda pessoal."
+        return None, (
+            f"Não consegui agendar: {err or 'tente de novo'}. "
+            "Ex.: «marca na agenda pessoal consulta amanhã às 9h»."
+        )
+
+    # Completar «pessoal ou família?» ou «qual hora?» (voz ou texto).
+    if chat_agenda and schedule_text and schedule.get("step") == "choose_scope":
+        schedule, time_hint = cs.absorb_scope_choice_reply(
+            schedule, schedule_text, supabase, user_id, schedule_ref
+        )
+        if time_hint:
+            mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
+            cs.save_chat_schedule(supabase, user_id, prof, schedule)
+            mid_a = db.save_chat_message(supabase, user_id, "assistant", time_hint)
+            return {
+                "reply": time_hint,
+                "user_message_id": mid_u,
+                "assistant_message_id": mid_a,
+                "user_transcript": voice_transcript or None,
+                "language": lang,
+                "warnings": [],
+                "reminders_saved": [],
+                "agenda_saved": [],
+                "shared_calendars_saved": [],
+                "shared_events_saved": [],
+                "shared_members_saved": [],
+                "shared_calendars_deleted": [],
+                "access": db.build_plan_access_payload(supabase, user_id, prof),
+            }, None
+        pending_rem = cs.try_save_personal_from_schedule_draft(
+            schedule, schedule_text, schedule_ref
+        )
+        if pending_rem:
+            row, reply_fast = _save_personal_reminder_fast(pending_rem)
+            mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
+            cs.save_chat_schedule(supabase, user_id, prof, None)
+            mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_fast or "")
+            prof = db.load_profile(supabase, user_id) or prof
+            return {
+                "reply": reply_fast or "",
+                "user_message_id": mid_u,
+                "assistant_message_id": mid_a,
+                "user_transcript": voice_transcript or None,
+                "language": lang,
+                "warnings": [],
+                "reminders_saved": [row] if row else [],
+                "agenda_saved": [],
+                "shared_calendars_saved": [],
+                "shared_events_saved": [],
+                "shared_members_saved": [],
+                "shared_calendars_deleted": [],
+                "access": db.build_plan_access_payload(supabase, user_id, prof),
+            }, None
+
+    if chat_agenda and schedule_text and schedule.get("step") in (
+        "collect_personal",
+        "collect_shared",
+    ):
+        merged = cs.complete_collect_schedule_step(
+            schedule, schedule_text, schedule_ref
+        )
+        if merged:
+            schedule = merged
+            pending_rem = cs.try_save_personal_from_schedule_draft(
+                schedule, schedule_text, schedule_ref
+            )
+            if pending_rem:
+                row, reply_fast = _save_personal_reminder_fast(pending_rem)
+                mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
+                cs.save_chat_schedule(supabase, user_id, prof, None)
+                mid_a = db.save_chat_message(
+                    supabase, user_id, "assistant", reply_fast or ""
+                )
+                prof = db.load_profile(supabase, user_id) or prof
+                return {
+                    "reply": reply_fast or "",
+                    "user_message_id": mid_u,
+                    "assistant_message_id": mid_a,
+                    "user_transcript": voice_transcript or None,
+                    "language": lang,
+                    "warnings": [],
+                    "reminders_saved": [row] if row else [],
+                    "agenda_saved": [],
+                    "shared_calendars_saved": [],
+                    "shared_events_saved": [],
+                    "shared_members_saved": [],
+                    "shared_calendars_deleted": [],
+                    "access": db.build_plan_access_payload(supabase, user_id, prof),
+                }, None
 
     # Apagar/cancelar compromisso por comando (texto ou voz transcrita).
     if chat_agenda and not casual and cs.looks_like_dismiss_commitment_intent(user_display):
@@ -434,17 +553,19 @@ def process_chat_message(
             "access": db.build_plan_access_payload(supabase, user_id, prof),
         }, None
 
-    # Agenda pessoal clara (ex.: «marca na agenda pessoal … às 9h»): grava sem LLM.
-    if chat_agenda and not casual and not audio_bytes and cs.looks_like_schedule_intent(user_display):
+    # Agenda pessoal clara (ex.: «marca na agenda pessoal … às 9h»): grava sem LLM (texto ou voz).
+    if chat_agenda and not casual and schedule_text and cs.looks_like_schedule_intent(
+        schedule_text
+    ):
         personal_scope = cs.detect_scope_from_user_text(
-            user_display, supabase, user_id
+            schedule_text, supabase, user_id
         ) == "personal" or cs.only_personal_schedule_available(
             supabase, user_id
         )
         if personal_scope and not cs.schedule_scope_is_ambiguous(
-            user_display, supabase, user_id
+            schedule_text, supabase, user_id
         ):
-            if not cs.user_message_has_schedule_time(user_display):
+            if not cs.user_message_has_schedule_time(schedule_text):
                 hint = (
                     "Qual horário? Ex.: «marca na agenda pessoal atendimento "
                     "amanhã às 9h»."
@@ -466,7 +587,7 @@ def process_chat_message(
                     "access": db.build_plan_access_payload(supabase, user_id, prof),
                 }, None
             personal_rem = cs.parse_personal_reminder_request(
-                user_display,
+                schedule_text,
                 schedule_ref,
                 implicit_personal=cs.only_personal_schedule_available(
                     supabase, user_id
@@ -532,14 +653,14 @@ def process_chat_message(
                     "access": db.build_plan_access_payload(supabase, user_id, prof),
                 }, None
 
-    # Marcação ambígua (pessoal vs grupo): responde já, sem chamar o LLM (evita erro e demora).
-    if chat_agenda and not casual and not audio_bytes:
+    # Marcação ambígua (pessoal vs grupo): responde já, sem chamar o LLM (texto ou voz).
+    if chat_agenda and not casual and schedule_text:
         scope_reply = cs.build_schedule_scope_choice_reply(
-            supabase, user_id, user_display
+            supabase, user_id, schedule_text
         )
         if scope_reply:
             schedule = cs.stash_pending_schedule_from_text(
-                schedule, user_display, schedule_ref
+                schedule, schedule_text, schedule_ref
             )
             mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
             cs.save_chat_schedule(supabase, user_id, prof, schedule)
@@ -604,7 +725,7 @@ def process_chat_message(
     if gemini.is_gemini_error_reply(reply):
         return None, str(reply or "Erro ao chamar o Gemini.").strip()
 
-    if not chat_agenda:
+    if not chat_agenda or is_voice_msg:
         reply = gemini.strip_agenda_markers_from_reply(reply)
 
     mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
@@ -629,20 +750,26 @@ def process_chat_message(
 
     if chat_agenda:
         schedule = cs.apply_scope_follow_up_if_pending(
-            schedule, user_display, supabase, user_id, schedule_ref
+            schedule, schedule_text or user_display, supabase, user_id, schedule_ref
         ) or schedule
 
     scope_choice_reply = None
-    if chat_agenda:
+    if chat_agenda and schedule_text:
         scope_choice_reply = cs.build_schedule_scope_choice_reply(
-            supabase, user_id, user_display
+            supabase, user_id, schedule_text
         )
         if scope_choice_reply:
             schedule = cs.stash_pending_schedule_from_text(
-                schedule, user_display, schedule_ref
+                schedule, schedule_text, schedule_ref
             )
+        if scope_choice_reply and cs.try_save_personal_from_schedule_draft(
+            schedule, schedule_text, schedule_ref
+        ):
+            scope_choice_reply = None
 
-    skip_schedule_save = bool(scope_choice_reply) or casual or not chat_agenda
+    skip_schedule_save = (
+        bool(scope_choice_reply) or casual or not chat_agenda or is_voice_msg
+    )
     reply_clean = scope_choice_reply or reply
 
     effective_scope = (

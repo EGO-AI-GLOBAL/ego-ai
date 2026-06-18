@@ -332,7 +332,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-01-1.0.26-ui-icon-update",
+        "api_build": "2026-06-17-1.0.26-agenda-voice-ios",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1106,6 +1106,19 @@ def agenda_drafts_dismiss(draft_id: str):
 
     ok = habits_db.dismiss_draft(g.supabase, g.user_id, draft_id)
     return _json_ok({"dismissed": ok})
+
+
+@app.post("/api/v1/agenda-drafts/<draft_id>/items/<int:item_index>/dismiss")
+@require_auth
+def agenda_drafts_dismiss_item(draft_id: str, item_index: int):
+    from ego_api import night_dump
+
+    ok, err = night_dump.dismiss_draft_item(
+        g.supabase, g.user_id, draft_id, item_index
+    )
+    if not ok:
+        return _json_error(err or "Não foi possível excluir o item.", 400)
+    return _json_ok({"dismissed": True})
 
 
 @app.get("/api/v1/shopping-list")

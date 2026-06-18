@@ -88,7 +88,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/night_dump.py",
-        ["process_night_dump", "confirm_draft_items", "NIGHT_DUMP_EXTRACT_PROMPT"],
+        ["process_night_dump", "confirm_draft_items", "dismiss_draft_item", "NIGHT_DUMP_EXTRACT_PROMPT"],
     ),
 ]
 

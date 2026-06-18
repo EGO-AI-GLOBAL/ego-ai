@@ -254,8 +254,16 @@ def build_system_instruction(
     )
 
 
+VOICE_MANUAL_AGENDA_INSTRUCTION = """
+AGENDA POR VOZ (obrigatório):
+- NUNCA marque compromissos, reuniões ou lembretes na conversa por voz.
+- Se pedirem «marca consulta amanhã», diga em 2 frases: aba Agenda → + Novo compromisso → data/hora → Marcar compromisso.
+- O ritual de descarrego à noite (21h) é outro fluxo: só acolhimento + rascunho para confirmar de manhã na Agenda.
+"""
+
+
 def build_system_instruction_voice(sess: UserSession, lang_code: str) -> str:
-    """Prompt para voz — tom acolhedor; agenda só se EGO_CHAT_AGENDA_ACTIONS=1."""
+    """Prompt para voz — conversa + guia manual; sem gravação de agenda no chat."""
     return (
         GEMINI_SYSTEM_INSTRUCTION
         + _persona_personality_instruction(sess)
@@ -263,7 +271,8 @@ def build_system_instruction_voice(sess: UserSession, lang_code: str) -> str:
         + language_instruction(lang_code)
         + _identity_instruction(sess)
         + _datetime_instruction(sess)
-        + _agenda_llm_instructions()
+        + APP_GUIDE_LLM_INSTRUCTION
+        + VOICE_MANUAL_AGENDA_INSTRUCTION
         + "\n\n"
         + VOICE_REPLY_INSTRUCTION
     )
@@ -448,8 +457,12 @@ def _generate_reply_inner(
         prior = prior[-CHAT_LLM_MAX_TURNS:]
 
     voice_turn = bool(audio_bytes)
+    voice_agenda_ctx = ""
+    if voice_turn and (agenda_context or "").strip():
+        voice_agenda_ctx = _trim_agenda_context_for_voice(agenda_context)
     full_system = (
         build_system_instruction_voice(sess, lang_code)
+        + (f"\n\n{voice_agenda_ctx}" if voice_agenda_ctx else "")
         if voice_turn
         else build_system_instruction(sess, lang_code, agenda_context)
     )

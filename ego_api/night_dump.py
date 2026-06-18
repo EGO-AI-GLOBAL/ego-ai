@@ -238,3 +238,27 @@ def confirm_draft_items(
         habits_db.update_draft_items(supabase, user_id, draft_id, remaining)
 
     return reminders_out, shopping_out, errors
+
+
+def dismiss_draft_item(
+    supabase,
+    user_id: str,
+    draft_id: str,
+    item_index: int,
+) -> tuple[bool, str | None]:
+    """Remove um item do rascunho sem confirmar (Excluir na revisão matinal)."""
+    draft = habits_db.get_draft(supabase, user_id, draft_id)
+    if not draft or draft.get("status") != "pending":
+        return False, "Rascunho não encontrado ou já confirmado."
+    items = draft.get("items") or []
+    if not isinstance(items, list):
+        items = []
+    if item_index < 0 or item_index >= len(items):
+        return False, "Item não encontrado."
+    remaining = list(items)
+    remaining.pop(item_index)
+    if not remaining:
+        habits_db.delete_draft(supabase, user_id, draft_id)
+    else:
+        habits_db.update_draft_items(supabase, user_id, draft_id, remaining)
+    return True, None
