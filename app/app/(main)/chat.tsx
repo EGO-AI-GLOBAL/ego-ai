@@ -135,6 +135,27 @@ export default function ChatScreen() {
     void loadAutoPlayVoice().then(setAutoPlayVoice);
   }, []);
 
+  const startNightDump = useCallback(() => {
+    setNightDumpMode(true);
+    setChatError(null);
+    setChatNotice(
+      "Modo descarrego: segure o microfone ou escreva e envie. Depois abra a Agenda — Agendar ou Excluir cada item."
+    );
+  }, []);
+
+  const finishNightDump = useCallback(
+    (dump: { items?: { length: number }; comfort_reply?: string }) => {
+      const n = dump.items?.length ?? 0;
+      setChatNotice(
+        n > 0
+          ? `${n} item(ns) na Agenda — abra a aba Agenda e use Agendar ou Excluir.`
+          : "Descarrego guardado. Abra a Agenda e puxe para baixo para atualizar."
+      );
+      void refresh({ skipNotifications: true });
+    },
+    [refresh]
+  );
+
   const dayProgress = useMemo(() => computeDayProgress(data), [data]);
   const composerPlaceholder = useMemo(
     () => getComposerPlaceholder(dayProgress.period),
@@ -716,8 +737,7 @@ export default function ChatScreen() {
         await saveExchange(userLabel, reply, { userWasVoice: true });
         setPendingChat([]);
         setNightDumpMode(false);
-        setChatNotice("Amanhã de manhã abra a Agenda e toque «Confirmar na agenda».");
-        void refresh({ skipNotifications: true });
+        finishNightDump(dump);
         if (autoPlayVoice) {
           await voice.replayLastText(reply, persona.voice_id, persona.avatar_id);
         }
@@ -878,13 +898,13 @@ export default function ChatScreen() {
       ritualHandledRef.current = true;
       ritualPendingRef.current = null;
       if (ritual === "evening") {
-        setNightDumpMode(true);
+        startNightDump();
         if (!autoPlayVoice) {
           setAutoPlayVoice(true);
           void saveAutoPlayVoice(true);
         }
         const intro =
-          "Descarrego da noite: segure o microfone e fale tudo que está na cabeça. Amanhã você confirma na Agenda.";
+          "Descarrego da noite: segure o microfone ou escreva. Depois confirme na Agenda (Agendar / Excluir).";
         setChatNotice(intro);
         return;
       }
@@ -907,6 +927,7 @@ export default function ChatScreen() {
     assistantName,
     sendMessageText,
     autoPlayVoice,
+    startNightDump,
   ]);
 
   const onSendText = async () => {
@@ -927,8 +948,7 @@ export default function ChatScreen() {
         await saveExchange(typed, reply, { userWasVoice: false });
         setChatInput("");
         setNightDumpMode(false);
-        setChatNotice("Amanhã de manhã abra a Agenda e toque «Confirmar na agenda».");
-        void refresh({ skipNotifications: true });
+        finishNightDump(dump);
         if (autoPlayVoice) {
           await voice.replayLastText(reply, persona.voice_id, persona.avatar_id);
         }
@@ -1209,11 +1229,61 @@ export default function ChatScreen() {
               </View>
             </View>
           ) : null}
+          {nightDumpMode ? (
+            <View
+              style={[
+                styles.nightDumpBanner,
+                { backgroundColor: colors.primaryLight, borderColor: colors.primary },
+              ]}
+            >
+              <Text style={[styles.nightDumpTitle, { color: colors.text }]}>
+                Modo descarrego ativo
+              </Text>
+              <Text style={[styles.nightDumpBody, { color: colors.textMuted }]}>
+                Segure o microfone ou escreva e envie. Não use o chat normal — os itens vão para a Agenda.
+              </Text>
+              <Pressable
+                onPress={() => {
+                  setNightDumpMode(false);
+                  setChatNotice(null);
+                }}
+                hitSlop={8}
+              >
+                <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 13 }}>
+                  Cancelar descarrego
+                </Text>
+              </Pressable>
+            </View>
+          ) : pdfCharCount === 0 && !isDailyLimitReached ? (
+            <Pressable
+              onPress={startNightDump}
+              disabled={sending || micActive}
+              style={({ pressed }) => [
+                styles.nightDumpBtn,
+                {
+                  borderColor: colors.primary,
+                  backgroundColor: colors.bgCard,
+                  opacity: pressed || sending || micActive ? 0.75 : 1,
+                },
+              ]}
+            >
+              <Text style={[styles.nightDumpTitle, { color: colors.primary }]}>
+                Descarrego da noite
+              </Text>
+              <Text style={[styles.nightDumpBody, { color: colors.textMuted }]}>
+                Grave ou escreva tudo — confirme na Agenda com Agendar / Excluir
+              </Text>
+            </Pressable>
+          ) : null}
           <ChatComposer
             value={chatInput}
             onChangeText={setChatInput}
             onSend={onSendText}
-            placeholder={composerPlaceholder}
+            placeholder={
+              nightDumpMode
+                ? "Escreva o descarrego e toque enviar…"
+                : composerPlaceholder
+            }
             sending={sending}
             isRecording={voice.isRecording}
             micSessionActive={voice.micSessionActive}
@@ -1334,6 +1404,26 @@ const styles = StyleSheet.create({
   },
   pdfSendBtnText: { color: "#fff", fontSize: 13, fontWeight: "800" },
   pdfClearLink: { fontSize: 12, fontWeight: "700" },
+  nightDumpBtn: {
+    marginHorizontal: 16,
+    marginBottom: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 4,
+  },
+  nightDumpBanner: {
+    marginHorizontal: 16,
+    marginBottom: 6,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    gap: 6,
+  },
+  nightDumpTitle: { fontSize: 13, fontWeight: "800", textAlign: "center" },
+  nightDumpBody: { fontSize: 12, lineHeight: 17, textAlign: "center" },
   error: { fontSize: 13, textAlign: "center", marginBottom: 8 },
   limitBox: {
     marginTop: 12,
