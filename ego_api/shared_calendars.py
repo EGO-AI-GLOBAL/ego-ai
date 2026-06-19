@@ -13,6 +13,38 @@ def calendar_name_key(name: str) -> str:
     raw = unicodedata.normalize("NFD", (name or "").strip().lower())
     return "".join(c for c in raw if unicodedata.category(c) != "Mn")
 
+
+ENTRE_NOS_NAME_KEYS = frozenset(
+    {
+        "entrenos",
+        "nosdois",
+        "nósdois",
+        "familia",
+        "family",
+        "casa",
+        "casal",
+    }
+)
+
+
+def is_entre_nos_calendar(name: str) -> bool:
+    """Agenda de casal (Entre Nós) — convites manuais pedem confirmação do parceiro."""
+    key = calendar_name_key(name)
+    if key in ENTRE_NOS_NAME_KEYS:
+        return True
+    return "entrenos" in key or key.startswith("entrenos")
+
+
+def _normalize_event_row(row: dict) -> dict:
+    from ego_api.db import _scheduled_at_api_iso
+
+    out = dict(row)
+    if out.get("scheduled_at"):
+        out["scheduled_at"] = _scheduled_at_api_iso(out.get("scheduled_at"))
+    out["invite_status"] = str(out.get("invite_status") or "none")
+    return out
+
+
 from ego_api.config import (
     AGENDA_HORIZON_DAYS,
     MAX_MEMBERS_PER_SHARED_CALENDAR,
@@ -227,6 +259,47 @@ def resolve_user_id_by_phone(phone: str) -> str | None:
     return None
 
 
+def push_after_member_invited(
+    calendar_id: str,
+    actor_user_id: str,
+    member_row: dict | None,
+) -> None:
+    """Push ao convidado quando entra no grupo (conta já activa)."""
+    if not member_row or not calendar_id:
+        return
+    if str(member_row.get("status") or "") != "active":
+        return
+    invited = str(member_row.get("user_id") or "").strip()
+    if not invited or invited == actor_user_id:
+        return
+    try:
+        from ego_api.shared_calendar_notify import notify_member_invited_to_calendar
+
+        notify_member_invited_to_calendar(
+            calendar_id,
+            inviter_user_id=actor_user_id,
+            invited_user_id=invited,
+        )
+    except Exception:
+        pass
+
+
+def _calendar_owner_id(admin, calendar_id: str) -> str:
+    try:
+        res = (
+            admin.table(SUPABASE_SHARED_CALENDARS_TABLE)
+            .select("owner_user_id")
+            .eq("id", calendar_id)
+            .limit(1)
+            .execute()
+        )
+        if res.data:
+            return str(res.data[0].get("owner_user_id") or "")
+    except Exception:
+        pass
+    return ""
+
+
 def link_shared_memberships_for_user_phone(
     supabase: Client | None, user_id: str, phone: str
 ) -> int:
@@ -245,7 +318,7 @@ def link_shared_memberships_for_user_phone(
         ):
             res = (
                 admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
-                .select("id,user_id,status")
+                .select("id,calendar_id,user_id,status")
                 .eq(field, value)
                 .execute()
             )
@@ -261,6 +334,14 @@ def link_shared_memberships_for_user_phone(
                     {"user_id": user_id, "status": "active", "invited_phone": phone_norm}
                 ).eq("id", rid).execute()
                 updated += 1
+                cid = str(row.get("calendar_id") or "")
+                owner = _calendar_owner_id(admin, cid) if cid else ""
+                if cid and owner:
+                    push_after_member_invited(
+                        cid,
+                        owner,
+                        {"user_id": user_id, "status": "active"},
+                    )
     except Exception as exc:
         print(
             f"[EGO] link_shared_memberships_for_user_phone error user={user_id}: {exc}",
@@ -371,7 +452,7 @@ def link_shared_memberships_for_user(
     try:
         res = (
             admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
-            .select("id,user_id,status")
+            .select("id,calendar_id,user_id,status")
             .eq("invited_email", email_norm)
             .execute()
         )
@@ -388,6 +469,14 @@ def link_shared_memberships_for_user(
                 {"user_id": user_id, "status": "active"}
             ).eq("id", rid).execute()
             updated += 1
+            cid = str(row.get("calendar_id") or "")
+            owner = _calendar_owner_id(admin, cid) if cid else ""
+            if cid and owner:
+                push_after_member_invited(
+                    cid,
+                    owner,
+                    {"user_id": user_id, "status": "active"},
+                )
         return updated
     except Exception as exc:
         print(
@@ -727,7 +816,7 @@ def list_events(
             .order("scheduled_at")
             .execute()
         )
-        return list(res.data or [])
+        return [_normalize_event_row(r) for r in (res.data or [])]
     except Exception:
         return []
 
@@ -761,7 +850,7 @@ def list_events_on_local_day(
             .order("scheduled_at")
             .execute()
         )
-        return list(res.data or [])
+        return [_normalize_event_row(r) for r in (res.data or [])]
     except Exception:
         return []
 
@@ -777,15 +866,25 @@ def create_calendar(
     if not apply_user_auth(supabase):
         return False, "Sessão expirada.", None
 
-    cap = max(1, MAX_SHARED_CALENDARS_PER_OWNER)
-    owned = count_owned_calendars(supabase, user_id)
-    if owned >= cap:
-        return (
-            False,
-            f"Você já tem {owned} agendas compartilhadas (limite {cap} listas). "
-            "Apague uma no app ou convide/marque numa agenda existente.",
-            None,
-        )
+    if is_entre_nos_calendar(title):
+        owned_en = count_owned_entre_nos_calendars(supabase, user_id)
+        if owned_en >= ENTRE_NOS_MAX_CALENDARS_PER_OWNER:
+            return (
+                False,
+                f"Você já tem {owned_en} agendas Entre Nós (limite "
+                f"{ENTRE_NOS_MAX_CALENDARS_PER_OWNER}). Apague uma para criar outra.",
+                None,
+            )
+    else:
+        cap = max(1, MAX_SHARED_CALENDARS_PER_OWNER)
+        owned = count_owned_calendars(supabase, user_id)
+        if owned >= cap:
+            return (
+                False,
+                f"Você já tem {owned} agendas compartilhadas (limite {cap} listas). "
+                "Apague uma no app ou convide/marque numa agenda existente.",
+                None,
+            )
 
     from ego_api.supabase_client import create_service_client, insert_returning_rows
 
@@ -890,6 +989,70 @@ def create_calendar(
     return True, "", cal
 
 
+ENTRE_NOS_MAX_MEMBERS = 2
+ENTRE_NOS_MAX_CALENDARS_PER_OWNER = 10
+
+
+def normalize_entre_nos_group_name(raw: str) -> str:
+    """Nome escolhido pelo utilizador → formato Entre Nós (ex.: Maria → Entre Nós · Maria)."""
+    t = (raw or "").strip()[:120]
+    if not t:
+        return "Entre Nós"
+    if is_entre_nos_calendar(t):
+        return t
+    prefix = "Entre Nós · "
+    rest = t[: max(0, 120 - len(prefix))]
+    return f"{prefix}{rest}" if rest else "Entre Nós"
+
+
+def count_owned_entre_nos_calendars(
+    supabase: Client | None, owner_user_id: str
+) -> int:
+    if not supabase or not owner_user_id:
+        return 0
+    apply_user_auth(supabase)
+    try:
+        res = (
+            supabase.table(SUPABASE_SHARED_CALENDARS_TABLE)
+            .select("id,name")
+            .eq("owner_user_id", owner_user_id)
+            .execute()
+        )
+        return sum(
+            1
+            for r in (res.data or [])
+            if is_entre_nos_calendar(str(r.get("name") or ""))
+        )
+    except Exception:
+        return 0
+
+
+def _calendar_name(supabase: Client | None, calendar_id: str) -> str:
+    if not supabase or not calendar_id:
+        return ""
+    try:
+        apply_user_auth(supabase)
+        cal = (
+            supabase.table(SUPABASE_SHARED_CALENDARS_TABLE)
+            .select("name")
+            .eq("id", calendar_id)
+            .limit(1)
+            .execute()
+        )
+        if cal.data:
+            return str(cal.data[0].get("name") or "")
+    except Exception:
+        pass
+    return ""
+
+
+def calendar_member_cap_for(supabase: Client | None, calendar_id: str) -> int:
+    """Entre Nós = criador + 1 parceiro; outras agendas usam limite global."""
+    if is_entre_nos_calendar(_calendar_name(supabase, calendar_id)):
+        return ENTRE_NOS_MAX_MEMBERS
+    return calendar_member_cap()
+
+
 def calendar_member_cap() -> int:
     """Pessoas por agenda (membros ativos + convites pendentes)."""
     return max(1, MAX_MEMBERS_PER_SHARED_CALENDAR)
@@ -914,9 +1077,15 @@ def count_calendar_members(supabase: Client | None, calendar_id: str) -> int:
 def _ensure_calendar_member_capacity(
     supabase: Client | None, calendar_id: str
 ) -> tuple[bool, str]:
-    cap = calendar_member_cap()
+    cap = calendar_member_cap_for(supabase, calendar_id)
     used = count_calendar_members(supabase, calendar_id)
     if used >= cap:
+        if cap == ENTRE_NOS_MAX_MEMBERS:
+            return (
+                False,
+                "Nesta agenda já há um parceiro (Entre Nós = vocês dois). "
+                "Para outra pessoa, crie uma nova agenda Entre Nós.",
+            )
         return (
             False,
             f"Esta agenda já tem {used} pessoas (limite {cap} por lista).",
@@ -1388,8 +1557,12 @@ def add_member_by_contact(
     if not raw:
         return False, "Informe e-mail ou telefone.", None
     if "@" in raw:
-        return add_member_by_email(supabase, actor_user_id, calendar_id, raw)
-    return add_member_by_phone(supabase, actor_user_id, calendar_id, raw)
+        ok, err, row = add_member_by_email(supabase, actor_user_id, calendar_id, raw)
+    else:
+        ok, err, row = add_member_by_phone(supabase, actor_user_id, calendar_id, raw)
+    if ok and row:
+        push_after_member_invited(calendar_id, actor_user_id, row)
+    return ok, err, row
 
 
 def remove_member(
@@ -1445,6 +1618,7 @@ def insert_event(
     title: str,
     scheduled_at: object,
     announce: str = "",
+    partner_invite: bool | None = None,
 ) -> tuple[bool, str, dict | None]:
     if not supabase or not user_id:
         return False, "Sessão indisponível.", None
@@ -1455,12 +1629,28 @@ def insert_event(
         return False, "Data/hora inválida ou fora do horizonte permitido.", None
     if not apply_user_auth(supabase):
         return False, "Sessão expirada.", None
+    cal_name = ""
+    try:
+        cal_row = (
+            supabase.table(SUPABASE_SHARED_CALENDARS_TABLE)
+            .select("name")
+            .eq("id", calendar_id)
+            .limit(1)
+            .execute()
+        )
+        if cal_row.data:
+            cal_name = str(cal_row.data[0].get("name") or "")
+    except Exception:
+        pass
+    if partner_invite is None:
+        partner_invite = is_entre_nos_calendar(cal_name)
     row = {
         "calendar_id": calendar_id,
         "created_by_user_id": user_id,
         "title": (title or "Reunião")[:500],
         "scheduled_at": norm.isoformat(),
         "announce": (announce or title or "")[:2000],
+        "invite_status": "pending" if partner_invite else "none",
     }
     try:
         from ego_api.supabase_client import insert_with_admin_fallback
@@ -1469,13 +1659,8 @@ def insert_event(
             supabase, SUPABASE_SHARED_CALENDAR_EVENTS_TABLE, row, raise_errors=True
         )
         event = inserted[0] if inserted else row
-        if isinstance(event, dict) and event.get("scheduled_at"):
-            from ego_api.db import _scheduled_at_api_iso
-
-            event = {
-                **event,
-                "scheduled_at": _scheduled_at_api_iso(event.get("scheduled_at")),
-            }
+        if isinstance(event, dict):
+            event = _normalize_event_row(event)
         try:
             from ego_api.shared_calendar_notify import (
                 calendar_name_by_id,
@@ -1483,7 +1668,8 @@ def insert_event(
             )
 
             admin = create_service_client()
-            cal_name = calendar_name_by_id(admin, calendar_id) if admin else ""
+            if not cal_name and admin:
+                cal_name = calendar_name_by_id(admin, calendar_id) or ""
             if not cal_name:
                 cal_row = (
                     supabase.table(SUPABASE_SHARED_CALENDARS_TABLE)
@@ -1497,7 +1683,7 @@ def insert_event(
             notify_members_new_event(
                 calendar_id,
                 creator_user_id=user_id,
-                calendar_name=cal_name or "Agenda compartilhada",
+                calendar_name=cal_name or "Entre Nós",
                 title=row["title"],
                 scheduled_at_iso=row["scheduled_at"],
                 event_id=str(event.get("id") or ""),
@@ -1522,6 +1708,81 @@ def dismiss_event(
         return True
     except Exception:
         return False
+
+
+def respond_to_event(
+    supabase: Client | None,
+    user_id: str,
+    calendar_id: str,
+    event_id: str,
+    *,
+    accept: bool,
+) -> tuple[bool, str, dict | None]:
+    """Parceiro confirma ou recusa convite Entre Nós (manual)."""
+    if not supabase or not user_id:
+        return False, "Sessão indisponível.", None
+    if not _user_is_member(supabase, user_id, calendar_id):
+        return False, "Sem acesso a esta agenda.", None
+    if not apply_user_auth(supabase):
+        return False, "Sessão expirada.", None
+    try:
+        res = (
+            supabase.table(SUPABASE_SHARED_CALENDAR_EVENTS_TABLE)
+            .select("*")
+            .eq("id", event_id)
+            .eq("calendar_id", calendar_id)
+            .eq("dismissed", False)
+            .limit(1)
+            .execute()
+        )
+        if not res.data:
+            return False, "Compromisso não encontrado.", None
+        ev = res.data[0]
+        if str(ev.get("created_by_user_id") or "") == user_id:
+            return False, "Quem enviou o convite já vê aqui — a outra pessoa é quem confirma.", None
+        status = str(ev.get("invite_status") or "none")
+        if status != "pending":
+            return False, "Este convite já foi respondido.", None
+        patch = {
+            "invite_status": "confirmed" if accept else "declined",
+            "responded_by_user_id": user_id,
+            "responded_at": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+        }
+        upd = (
+            supabase.table(SUPABASE_SHARED_CALENDAR_EVENTS_TABLE)
+            .update(patch)
+            .eq("id", event_id)
+            .eq("calendar_id", calendar_id)
+            .execute()
+        )
+        rows = list(upd.data or [])
+        if not rows:
+            admin = create_service_client()
+            if admin:
+                upd2 = (
+                    admin.table(SUPABASE_SHARED_CALENDAR_EVENTS_TABLE)
+                    .update(patch)
+                    .eq("id", event_id)
+                    .eq("calendar_id", calendar_id)
+                    .execute()
+                )
+                rows = list(upd2.data or [])
+        row = rows[0] if rows else {**ev, **patch}
+        try:
+            from ego_api.shared_calendar_notify import notify_invite_response
+
+            notify_invite_response(
+                calendar_id,
+                creator_user_id=str(ev.get("created_by_user_id") or ""),
+                responder_user_id=user_id,
+                event_title=str(ev.get("title") or "Compromisso"),
+                accepted=accept,
+            )
+        except Exception:
+            pass
+        return True, "", _normalize_event_row(row if isinstance(row, dict) else ev)
+    except Exception as exc:
+        return False, str(exc), None
 
 
 def delete_calendar(

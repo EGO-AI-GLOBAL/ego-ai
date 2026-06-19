@@ -31,7 +31,17 @@ def list_pending_drafts(supabase, user_id: str) -> list[dict]:
             .limit(5)
             .execute()
         )
-        return list(res.data or [])
+        rows = list(res.data or [])
+        out: list[dict] = []
+        for row in rows:
+            items = row.get("items")
+            if not isinstance(items, list) or len(items) == 0:
+                did = str(row.get("id") or "")
+                if did:
+                    dismiss_draft(supabase, user_id, did)
+                continue
+            out.append(row)
+        return out
     except Exception:
         return []
 

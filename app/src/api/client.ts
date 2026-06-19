@@ -21,6 +21,7 @@ import type {
   SharedCalendar,
   SharedCalendarMember,
   ShoppingListItem,
+  StreakInfo,
 } from "./types";
 
 const STORAGE_KEY = "ego_auth_session";
@@ -208,6 +209,8 @@ function parseDashboard(data: unknown): DashboardData {
     agenda: body.agenda ?? [],
     agenda_drafts: body.agenda_drafts ?? [],
     shopping_orphans: body.shopping_orphans ?? [],
+    delegation_requests: body.delegation_requests ?? [],
+    streak: body.streak ?? { current: 0, longest: 0, active_today: false, at_risk: false },
     shared_calendars: body.shared_calendars ?? [],
     messages: body.messages ?? [],
     chat_local_history: Boolean(body.chat_local_history),
@@ -488,7 +491,7 @@ export async function submitNightDumpFromUri(opts: {
       ),
     });
     if (res.status < 200 || res.status >= 300) {
-      let detail = `Erro ${res.status} ao enviar descarrego.`;
+      let detail = `Erro ${res.status} ao enviar desabafo.`;
       try {
         const parsed = JSON.parse(res.body) as { error?: string };
         if (parsed.error) detail = parsed.error;
@@ -519,7 +522,7 @@ export async function fetchPendingAgendaDrafts(): Promise<AgendaDraft[]> {
 export async function confirmAgendaDraft(
   draftId: string,
   itemIndices?: number[]
-): Promise<{ confirmed: boolean; errors?: string[] }> {
+): Promise<{ confirmed: boolean; errors?: string[]; shared_events?: unknown[] }> {
   const { data } = await api.post(`agenda-drafts/${draftId}/confirm`, {
     item_indices: itemIndices,
   });
@@ -535,6 +538,25 @@ export async function dismissAgendaDraftItem(
   itemIndex: number
 ): Promise<void> {
   await api.post(`agenda-drafts/${draftId}/items/${itemIndex}/dismiss`);
+}
+
+export async function confirmDelegationRequest(
+  requestId: string
+): Promise<{ confirmed: boolean }> {
+  const { data } = await api.post(`delegation-requests/${requestId}/confirm`);
+  return unwrap(data);
+}
+
+export async function dismissDelegationRequest(requestId: string): Promise<void> {
+  await api.post(`delegation-requests/${requestId}/dismiss`);
+}
+
+export async function recordStreakActivity(
+  source: "habit" | "night_dump" | "draft_confirm" | "delegation_confirm" = "habit"
+): Promise<StreakInfo> {
+  const { data } = await api.post("streaks/activity", { source });
+  const body = unwrap<{ streak: StreakInfo }>(data);
+  return body.streak ?? { current: 0, longest: 0 };
 }
 
 export async function createShoppingItem(payload: {
@@ -921,6 +943,19 @@ export async function dismissSharedCalendarEvent(
   eventId: string
 ): Promise<void> {
   await api.post(`shared-calendars/${calendarId}/events/${eventId}/dismiss`);
+}
+
+export async function respondEntreNosEvent(
+  calendarId: string,
+  eventId: string,
+  accept: boolean
+): Promise<SharedCalendarEvent> {
+  const { data } = await api.post(`shared-calendars/${calendarId}/events/${eventId}/respond`, {
+    accept,
+  });
+  const body = unwrap<{ event: SharedCalendarEvent }>(data);
+  if (!body.event) throw new Error("Resposta não devolvida pelo servidor.");
+  return body.event;
 }
 
 export async function deleteSharedCalendar(calendarId: string): Promise<void> {

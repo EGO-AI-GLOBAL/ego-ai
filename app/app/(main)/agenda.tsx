@@ -1,4 +1,4 @@
-import { useFocusEffect, useRouter } from "expo-router";
+import { useFocusEffect } from "expo-router";
 import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
@@ -8,7 +8,6 @@ import {
   Text,
 } from "react-native";
 import { AgendaTabBar, type AgendaTab } from "@/components/agenda/AgendaTabBar";
-import { ManualOrChatHint } from "@/components/agenda/ManualOrChatHint";
 import { PersonalAgendaManual } from "@/components/agenda/PersonalAgendaManual";
 import { SharedAgendaManual } from "@/components/agenda/SharedAgendaManual";
 import { ScreenShell } from "@/components/ScreenShell";
@@ -19,7 +18,6 @@ import { useColors } from "@/theme/ThemeContext";
 /** Ecrã fino: só tabs + refresh. Lógica manual em components/agenda/ */
 export default function AgendaScreen() {
   const colors = useColors();
-  const router = useRouter();
   const { session } = useAuth();
   const { data, loading, refreshing, error, refresh } = useDashboard();
   const [tab, setTab] = useState<AgendaTab>("personal");
@@ -38,7 +36,7 @@ export default function AgendaScreen() {
   const subtitle =
     tab === "personal"
       ? "Toque + · escolha data/hora · Marcar compromisso"
-      : "Escolha a agenda · + Novo · convide pessoas";
+      : "Os dois criam · os dois veem a resposta";
 
   return (
     <ScreenShell title="Agenda" subtitle={subtitle}>
@@ -53,7 +51,6 @@ export default function AgendaScreen() {
         }
       >
         <AgendaTabBar tab={tab} onChange={setTab} colors={colors} />
-        <ManualOrChatHint colors={colors} onOpenChat={() => router.push("/(main)/chat")} />
 
         {loading && !refreshing ? (
           <ActivityIndicator color={colors.primary} style={{ marginTop: 24 }} />
@@ -77,6 +74,7 @@ export default function AgendaScreen() {
             <SharedAgendaManual
               colors={colors}
               sharedCalendars={data.shared_calendars ?? []}
+              agendaDrafts={data.agenda_drafts ?? []}
               currentUserId={session?.user?.id}
               onRefresh={onRefresh}
             />

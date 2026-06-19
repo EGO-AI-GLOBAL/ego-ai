@@ -33,6 +33,9 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "submitNightDumpFromUri",
             "fetchPendingAgendaDrafts",
             "createShoppingItem",
+            "recordStreakActivity",
+            "confirmDelegationRequest",
+            "respondEntreNosEvent",
         ],
     ),
     (
@@ -60,8 +63,11 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "reminders_dismiss",
             '@app.delete("/api/v1/agenda/<agenda_id>")',
             "shared_calendars_events_dismiss",
+            "shared_calendars_events_respond",
             '@app.post("/api/v1/night-dump")',
             "agenda_drafts_pending",
+            "delegation_requests_pending",
+            "streaks_record_activity",
             "shopping_list_get",
         ],
     ),
@@ -88,7 +94,19 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/night_dump.py",
-        ["process_night_dump", "confirm_draft_items", "dismiss_draft_item", "NIGHT_DUMP_EXTRACT_PROMPT"],
+        ["process_night_dump", "confirm_draft_items", "dismiss_draft_item", "NIGHT_DUMP_EXTRACT_PROMPT", "assign_to"],
+    ),
+    (
+        "ego_api/streaks.py",
+        ["record_streak_activity", "get_streak", "evening_streak_notification_body"],
+    ),
+    (
+        "ego_api/shared_calendar_notify.py",
+        ["notify_members_new_event", "notify_member_invited_to_calendar", "notify_invite_response"],
+    ),
+    (
+        "ego_api/family_pilot.py",
+        ["enrich_family_items", "family_event_title_from_item"],
     ),
 ]
 

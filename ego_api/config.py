@@ -25,6 +25,7 @@ SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE = "shared_calendar_members"
 SUPABASE_SHARED_CALENDAR_EVENTS_TABLE = "shared_calendar_events"
 SUPABASE_AGENDA_DRAFTS_TABLE = "agenda_drafts"
 SUPABASE_SHOPPING_LIST_TABLE = "shopping_list_items"
+SUPABASE_DELEGATION_REQUESTS_TABLE = "delegation_requests"
 
 # Máximo de agendas de grupo que cada utilizador pode criar (ser dono).
 MAX_SHARED_CALENDARS_PER_OWNER = int(os.getenv("EGO_MAX_SHARED_CALENDARS", "10"))
@@ -237,7 +238,7 @@ def beta_unlimited() -> bool:
 
 def latest_app_version() -> str:
     """Versão mais recente na loja — app antigo mostra aviso de atualização."""
-    return read_env("EGO_LATEST_APP_VERSION", "1.0.26")
+    return read_env("EGO_LATEST_APP_VERSION", "1.0.33")
 
 
 def play_store_update_url() -> str:
@@ -276,12 +277,22 @@ def maintenance_message() -> str:
     )
 
 
-def app_update_payload() -> dict[str, str]:
+def latest_android_version_code() -> int:
+    """Version code Play (EAS autoIncrement) — Android usa para aviso de atualização."""
+    raw = read_env("EGO_LATEST_ANDROID_VERSION_CODE", "65").strip()
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        return 65
+
+
+def app_update_payload() -> dict[str, str | int]:
     return {
         "latest_version": latest_app_version(),
         "play_store_url": play_store_update_url(),
         "ios_update_url": testflight_update_url(),
         "message": app_update_message(),
+        "android_version_code": latest_android_version_code(),
     }
 
 

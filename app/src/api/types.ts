@@ -155,6 +155,13 @@ export type AgendaDraftItem = {
   scheduled_at?: string;
   shopping_items?: { title: string; category?: string }[];
   category?: string;
+  assign_to?: {
+    relationship?: string;
+    assignee_hint?: string;
+    task?: string;
+  };
+  shared_calendar_id?: string;
+  shared_calendar_name?: string;
 };
 
 export type AgendaDraft = {
@@ -199,6 +206,9 @@ export type SharedCalendarEvent = {
   scheduled_at?: string;
   announce?: string;
   dismissed?: boolean;
+  invite_status?: "none" | "pending" | "confirmed" | "declined";
+  responded_by_user_id?: string;
+  responded_at?: string;
 };
 
 export type SharedCalendar = {
@@ -253,6 +263,8 @@ export type AppUpdateInfo = {
   play_store_url: string;
   ios_update_url?: string;
   message?: string;
+  /** Version code Play — Android compara se versionName falhar. */
+  android_version_code?: number;
 };
 
 export type PublicHealthInfo = {
@@ -270,6 +282,28 @@ export type HealthInfo = {
   gemini_configured: boolean;
 };
 
+export type StreakInfo = {
+  current: number;
+  longest: number;
+  last_date?: string;
+  active_today?: boolean;
+  at_risk?: boolean;
+};
+
+export type DelegationRequest = {
+  id: string;
+  from_user_id?: string;
+  to_user_id?: string;
+  title?: string;
+  scheduled_at?: string;
+  task_description?: string;
+  assignee_label?: string;
+  assistant_name?: string;
+  requester_name?: string;
+  status?: string;
+  created_at?: string;
+};
+
 export type DashboardData = {
   health: HealthInfo | null;
   me: MeData | null;
@@ -278,6 +312,8 @@ export type DashboardData = {
   agenda: AgendaItem[];
   agenda_drafts?: AgendaDraft[];
   shopping_orphans?: ShoppingListItem[];
+  delegation_requests?: DelegationRequest[];
+  streak?: StreakInfo;
   shared_calendars?: SharedCalendar[];
   messages: ChatMessage[];
   chat_local_history?: boolean;

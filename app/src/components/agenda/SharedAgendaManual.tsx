@@ -16,8 +16,10 @@ import {
   deleteSharedCalendar,
   dismissSharedCalendarEvent,
   localDateTimeToIso,
+  respondEntreNosEvent,
 } from "@/api/client";
 import type { SharedCalendar } from "@/api/types";
+import type { AgendaDraft } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import {
   memberDisplayName,
@@ -33,10 +35,19 @@ import {
   sortSharedEvents,
 } from "./agendaUtils";
 import { SharedEventRow } from "./SharedEventRow";
+import { AgendaDraftsBanner } from "./AgendaDraftsBanner";
+import {
+  isEntreNosCalendarName,
+  entreNosPartnerSlotFull,
+  normalizeEntreNosGroupName,
+  canCreateMoreEntreNos,
+  ENTRE_NOS_MAX_CALENDARS,
+} from "@/utils/entreNos";
 
 type Props = {
   colors: AppColors;
   sharedCalendars: SharedCalendar[];
+  agendaDrafts?: AgendaDraft[];
   currentUserId?: string;
   onRefresh: () => Promise<void>;
 };
@@ -47,6 +58,7 @@ type Props = {
 export function SharedAgendaManual({
   colors,
   sharedCalendars,
+  agendaDrafts = [],
   currentUserId,
   onRefresh,
 }: Props) {
@@ -56,7 +68,7 @@ export function SharedAgendaManual({
   const [inviteContact, setInviteContact] = useState("");
   const [inviting, setInviting] = useState(false);
   const [actionBusy, setActionBusy] = useState<string | null>(null);
-  const [newCalendarName, setNewCalendarName] = useState("Família");
+  const [newCalendarName, setNewCalendarName] = useState("");
   const [creatingCalendar, setCreatingCalendar] = useState(false);
   const [showCreateCalendarForm, setShowCreateCalendarForm] = useState(false);
   const [showSharedEventForm, setShowSharedEventForm] = useState(false);
@@ -86,21 +98,33 @@ export function SharedAgendaManual({
     return () => clearInterval(id);
   }, []);
 
+  const entreNosCalendars = useMemo(
+    () => sharedCalendars.filter((c) => isEntreNosCalendarName(String(c.name || ""))),
+    [sharedCalendars]
+  );
+
+  const ownedEntreNosCount = useMemo(
+    () => entreNosCalendars.filter((c) => c.is_owner).length,
+    [entreNosCalendars]
+  );
+
+  const mayCreateEntreNos = canCreateMoreEntreNos(ownedEntreNosCount);
+
   const selectedCalendar = useMemo(() => {
     if (!selectedSharedId) return null;
-    return sharedCalendars.find((c) => String(c.id) === selectedSharedId) ?? null;
-  }, [sharedCalendars, selectedSharedId]);
+    return entreNosCalendars.find((c) => String(c.id) === selectedSharedId) ?? null;
+  }, [entreNosCalendars, selectedSharedId]);
 
   useEffect(() => {
-    if (sharedCalendars.length === 0) {
+    if (entreNosCalendars.length === 0) {
       setSelectedSharedId(null);
       return;
     }
-    const ids = sharedCalendars.map((c) => String(c.id));
+    const ids = entreNosCalendars.map((c) => String(c.id));
     if (!selectedSharedId || !ids.includes(selectedSharedId)) {
-      setSelectedSharedId(String(sharedCalendars[0].id));
+      setSelectedSharedId(String(entreNosCalendars[0].id));
     }
-  }, [sharedCalendars, selectedSharedId]);
+  }, [entreNosCalendars, selectedSharedId]);
 
   const selectedEvents = useMemo(() => {
     if (!selectedCalendar) return [];
@@ -113,18 +137,30 @@ export function SharedAgendaManual({
   ];
 
   const onCreateSharedCalendar = async () => {
-    const name = newCalendarName.trim();
-    if (!name) {
-      Alert.alert("Nome", "Digite um nome para a agenda (ex.: Família).");
+    const raw = newCalendarName.trim();
+    if (!raw) {
+      Alert.alert("Nome do grupo", "Escolha um nome — ex.: Maria, Trabalho, Finanças.");
       return;
     }
+    if (!mayCreateEntreNos) {
+      Alert.alert(
+        "Limite atingido",
+        `Você já tem ${ENTRE_NOS_MAX_CALENDARS} grupos Entre Nós. Apague um para criar outro.`
+      );
+      return;
+    }
+    const name = normalizeEntreNosGroupName(raw);
     setCreatingCalendar(true);
     try {
       const cal = await createSharedCalendar(name);
-      setNewCalendarName("Família");
+      setNewCalendarName("");
       setShowCreateCalendarForm(false);
       setSelectedSharedId(String(cal.id));
       await onRefresh();
+      Alert.alert(
+        "Grupo criado",
+        `«${name}» — agora convide 1 pessoa (telefone ou e-mail) neste grupo.`
+      );
     } catch (e) {
       Alert.alert(
         "Erro",
@@ -135,9 +171,25 @@ export function SharedAgendaManual({
     }
   };
 
+  const selectedIsEntreNos = true;
+  const entreNosFull = selectedIsEntreNos
+    ? entreNosPartnerSlotFull(
+        selectedCalendar?.member_count ?? selectedCalendar?.members?.length ?? 0
+      )
+    : false;
+
+  const memberLabelFor = (userId?: string) => {
+    if (!userId || !selectedCalendar?.members) return "";
+    const mem = selectedCalendar.members.find((m) => String(m.user_id || "") === userId);
+    return memberDisplayName(mem);
+  };
+
+  const responderLabelFor = (userId?: string) => memberLabelFor(userId);
+  const creatorLabelFor = (userId?: string) => memberLabelFor(userId);
+
   const onAddSharedEvent = async () => {
     if (!selectedCalendar?.id) return;
-    const title = sharedEventTitle.trim() || "Reunião";
+    const title = sharedEventTitle.trim() || "Compromisso";
     const iso = localDateTimeToIso(sharedEventDate.trim(), sharedEventTime.trim());
     if (!iso) {
       Alert.alert("Data/hora", "Toque na data e na hora para escolher no calendário.");
@@ -153,6 +205,12 @@ export function SharedAgendaManual({
       setShowSharedEventForm(false);
       resetSharedEventForm();
       await onRefresh();
+      if (selectedIsEntreNos) {
+        Alert.alert(
+          "Convite enviado",
+          "A outra pessoa confirma ou recusa aqui — vocês dois veem a resposta na lista."
+        );
+      }
     } catch (e) {
       Alert.alert(
         "Erro",
@@ -165,6 +223,13 @@ export function SharedAgendaManual({
 
   const onInviteToSelectedCalendar = async () => {
     if (!selectedCalendar?.id) return;
+    if (entreNosFull) {
+      Alert.alert(
+        "Entre Nós",
+        "Nesta agenda já há uma pessoa convidada. Para tratar com outra pessoa, toque em «+ Outro Entre Nós» e crie uma agenda nova."
+      );
+      return;
+    }
     const contact = inviteContact.trim();
     if (!contact) {
       Alert.alert("Convite", "Digite telefone ou e-mail.");
@@ -187,6 +252,23 @@ export function SharedAgendaManual({
       Alert.alert("Convite", e instanceof Error ? e.message : "Não foi possível convidar.");
     } finally {
       setInviting(false);
+    }
+  };
+
+  const onRespondSharedEvent = async (eventId: string, accept: boolean) => {
+    if (!selectedCalendar?.id) return;
+    const calendarId = String(selectedCalendar.id);
+    setActionBusy(eventId);
+    try {
+      await respondEntreNosEvent(calendarId, eventId, accept);
+      await onRefresh();
+    } catch (e) {
+      Alert.alert(
+        "Erro",
+        e instanceof Error ? e.message : "Não foi possível registar a resposta."
+      );
+    } finally {
+      setActionBusy(null);
     }
   };
 
@@ -247,32 +329,40 @@ export function SharedAgendaManual({
     );
   };
 
-  if (sharedCalendars.length === 0) {
+  if (entreNosCalendars.length === 0) {
     return (
       <View style={[s.formBox, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
-        <Text style={[s.formLabel, { color: colors.textMuted }]}>
-          Crie uma agenda em grupo (Família, Trabalho…)
-        </Text>
+        <Text style={[s.formLabel, { color: colors.textMuted }]}>1. Nome do grupo</Text>
         <TextInput
           value={newCalendarName}
           onChangeText={setNewCalendarName}
-          placeholder="Nome (ex.: Família)"
+          placeholder="Ex.: Maria, Trabalho, Finanças…"
           placeholderTextColor={colors.textMuted}
           style={inputStyle}
         />
         <Pressable
           onPress={onCreateSharedCalendar}
-          disabled={creatingCalendar}
-          style={[s.inviteBtn, { backgroundColor: colors.primary }]}
+          disabled={creatingCalendar || !mayCreateEntreNos}
+          style={[
+            s.inviteBtn,
+            {
+              backgroundColor: colors.primary,
+              opacity: creatingCalendar || !mayCreateEntreNos ? 0.6 : 1,
+            },
+          ]}
         >
           {creatingCalendar ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text style={s.inviteBtnText}>Criar agenda</Text>
+            <Text style={s.inviteBtnText}>Criar Entre Nós</Text>
           )}
         </Pressable>
+        <Text style={[s.muted, { color: colors.textMuted, marginTop: 8 }]}>
+          2. Depois convide <Text style={{ fontWeight: "700" }}>1 pessoa</Text> neste grupo.
+        </Text>
         <Text style={[s.muted, { color: colors.textMuted, marginTop: 4 }]}>
-          Depois: marque compromissos, convide por e-mail/telefone e apague com os botões.
+          Pode criar até {ENTRE_NOS_MAX_CALENDARS} grupos Entre Nós (pessoas ou assuntos
+          diferentes).
         </Text>
       </View>
     );
@@ -280,39 +370,54 @@ export function SharedAgendaManual({
 
   return (
     <>
+      <AgendaDraftsBanner
+        colors={colors}
+        drafts={agendaDrafts}
+        onRefresh={onRefresh}
+        familyOnly
+      />
       <Text style={[s.section, { color: colors.textMuted }]}>
-        Suas agendas ({sharedCalendars.length})
+        Seus grupos ({entreNosCalendars.length}) · {ownedEntreNosCount}/{ENTRE_NOS_MAX_CALENDARS}{" "}
+        criados por você
       </Text>
-      <Pressable
-        onPress={() => setShowCreateCalendarForm((v) => !v)}
-        style={({ pressed }) => [
-          s.addBtn,
-          {
-            borderColor: colors.primary,
-            backgroundColor: showCreateCalendarForm ? colors.primaryLight : colors.bgCard,
-            opacity: pressed ? 0.88 : 1,
-            marginBottom: 10,
-          },
-        ]}
-      >
-        <Text style={[s.addBtnText, { color: colors.primary }]}>
-          {showCreateCalendarForm ? "Fechar formulário" : "+ Nova agenda compartilhada"}
+      <Text style={[s.muted, { color: colors.textMuted, marginBottom: 8, fontSize: 12 }]}>
+        Cada grupo: você + 1 pessoa. Escolha o nome ao criar.
+      </Text>
+      {mayCreateEntreNos ? (
+        <Pressable
+          onPress={() => setShowCreateCalendarForm((v) => !v)}
+          style={({ pressed }) => [
+            s.addBtn,
+            {
+              borderColor: colors.primary,
+              backgroundColor: showCreateCalendarForm ? colors.primaryTint : colors.bgCard,
+              opacity: pressed ? 0.88 : 1,
+              marginBottom: 10,
+            },
+          ]}
+        >
+          <Text style={[s.addBtnText, { color: colors.primary }]}>
+            {showCreateCalendarForm ? "Fechar formulário" : "+ Outro Entre Nós"}
+          </Text>
+        </Pressable>
+      ) : (
+        <Text style={[s.muted, { color: colors.textMuted, marginBottom: 10 }]}>
+          Limite de {ENTRE_NOS_MAX_CALENDARS} grupos Entre Nós atingido. Apague um para criar
+          outro.
         </Text>
-      </Pressable>
-      {showCreateCalendarForm ? (
+      )}
+      {showCreateCalendarForm && mayCreateEntreNos ? (
         <View
           style={[
             s.formBox,
             { borderColor: colors.border, backgroundColor: colors.bgCard, marginBottom: 12 },
           ]}
         >
-          <Text style={[s.formLabel, { color: colors.textMuted }]}>
-            Nova agenda em grupo
-          </Text>
+          <Text style={[s.formLabel, { color: colors.textMuted }]}>Nome do grupo</Text>
           <TextInput
             value={newCalendarName}
             onChangeText={setNewCalendarName}
-            placeholder="Nome (ex.: Trabalho, Família)"
+            placeholder="Ex.: João, Co-parentalidade…"
             placeholderTextColor={colors.textMuted}
             style={inputStyle}
           />
@@ -324,12 +429,12 @@ export function SharedAgendaManual({
             {creatingCalendar ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={s.inviteBtnText}>Criar agenda</Text>
+              <Text style={s.inviteBtnText}>Criar grupo</Text>
             )}
           </Pressable>
         </View>
       ) : null}
-      {sharedCalendars.map((cal) => {
+      {entreNosCalendars.map((cal) => {
         const cid = String(cal.id || "");
         const calName = (cal.name || "Agenda").trim();
         const nmem = cal.member_count ?? cal.members?.length ?? 0;
@@ -386,7 +491,10 @@ export function SharedAgendaManual({
           <Text style={[styles.calDetailMembers, { color: colors.textMuted }]}>
             {membersGroupLine(selectedCalendar.members, currentUserId)}
           </Text>
-          <Text style={[s.sectionInner, { color: colors.textMuted }]}>Compromissos marcados</Text>
+          <Text style={[s.sectionInner, { color: colors.textMuted }]}>Compromissos</Text>
+          <Text style={[s.muted, { color: colors.textMuted, marginBottom: 8, fontSize: 12 }]}>
+            Qualquer um do grupo cria · os dois veem se confirmou ou recusou.
+          </Text>
           <Pressable
             onPress={() =>
               showSharedEventForm ? setShowSharedEventForm(false) : openSharedEventForm()
@@ -395,14 +503,14 @@ export function SharedAgendaManual({
               s.addBtn,
               {
                 borderColor: colors.primary,
-                backgroundColor: showSharedEventForm ? colors.primaryLight : colors.bgCard,
+                backgroundColor: showSharedEventForm ? colors.primaryTint : colors.bgCard,
                 opacity: pressed ? 0.88 : 1,
                 marginBottom: 8,
               },
             ]}
           >
             <Text style={[s.addBtnText, { color: colors.primary }]}>
-              {showSharedEventForm ? "Fechar formulário" : "+ Novo compromisso"}
+              {showSharedEventForm ? "Fechar formulário" : "+ Enviar convite"}
             </Text>
           </Pressable>
           {showSharedEventForm ? (
@@ -412,6 +520,12 @@ export function SharedAgendaManual({
                 { borderColor: colors.border, backgroundColor: colors.bg, marginBottom: 10 },
               ]}
             >
+              {selectedIsEntreNos ? (
+                <Text style={[s.muted, { color: colors.textMuted, marginBottom: 8 }]}>
+                  Você ou a outra pessoa podem enviar — quem recebe confirma ou recusa; os dois
+                  veem o resultado.
+                </Text>
+              ) : null}
               <TextInput
                 value={sharedEventTitle}
                 onChangeText={setSharedEventTitle}
@@ -449,7 +563,9 @@ export function SharedAgendaManual({
                 {savingSharedEvent ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={s.inviteBtnText}>Marcar compromisso</Text>
+                  <Text style={s.inviteBtnText}>
+                    {selectedIsEntreNos ? "Enviar convite" : "Marcar compromisso"}
+                  </Text>
                 )}
               </Pressable>
             </View>
@@ -466,35 +582,49 @@ export function SharedAgendaManual({
                   key={eid}
                   event={ev}
                   colors={colors}
+                  currentUserId={currentUserId}
+                  creatorLabel={creatorLabelFor(ev.created_by_user_id)}
+                  responderLabel={responderLabelFor(ev.responded_by_user_id)}
                   onDismiss={onDismissSharedEvent}
+                  onRespond={onRespondSharedEvent}
                   busy={actionBusy === eid}
                 />
               );
             })
           )}
-          <Text style={[s.sectionInner, { color: colors.textMuted, marginTop: 14 }]}>
-            Convidar pessoa
-          </Text>
-          <TextInput
-            value={inviteContact}
-            onChangeText={setInviteContact}
-            placeholder="11 99999-9999 ou email@exemplo.com"
-            placeholderTextColor={colors.textMuted}
-            autoCapitalize="none"
-            autoCorrect={false}
-            style={inputStyle}
-          />
-          <Pressable
-            onPress={onInviteToSelectedCalendar}
-            disabled={inviting}
-            style={[s.inviteBtn, { backgroundColor: colors.primary }]}
-          >
-            {inviting ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={s.inviteBtnText}>Convidar</Text>
-            )}
-          </Pressable>
+          {entreNosFull ? (
+            <Text style={[s.muted, { color: colors.textMuted, marginTop: 14 }]}>
+              Parceiro(a) já nesta agenda. Para outra pessoa, use «+ Outro Entre Nós» acima.
+            </Text>
+          ) : (
+            <>
+              <Text style={[s.sectionInner, { color: colors.textMuted, marginTop: 14 }]}>
+                {selectedIsEntreNos ? "Convidar 1 pessoa neste grupo" : "Convidar pessoa"}
+              </Text>
+              <TextInput
+                value={inviteContact}
+                onChangeText={setInviteContact}
+                placeholder="11 99999-9999 ou email@exemplo.com"
+                placeholderTextColor={colors.textMuted}
+                autoCapitalize="none"
+                autoCorrect={false}
+                style={inputStyle}
+              />
+              <Pressable
+                onPress={onInviteToSelectedCalendar}
+                disabled={inviting}
+                style={[s.inviteBtn, { backgroundColor: colors.primary }]}
+              >
+                {inviting ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={s.inviteBtnText}>
+                    {selectedIsEntreNos ? "Convidar parceiro(a)" : "Convidar"}
+                  </Text>
+                )}
+              </Pressable>
+            </>
+          )}
           {selectedCalendar.is_owner ? (
             <>
               <Pressable

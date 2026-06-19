@@ -332,7 +332,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-17-1.0.26-agenda-voice-ios",
+        "api_build": "2026-06-17-1.0.33-entre-nos",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1091,11 +1091,17 @@ def agenda_drafts_confirm(draft_id: str):
     indices = data.get("item_indices")
     if indices is not None and not isinstance(indices, list):
         indices = None
-    reminders, shopping, errors = night_dump.confirm_draft_items(
+    reminders, shared_events, shopping, errors = night_dump.confirm_draft_items(
         g.supabase, g.user_id, draft_id, indices
     )
     return _json_ok(
-        {"reminders": reminders, "shopping": shopping, "errors": errors, "confirmed": bool(reminders or shopping)}
+        {
+            "reminders": reminders,
+            "shared_events": shared_events,
+            "shopping": shopping,
+            "errors": errors,
+            "confirmed": bool(reminders or shared_events or shopping),
+        }
     )
 
 
@@ -1182,6 +1188,53 @@ def shopping_list_delete(item_id: str):
 
     ok = habits_db.delete_shopping_item(g.supabase, g.user_id, item_id)
     return _json_ok({"deleted": ok})
+
+
+@app.get("/api/v1/delegation-requests/pending")
+@require_auth
+def delegation_requests_pending():
+    from ego_api import delegation_db
+
+    rows = delegation_db.list_pending_incoming(g.supabase, g.user_id)
+    return _json_ok({"requests": rows})
+
+
+@app.post("/api/v1/delegation-requests/<request_id>/confirm")
+@require_auth
+def delegation_requests_confirm(request_id: str):
+    from ego_api import family_pilot
+    from ego_api.api_errors import friendly_api_error
+    from ego_api.monitoring import log_api_exception
+
+    try:
+        rem, err = family_pilot.confirm_delegation(g.supabase, g.user_id, request_id)
+    except Exception as exc:
+        log_api_exception(exc, route="/api/v1/delegation-requests/confirm")
+        return _json_error(friendly_api_error(exc, context="reminder"), 500)
+    if err:
+        return _json_error(err, 400)
+    return _json_ok({"reminder": rem, "confirmed": True})
+
+
+@app.post("/api/v1/delegation-requests/<request_id>/dismiss")
+@require_auth
+def delegation_requests_dismiss(request_id: str):
+    from ego_api import delegation_db
+
+    ok = delegation_db.mark_dismissed(g.supabase, g.user_id, request_id)
+    return _json_ok({"dismissed": ok})
+
+
+@app.post("/api/v1/streaks/activity")
+@require_auth
+@rate_limit(24, 60, scope="user")
+def streaks_record_activity():
+    from ego_api import streaks
+
+    data = request.get_json(silent=True) or {}
+    source = str(data.get("source") or "habit").strip()[:32]
+    streak = streaks.record_streak_activity(g.supabase, g.user_id, source=source)
+    return _json_ok({"streak": streak})
 
 
 @app.post("/api/v1/reminders")
@@ -1398,6 +1451,25 @@ def shared_calendars_events_dismiss(calendar_id: str, event_id: str):
 
     ok = sc.dismiss_event(g.supabase, g.user_id, calendar_id, event_id)
     return _json_ok({"dismissed": ok})
+
+
+@app.post("/api/v1/shared-calendars/<calendar_id>/events/<event_id>/respond")
+@require_auth
+def shared_calendars_events_respond(calendar_id: str, event_id: str):
+    from ego_api import shared_calendars as sc
+
+    data = request.get_json(silent=True) or {}
+    accept = bool(data.get("accept"))
+    ok, err, row = sc.respond_to_event(
+        g.supabase,
+        g.user_id,
+        calendar_id,
+        event_id,
+        accept=accept,
+    )
+    if not ok:
+        return _json_error(err or "Não foi possível registar a resposta.", 400)
+    return _json_ok({"event": row, "accepted": accept})
 
 
 @app.post("/api/v1/auth/logout")

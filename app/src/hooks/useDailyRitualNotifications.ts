@@ -4,6 +4,14 @@ import { useEffect } from "react";
 import type { DailyRitualId } from "@/constants/dailyRituals";
 import { savePendingRitual } from "@/storage/pendingRitual";
 
+function screenFromData(data: unknown): "chat" | "agenda" | null {
+  if (!data || typeof data !== "object") return null;
+  const screen = (data as { screen?: string }).screen;
+  if (screen === "agenda") return "agenda";
+  if (screen === "chat") return "chat";
+  return null;
+}
+
 function ritualFromData(data: unknown): DailyRitualId | null {
   if (!data || typeof data !== "object") return null;
   const ritual = (data as { ritual?: string }).ritual;
@@ -18,14 +26,31 @@ async function openChatWithRitual(ritual: DailyRitualId): Promise<void> {
   router.push("/(main)/chat");
 }
 
-/** Escuta toques nas notificações de ritual (app aberto ou em background). */
+function handleNotificationData(data: unknown): void {
+  const ritual = ritualFromData(data);
+  if (ritual) {
+    void openChatWithRitual(ritual);
+    return;
+  }
+  const type = data && typeof data === "object" ? (data as { type?: string }).type : "";
+    if (
+    type === "delegation_request" ||
+    type === "entre_nos_invite" ||
+    type === "entre_nos_response" ||
+    type === "shared_calendar_invite" ||
+    type === "shared_calendar_response" ||
+    type === "shared_calendar_event" ||
+    screenFromData(data) === "agenda"
+  ) {
+    router.push("/(main)/agenda");
+  }
+}
+
+/** Escuta toques nas notificações de ritual e delegação familiar. */
 export function useDailyRitualNotifications(): void {
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
-      const ritual = ritualFromData(response.notification.request.content.data);
-      if (ritual) {
-        void openChatWithRitual(ritual);
-      }
+      handleNotificationData(response.notification.request.content.data);
     });
     return () => sub.remove();
   }, []);
@@ -34,11 +59,8 @@ export function useDailyRitualNotifications(): void {
     void (async () => {
       const last = await Notifications.getLastNotificationResponseAsync();
       if (!last) return;
-      const ritual = ritualFromData(last.notification.request.content.data);
-      if (ritual) {
-        await openChatWithRitual(ritual);
-        await Notifications.clearLastNotificationResponseAsync();
-      }
+      handleNotificationData(last.notification.request.content.data);
+      await Notifications.clearLastNotificationResponseAsync();
     })();
   }, []);
 }

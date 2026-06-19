@@ -23,6 +23,7 @@ import {
 import { markSharedCalendarEventsSeen } from "@/utils/sharedCalendarNotifications";
 import { memberDisplayName, membersGroupLine } from "@/utils/sharedCalendarMembers";
 import { formatScheduledLocal } from "@/utils/scheduleTime";
+import { entreNosPartnerSlotFull, isEntreNosCalendarName } from "@/utils/entreNos";
 import type { SharedCalendar, SharedCalendarEvent } from "@/api/types";
 import { ScreenShell } from "@/components/ScreenShell";
 import { useAuth } from "@/context/AuthContext";
@@ -134,8 +135,19 @@ export default function SharedCalendarDetailScreen() {
   const events = sortEvents((cal?.events ?? []).filter((ev) => !ev.dismissed));
   const members = cal?.members ?? [];
   const calName = cal?.name?.trim() || "Agenda compartilhada";
+  const isEntreNos = isEntreNosCalendarName(calName);
+  const entreNosFull = isEntreNos
+    ? entreNosPartnerSlotFull(cal?.member_count ?? members.length)
+    : false;
 
   const onInviteContact = async () => {
+    if (entreNosFull) {
+      Alert.alert(
+        "Entre Nós",
+        "Nesta agenda já há uma pessoa. Crie outra agenda Entre Nós para convidar alguém diferente."
+      );
+      return;
+    }
     const contact = inviteContact.trim();
     if (!contact) {
       Alert.alert("Convite", "Digite telefone ou e-mail.");
@@ -407,9 +419,15 @@ export default function SharedCalendarDetailScreen() {
             )}
 
             <Text style={[styles.section, { color: colors.textMuted }]}>Gerenciar membros</Text>
-            <View style={[styles.inviteBox, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
+            {entreNosFull ? (
+              <Text style={[styles.muted, { color: colors.textMuted, marginBottom: 12 }]}>
+                Esta agenda já tem duas pessoas. Crie «+ Outro Entre Nós» na aba Agenda para
+                outra pessoa.
+              </Text>
+            ) : (
+              <View style={[styles.inviteBox, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
                 <Text style={[styles.inviteLabel, { color: colors.textMuted }]}>
-                  Convidar por telefone ou e-mail
+                  {isEntreNos ? "Convidar parceiro(a)" : "Convidar por telefone ou e-mail"}
                 </Text>
                 <TextInput
                   value={inviteContact}
@@ -432,10 +450,13 @@ export default function SharedCalendarDetailScreen() {
                   {inviting ? (
                     <ActivityIndicator color="#fff" />
                   ) : (
-                    <Text style={styles.inviteBtnText}>Convidar</Text>
+                    <Text style={styles.inviteBtnText}>
+                      {isEntreNos ? "Convidar parceiro(a)" : "Convidar"}
+                    </Text>
                   )}
                 </Pressable>
               </View>
+            )}
             {members.length === 0 ? (
               <Text style={[styles.muted, { color: colors.textMuted }]}>
                 Nenhum membro listado.

@@ -1307,7 +1307,7 @@ def list_reminders_enriched(supabase: Client | None, user_id: str) -> list[dict]
 
 def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
     """Um único payload para o painel (evita vários GET no cliente)."""
-    from ego_api import habits_db
+    from ego_api import delegation_db, habits_db, streaks
     from ego_api.config import gemini_api_key, supabase_anon_key, supabase_url
 
     access = _bootstrap_section(
@@ -1338,6 +1338,22 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
             "shopping_orphans",
             lambda: habits_db.list_shopping_items(supabase, user_id, orphans_only=True),
             [],
+        ),
+        "delegation_requests": _bootstrap_section(
+            "delegation_requests",
+            lambda: delegation_db.list_pending_incoming(supabase, user_id),
+            [],
+        ),
+        "streak": _bootstrap_section(
+            "streak",
+            lambda: streaks.get_streak(supabase, user_id),
+            {
+                "current": 0,
+                "longest": 0,
+                "last_date": "",
+                "active_today": False,
+                "at_risk": False,
+            },
         ),
         "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
         "messages": _bootstrap_section(

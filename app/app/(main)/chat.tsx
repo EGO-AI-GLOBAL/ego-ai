@@ -30,6 +30,7 @@ import {
 import { ChatDayStrip } from "@/components/ChatDayStrip";
 import { ScreenShell } from "@/components/ScreenShell";
 import { PersonaPicker } from "@/components/PersonaPicker";
+import { StreakBadge } from "@/components/StreakBadge";
 import { SpeakingAvatar } from "@/components/SpeakingAvatar";
 import { findAvatarInCatalog } from "@/constants/avatarCatalog";
 import { accountPersona, isMaleAvatar } from "@/constants/personas";
@@ -137,7 +138,7 @@ export default function ChatScreen() {
     setNightDumpMode(true);
     setChatError(null);
     setChatNotice(
-      "Modo descarrego: segure o microfone ou escreva e envie. Depois abra a Agenda — Agendar ou Excluir."
+      "Modo desabafo: segure o microfone ou escreva e envie. Depois abra a Agenda — Agendar ou Excluir."
     );
   }, []);
 
@@ -152,7 +153,7 @@ export default function ChatScreen() {
       setChatNotice(
         n > 0
           ? `${n} item(ns) na Agenda — abra a aba Agenda e use Agendar ou Excluir.`
-          : "Descarrego guardado. Abra a Agenda e puxe para baixo para atualizar."
+          : "Desabafo guardado. Abra a Agenda e puxe para baixo para atualizar."
       );
       void refresh({ skipNotifications: true });
     },
@@ -400,6 +401,18 @@ export default function ChatScreen() {
     (textLimit > 0 && textUsed >= textLimit);
   const isDailyLimitFromError = /limite\s+di[aá]rio\s+atingido/i.test(chatError || "");
   const isDailyLimitReached = isDailyLimitFromAccess || isDailyLimitFromError;
+
+  const onNightDumpPress = useCallback(() => {
+    if (isDailyLimitReached) {
+      Alert.alert(
+        "Limite diário",
+        "O desabafo usa a mesma cota do chat. Espere até 00:00 ou assine um plano para continuar."
+      );
+      return;
+    }
+    if (nightDumpMode) cancelNightDump();
+    else startNightDump();
+  }, [isDailyLimitReached, nightDumpMode, cancelNightDump, startNightDump]);
 
   const withUserRef = (url: string | null) => {
     if (!url) return null;
@@ -707,12 +720,12 @@ export default function ChatScreen() {
     ]);
     try {
       if (nightDumpMode) {
-        setChatNotice("A processar descarrego…");
+        setChatNotice("A processar desabafo…");
         const raw = await voice.stopRecordingRaw();
         const dump = raw.blob
           ? await submitNightDumpBlob(raw.blob)
           : await submitNightDumpFromUri({ uri: raw.uri || "", audioMime: raw.mime });
-        const userLabel = dump.transcript?.trim() || "Descarrego da noite";
+        const userLabel = dump.transcript?.trim() || "Desabafo da noite";
         const reply =
           dump.comfort_reply?.trim() ||
           "Recebi o que você compartilhou. Amanhã confirme na Agenda.";
@@ -890,14 +903,14 @@ export default function ChatScreen() {
           void saveAutoPlayVoice(true);
         }
         const intro =
-          "Descarrego agora: segure o microfone ou escreva. Depois confirme na Agenda (Agendar / Excluir).";
+          "Desabafo agora: segure o microfone ou escreva. Depois confirme na Agenda (Agendar / Excluir).";
         setChatNotice(intro);
         return;
       }
       const labels: Record<DailyRitualId, string> = {
         morning: "Briefing",
         afternoon: "Ponto",
-        evening: "Descarrego",
+        evening: "Desabafo",
       };
       const prompt = ritualChatPrompt(ritual, assistantName);
       if (ritual === "morning" && !autoPlayVoice) {
@@ -925,7 +938,7 @@ export default function ChatScreen() {
     if (nightDumpMode && typed) {
       setSending(true);
       setChatError(null);
-      setChatNotice("A processar descarrego…");
+      setChatNotice("A processar desabafo…");
       try {
         const dump = await submitNightDumpText(typed);
         const reply =
@@ -939,7 +952,7 @@ export default function ChatScreen() {
           await voice.replayLastText(reply, persona.voice_id, persona.avatar_id);
         }
       } catch (e) {
-        setChatError(e instanceof Error ? e.message : "Erro no descarrego.");
+        setChatError(e instanceof Error ? e.message : "Erro no desabafo.");
       } finally {
         setSending(false);
       }
@@ -980,6 +993,7 @@ export default function ChatScreen() {
             compact
             hideLabel
           />
+          <StreakBadge streak={data.streak} colors={colors} />
           <PersonaPicker
             colors={colors}
             variant="chat"
@@ -1001,82 +1015,6 @@ export default function ChatScreen() {
                 thumbColor={autoPlayVoice ? colors.primary : "#e4e4e7"}
               />
             </View>
-            <View style={styles.voiceActionsRow}>
-              <Pressable
-                onPress={nightDumpMode ? cancelNightDump : startNightDump}
-                disabled={sending || isDailyLimitReached || (micActive && !nightDumpMode)}
-                style={({ pressed }) => [
-                  styles.actionChip,
-                  {
-                    borderColor: colors.primary,
-                    backgroundColor: nightDumpMode ? colors.primary : colors.bgCard,
-                    opacity:
-                      sending || isDailyLimitReached || (micActive && !nightDumpMode)
-                        ? 0.5
-                        : pressed
-                          ? 0.88
-                          : 1,
-                  },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel={
-                  nightDumpMode ? "Cancelar descarrego" : "Descarrego agora"
-                }
-              >
-                <Text
-                  style={[
-                    styles.actionChipText,
-                    { color: nightDumpMode ? "#fff" : colors.primary },
-                  ]}
-                >
-                  Descarrego agora
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => void onListenLastReply()}
-                disabled={!lastChatResult?.reply || voice.isPreparingAudio || sending}
-                style={({ pressed }) => [
-                  styles.actionChip,
-                  {
-                    borderColor: colors.primary,
-                    backgroundColor: colors.bgCard,
-                    opacity:
-                      !lastChatResult?.reply || voice.isPreparingAudio || sending
-                        ? 0.45
-                        : pressed
-                          ? 0.88
-                          : 1,
-                  },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel="Ouvir resposta do assistente"
-              >
-                <Text style={[styles.actionChipText, { color: colors.primary }]}>
-                  {voice.isPreparingAudio ? "A preparar…" : "Ouvir"}
-                </Text>
-              </Pressable>
-            </View>
-            {nightDumpMode ? (
-              <View
-                style={[
-                  styles.nightDumpBanner,
-                  { backgroundColor: colors.primaryLight, borderColor: colors.primary },
-                ]}
-              >
-                <Text style={[styles.nightDumpTitle, { color: colors.text }]}>
-                  Modo descarrego ativo
-                </Text>
-                <Text style={[styles.nightDumpBody, { color: colors.textMuted }]}>
-                  Segure o microfone ou escreva e envie. Os itens vão para a Agenda (Agendar /
-                  Excluir).
-                </Text>
-                <Pressable onPress={cancelNightDump} hitSlop={8}>
-                  <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 13 }}>
-                    Cancelar descarrego
-                  </Text>
-                </Pressable>
-              </View>
-            ) : null}
           </View>
           {audioStatusLabel ? (
             <Text style={[styles.audioStatus, { color: colors.primary }]}>
@@ -1212,6 +1150,84 @@ export default function ChatScreen() {
         </ScrollView>
 
         <View style={styles.composerWrap}>
+          <View style={[styles.dumpStrip, { borderTopColor: colors.border, backgroundColor: colors.bg }]}>
+            <View style={styles.voiceActionsRow}>
+              <Pressable
+                onPress={onNightDumpPress}
+                disabled={sending || (micActive && !nightDumpMode)}
+                style={({ pressed }) => [
+                  styles.actionChip,
+                  {
+                    borderColor: colors.primary,
+                    backgroundColor: nightDumpMode ? colors.primary : colors.bgCard,
+                    opacity:
+                      sending || (micActive && !nightDumpMode)
+                        ? 0.5
+                        : pressed
+                          ? 0.88
+                          : 1,
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel={
+                  nightDumpMode ? "Cancelar desabafo" : "Desabafo agora"
+                }
+              >
+                <Text
+                  style={[
+                    styles.actionChipText,
+                    { color: nightDumpMode ? "#fff" : colors.primary },
+                  ]}
+                >
+                  Desabafo agora
+                </Text>
+              </Pressable>
+              <Pressable
+                onPress={() => void onListenLastReply()}
+                disabled={!lastChatResult?.reply || voice.isPreparingAudio || sending}
+                style={({ pressed }) => [
+                  styles.actionChip,
+                  {
+                    borderColor: colors.primary,
+                    backgroundColor: colors.bgCard,
+                    opacity:
+                      !lastChatResult?.reply || voice.isPreparingAudio || sending
+                        ? 0.45
+                        : pressed
+                          ? 0.88
+                          : 1,
+                  },
+                ]}
+                accessibilityRole="button"
+                accessibilityLabel="Ouvir resposta do assistente"
+              >
+                <Text style={[styles.actionChipText, { color: colors.primary }]}>
+                  {voice.isPreparingAudio ? "A preparar…" : "Ouvir"}
+                </Text>
+              </Pressable>
+            </View>
+            {nightDumpMode ? (
+              <View
+                style={[
+                  styles.nightDumpBanner,
+                  { backgroundColor: colors.primaryTint, borderColor: colors.primary },
+                ]}
+              >
+                <Text style={[styles.nightDumpTitle, { color: colors.text }]}>
+                  Modo desabafo ativo
+                </Text>
+                <Text style={[styles.nightDumpBody, { color: colors.textMuted }]}>
+                  Segure o microfone ou escreva e envie. Os itens vão para a Agenda (Agendar /
+                  Excluir).
+                </Text>
+                <Pressable onPress={cancelNightDump} hitSlop={8}>
+                  <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 13 }}>
+                    Cancelar desabafo
+                  </Text>
+                </Pressable>
+              </View>
+            ) : null}
+          </View>
           {pdfCharCount > 0 ? (
             <View
               style={[
@@ -1259,7 +1275,7 @@ export default function ChatScreen() {
             onSend={onSendText}
             placeholder={
               nightDumpMode
-                ? "Escreva o descarrego e toque enviar…"
+                ? "Escreva o desabafo e toque enviar…"
                 : composerPlaceholder
             }
             sending={sending}
@@ -1306,6 +1322,13 @@ const styles = StyleSheet.create({
     zIndex: 2,
     width: "100%",
     maxWidth: "100%",
+  },
+  dumpStrip: {
+    paddingHorizontal: 12,
+    paddingTop: 8,
+    paddingBottom: 4,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: 8,
   },
   listenBtnInline: {
     paddingVertical: 6,

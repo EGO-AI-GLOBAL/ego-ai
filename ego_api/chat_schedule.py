@@ -1486,6 +1486,7 @@ def process_shared_event(
         title=title,
         scheduled_at=scheduled_at,
         announce=title,
+        partner_invite=False,
     )
     if ok and event:
         events.append(event)
@@ -1591,6 +1592,7 @@ def process_shared_setup(
             title=title,
             scheduled_at=scheduled_at,
             announce=title,
+            partner_invite=False,
         )
         if ok and event:
             events.append(event)
@@ -1642,12 +1644,14 @@ def process_shared_invite(
         ok, err, mem = sc.add_member_by_email(supabase, user_id, calendar_id, em)
         if ok and mem:
             added.append(mem)
+            sc.push_after_member_invited(calendar_id, user_id, mem)
         elif err:
             warnings.append(f"{em}: {err}")
     for ph in phones:
         ok, err, mem = sc.add_member_by_phone(supabase, user_id, calendar_id, ph)
         if ok and mem:
             added.append(mem)
+            sc.push_after_member_invited(calendar_id, user_id, mem)
         elif err:
             warnings.append(f"{ph}: {err}")
 
