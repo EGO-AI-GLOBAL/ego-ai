@@ -9,16 +9,16 @@ from typing import Any
 
 
 def calendar_name_key(name: str) -> str:
-    """Compara nomes sem diferir maiúsculas nem acentos (Família = familia)."""
+    """Compara nomes sem diferir maiúsculas, acentos, espaços nem pontuação."""
     raw = unicodedata.normalize("NFD", (name or "").strip().lower())
-    return "".join(c for c in raw if unicodedata.category(c) != "Mn")
+    ascii_only = "".join(c for c in raw if unicodedata.category(c) != "Mn")
+    return re.sub(r"[^a-z0-9]", "", ascii_only)
 
 
 ENTRE_NOS_NAME_KEYS = frozenset(
     {
         "entrenos",
         "nosdois",
-        "nósdois",
         "familia",
         "family",
         "casa",
@@ -28,11 +28,11 @@ ENTRE_NOS_NAME_KEYS = frozenset(
 
 
 def is_entre_nos_calendar(name: str) -> bool:
-    """Agenda de casal (Entre Nós) — convites manuais pedem confirmação do parceiro."""
+    """Agenda casal 1-a-1 (prefixo «Entre Nós · …») — confirmar/recusar convites."""
     key = calendar_name_key(name)
-    if key in ENTRE_NOS_NAME_KEYS:
-        return True
-    return "entrenos" in key or key.startswith("entrenos")
+    if not key:
+        return False
+    return key == "entrenos" or key.startswith("entrenos")
 
 
 def _normalize_event_row(row: dict) -> dict:

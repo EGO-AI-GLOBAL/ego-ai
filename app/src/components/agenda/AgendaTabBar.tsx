@@ -16,7 +16,7 @@ export function AgendaTabBar({ tab, onChange, colors }: Props) {
       {(
         [
           ["personal", "Agenda pessoal"],
-          ["shared", "Entre Nós"],
+          ["shared", "Agenda compartilhada"],
         ] as const
       ).map(([id, label]) => {
         const active = tab === id;

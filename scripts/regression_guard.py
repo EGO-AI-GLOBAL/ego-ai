@@ -51,8 +51,16 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["createReminder", "dismissReminder", "createAgendaItem", "+ Novo compromisso"],
     ),
     (
+        "app/src/components/agenda/ClassicSharedAgendaSection.tsx",
+        ["createSharedCalendar", "createSharedCalendarEvent", "dismissSharedCalendarEvent", "+ Nova agenda compartilhada"],
+    ),
+    (
+        "app/src/components/agenda/EntreNosAgendaSection.tsx",
+        ["createSharedCalendar", "createSharedCalendarEvent", "respondEntreNosEvent", "Criar Entre Nós"],
+    ),
+    (
         "app/src/components/agenda/SharedAgendaManual.tsx",
-        ["createSharedCalendar", "createSharedCalendarEvent", "dismissSharedCalendarEvent"],
+        ["ClassicSharedAgendaSection", "EntreNosAgendaSection"],
     ),
     (
         "flask_api.py",

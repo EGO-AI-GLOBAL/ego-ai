@@ -2,15 +2,21 @@
 export const ENTRE_NOS_MAX_MEMBERS = 2;
 export const ENTRE_NOS_MAX_CALENDARS = 10;
 
-export function isEntreNosCalendarName(name: string): boolean {
-  const raw = (name || "")
+/** Chave estável para comparar nomes (acentos, espaços e pontuação ignorados). */
+export function calendarNameKey(name: string): string {
+  return (name || "")
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-  const keys = new Set(["entrenos", "nosdois", "familia", "family", "casa", "casal"]);
-  if (keys.has(raw)) return true;
-  return raw.includes("entrenos");
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
+export function isEntreNosCalendarName(name: string): boolean {
+  const key = calendarNameKey(name);
+  if (!key) return false;
+  /** Só grupos «Entre Nós · …» — Família/trabalho ficam na agenda compartilhada clássica. */
+  return key === "entrenos" || key.startsWith("entrenos");
 }
 
 /** Nome do grupo escolhido → «Entre Nós · Maria». */

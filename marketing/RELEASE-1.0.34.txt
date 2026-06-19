@@ -1,0 +1,37 @@
+EGO-AI 1.0.34 — hotfix agenda compartilhada + Entre Nós
+========================================================
+
+CORRIGE (1.0.33)
+----------------
+• Aba volta a chamar-se «Agenda compartilhada» (não Entre Nós no topo)
+• Em cima: agenda compartilhada clássica (Família, várias pessoas) — como antes
+• Em baixo: secção «Entre Nós» (você + 1 pessoa, confirmar/recusar)
+• Grupos «Entre Nós · …» voltam a aparecer + campo Convidar parceiro(a)
+• Família deixa de ser limitada a 2 pessoas por engano
+
+MANTÉM (1.0.33)
+-----------------
+• Desabafo agora, ofensivas, streaks, delegação
+
+BUILDS
+------
+• iOS: 1.0.34 build 17
+• Android: 1.0.34 versionCode 66
+
+DEPLOY (ordem)
+--------------
+1. DEPLOY-API-1.0.34.bat          (SEM SQL — Supabase 1.0.33 já OK)
+2. Railway: EGO_LATEST_APP_VERSION=1.0.34
+            EGO_LATEST_ANDROID_VERSION_CODE=66
+3. GERAR-1.0.34.bat
+4. SUBMIT-IOS-1.0.34.bat
+5. PUBLICAR-1.0.34-PLAY.bat (upload AAB 66)
+6. VALIDAR-1.0.34.bat (2 celulares)
+
+NOTAS PLAY / TESTFLIGHT
+-----------------------
+Novidades 1.0.34
+
+• Agenda compartilhada (Família) restaurada como antes
+• Entre Nós em baixo: você + 1 pessoa, confirmar ou recusar convites
+• Correção: grupos Entre Nós voltam a aparecer após criar
