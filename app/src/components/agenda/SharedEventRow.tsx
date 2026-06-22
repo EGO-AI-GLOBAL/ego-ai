@@ -12,6 +12,7 @@ type Props = {
   creatorLabel?: string;
   onDismiss?: (eventId: string) => void;
   onRespond?: (eventId: string, accept: boolean) => void;
+  onShareWhatsApp?: () => void;
   busy?: boolean;
 };
 
@@ -50,6 +51,7 @@ export function SharedEventRow({
   creatorLabel,
   onDismiss,
   onRespond,
+  onShareWhatsApp,
   busy,
 }: Props) {
   const id = String(event.id || "");
@@ -82,6 +84,18 @@ export function SharedEventRow({
         </Text>
         {statusLine ? (
           <Text style={[styles.status, { color: statusColor }]}>{statusLine}</Text>
+        ) : null}
+        {onShareWhatsApp && status === "pending" && isCreator ? (
+          <Pressable
+            onPress={onShareWhatsApp}
+            disabled={busy}
+            style={[
+              styles.waBtn,
+              { borderColor: "#25D366", opacity: busy ? 0.6 : 1 },
+            ]}
+          >
+            <Text style={styles.waBtnText}>Avisar no WhatsApp</Text>
+          </Pressable>
         ) : null}
         {canRespond ? (
           <View style={styles.respondRow}>
@@ -164,6 +178,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   respondBtnOutlineText: { fontWeight: "700", fontSize: 13 },
+  waBtn: {
+    alignSelf: "flex-start",
+    marginTop: 8,
+    borderWidth: 1.5,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  waBtnText: { color: "#128C7E", fontWeight: "800", fontSize: 13 },
   actionBtn: {
     paddingHorizontal: 10,
     paddingVertical: 6,

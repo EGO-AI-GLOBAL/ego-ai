@@ -19,17 +19,19 @@ import {
 } from "@/api/client";
 import type { SharedCalendar } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
-import {
-  memberDisplayName,
-  membersCardLine,
-  membersGroupLine,
-} from "@/utils/sharedCalendarMembers";
+import { shareEntreNosEventWhatsApp, shareEntreNosInviteWhatsApp } from "@/utils/whatsappShare";
+import { formatScheduledLocal } from "@/utils/scheduleTime";
 import {
   canCreateMoreEntreNos,
   ENTRE_NOS_MAX_CALENDARS,
   entreNosPartnerSlotFull,
   normalizeEntreNosGroupName,
 } from "@/utils/entreNos";
+import {
+  memberDisplayName,
+  membersCardLine,
+  membersGroupLine,
+} from "@/utils/sharedCalendarMembers";
 import { AgendaDateTimeFields } from "./AgendaDateTimeFields";
 import { AgendaQuickPick } from "./AgendaQuickPick";
 import { agendaFormStyles as s } from "./agendaFormStyles";
@@ -164,9 +166,24 @@ export function EntreNosAgendaSection({
       setShowSharedEventForm(false);
       setSharedEventTitle("");
       await onRefresh();
+      const whenLabel = formatScheduledLocal(iso);
+      const groupName = (selectedCalendar.name || "Entre Nós").trim();
       Alert.alert(
         "Convite enviado",
-        "A outra pessoa confirma ou recusa — vocês dois veem a resposta."
+        "A outra pessoa confirma ou recusa no app.",
+        [
+          { text: "OK", style: "cancel" },
+          {
+            text: "Avisar no WhatsApp",
+            onPress: () => {
+              void shareEntreNosEventWhatsApp({
+                groupName,
+                title,
+                whenLabel,
+              });
+            },
+          },
+        ]
       );
     } catch (e) {
       Alert.alert("Erro", e instanceof Error ? e.message : "Não foi possível enviar.");
@@ -199,7 +216,20 @@ export function EntreNosAgendaSection({
         member.status === "pending" ? "Convite enviado" : "Adicionado",
         member.status === "pending"
           ? `${label} verá quando entrar no EGO com o mesmo contacto.`
-          : `${label} já tem acesso.`
+          : `${label} já tem acesso.`,
+        member.status === "pending"
+          ? [
+              { text: "OK", style: "cancel" },
+              {
+                text: "Convidar no WhatsApp",
+                onPress: () => {
+                  void shareEntreNosInviteWhatsApp(
+                    (selectedCalendar?.name || "Entre Nós").trim()
+                  );
+                },
+              },
+            ]
+          : undefined
       );
     } catch (e) {
       Alert.alert("Convite", e instanceof Error ? e.message : "Não foi possível convidar.");
@@ -418,6 +448,13 @@ export function EntreNosAgendaSection({
                         setActionBusy(null);
                       }
                     }}
+                    onShareWhatsApp={() => {
+                      void shareEntreNosEventWhatsApp({
+                        groupName: (selectedCalendar.name || "Entre Nós").trim(),
+                        title: String(ev.title || "Compromisso"),
+                        whenLabel: formatScheduledLocal(ev.scheduled_at),
+                      });
+                    }}
                     busy={actionBusy === eid}
                   />
                 );
@@ -449,6 +486,26 @@ export function EntreNosAgendaSection({
                     ) : (
                       <Text style={s.inviteBtnText}>Convidar parceiro(a)</Text>
                     )}
+                  </Pressable>
+                  <Pressable
+                    onPress={() =>
+                      void shareEntreNosInviteWhatsApp(
+                        (selectedCalendar?.name || "Entre Nós").trim()
+                      )
+                    }
+                    style={[
+                      s.inviteBtn,
+                      {
+                        backgroundColor: colors.bgCard,
+                        borderWidth: 1.5,
+                        borderColor: "#25D366",
+                        marginTop: 8,
+                      },
+                    ]}
+                  >
+                    <Text style={[s.inviteBtnText, { color: "#128C7E" }]}>
+                      Convidar pelo WhatsApp
+                    </Text>
                   </Pressable>
                 </>
               )}

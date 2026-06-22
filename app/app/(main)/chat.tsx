@@ -31,6 +31,7 @@ import { ChatDayStrip } from "@/components/ChatDayStrip";
 import { ScreenShell } from "@/components/ScreenShell";
 import { PersonaPicker } from "@/components/PersonaPicker";
 import { StreakBadge } from "@/components/StreakBadge";
+import { StreakShareModal } from "@/components/StreakShareModal";
 import { SpeakingAvatar } from "@/components/SpeakingAvatar";
 import { findAvatarInCatalog } from "@/constants/avatarCatalog";
 import { accountPersona, isMaleAvatar } from "@/constants/personas";
@@ -67,6 +68,7 @@ import {
 } from "@/constants/saveCelebration";
 import { consumePendingRitual } from "@/storage/pendingRitual";
 import { computeDayProgress } from "@/utils/dayProgress";
+import { streakAvatarSubtitle } from "@/utils/streakReactions";
 import {
   buildChatOnboardingMessage,
   buildChatOnboardingSpeech,
@@ -129,36 +131,16 @@ export default function ChatScreen() {
   const ritualPendingRef = useRef<DailyRitualId | null>(null);
   const [nightDumpMode, setNightDumpMode] = useState(false);
   const [saveCelebrationLine, setSaveCelebrationLine] = useState<string | null>(null);
+  const [streakShareOpen, setStreakShareOpen] = useState(false);
 
   useEffect(() => {
     void loadAutoPlayVoice().then(setAutoPlayVoice);
-  }, []);
-
-  const startNightDump = useCallback(() => {
-    setNightDumpMode(true);
-    setChatError(null);
-    setChatNotice(
-      "Modo desabafo: segure o microfone ou escreva e envie. Depois abra a Agenda — Agendar ou Excluir."
-    );
   }, []);
 
   const cancelNightDump = useCallback(() => {
     setNightDumpMode(false);
     setChatNotice(null);
   }, []);
-
-  const finishNightDump = useCallback(
-    (dump: { items?: { length: number }; comfort_reply?: string }) => {
-      const n = dump.items?.length ?? 0;
-      setChatNotice(
-        n > 0
-          ? `${n} item(ns) na Agenda — abra a aba Agenda e use Agendar ou Excluir.`
-          : "Desabafo guardado. Abra a Agenda e puxe para baixo para atualizar."
-      );
-      void refresh({ skipNotifications: true });
-    },
-    [refresh]
-  );
 
   const dayProgress = useMemo(() => computeDayProgress(data), [data]);
   const composerPlaceholder = useMemo(
@@ -176,6 +158,30 @@ export default function ChatScreen() {
     findAvatarInCatalog(persona.avatar_id)?.shortName ??
     (isMaleAvatar(persona.avatar_id) ? "Leo" : "Luna");
   const voice = useVoiceChat();
+
+  const finishNightDump = useCallback(
+    (dump: { items?: { length: number }; comfort_reply?: string }) => {
+      const n = dump.items?.length ?? 0;
+      setChatNotice(
+        n > 0
+          ? `Desabafo recebido. Amanhã de manhã abra a Agenda — a ${assistantName} separou ${n} item(ns) para você confirmar.`
+          : "Desabafo guardado. Amanhã de manhã veja a Agenda — ou puxe para baixo para atualizar."
+      );
+      void refresh({ skipNotifications: true });
+    },
+    [refresh, assistantName]
+  );
+
+  const startNightDump = useCallback(() => {
+    void voice.stopPlayback();
+    void voice.cancelRecording();
+    setNightDumpMode(true);
+    setChatError(null);
+    setChatNotice(
+      "Desabafo das 22h: fale ou escreva. Amanhã de manhã a agenda aparece para você confirmar."
+    );
+  }, [voice.stopPlayback, voice.cancelRecording]);
+
   const {
     messages: localMessages,
     setMessages: setLocalMessages,
@@ -390,7 +396,8 @@ export default function ChatScreen() {
       ? `${assistantName} está falando…`
       : micActive
         ? `${assistantName} está ouvindo…`
-        : `${assistantName} · pronto para ajudar`;
+        : streakAvatarSubtitle(data.streak, assistantName) ??
+          `${assistantName} · pronto para ajudar`;
   const checkout = data.me?.stripe_checkout;
   const access = data.access;
   const userPlanTier = access?.plan_tier || "essential";
@@ -728,7 +735,7 @@ export default function ChatScreen() {
         const userLabel = dump.transcript?.trim() || "Desabafo da noite";
         const reply =
           dump.comfort_reply?.trim() ||
-          "Recebi o que você compartilhou. Amanhã confirme na Agenda.";
+          `Recebi o que você compartilhou. Amanhã de manhã confirme na Agenda.`;
         setPendingChat([
           { role: "user", content: userLabel },
           { role: "assistant", content: reply },
@@ -943,7 +950,7 @@ export default function ChatScreen() {
         const dump = await submitNightDumpText(typed);
         const reply =
           dump.comfort_reply?.trim() ||
-          "Recebi. Amanhã confirme na Agenda.";
+          "Recebi. Amanhã de manhã confirme na Agenda.";
         await saveExchange(typed, reply, { userWasVoice: false });
         setChatInput("");
         setNightDumpMode(false);
@@ -993,7 +1000,18 @@ export default function ChatScreen() {
             compact
             hideLabel
           />
-          <StreakBadge streak={data.streak} colors={colors} />
+          <StreakBadge
+            streak={data.streak}
+            colors={colors}
+            onSharePress={() => setStreakShareOpen(true)}
+          />
+          <StreakShareModal
+            colors={colors}
+            streak={data.streak}
+            assistantName={assistantName}
+            visible={streakShareOpen}
+            onClose={() => setStreakShareOpen(false)}
+          />
           <PersonaPicker
             colors={colors}
             variant="chat"
@@ -1217,8 +1235,8 @@ export default function ChatScreen() {
                   Modo desabafo ativo
                 </Text>
                 <Text style={[styles.nightDumpBody, { color: colors.textMuted }]}>
-                  Segure o microfone ou escreva e envie. Os itens vão para a Agenda (Agendar /
-                  Excluir).
+                  Fale ou escreva tudo. Amanhã de manhã {assistantName} separa sua agenda — você só
+                  confirma com Agendar ou Excluir.
                 </Text>
                 <Pressable onPress={cancelNightDump} hitSlop={8}>
                   <Text style={{ color: colors.primary, fontWeight: "700", fontSize: 13 }}>

@@ -7,6 +7,11 @@ import {
 } from "@/api/client";
 import type { AgendaDraft, AgendaDraftItem } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import {
+  amanhaReveladoDraftHint,
+  amanhaReveladoDraftTitle,
+  isNightRevealWindow,
+} from "@/utils/amanhaRevelado";
 import { formatScheduledLocal } from "@/utils/scheduleTime";
 import { agendaFormStyles as s } from "./agendaFormStyles";
 
@@ -48,6 +53,8 @@ export function AgendaDraftsBanner({
   familyOnly?: boolean;
 }) {
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const nightReveal = isNightRevealWindow();
+  const [showPreview, setShowPreview] = useState(() => !isNightRevealWindow());
   const pending = drafts.filter((d) => (d.status || "pending") === "pending");
   const draft = pending[0];
   const draftId = draft ? String(draft.id || "") : "";
@@ -73,6 +80,8 @@ export function AgendaDraftsBanner({
   }, [draftId, allItems.length, onRefresh]);
 
   if (!pending.length || visibleEntries.length === 0) return null;
+
+  const revealCollapsed = nightReveal && !showPreview;
 
   const onAgendar = async (idx: number) => {
     if (!draftId) return;
@@ -172,14 +181,27 @@ export function AgendaDraftsBanner({
         }}
       >
         <Text style={[s.section, { color: colors.primary, marginBottom: 0, marginTop: 0 }]}>
-          {familyOnly ? "Do desabafo — Entre Nós" : "Do desabafo da noite"}
+          {nightReveal
+            ? familyOnly
+              ? "🌙 Amanhã revelado — Entre Nós"
+              : "🌙 Amanhã revelado"
+            : familyOnly
+              ? "Do desabafo — Entre Nós"
+              : "Do desabafo da noite"}
         </Text>
       </View>
       <Text style={[s.muted, { color: colors.textMuted, marginBottom: 8 }]}>
-        {familyOnly
-          ? "Grava na agenda Entre Nós — seu parceiro vê ao abrir a Agenda."
-          : "Revise item a item — Agendar grava na agenda pessoal; Excluir descarta só este."}
+        {revealCollapsed
+          ? amanhaReveladoDraftHint()
+          : familyOnly
+            ? "Grava na agenda Entre Nós — seu parceiro vê ao abrir a Agenda."
+            : "Revise item a item — Agendar grava na agenda pessoal; Excluir descarta só este."}
       </Text>
+      {revealCollapsed ? (
+        <Text style={[s.muted, { color: colors.text, marginBottom: 10, fontWeight: "700" }]}>
+          {amanhaReveladoDraftTitle(visibleEntries.length)}
+        </Text>
+      ) : null}
       {draft.comfort_reply ? (
         <Text
           style={[
@@ -197,7 +219,16 @@ export function AgendaDraftsBanner({
           {draft.comfort_reply}
         </Text>
       ) : null}
-      {visibleEntries.map(({ it, idx }) => {
+      {revealCollapsed ? (
+        <Pressable
+          onPress={() => setShowPreview(true)}
+          style={[s.inviteBtn, { backgroundColor: colors.primary, marginBottom: 8 }]}
+        >
+          <Text style={s.inviteBtnText}>Ver prévia agora</Text>
+        </Pressable>
+      ) : null}
+      {!revealCollapsed
+        ? visibleEntries.map(({ it, idx }) => {
         const rowBusy = busyKey === `agendar-${idx}` || busyKey === `excluir-${idx}`;
         return (
           <View
@@ -252,8 +283,9 @@ export function AgendaDraftsBanner({
             </View>
           </View>
         );
-      })}
-      {visibleEntries.length > 1 ? (
+      })
+        : null}
+      {!revealCollapsed && visibleEntries.length > 1 ? (
         <Pressable
           onPress={() => void onAgendarTodos()}
           disabled={!!busyKey}
@@ -273,6 +305,7 @@ export function AgendaDraftsBanner({
           )}
         </Pressable>
       ) : null}
+      {!revealCollapsed ? (
       <Pressable
         onPress={onDismissAll}
         disabled={!!busyKey}
@@ -282,6 +315,7 @@ export function AgendaDraftsBanner({
           Ignorar tudo
         </Text>
       </Pressable>
+      ) : null}
     </View>
   );
 }
