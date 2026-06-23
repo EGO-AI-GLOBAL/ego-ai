@@ -1,0 +1,13 @@
+Play Console — 1.0.42 (versionCode 77)
+
+O que há de novo
+---------------
+• Missões diárias nos Monstrinhos do Humor (estilo Finch)
+• Sementes e recompensas ao completar cada missão
+• Decorações desbloqueáveis no jardim
+• Aventura do monstrinho após o check-in
+
+Testar
+------
+Menu Monstrinhos → check-in → missão Respirar → missão Buscar monstrinho
+Ver contador de sementes e decorações no jardim

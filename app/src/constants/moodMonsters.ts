@@ -68,6 +68,15 @@ export const GARDEN_DECOR: Record<number, string[]> = {
   5: ["🌈", "🌳", "🌺", "✨"],
 };
 
+/** Posições fixas para decorações desbloqueadas (estilo Finch). */
+export const DECOR_POSITIONS: Record<string, { left: string; top: number; size: number }> = {
+  flowers: { left: "8%", top: 52, size: 26 },
+  butterfly: { left: "78%", top: 38, size: 24 },
+  fountain: { left: "42%", top: 62, size: 28 },
+  treehouse: { left: "68%", top: 48, size: 30 },
+  rainbow: { left: "22%", top: 28, size: 32 },
+};
+
 export function moodKeyOrDefault(key?: string): MoodKey {
   if (key && key in MOOD_PALETTES) return key as MoodKey;
   return "ok";

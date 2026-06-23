@@ -60,6 +60,18 @@ MONSTER_LINES: dict[str, list[str]] = {
 
 DEFAULT_MONSTER_LINE = "Escolha o monstrinho do seu humor hoje."
 
+SEEDS_CHECKIN = 5
+SEEDS_BREATHE = 2
+SEEDS_ADVENTURE = 3
+
+DECOR_UNLOCKS: list[dict[str, str | int]] = [
+    {"id": "flowers", "emoji": "🌷", "min_days": 1, "label": "Flores"},
+    {"id": "butterfly", "emoji": "🦋", "min_days": 3, "label": "Borboleta"},
+    {"id": "fountain", "emoji": "⛲", "min_days": 7, "label": "Fonte"},
+    {"id": "treehouse", "emoji": "🏡", "min_days": 14, "label": "Casinha"},
+    {"id": "rainbow", "emoji": "🌈", "min_days": 30, "label": "Arco-íris"},
+]
+
 def _garden_for_days(days: int) -> dict[str, str | int]:
     picked = GARDEN_STAGES[0]
     for g in GARDEN_STAGES:
@@ -82,10 +94,17 @@ def _monster_line(mood_key: str, checked_today: bool) -> str:
     return pool[idx]
 
 
-def _daily_mission(checked_today: bool, current: int) -> dict[str, str]:
+def _daily_mission(checked_today: bool, current: int, goals: list[dict]) -> dict[str, str]:
+    pending = [g for g in goals if not g.get("done") and not g.get("locked")]
+    if pending:
+        nxt = pending[0]
+        return {
+            "text": f"Missão: {nxt.get('label', 'cuidar do jardim')}",
+            "action": str(nxt.get("key") or "checkin"),
+        }
     if checked_today:
         return {
-            "text": "Missão de hoje concluída! Volte amanhã.",
+            "text": "Todas as missões de hoje concluídas! Volte amanhã.",
             "action": "done",
         }
     if current >= 1:
@@ -96,6 +115,83 @@ def _daily_mission(checked_today: bool, current: int) -> dict[str, str]:
     return {
         "text": "Missão: conhecer seu primeiro monstrinho do humor.",
         "action": "checkin",
+    }
+
+
+def _decor_unlocked(current: int) -> list[dict[str, str | int]]:
+    return [
+        {
+            "id": str(d["id"]),
+            "emoji": str(d["emoji"]),
+            "label": str(d["label"]),
+            "min_days": int(d["min_days"]),
+        }
+        for d in DECOR_UNLOCKS
+        if current >= int(d["min_days"])
+    ]
+
+
+def _daily_goals(raw: dict, today: str, checked_today: bool) -> list[dict]:
+    breathe_done = str(raw.get("breathe_date") or "") == today
+    adv_collected = checked_today and bool(raw.get("adventure_collected"))
+    return [
+        {
+            "key": "checkin",
+            "label": "Registrar seu humor",
+            "emoji": "💜",
+            "done": checked_today,
+            "seeds_reward": SEEDS_CHECKIN,
+            "locked": False,
+        },
+        {
+            "key": "breathe",
+            "label": "Respirar fundo 3 vezes",
+            "emoji": "🌬️",
+            "done": breathe_done,
+            "seeds_reward": SEEDS_BREATHE,
+            "locked": not checked_today,
+        },
+        {
+            "key": "adventure",
+            "label": "Buscar o monstrinho na aventura",
+            "emoji": "🎒",
+            "done": adv_collected,
+            "seeds_reward": SEEDS_ADVENTURE,
+            "locked": not checked_today,
+        },
+    ]
+
+
+def _adventure_payload(raw: dict, today: str, checked_today: bool) -> dict:
+    if not checked_today:
+        return {
+            "active": False,
+            "progress": 0,
+            "title": "",
+            "subtitle": "",
+            "can_collect": False,
+            "collected": False,
+            "reward_seeds": SEEDS_ADVENTURE,
+        }
+    breathe_done = str(raw.get("breathe_date") or "") == today
+    collected = bool(raw.get("adventure_collected"))
+    progress = 100 if collected else (66 if breathe_done else 33)
+    return {
+        "active": not collected,
+        "progress": progress,
+        "title": "Aventura no jardim" if not collected else "Aventura concluída!",
+        "subtitle": (
+            "Monstrinho voltou com surpresas!"
+            if collected
+            else (
+                "Respire e busque o monstrinho para a recompensa."
+                if breathe_done
+                else "Monstrinho saiu explorar… respire fundo para ajudar."
+            )
+        ),
+        "can_collect": breathe_done and not collected,
+        "collected": collected,
+        "reward_seeds": SEEDS_ADVENTURE,
     }
 
 
@@ -252,7 +348,9 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
             pass
     ranking = _ranking_payload(supabase, current, longest_eff)
     garden = _garden_for_days(max(current, 1 if checked_today else 0))
-    mission = _daily_mission(checked_today, current)
+    goals = _daily_goals(raw, today, checked_today)
+    mission = _daily_mission(checked_today, current, goals)
+    seeds = int(raw.get("seeds") or 0)
     return {
         "current": current,
         "longest": longest_eff,
@@ -274,6 +372,10 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
         "monster_line": _monster_line(last_mood if checked_today else "", checked_today),
         "daily_mission": mission["text"],
         "daily_mission_action": mission["action"],
+        "seeds": seeds,
+        "decor_unlocked": _decor_unlocked(max(current, longest_eff)),
+        "daily_goals": goals,
+        "adventure": _adventure_payload(raw, today, checked_today),
     }
 
 
@@ -307,6 +409,7 @@ def record_checkin(
     current = int(raw.get("current") or 0)
     longest = int(raw.get("longest") or 0)
     total = int(raw.get("total_checkins") or 0)
+    seeds = int(raw.get("seeds") or 0)
 
     if last == today:
         raw.update(
@@ -324,15 +427,21 @@ def record_checkin(
             current = 1
         longest = max(longest, current)
         total += 1
-        raw = {
-            "current": current,
-            "longest": longest,
-            "last_date": today,
-            "last_mood": mood["key"],
-            "last_mood_emoji": mood["emoji"],
-            "last_mood_label": mood["label"],
-            "total_checkins": total,
-        }
+        seeds += SEEDS_CHECKIN
+        raw.update(
+            {
+                "current": current,
+                "longest": longest,
+                "last_date": today,
+                "last_mood": mood["key"],
+                "last_mood_emoji": mood["emoji"],
+                "last_mood_label": mood["label"],
+                "total_checkins": total,
+                "seeds": seeds,
+                "breathe_date": "",
+                "adventure_collected": False,
+            }
+        )
 
     ui["daily_care"] = raw
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})
@@ -354,4 +463,42 @@ def record_checkin(
     except Exception as exc:
         print(f"[EGO] daily_care journey step error: {exc}", flush=True)
 
+    return get_daily_care(supabase, user_id)
+
+
+def record_goal(
+    supabase: Client | None,
+    user_id: str,
+    goal_key: str,
+) -> dict:
+    if not supabase or not user_id:
+        return get_daily_care(supabase, user_id)
+    key = (goal_key or "").strip().lower()
+    if key not in ("breathe", "adventure"):
+        return get_daily_care(supabase, user_id)
+
+    today = _local_date_str()
+    prof = db.load_profile(supabase, user_id) or {}
+    ui = db._parse_ui_state(prof)  # noqa: SLF001
+    raw = dict(ui.get("daily_care") if isinstance(ui.get("daily_care"), dict) else {})
+    last = str(raw.get("last_date") or "").strip()
+    if last != today:
+        return get_daily_care(supabase, user_id)
+
+    seeds = int(raw.get("seeds") or 0)
+    if key == "breathe":
+        if str(raw.get("breathe_date") or "") == today:
+            return get_daily_care(supabase, user_id)
+        raw["breathe_date"] = today
+        raw["seeds"] = seeds + SEEDS_BREATHE
+    elif key == "adventure":
+        if bool(raw.get("adventure_collected")):
+            return get_daily_care(supabase, user_id)
+        if str(raw.get("breathe_date") or "") != today:
+            return get_daily_care(supabase, user_id)
+        raw["adventure_collected"] = True
+        raw["seeds"] = seeds + SEEDS_ADVENTURE
+
+    ui["daily_care"] = raw
+    db.update_profile_fields(supabase, user_id, {"ui_state": ui})
     return get_daily_care(supabase, user_id)

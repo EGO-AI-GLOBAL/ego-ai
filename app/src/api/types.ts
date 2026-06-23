@@ -369,6 +369,36 @@ export type DailyCareInfo = {
   monster_line?: string;
   daily_mission?: string;
   daily_mission_action?: string;
+  seeds?: number;
+  decor_unlocked?: DailyCareDecor[];
+  daily_goals?: DailyCareGoal[];
+  adventure?: DailyCareAdventure;
+};
+
+export type DailyCareDecor = {
+  id: string;
+  emoji: string;
+  label: string;
+  min_days: number;
+};
+
+export type DailyCareGoal = {
+  key: string;
+  label: string;
+  emoji: string;
+  done: boolean;
+  seeds_reward: number;
+  locked?: boolean;
+};
+
+export type DailyCareAdventure = {
+  active: boolean;
+  progress: number;
+  title: string;
+  subtitle: string;
+  can_collect: boolean;
+  collected: boolean;
+  reward_seeds: number;
 };
 
 export type DailyCareRankingLadder = {

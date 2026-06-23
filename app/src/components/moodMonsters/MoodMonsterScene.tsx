@@ -30,6 +30,8 @@ export function MoodMonsterScene({ colors, care, celebrate = false, previewMood 
       days={days}
       gardenLabel={care.garden_label}
       gardenEmoji={care.garden_emoji}
+      seeds={care.seeds ?? 0}
+      decorUnlocked={care.decor_unlocked}
     >
       <MoodMonsterIllustration moodKey={displayKey} size={116} celebrate={celebrate} />
       <Text style={styles.name}>{moodMeta?.label ?? "Monstrinho"}</Text>

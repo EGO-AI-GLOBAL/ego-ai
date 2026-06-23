@@ -30,6 +30,18 @@ export function MoodMonsterIllustration({ moodKey, size = 112, celebrate = false
     ]).start();
   }, [celebrate, scale, bounce]);
 
+  useEffect(() => {
+    if (celebrate) return;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(bounce, { toValue: -4, duration: 900, useNativeDriver: true }),
+        Animated.timing(bounce, { toValue: 0, duration: 900, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [celebrate, bounce]);
+
   const eyeY = key === "heavy" ? 2 : 0;
   const mouthWide = key === "good" || key === "calm";
   const mouthSad = key === "heavy" || key === "anxious";

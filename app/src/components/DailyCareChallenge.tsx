@@ -5,6 +5,8 @@ import { submitDailyCareCheckin } from "@/api/client";
 import type { DailyCareInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { DailyCareShareModal } from "./DailyCareShareModal";
+import { MoodAdventureBanner } from "./moodMonsters/MoodAdventureBanner";
+import { MoodDailyGoals } from "./moodMonsters/MoodDailyGoals";
 import { MoodMonsterScene } from "./moodMonsters/MoodMonsterScene";
 import { SocialFollowBar } from "./SocialFollowBar";
 
@@ -125,6 +127,16 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
           care={care}
           celebrate={celebrate}
           previewMood={hoverMood}
+        />
+
+        {care.adventure?.active || care.adventure?.collected ? (
+          <MoodAdventureBanner colors={colors} adventure={care.adventure} />
+        ) : null}
+
+        <MoodDailyGoals
+          colors={colors}
+          care={care}
+          onUpdate={(next) => onUpdate(next)}
         />
 
         <RankingLadder colors={colors} care={care} />

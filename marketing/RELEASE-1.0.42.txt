@@ -1,0 +1,17 @@
+EGO-AI 1.0.42 — notas de release
+==================================
+
+NOVIDADES (Monstrinhos — estilo Finch)
+--------------------------------------
+• 3 missões diárias: humor → respirar 3x → buscar monstrinho na aventura
+• Sementes 🌰 por missão (+5 / +2 / +3)
+• Decorações no jardim por sequência (flores, borboleta, fonte…)
+• Barra de aventura com progresso
+• Monstrinho com animação idle no jardim
+
+VERSÃO
+------
+App: 1.0.42 | iOS 28 | Android 77
+API: 2026-06-24-1.0.42-finch-mood-goals
+
+Companheiro de Bolso: sem alterações nesta release.

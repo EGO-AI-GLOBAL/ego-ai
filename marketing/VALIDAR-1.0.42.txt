@@ -1,0 +1,18 @@
+VALIDAR 1.0.42 — Monstrinhos Finch
+==================================
+
+[ ] API /health → api_build contém 1.0.42-finch-mood-goals
+[ ] Login OK
+[ ] Monstrinhos: check-in humor → +5 sementes
+[ ] Missão Respirar (contagem 3-2-1) → +2 sementes
+[ ] Barra aventura sobe para 66%
+[ ] Missão Buscar monstrinho → +3 sementes, barra 100%
+[ ] Decorações aparecem conforme dias de sequência
+[ ] Companheiro de Bolso igual à 1.0.41 (sem regressão)
+[ ] Chat texto + voz OK
+[ ] Share WA/Stories nos Monstrinhos
+
+Links
+-----
+Play teste: https://play.google.com/apps/testing/com.egoai.app
+TestFlight: https://testflight.apple.com/join/eNDKdFWF
