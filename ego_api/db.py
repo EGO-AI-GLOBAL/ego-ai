@@ -207,7 +207,7 @@ def ensure_user_profile(
             ).execute()
         return True, ""
     except Exception as exc:
-        return False, str(exc)
+        return False, _profile_update_error_message(str(exc))
 
 
 def touch_last_login(supabase: Client | None, user_id: str) -> None:
@@ -1057,7 +1057,7 @@ def _profile_update_error_message(exc: str) -> str:
     if "profiles_phone_unique" in low or (
         "duplicate key" in low and "phone" in low
     ):
-        return "Este telefone já está associado a outra conta."
+        return "Este telefone já está cadastrado."
     return exc or "Não foi possível atualizar o perfil."
 
 

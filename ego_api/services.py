@@ -24,7 +24,7 @@ else:
 
 
 def normalize_email(raw: str) -> tuple[str, str | None]:
-    email = (raw or "").strip()
+    email = (raw or "").strip().lower()
     if not email or "@" not in email or email.startswith("@") or email.endswith("@"):
         return "", "Informe um e-mail válido."
     if len(email) > 254:
@@ -134,13 +134,21 @@ def signup(
     if not (password or "").strip():
         return None, "Informe a senha."
     display = (full_name or "").strip() or email_norm.split("@")[0] or "Usuário"
-    phone_norm = ""
-    if (phone or "").strip():
-        from ego_api.phone_utils import normalize_phone_br
+    from ego_api.phone_utils import normalize_phone_br
 
-        phone_norm, phone_err = normalize_phone_br(phone)
-        if phone_err:
-            return None, phone_err
+    phone_norm, phone_err = normalize_phone_br(phone)
+    if phone_err:
+        return None, phone_err
+    if not phone_norm:
+        return None, "Informe o telefone com DDD."
+
+    from ego_api.shared_calendars import resolve_user_id_by_email, resolve_user_id_by_phone
+
+    if resolve_user_id_by_email(email_norm):
+        return None, "Este e-mail já está cadastrado."
+    if resolve_user_id_by_phone(phone_norm):
+        return None, "Este telefone já está cadastrado."
+
     try:
         res = client.auth.sign_up(
             {
@@ -156,13 +164,15 @@ def signup(
                 from ego_api.supabase_client import create_service_client
 
                 profile_client = create_service_client() or client
-                ensure_user_profile(
+                ok, prof_err = ensure_user_profile(
                     profile_client,
                     uid,
                     email=email_norm,
                     full_name=display,
                     phone=phone_norm,
                 )
+                if not ok:
+                    return None, prof_err or "Não foi possível criar o perfil."
                 ref_err = _apply_referral_after_signup(uid, referral_code)
                 if ref_err:
                     return None, ref_err
@@ -188,9 +198,11 @@ def signup(
             )
         )
         apply_user_auth(client)
-        ensure_user_profile(
+        ok, prof_err = ensure_user_profile(
             client, uid, email=email_norm, full_name=display, phone=phone_norm
         )
+        if not ok:
+            return None, prof_err or "Não foi possível criar o perfil."
         ref_err = _apply_referral_after_signup(uid, referral_code)
         if ref_err:
             return None, ref_err

@@ -109,6 +109,9 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         [
             "def login(",
             "def refresh_session(",
+            "def signup(",
+            "Este e-mail já está cadastrado",
+            "Este telefone já está cadastrado",
             "def process_chat_message",
             "check_token_allowance",
         ],
