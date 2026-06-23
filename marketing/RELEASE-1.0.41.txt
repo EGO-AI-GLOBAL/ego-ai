@@ -1,0 +1,15 @@
+EGO-AI 1.0.41 — notas de release
+==================================
+
+NOVIDADES (estilo Finch)
+----------------------
+• Monstrinhos do Humor: pet ilustrado grande no jardim (5 estágios: Semente → Paraíso)
+• Reação + animação ao check-in · frase do monstrinho · missão do dia
+• Companheiro de Bolso: ovo → filhote → jovem → adulto (sprites ilustrados)
+• Barra de cuidado + botão Cuidar (agenda/chat)
+• Luna continua no chat
+
+VERSÃO
+------
+App: 1.0.41 | iOS 27 | Android 76
+API: 2026-06-24-1.0.41-finch-garden-companion

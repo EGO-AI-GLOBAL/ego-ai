@@ -1,0 +1,12 @@
+Play Console — 1.0.41 (versionCode 76)
+
+O que há de novo
+---------------
+• Jardim com monstrinho ilustrado (não só emoji)
+• Companheiro de bolso com evolução visual
+• Animação ao domar o humor do dia
+
+Testar
+------
+Menu Monstrinhos → ver jardim + pet → toque no humor
+Menu Companheiro → ver ovo/pet + Cuidar agora

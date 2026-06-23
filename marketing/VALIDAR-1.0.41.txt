@@ -1,0 +1,25 @@
+EGO-AI 1.0.41 — checklist
+==========================
+
+[ ] DEPLOY-API-1.0.41.bat + health api_build 1.0.41-finch-garden-companion
+[ ] Railway 1.0.41 / code 76
+
+MONSTRINHOS
+-----------
+[ ] Jardim verde com estágio (Semente/Broto/...)
+[ ] Pet ilustrado grande (não só emoji na fila)
+[ ] Preview ao tocar humor antes de confirmar
+[ ] Animação + haptic ao check-in
+[ ] Frase do monstrinho + missão do dia
+[ ] Partilha WA/Stories/TikTok
+
+COMPANHEIRO
+-----------
+[ ] Cena roxa com sprite (ovo/filhote/jovem/adulto)
+[ ] Barra Cuidado %
+[ ] Cuidar agora → agenda ou chat
+[ ] Partilha com sprite no cartão
+
+ESTÁVEL
+-------
+[ ] Login, chat texto, voz, agenda

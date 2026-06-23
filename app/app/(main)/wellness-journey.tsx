@@ -40,8 +40,7 @@ export default function WellnessJourneyScreen() {
         {!loading || refreshing ? (
           <>
             <Text style={[styles.lead, { color: colors.textMuted }]}>
-              Use o chat, a agenda e o desabafo para evoluir seu companheiro. Cada nível tem uma
-              tarefa clara.
+              Seu bichinho de bolso evolui com chat, agenda e desabafo — estilo anos 90.
             </Text>
             <WellnessJourneyCard
               colors={colors}

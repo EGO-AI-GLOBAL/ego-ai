@@ -9,6 +9,7 @@ import {
 } from "@/utils/whatsappShare";
 import { socialCardFooter } from "@/constants/socialProfiles";
 import { SocialShareModal } from "./SocialShareModal";
+import { CompanionSprite } from "./companion/CompanionSprite";
 
 type Props = {
   colors: AppColors;
@@ -20,13 +21,14 @@ type Props = {
 function CardFace({ journey }: { journey: WellnessJourney }) {
   const level = journey.level ?? 1;
   const max = journey.max_level ?? 500;
-  const emoji = journey.emoji || "🥚";
   const title = (journey.title || "Companheiro").trim();
   return (
     <View style={styles.card}>
       <Text style={styles.brand}>EGO-AI</Text>
       <Text style={styles.title}>Companheiro de Bolso</Text>
-      <Text style={styles.emoji}>{emoji}</Text>
+      <View style={{ marginVertical: 8 }}>
+        <CompanionSprite stage={journey.companion_stage ?? "egg"} size={72} />
+      </View>
       <Text style={styles.level}>
         Nível {level}/{max}
       </Text>

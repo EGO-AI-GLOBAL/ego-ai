@@ -486,6 +486,16 @@ def _step_label(key: str, need: int) -> str:
     return base
 
 
+def _companion_stage(level: int) -> dict[str, str]:
+    if level <= 5:
+        return {"stage": "egg", "label": "Ovo", "emoji": "🥚"}
+    if level <= 20:
+        return {"stage": "hatchling", "label": "Filhote", "emoji": "🐣"}
+    if level <= 100:
+        return {"stage": "teen", "label": "Jovem", "emoji": "🐥"}
+    return {"stage": "adult", "label": "Adulto", "emoji": "🦜"}
+
+
 def _plan_nudge(level_def: dict[str, Any], plan_tier: str) -> str | None:
     if plan_tier and plan_tier != "essential":
         return None
@@ -515,6 +525,8 @@ def build_journey_payload(
         show_level_up = False
 
     at_max = level >= cap and complete
+    companion = _companion_stage(level)
+    care_pct = int(round(min(100, max(0, (1.0 if at_max else _progress_for_level(level_def, counts, streak_data)) * 100))))
     return {
         "level": level,
         "max_level": cap,
@@ -530,6 +542,10 @@ def build_journey_payload(
         "share_challenge": level_def["share_challenge"],
         "plan_nudge": _plan_nudge(level_def, plan_tier),
         "journey_finished": at_max,
+        "companion_stage": companion["stage"],
+        "companion_stage_label": companion["label"],
+        "companion_sprite_emoji": companion["emoji"],
+        "care_percent": care_pct,
     }
 
 

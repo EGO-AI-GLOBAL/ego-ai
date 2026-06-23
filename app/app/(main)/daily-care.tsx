@@ -43,8 +43,7 @@ export default function DailyCareScreen() {
           <>
             <TrialBanner colors={colors} access={data.access} />
             <Text style={[styles.lead, { color: colors.textMuted }]}>
-              Escolha o monstrinho do dia, suba no ranking e desafie amigos no WhatsApp,
-              Instagram ou TikTok.
+              Seu monstrinho vive no jardim — toque no humor de hoje e veja ele reagir.
             </Text>
             <DailyCareChallenge
               colors={colors}

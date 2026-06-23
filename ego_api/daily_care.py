@@ -22,6 +22,83 @@ MOODS: list[dict[str, str]] = [
     {"key": "calm", "emoji": "😌", "label": "Brisa"},
 ]
 
+GARDEN_STAGES: list[dict[str, str | int]] = [
+    {"min_days": 0, "stage": 1, "label": "Semente", "emoji": "🌱"},
+    {"min_days": 3, "stage": 2, "label": "Broto", "emoji": "🪴"},
+    {"min_days": 7, "stage": 3, "label": "Jardim", "emoji": "🌸"},
+    {"min_days": 14, "stage": 4, "label": "Bosque", "emoji": "🌳"},
+    {"min_days": 30, "stage": 5, "label": "Paraíso", "emoji": "🌈"},
+]
+
+MONSTER_LINES: dict[str, list[str]] = {
+    "heavy": [
+        "Nublina sente o peso — respira comigo.",
+        "Nublina está aqui. Um passo de cada vez.",
+        "Nublina precisa de gentileza hoje.",
+    ],
+    "anxious": [
+        "Agita acalma quando você aparece.",
+        "Agita tremelicou — você veio cuidar. 💜",
+        "Agita fica menor quando você respira fundo.",
+    ],
+    "ok": [
+        "Neutro observa o dia sem pressa.",
+        "Neutro está firme no meio do caminho.",
+        "Neutro agradece o check-in de hoje.",
+    ],
+    "good": [
+        "Sol brilhou! Seu jardim cresceu. ☀️",
+        "Sol está radiante — continue assim!",
+        "Sol dançou quando você chegou.",
+    ],
+    "calm": [
+        "Brisa trouxe leveza ao jardim.",
+        "Brisa sussurra: você está no caminho.",
+        "Brisa deixa tudo mais suave hoje.",
+    ],
+}
+
+DEFAULT_MONSTER_LINE = "Escolha o monstrinho do seu humor hoje."
+
+def _garden_for_days(days: int) -> dict[str, str | int]:
+    picked = GARDEN_STAGES[0]
+    for g in GARDEN_STAGES:
+        if days >= int(g["min_days"]):
+            picked = g
+    return {
+        "garden_stage": int(picked["stage"]),
+        "garden_label": str(picked["label"]),
+        "garden_emoji": str(picked["emoji"]),
+    }
+
+
+def _monster_line(mood_key: str, checked_today: bool) -> str:
+    if not checked_today or not mood_key:
+        return DEFAULT_MONSTER_LINE
+    pool = MONSTER_LINES.get(mood_key) or MONSTER_LINES.get("ok", [])
+    if not pool:
+        return DEFAULT_MONSTER_LINE
+    idx = sum(ord(c) for c in _local_date_str()) % len(pool)
+    return pool[idx]
+
+
+def _daily_mission(checked_today: bool, current: int) -> dict[str, str]:
+    if checked_today:
+        return {
+            "text": "Missão de hoje concluída! Volte amanhã.",
+            "action": "done",
+        }
+    if current >= 1:
+        return {
+            "text": "Missão: domar o humor com 1 toque (sequência em jogo).",
+            "action": "checkin",
+        }
+    return {
+        "text": "Missão: conhecer seu primeiro monstrinho do humor.",
+        "action": "checkin",
+    }
+
+
 DAILY_QUESTIONS: list[str] = [
     "Como está sua mente agora?",
     "Quanto a ansiedade apertou hoje?",
@@ -174,6 +251,8 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
         except Exception:
             pass
     ranking = _ranking_payload(supabase, current, longest_eff)
+    garden = _garden_for_days(max(current, 1 if checked_today else 0))
+    mission = _daily_mission(checked_today, current)
     return {
         "current": current,
         "longest": longest_eff,
@@ -189,6 +268,12 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
         "can_share": checked_today,
         "share_hook": _share_hook(current, checked_today, ranking),
         "ranking": ranking,
+        "garden_stage": garden["garden_stage"],
+        "garden_label": garden["garden_label"],
+        "garden_emoji": garden["garden_emoji"],
+        "monster_line": _monster_line(last_mood if checked_today else "", checked_today),
+        "daily_mission": mission["text"],
+        "daily_mission_action": mission["action"],
     }
 
 

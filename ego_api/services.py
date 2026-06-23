@@ -1373,6 +1373,10 @@ def _wellness_journey_default() -> dict:
         "share_challenge": first["share_challenge"],
         "plan_nudge": None,
         "journey_finished": False,
+        "companion_stage": "egg",
+        "companion_stage_label": "Ovo",
+        "companion_sprite_emoji": "🥚",
+        "care_percent": 0,
     }
 
 
@@ -1402,6 +1406,12 @@ def _daily_care_default() -> dict:
         "moods": MOODS,
         "can_share": False,
         "share_hook": "Faça o check-in de hoje para subir no ranking.",
+        "garden_stage": 1,
+        "garden_label": "Semente",
+        "garden_emoji": "🌱",
+        "monster_line": "Escolha o monstrinho do seu humor hoje.",
+        "daily_mission": "Missão: conhecer seu primeiro monstrinho do humor.",
+        "daily_mission_action": "checkin",
         "ranking": {
             "tier_index": 0,
             "tier_total": 500,

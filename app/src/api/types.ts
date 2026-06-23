@@ -330,6 +330,10 @@ export type WellnessJourney = {
   share_challenge: string;
   plan_nudge?: string | null;
   journey_finished: boolean;
+  companion_stage?: string;
+  companion_stage_label?: string;
+  companion_sprite_emoji?: string;
+  care_percent?: number;
 };
 
 export type DailyCareMood = {
@@ -359,6 +363,12 @@ export type DailyCareInfo = {
   can_share: boolean;
   share_hook: string;
   ranking?: DailyCareRanking;
+  garden_stage?: number;
+  garden_label?: string;
+  garden_emoji?: string;
+  monster_line?: string;
+  daily_mission?: string;
+  daily_mission_action?: string;
 };
 
 export type DailyCareRankingLadder = {

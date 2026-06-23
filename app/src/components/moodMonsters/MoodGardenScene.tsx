@@ -1,0 +1,76 @@
+import { LinearGradient } from "expo-linear-gradient";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
+import { GARDEN_DECOR, GARDEN_GRADIENTS, gardenStageFromDays } from "@/constants/moodMonsters";
+
+type Props = {
+  gardenStage?: number;
+  days?: number;
+  gardenLabel?: string;
+  gardenEmoji?: string;
+  children: React.ReactNode;
+};
+
+export function MoodGardenScene({
+  gardenStage,
+  days = 0,
+  gardenLabel,
+  gardenEmoji,
+  children,
+}: Props) {
+  const stage = gardenStage ?? gardenStageFromDays(days);
+  const colors = GARDEN_GRADIENTS[stage] ?? GARDEN_GRADIENTS[1];
+  const decor = GARDEN_DECOR[stage] ?? GARDEN_DECOR[1];
+
+  return (
+    <View style={styles.wrap}>
+      <LinearGradient colors={[...colors]} style={styles.sky} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>
+            {gardenEmoji ?? "🌱"} Jardim · {gardenLabel ?? "Semente"}
+          </Text>
+        </View>
+        <View style={styles.decorRow}>
+          {decor.map((d, i) => (
+            <Text key={`d-${i}`} style={[styles.decor, { opacity: 0.55 + i * 0.12 }]}>
+              {d}
+            </Text>
+          ))}
+        </View>
+        <View style={styles.ground} />
+        <View style={styles.petArea}>{children}</View>
+      </LinearGradient>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  wrap: { borderRadius: 16, overflow: "hidden", marginBottom: 12 },
+  sky: { minHeight: 200, paddingTop: 10, paddingHorizontal: 12 },
+  badge: {
+    alignSelf: "flex-start",
+    backgroundColor: "rgba(255,255,255,0.35)",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 20,
+  },
+  badgeText: { fontSize: 11, fontWeight: "800", color: "#1a3d1a" },
+  decorRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginTop: 6,
+    paddingHorizontal: 8,
+  },
+  decor: { fontSize: 22 },
+  ground: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 48,
+    backgroundColor: "rgba(90,70,50,0.25)",
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+  },
+  petArea: { alignItems: "center", justifyContent: "center", paddingVertical: 8, minHeight: 140 },
+});

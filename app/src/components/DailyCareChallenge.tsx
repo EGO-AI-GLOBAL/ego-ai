@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
 import { submitDailyCareCheckin } from "@/api/client";
 import type { DailyCareInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { DailyCareShareModal } from "./DailyCareShareModal";
+import { MoodMonsterScene } from "./moodMonsters/MoodMonsterScene";
 import { SocialFollowBar } from "./SocialFollowBar";
 
 type Props = {
@@ -12,13 +14,7 @@ type Props = {
   onUpdate: (care: DailyCareInfo, journey?: import("@/api/types").WellnessJourney) => void;
 };
 
-function RankingLadder({
-  colors,
-  care,
-}: {
-  colors: AppColors;
-  care: DailyCareInfo;
-}) {
+function RankingLadder({ colors, care }: { colors: AppColors; care: DailyCareInfo }) {
   const rank = care.ranking;
   if (!rank?.ladder?.length) return null;
   return (
@@ -43,14 +39,9 @@ function RankingLadder({
                 },
               ]}
             />
-            <Text style={[styles.ladderEmoji, { opacity: step.reached ? 1 : 0.5 }]}>
-              {step.emoji}
-            </Text>
+            <Text style={[styles.ladderEmoji, { opacity: step.reached ? 1 : 0.5 }]}>{step.emoji}</Text>
             <Text
-              style={[
-                styles.ladderLabel,
-                { color: step.reached ? colors.text : colors.textMuted },
-              ]}
+              style={[styles.ladderLabel, { color: step.reached ? colors.text : colors.textMuted }]}
               numberOfLines={1}
             >
               {step.min_days}d
@@ -58,48 +49,24 @@ function RankingLadder({
           </View>
         ))}
       </View>
-      {rank.milestones?.length ? (
-        <View style={[styles.ladderRow, { marginTop: 8, opacity: 0.85 }]}>
-          {rank.milestones.map((step) => (
-            <View key={`ms-${step.min_days}`} style={styles.ladderStep}>
-              <Text style={[styles.ladderEmoji, { opacity: step.reached ? 1 : 0.45 }]}>
-                {step.emoji}
-              </Text>
-              <Text
-                style={[
-                  styles.ladderLabel,
-                  { color: step.reached ? colors.text : colors.textMuted },
-                ]}
-              >
-                {step.min_days}d
-              </Text>
-            </View>
-          ))}
-        </View>
-      ) : null}
-      <Text style={[styles.challengeLine, { color: colors.primary }]}>
-        {rank.challenge_line}
-      </Text>
-      {rank.personal_best > (care.current ?? 0) ? (
-        <Text style={[styles.best, { color: colors.textMuted }]}>
-          Seu recorde: {rank.personal_best} dias
-        </Text>
-      ) : null}
+      <Text style={[styles.challengeLine, { color: colors.primary }]}>{rank.challenge_line}</Text>
     </View>
   );
 }
 
-/** Monstrinhos do Humor — check-in diário com ranking visível. */
+/** Monstrinhos do Humor — jardim + pet ilustrado (estilo Finch). */
 export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
   const [busy, setBusy] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  const [celebrate, setCelebrate] = useState(false);
+  const [hoverMood, setHoverMood] = useState<string | undefined>();
 
   if (!care?.question) {
     return (
       <View style={[styles.wrap, { borderColor: colors.border, backgroundColor: colors.bgCard, opacity: 0.92 }]}>
         <Text style={[styles.badge, { color: colors.primary }]}>MONSTRINHOS DO HUMOR 💜</Text>
         <Text style={[styles.hint, { color: colors.textMuted, marginTop: 8 }]}>
-          A carregar… puxe o chat para baixo para atualizar.
+          A carregar… puxe para baixo para atualizar.
         </Text>
       </View>
     );
@@ -108,19 +75,23 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
   const onPickMood = async (key: string) => {
     if (busy) return;
     setBusy(true);
+    setHoverMood(undefined);
     try {
       const res = await submitDailyCareCheckin(key);
       if (!res?.daily_care) {
-        Alert.alert("Desafio", "Não foi possível guardar. Tente de novo.");
+        Alert.alert("Monstrinhos", "Não foi possível guardar. Tente de novo.");
         return;
       }
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+      setCelebrate(true);
+      setTimeout(() => setCelebrate(false), 900);
       onUpdate(res.daily_care, res.wellness_journey);
       if (!care.checked_today) {
         const r = res.daily_care.ranking;
         const tier = r ? `${r.tier_emoji} ${r.tier_label}` : "";
         Alert.alert(
-          "Monstrinho de hoje ✓",
-          `${res.daily_care.current} dias · ${tier}\nDesafie alguém a bater seu número!`,
+          "Monstrinho domado! ✓",
+          `${res.daily_care.monster_line}\n\n${res.daily_care.current} dias · ${tier}`,
           [
             { text: "Depois", style: "cancel" },
             { text: "Postar", onPress: () => setShareOpen(true) },
@@ -136,7 +107,6 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
   const borderColor = care.at_risk ? colors.warning : colors.primary;
   const todayMood = (care.moods ?? []).find((m) => m.key === care.last_mood);
   const todayLabel = todayMood?.label ?? care.last_mood_label;
-  const todayEmoji = todayMood?.emoji ?? care.last_mood_emoji;
 
   return (
     <>
@@ -150,26 +120,37 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
           ) : null}
         </View>
 
+        <MoodMonsterScene
+          colors={colors}
+          care={care}
+          celebrate={celebrate}
+          previewMood={hoverMood}
+        />
+
         <RankingLadder colors={colors} care={care} />
 
         <Text style={[styles.question, { color: colors.text }]}>{care.question.text}</Text>
         <Text style={[styles.hint, { color: colors.textMuted }]}>
-          1 toque · volta amanhã · doma o humor
+          Toque no humor de hoje — seu monstrinho reage no jardim
         </Text>
 
         <View style={styles.moodRow}>
           {(care.moods ?? []).map((m) => {
             const selected = care.checked_today && care.last_mood === m.key;
+            const preview = hoverMood === m.key;
             return (
               <Pressable
                 key={m.key}
+                onPressIn={() => setHoverMood(m.key)}
+                onPressOut={() => setHoverMood(undefined)}
                 onPress={() => void onPickMood(m.key)}
                 disabled={busy}
                 style={[
                   styles.moodBtn,
                   {
-                    borderColor: selected ? colors.primary : colors.border,
-                    backgroundColor: selected ? colors.primaryTint : colors.bg,
+                    borderColor: selected || preview ? colors.primary : colors.border,
+                    backgroundColor: selected || preview ? colors.primaryTint : colors.bg,
+                    transform: [{ scale: preview ? 1.06 : 1 }],
                   },
                 ]}
                 accessibilityLabel={m.label}
@@ -188,7 +169,7 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
         {care.checked_today ? (
           <>
             <Text style={[styles.done, { color: colors.success }]}>
-              ✓ Hoje: {todayEmoji} {todayLabel}
+              ✓ Hoje: {todayLabel} no jardim
             </Text>
             <Text style={[styles.hook, { color: colors.textMuted }]}>{care.share_hook}</Text>
             <Pressable
@@ -200,7 +181,7 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
           </>
         ) : care.at_risk ? (
           <Text style={[styles.risk, { color: colors.warning }]}>
-            ⚠️ Sequência em risco — check-in hoje ou desce no ranking!
+            ⚠️ Sequência em risco — salve o jardim com 1 toque!
           </Text>
         ) : null}
 
@@ -218,18 +199,8 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: {
-    borderRadius: 16,
-    borderWidth: 2,
-    padding: 14,
-    marginBottom: 12,
-  },
-  head: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 8,
-  },
+  wrap: { borderRadius: 16, borderWidth: 2, padding: 14, marginBottom: 12 },
+  head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   badge: { fontSize: 11, fontWeight: "900", letterSpacing: 0.6 },
   streak: { fontSize: 12, fontWeight: "700" },
   ladderWrap: {
@@ -241,18 +212,12 @@ const styles = StyleSheet.create({
   ladderHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   ladderTitle: { fontSize: 14, fontWeight: "800" },
   ladderSub: { fontSize: 11, fontWeight: "600" },
-  ladderRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-    paddingHorizontal: 2,
-  },
+  ladderRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 10, paddingHorizontal: 2 },
   ladderStep: { alignItems: "center", flex: 1 },
   ladderDot: { width: 8, height: 8, borderRadius: 4, marginBottom: 4 },
   ladderEmoji: { fontSize: 16 },
   ladderLabel: { fontSize: 9, fontWeight: "700", marginTop: 2 },
   challengeLine: { fontSize: 12, fontWeight: "700", marginTop: 10, textAlign: "center" },
-  best: { fontSize: 11, textAlign: "center", marginTop: 4 },
   question: { fontSize: 17, fontWeight: "800", lineHeight: 23 },
   hint: { fontSize: 12, marginTop: 4, marginBottom: 12 },
   moodRow: { flexDirection: "row", justifyContent: "space-between", gap: 6 },
@@ -263,7 +228,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1.5,
   },
-  moodEmoji: { fontSize: 26 },
+  moodEmoji: { fontSize: 24 },
   moodLabel: { fontSize: 9, fontWeight: "700", marginTop: 2 },
   done: { marginTop: 12, fontSize: 14, fontWeight: "700", textAlign: "center" },
   hook: { marginTop: 6, fontSize: 12, textAlign: "center", lineHeight: 17 },
