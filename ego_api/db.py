@@ -1096,10 +1096,6 @@ def upsert_profile_phone(
         return False, "Telefone inválido."
 
     admin = create_service_client()
-    if not admin:
-        return update_profile_fields(supabase, user_id, {"phone": ph})
-
-    prof = _load_profile_raw(admin, user_id)
     sess = get_session()
     em = (email or "").strip()[:254] or (
         str(sess.email).strip()[:254] if sess and sess.email else ""
@@ -1110,6 +1106,16 @@ def upsert_profile_phone(
     if not display:
         display = "Usuário"
 
+    if not admin:
+        ensure_user_profile(
+            supabase, user_id, email=em, full_name=display, phone=ph
+        )
+        ok, err = update_profile_fields(supabase, user_id, {"phone": ph})
+        if ok:
+            return True, ""
+        return False, err or "Não foi possível atualizar o perfil."
+
+    prof = _load_profile_raw(admin, user_id)
     try:
         if prof:
             admin.table(SUPABASE_PROFILES_TABLE).update({"phone": ph}).eq(

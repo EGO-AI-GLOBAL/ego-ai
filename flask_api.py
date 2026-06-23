@@ -332,7 +332,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-22-1.0.36-profile-phone-upsert",
+        "api_build": "2026-06-22-1.0.37-profile-phone-confirm",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -933,6 +933,14 @@ def profile_patch():
         if not ok:
             return _json_error(err or "Falha ao atualizar perfil.")
     prof = db.load_profile_trusted(g.supabase, g.user_id) or {}
+    if phone_norm is not None:
+        saved_ph = str(prof.get("phone") or "").strip()
+        if saved_ph != phone_norm:
+            return _json_error(
+                "Não foi possível guardar o telefone. "
+                "Pode já estar associado a outra conta.",
+                400,
+            )
     return _json_ok({"updated": True, "profile": prof})
 
 

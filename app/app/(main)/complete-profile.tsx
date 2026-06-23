@@ -1,4 +1,3 @@
-import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -50,8 +49,7 @@ export default function CompleteProfileScreen() {
       if (normalized) {
         mergeProfilePhone(normalized);
       }
-      await refresh();
-      router.replace("/(main)/chat");
+      void refresh();
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Não foi possível guardar o telefone.";
       if (/campo válido para atualizar/i.test(msg)) {

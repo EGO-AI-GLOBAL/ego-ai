@@ -360,6 +360,11 @@ export async function updateProfilePhone(phone: string): Promise<{ phone: string
   const body = unwrap<{ profile?: { phone?: string } }>(data);
   const saved =
     typeof body.profile?.phone === "string" ? body.profile.phone.trim() : "";
+  if (!saved) {
+    throw new Error(
+      "Não foi possível confirmar o telefone. Tente de novo ou use outro número."
+    );
+  }
   return { phone: saved };
 }
 
