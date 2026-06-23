@@ -380,6 +380,7 @@ export type DailyCareRanking = {
   days_to_next_tier: number;
   challenge_line: string;
   ladder: DailyCareRankingLadder[];
+  milestones?: DailyCareRankingLadder[];
 };
 
 export type DelegationRequest = {

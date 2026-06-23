@@ -28,12 +28,12 @@ function RankingLadder({
           🏆 {rank.tier_emoji} {rank.tier_label}
         </Text>
         <Text style={[styles.ladderSub, { color: colors.textMuted }]}>
-          Top comunidade: {rank.community_top_days} dias
+          Nível {rank.tier_index}/{rank.tier_total} · top {rank.community_top_days}d
         </Text>
       </View>
       <View style={styles.ladderRow}>
         {rank.ladder.map((step) => (
-          <View key={step.label} style={styles.ladderStep}>
+          <View key={`tier-${step.min_days}`} style={styles.ladderStep}>
             <View
               style={[
                 styles.ladderDot,
@@ -58,6 +58,25 @@ function RankingLadder({
           </View>
         ))}
       </View>
+      {rank.milestones?.length ? (
+        <View style={[styles.ladderRow, { marginTop: 8, opacity: 0.85 }]}>
+          {rank.milestones.map((step) => (
+            <View key={`ms-${step.min_days}`} style={styles.ladderStep}>
+              <Text style={[styles.ladderEmoji, { opacity: step.reached ? 1 : 0.45 }]}>
+                {step.emoji}
+              </Text>
+              <Text
+                style={[
+                  styles.ladderLabel,
+                  { color: step.reached ? colors.text : colors.textMuted },
+                ]}
+              >
+                {step.min_days}d
+              </Text>
+            </View>
+          ))}
+        </View>
+      ) : null}
       <Text style={[styles.challengeLine, { color: colors.primary }]}>
         {rank.challenge_line}
       </Text>
@@ -75,7 +94,16 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
   const [busy, setBusy] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
 
-  if (!care?.question) return null;
+  if (!care?.question) {
+    return (
+      <View style={[styles.wrap, { borderColor: colors.border, backgroundColor: colors.bgCard, opacity: 0.92 }]}>
+        <Text style={[styles.badge, { color: colors.primary }]}>DESAFIO DIÁRIO 💜</Text>
+        <Text style={[styles.hint, { color: colors.textMuted, marginTop: 8 }]}>
+          A carregar… puxe o chat para baixo para atualizar.
+        </Text>
+      </View>
+    );
+  }
 
   const onPickMood = async (key: string) => {
     if (busy) return;

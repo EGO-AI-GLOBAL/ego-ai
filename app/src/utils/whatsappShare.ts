@@ -1,20 +1,22 @@
 import { Linking, Platform, Share } from "react-native";
 import type { DailyCareInfo, WellnessJourney } from "@/api/types";
-import { inviteDownloadUrl, smartDownloadUrl } from "@/utils/appDownloadLink";
-import { buildSocialFollowBlock } from "@/constants/socialProfiles";
+import { buildSocialFollowBlock, getSocialProfiles } from "@/constants/socialProfiles";
 
 const PLAY_TESTING = "https://play.google.com/apps/testing/com.egoai.app";
 const TESTFLIGHT = "https://testflight.apple.com/join/eNDKdFWF";
 
-/** Um link só: tenta abrir o app; senão Play ou TestFlight + cadastro. */
+/** Dois links clicáveis — Android e iPhone (WhatsApp, Stories, convites). */
 export function buildAppDownloadLinksBlock(opts?: { invite?: boolean }): string {
-  const url = opts?.invite
-    ? inviteDownloadUrl()
-    : smartDownloadUrl({ campaign: "share" });
+  const extra =
+    opts?.invite
+      ? "\n\nDepois do cadastro, volte ao app e aceite o convite."
+      : "";
   return (
-    `📲 Baixe grátis, faça cadastro e entre:\n` +
-    `👉 ${url}\n\n` +
-    `(Toque no link — Android ou iPhone, automático)`
+    `📲 Baixe grátis o EGO-AI:\n\n` +
+    `🤖 Android (Google Play):\n${PLAY_TESTING}\n\n` +
+    `🍎 iPhone (TestFlight):\n${TESTFLIGHT}\n\n` +
+    `Toque no link do seu telefone 👆` +
+    extra
   );
 }
 
@@ -153,7 +155,7 @@ export function buildDailyCareShareText(care: DailyCareInfo): string {
     `Hoje: ${emoji}\n` +
     `Top da comunidade: ${top} dias — quantos VOCÊ aguenta?\n\n` +
     `👉 Responde com só o número 🔥\n\n` +
-    buildAppDownloadLinksBlock({ campaign: "daily_care" }) +
+    buildAppDownloadLinksBlock() +
     `\n\n` +
     buildSocialFollowBlock()
   );
@@ -181,7 +183,8 @@ export async function shareDailyCareStories(
 
 /** Partilhar legenda no TikTok (sheet nativo — utilizador escolhe TikTok). */
 export async function shareDailyCareTikTok(care: DailyCareInfo): Promise<void> {
-  const message = buildDailyCareShareText(care);
+  const s = getSocialProfiles();
+  const message = `${buildDailyCareShareText(care)}\n\n${s.tiktokUrl}`;
   try {
     await Share.share({ message, title: "Desafio Diário EGO-AI" });
   } catch {
@@ -286,6 +289,21 @@ export async function shareStreakWhatsApp(opts: {
   assistantName?: string;
 }): Promise<void> {
   await shareWhatsAppText(buildStreakShareText(opts));
+}
+
+/** Partilhar ofensiva no TikTok (menu nativo). */
+export async function shareStreakTikTok(opts: {
+  days: number;
+  atRisk: boolean;
+  assistantName?: string;
+}): Promise<void> {
+  const s = getSocialProfiles();
+  const message = `${buildStreakShareText(opts)}\n\n${s.tiktokUrl}`;
+  try {
+    await Share.share({ message, title: "Ofensiva EGO-AI" });
+  } catch {
+    /* cancelado */
+  }
 }
 
 export async function shareWhatsAppText(text: string): Promise<void> {

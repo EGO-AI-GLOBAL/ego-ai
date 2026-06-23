@@ -1,0 +1,15 @@
+Play Console — 1.0.39 (versionCode 73)
+========================================
+
+O que há de novo
+---------------
+• Desafio Diário e Jornada no menu (ecrãs dedicados)
+• Ranking e jornada com escada longa (500+ níveis)
+• Partilha WhatsApp com link Android e iPhone
+• TikTok na partilha da ofensiva
+
+Testadores
+----------
+Menu → Desafio Diário → check-in → WhatsApp (2 links)
+Menu → Jornada → ver nível atual
+Chat → ofensiva → partilhar → TikTok

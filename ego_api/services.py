@@ -1403,8 +1403,8 @@ def _daily_care_default() -> dict:
         "can_share": False,
         "share_hook": "Faça o check-in de hoje para subir no ranking.",
         "ranking": {
-            "tier_index": 1,
-            "tier_total": 5,
+            "tier_index": 0,
+            "tier_total": 500,
             "tier_emoji": "🌱",
             "tier_label": "Iniciante",
             "next_tier_days": 1,

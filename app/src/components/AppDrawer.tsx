@@ -33,10 +33,20 @@ type NavItem = {
 
 const NAV: NavItem[] = [
   { label: "Chat", href: "/(main)/chat", caption: "Conversa com a assistente" },
-  { label: "Uso", href: "/(main)/usage", caption: "Limite do plano (%)" },
+  {
+    label: "Desafio Diário 💜",
+    href: "/(main)/daily-care",
+    caption: "1 toque/dia · ranking · Stories",
+  },
+  {
+    label: "Jornada de Cuidado 🌱",
+    href: "/(main)/wellness-journey",
+    caption: "Níveis de bem-estar",
+  },
   { label: "Agenda", href: "/(main)/agenda", caption: "Lembretes e hábitos" },
+  { label: "Uso", href: "/(main)/usage", caption: "Limite do plano (%)" },
   { label: "Planos", href: "/(main)/plans", caption: "Conexão, Premium, Total ou Empresa" },
-  { label: "Conta", href: "/(main)/account", caption: "Perfil" },
+  { label: "Conta", href: "/(main)/account", caption: "Perfil e redes sociais" },
 ];
 
 const LEGAL: { label: string; href: Href }[] = [

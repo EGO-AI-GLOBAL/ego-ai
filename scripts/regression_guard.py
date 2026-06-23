@@ -89,8 +89,12 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ],
     ),
     (
+        "ego_api/progression.py",
+        ["get_cap", "maybe_expand_cap", "daily_ladder_window"],
+    ),
+    (
         "ego_api/daily_care.py",
-        ["get_daily_care", "record_checkin", "CARE_TIERS"],
+        ["get_daily_care", "record_checkin", "CARE_MILESTONES"],
     ),
     (
         "ego_api/wellness_journey.py",

@@ -6,6 +6,7 @@ from copy import deepcopy
 from typing import Any
 
 from ego_api import db
+from ego_api import progression
 from ego_api.streaks import get_streak
 
 try:
@@ -263,7 +264,8 @@ JOURNEY_LEVELS: list[dict[str, Any]] = [
     },
 ]
 
-MAX_LEVEL = len(JOURNEY_LEVELS)
+HANDCRAFTED_MAX = len(JOURNEY_LEVELS)
+
 _STEP_ALIASES = {
     "habit": "habit",
     "night_dump": "night_dump",
@@ -277,9 +279,55 @@ _STEP_ALIASES = {
 }
 
 
-def _level_def(level: int) -> dict[str, Any]:
-    idx = max(1, min(level, MAX_LEVEL)) - 1
-    return JOURNEY_LEVELS[idx]
+def _journey_cap(supabase: Client | None) -> int:
+    return progression.get_cap(supabase, "wellness_journey")
+
+
+def _procedural_level(n: int) -> dict[str, Any]:
+    emojis = ("🌱", "💬", "📝", "📅", "🌙", "☀️", "🔥", "💜", "✨", "🌟")
+    titles = (
+        ("Constância", "Mais um passo de cuidado"),
+        ("Conexão", "Fale com seu avatar"),
+        ("Organização", "Use a Agenda"),
+        ("Desabafo", "Esvazie a mente"),
+        ("Hábito", "Marque um hábito"),
+        ("Voz", "Mande um áudio"),
+        ("Convite", "Traga alguém para o app"),
+    )
+    t_idx = (n - 1) % len(titles)
+    title, subtitle = titles[t_idx]
+    chat_need = 1 + max(0, (n - HANDCRAFTED_MAX) // 25)
+    voice_need = 1 + max(0, (n - HANDCRAFTED_MAX) // 40)
+    streak_need = max(3, n // 12)
+    mod = n % 5
+    if mod == 0:
+        reqs: list[dict[str, Any]] = [{"type": "streak", "min": streak_need}]
+    elif mod == 1:
+        reqs = [{"type": "step", "key": "chat", "min": chat_need}]
+    elif mod == 2:
+        reqs = [{"type": "or_steps", "options": [("chat", chat_need), ("checkin", 1)]}]
+    elif mod == 3:
+        reqs = [{"type": "step", "key": "voice", "min": voice_need}]
+    else:
+        reqs = [{"type": "or_steps", "options": [("habit", 1), ("reminder", 1)]}]
+    return {
+        "level": n,
+        "title": f"{title} {n}",
+        "subtitle": subtitle,
+        "emoji": emojis[(n - 1) % len(emojis)],
+        "today_task": "Complete os passos de hoje — um de cada vez",
+        "why": "Pequenos passos diários constroem bem-estar duradouro.",
+        "requirements": reqs,
+        "share_challenge": f"Nível {n} da Jornada de Cuidado no EGO-AI 🌱",
+        "plan_nudge": "Plano Conexão desbloqueia mais voz e lembretes." if n % 17 == 0 else None,
+    }
+
+
+def _level_def(level: int, cap: int) -> dict[str, Any]:
+    lvl = max(1, min(int(level), cap))
+    if lvl <= HANDCRAFTED_MAX:
+        return JOURNEY_LEVELS[lvl - 1]
+    return _procedural_level(lvl)
 
 
 def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
@@ -289,10 +337,11 @@ def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
     if not isinstance(raw, dict):
         raw = {}
     level = int(raw.get("level") or 1)
+    cap = _journey_cap(supabase)
     if level < 1:
         level = 1
-    if level > MAX_LEVEL:
-        level = MAX_LEVEL
+    if level > cap:
+        level = cap
     counts = raw.get("step_counts")
     if not isinstance(counts, dict):
         counts = {}
@@ -453,8 +502,9 @@ def build_journey_payload(
 ) -> dict[str, Any]:
     state = _load_state(supabase, user_id)
     streak_data = streak if streak is not None else get_streak(supabase, user_id)
+    cap = _journey_cap(supabase)
     level = int(state["level"])
-    level_def = _level_def(level)
+    level_def = _level_def(level, cap)
     counts = dict(state["step_counts"])
     complete = _level_complete(level_def, counts, streak_data)
     show_level_up = bool(state.get("show_level_up"))
@@ -464,10 +514,10 @@ def build_journey_payload(
         _save_state(supabase, user_id, state)
         show_level_up = False
 
-    at_max = level >= MAX_LEVEL and complete
+    at_max = level >= cap and complete
     return {
         "level": level,
-        "max_level": MAX_LEVEL,
+        "max_level": cap,
         "title": level_def["title"],
         "subtitle": level_def["subtitle"],
         "emoji": level_def["emoji"],
@@ -509,7 +559,8 @@ def record_step(
     state["step_counts"] = counts
 
     streak_data = get_streak(supabase, user_id)
-    level_def = _level_def(int(state["level"]))
+    cap = _journey_cap(supabase)
+    level_def = _level_def(int(state["level"]), cap)
 
     if _level_complete(level_def, counts, streak_data):
         completed = list(state.get("levels_completed") or [])
@@ -517,10 +568,14 @@ def record_step(
         if cur not in completed:
             completed.append(cur)
         state["levels_completed"] = completed
-        if cur < MAX_LEVEL:
+        if cur < cap:
             state["level"] = cur + 1
             state["step_counts"] = {}
             state["show_level_up"] = True
+            try:
+                progression.maybe_expand_cap(supabase, "wellness_journey", state["level"])
+            except Exception as exc:
+                print(f"[EGO] journey expand cap error: {exc}", flush=True)
         else:
             state["show_level_up"] = True
 
@@ -538,9 +593,10 @@ def sync_streak_levels(
         return get_journey(supabase, user_id, plan_tier=plan_tier)
     state = _load_state(supabase, user_id)
     streak_data = get_streak(supabase, user_id)
+    cap = _journey_cap(supabase)
     advanced = False
     while True:
-        level_def = _level_def(int(state["level"]))
+        level_def = _level_def(int(state["level"]), cap)
         if not _level_complete(level_def, state["step_counts"], streak_data):
             break
         completed = list(state.get("levels_completed") or [])
@@ -548,11 +604,16 @@ def sync_streak_levels(
         if cur not in completed:
             completed.append(cur)
         state["levels_completed"] = completed
-        if cur < MAX_LEVEL:
+        if cur < cap:
             state["level"] = cur + 1
             state["step_counts"] = {}
             state["show_level_up"] = True
             advanced = True
+            try:
+                progression.maybe_expand_cap(supabase, "wellness_journey", state["level"])
+                cap = _journey_cap(supabase)
+            except Exception as exc:
+                print(f"[EGO] journey sync expand error: {exc}", flush=True)
         else:
             state["show_level_up"] = True
             break

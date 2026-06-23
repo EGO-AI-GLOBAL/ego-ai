@@ -32,10 +32,7 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { PersonaPicker } from "@/components/PersonaPicker";
 import { StreakBadge } from "@/components/StreakBadge";
 import { StreakShareModal } from "@/components/StreakShareModal";
-import { TrialBanner } from "@/components/TrialBanner";
 import { TrialExpiredBanner } from "@/components/TrialExpiredBanner";
-import { WellnessJourneyCard } from "@/components/WellnessJourneyCard";
-import { DailyCareChallenge } from "@/components/DailyCareChallenge";
 import { SpeakingAvatar } from "@/components/SpeakingAvatar";
 import { findAvatarInCatalog } from "@/constants/avatarCatalog";
 import { accountPersona, isMaleAvatar } from "@/constants/personas";
@@ -104,7 +101,7 @@ export default function ChatScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
-  const { data, loading, refreshing, error, refresh, refreshAccess, setPersona, mergeChatResult, mergeWellnessJourney, mergeDailyCare } =
+  const { data, loading, refreshing, error, refresh, refreshAccess, setPersona, mergeChatResult, mergeWellnessJourney } =
     useDashboard();
   const userId = data.me?.user_id?.trim() ?? session?.user?.id?.trim() ?? "";
 
@@ -1100,26 +1097,6 @@ export default function ChatScreen() {
           ) : null}
 
           {!loading || refreshing ? (
-            <ChatDayStrip
-              colors={colors}
-              progress={dayProgress}
-              access={data.access}
-              assistantName={assistantName}
-              displayName={displayWho}
-              onPressNext={() => {
-                const item = dayProgress.nextItem;
-                if (item) {
-                  void sendMessageText(`Alterar ou cancelar: ${item.title}`, item.title);
-                }
-              }}
-            />
-          ) : null}
-
-          {!loading || refreshing ? (
-            <TrialBanner colors={colors} access={data.access} />
-          ) : null}
-
-          {!loading || refreshing ? (
             <TrialExpiredBanner
               colors={colors}
               access={data.access}
@@ -1132,20 +1109,18 @@ export default function ChatScreen() {
           ) : null}
 
           {!loading || refreshing ? (
-            <DailyCareChallenge
+            <ChatDayStrip
               colors={colors}
-              care={data.daily_care}
-              onUpdate={(care, journey) => {
-                mergeDailyCare(care, journey);
+              progress={dayProgress}
+              access={data.access}
+              assistantName={assistantName}
+              displayName={displayWho}
+              onPressNext={() => {
+                const item = dayProgress.nextItem;
+                if (item) {
+                  void sendMessageText(`Alterar ou cancelar: ${item.title}`, item.title);
+                }
               }}
-            />
-          ) : null}
-
-          {!loading || refreshing ? (
-            <WellnessJourneyCard
-              colors={colors}
-              journey={data.wellness_journey}
-              onJourneyUpdate={mergeWellnessJourney}
             />
           ) : null}
 

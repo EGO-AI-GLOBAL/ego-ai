@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { PersonaPicker } from "@/components/PersonaPicker";
 import { AccountUpdateCard } from "@/components/AccountUpdateCard";
-import { ProfilePhoneCard } from "@/components/ProfilePhoneCard";
+import { SocialFollowBar } from "@/components/SocialFollowBar";
 import { ScreenShell } from "@/components/ScreenShell";
 import { UsageDashboard } from "@/components/UsageDashboard";
 import { accountPersona } from "@/constants/personas";
@@ -83,6 +83,8 @@ export default function AccountScreen() {
             </Text>
 
             <AccountUpdateCard />
+
+            <SocialFollowBar colors={colors} />
 
             <ProfilePhoneCard colors={colors} phone={profilePhone} onSaved={refresh} />
 

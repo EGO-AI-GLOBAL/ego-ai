@@ -1,0 +1,37 @@
+EGO-AI 1.0.39 — checklist de teste
+===================================
+
+ANTES
+-----
+[ ] Railway deploy com API nova
+[ ] SQL ego_progression_caps no Supabase (feito)
+
+MENU
+----
+[ ] Drawer → Desafio Diário 💜 (ecrã próprio)
+[ ] Drawer → Jornada de Cuidado 🌱 (ecrã próprio)
+[ ] Chat limpo (sem Desafio/Jornada no scroll)
+
+DESAFIO DIÁRIO
+--------------
+[ ] Check-in 1 toque
+[ ] Ranking nível X/500 + marcos 1/3/7/14/30
+[ ] Partilhar WhatsApp → 2 links (Android + iPhone)
+[ ] Instagram / TikTok + seguir @egoai
+
+OFENSIVA (chat)
+---------------
+[ ] Partilhar ofensiva → WhatsApp 2 links
+[ ] TikTok na partilha
+[ ] Botões seguir IG/TikTok
+
+JORNADA
+-------
+[ ] Nível atual / max_level (500+)
+[ ] Avanço após chat/voz/check-in
+
+ESTÁVEL (não regredir)
+----------------------
+[ ] Login + refresh sessão
+[ ] Chat texto + voz + TTS
+[ ] Agenda manual + Entre Nós

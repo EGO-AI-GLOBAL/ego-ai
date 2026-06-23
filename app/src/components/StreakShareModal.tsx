@@ -10,7 +10,12 @@ import {
 import type { StreakInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { streakShareHeadline } from "@/utils/streakReactions";
-import { shareStreakWhatsApp, shareStreakStories } from "@/utils/whatsappShare";
+import {
+  shareStreakTikTok,
+  shareStreakWhatsApp,
+  shareStreakStories,
+} from "@/utils/whatsappShare";
+import { SocialFollowBar } from "./SocialFollowBar";
 
 type Props = {
   colors: AppColors;
@@ -93,6 +98,16 @@ export function StreakShareModal({
     }
   };
 
+  const onShareTikTok = async () => {
+    if (current < 1) return;
+    setBusy(true);
+    try {
+      await shareStreakTikTok({ days: current, atRisk, assistantName });
+    } finally {
+      setBusy(false);
+    }
+  };
+
   if (current < 1) return null;
 
   return (
@@ -122,10 +137,18 @@ export function StreakShareModal({
           <Pressable
             onPress={() => void onShareNative()}
             disabled={busy}
-            style={[styles.btn, { backgroundColor: colors.primary, opacity: busy ? 0.7 : 1 }]}
+            style={[styles.btn, { backgroundColor: "#E1306C", opacity: busy ? 0.7 : 1 }]}
           >
             <Text style={styles.btnText}>Instagram / Stories</Text>
           </Pressable>
+          <Pressable
+            onPress={() => void onShareTikTok()}
+            disabled={busy}
+            style={[styles.btn, { backgroundColor: colors.text, opacity: busy ? 0.7 : 1 }]}
+          >
+            <Text style={styles.btnText}>TikTok</Text>
+          </Pressable>
+          <SocialFollowBar colors={colors} compact />
           <Pressable onPress={onClose} style={styles.close}>
             <Text style={{ color: colors.textMuted, fontWeight: "600" }}>Fechar</Text>
           </Pressable>

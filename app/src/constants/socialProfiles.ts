@@ -40,13 +40,15 @@ export function getSocialProfiles(): SocialProfiles {
   };
 }
 
-/** Bloco para legenda — @ é clicável no Instagram quando colado como texto. */
+/** Bloco para legenda — links clicáveis para os perfis oficiais. */
 export function buildSocialFollowBlock(): string {
   const s = getSocialProfiles();
   return (
     `Siga a gente:\n` +
     `📸 Instagram: ${s.instagramMention}\n` +
-    `🎵 TikTok: ${s.tiktokMention}`
+    `${s.instagramUrl}\n` +
+    `🎵 TikTok: ${s.tiktokMention}\n` +
+    `${s.tiktokUrl}`
   );
 }
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import datetime
 
 from ego_api import db
+from ego_api import progression
 from ego_api.request_ctx import get_session
 from ego_api.schedule_tz import local_now_from_session
 
@@ -77,31 +78,66 @@ def _mood_by_key(key: str) -> dict[str, str]:
             return m
     return MOODS[2]
 
-# Escada de ranking visível (competição saudável — sem dinheiro).
-CARE_TIERS: list[dict[str, str | int]] = [
+# Marcos visíveis no ranking (1 → 3 → 7 → 14 → 30 dias).
+CARE_MILESTONES: list[dict[str, str | int]] = [
     {"min_days": 1, "emoji": "🌱", "label": "Iniciante"},
     {"min_days": 3, "emoji": "💪", "label": "Firme"},
     {"min_days": 7, "emoji": "🔥", "label": "Forte"},
     {"min_days": 14, "emoji": "⭐", "label": "Mestre"},
     {"min_days": 30, "emoji": "👑", "label": "Lenda"},
 ]
+# Retrocompat (regression_guard)
+CARE_TIERS = CARE_MILESTONES
 
 
-def _tier_for_days(days: int) -> dict:
-    current = CARE_TIERS[0]
-    idx = 0
-    for i, t in enumerate(CARE_TIERS):
-        if days >= int(t["min_days"]):
-            current = t
-            idx = i
-    next_t = CARE_TIERS[idx + 1] if idx + 1 < len(CARE_TIERS) else None
+def _tier_for_days(days: int, cap: int) -> dict:
+    tier = progression.daily_tier_from_days(days, cap)
+    emoji, label = progression.daily_tier_meta(tier)
+    next_tier = tier + 1 if tier < cap else None
+    next_label = progression.daily_tier_meta(next_tier)[1] if next_tier else None
     return {
-        "tier_index": idx + 1,
-        "tier_total": len(CARE_TIERS),
-        "tier_emoji": str(current["emoji"]),
-        "tier_label": str(current["label"]),
-        "next_tier_days": int(next_t["min_days"]) if next_t else None,
-        "next_tier_label": str(next_t["label"]) if next_t else None,
+        "tier_index": tier,
+        "tier_total": cap,
+        "tier_emoji": emoji,
+        "tier_label": label,
+        "next_tier_days": next_tier,
+        "next_tier_label": next_label,
+    }
+
+
+def _ranking_payload(
+    supabase: Client | None, current: int, longest: int
+) -> dict:
+    cap = progression.get_cap(supabase, "daily_care")
+    tier = _tier_for_days(current, cap)
+    top = _community_top_days()
+    next_days = tier.get("next_tier_days")
+    days_to_next = (int(next_days) - current) if next_days else 0
+    challenge = (
+        f"Faltam {days_to_next} dia(s) para nível {tier.get('next_tier_label')}"
+        if days_to_next > 0 and tier.get("next_tier_label")
+        else (
+            f"Você está no topo ({cap} níveis) — desafie alguém a chegar em {top} dias"
+            if current >= cap
+            else f"Meta da comunidade: {top} dias · escada até {cap} níveis"
+        )
+    )
+    return {
+        **tier,
+        "personal_best": longest,
+        "community_top_days": top,
+        "days_to_next_tier": max(0, days_to_next),
+        "challenge_line": challenge,
+        "ladder": progression.daily_ladder_window(tier["tier_index"], cap),
+        "milestones": [
+            {
+                "min_days": int(t["min_days"]),
+                "emoji": str(t["emoji"]),
+                "label": str(t["label"]),
+                "reached": current >= int(t["min_days"]),
+            }
+            for t in CARE_MILESTONES
+        ],
     }
 
 
@@ -112,38 +148,6 @@ def _community_top_days() -> int:
         return max(7, int(read_env("EGO_DAILY_CARE_COMMUNITY_TOP", "21")))
     except ValueError:
         return 21
-
-
-def _ranking_payload(current: int, longest: int) -> dict:
-    tier = _tier_for_days(current)
-    top = _community_top_days()
-    next_days = tier.get("next_tier_days")
-    days_to_next = (int(next_days) - current) if next_days else 0
-    challenge = (
-        f"Faltam {days_to_next} dia(s) para nível {tier.get('next_tier_label')}"
-        if days_to_next > 0 and tier.get("next_tier_label")
-        else (
-            f"Você está no topo — desafie alguém a chegar em {top} dias"
-            if current >= 30
-            else f"Meta da comunidade: {top} dias"
-        )
-    )
-    return {
-        **tier,
-        "personal_best": longest,
-        "community_top_days": top,
-        "days_to_next_tier": max(0, days_to_next),
-        "challenge_line": challenge,
-        "ladder": [
-            {
-                "min_days": int(t["min_days"]),
-                "emoji": str(t["emoji"]),
-                "label": str(t["label"]),
-                "reached": current >= int(t["min_days"]),
-            }
-            for t in CARE_TIERS
-        ],
-    }
 
 
 def _load_raw(supabase: Client | None, user_id: str) -> dict:
@@ -164,7 +168,12 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
     checked_today = last == today
     q = question_for_today(today)
     longest_eff = max(longest, current)
-    ranking = _ranking_payload(current, longest_eff)
+    if longest_eff > 0:
+        try:
+            progression.maybe_expand_cap(supabase, "daily_care", longest_eff)
+        except Exception:
+            pass
+    ranking = _ranking_payload(supabase, current, longest_eff)
     return {
         "current": current,
         "longest": longest_eff,
@@ -242,6 +251,13 @@ def record_checkin(
 
     ui["daily_care"] = raw
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})
+
+    try:
+        progression.maybe_expand_cap(
+            supabase, "daily_care", max(current, longest)
+        )
+    except Exception as exc:
+        print(f"[EGO] daily_care expand cap error: {exc}", flush=True)
 
     try:
         from ego_api import streaks, wellness_journey
