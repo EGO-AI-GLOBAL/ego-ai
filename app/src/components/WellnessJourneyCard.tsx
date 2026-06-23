@@ -4,7 +4,7 @@ import { Alert, Pressable, StyleSheet, Text, View, type DimensionValue } from "r
 import type { WellnessJourney } from "@/api/types";
 import { dismissWellnessLevelUp } from "@/api/client";
 import type { AppColors } from "@/theme/colors";
-import { CompanionPocketScene } from "./companion/CompanionPocketScene";
+import { CompanionPocketScene } from "@/components/companion/CompanionPocketScene";
 import { PocketCompanionShareModal } from "./PocketCompanionShareModal";
 
 type Props = {
@@ -22,10 +22,10 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate }: Props)
     levelUpShown.current = true;
     const finished = journey.journey_finished;
     Alert.alert(
-      finished ? "Companheiro completo! 🎉" : `Nível ${journey.level} — ${journey.companion_stage_label ?? "evoluiu"}!`,
+      finished ? "EGO de Bolso completo! 🎉" : `EGO de Bolso — nível ${journey.level}!`,
       finished
         ? `Você completou os ${journey.max_level} níveis. Partilhe com quem precisa de apoio.`
-        : `${journey.companion_sprite_emoji ?? journey.emoji} ${journey.title} — ${journey.subtitle}`,
+        : `${journey.emoji} ${journey.title} — ${journey.subtitle}`,
       [
         {
           text: "OK",
@@ -58,15 +58,24 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate }: Props)
 
   return (
     <>
-      <View style={[styles.wrap, { backgroundColor: colors.bgCard, borderColor: colors.primary }]}>
-        <Text style={[styles.badge, { color: colors.primary }]}>COMPANHEIRO DE BOLSO 🥚</Text>
+      <View
+        style={[
+          styles.wrap,
+          { backgroundColor: colors.primaryTint, borderColor: colors.primary },
+        ]}
+      >
+        <View style={styles.headRow}>
+          <Text style={styles.emoji}>{journey.emoji}</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.badge, { color: colors.primary }]}>EGO DE BOLSO 🥚</Text>
+            <Text style={[styles.level, { color: colors.text }]}>
+              Nível {journey.level}/{journey.max_level} · {journey.title}
+            </Text>
+            <Text style={[styles.sub, { color: colors.textMuted }]}>{journey.subtitle}</Text>
+          </View>
+        </View>
 
         <CompanionPocketScene colors={colors} journey={journey} />
-
-        <Text style={[styles.level, { color: colors.text }]}>
-          Nível {journey.level}/{journey.max_level} · {journey.title}
-        </Text>
-        <Text style={[styles.sub, { color: colors.textMuted }]}>{journey.subtitle}</Text>
 
         <View style={[styles.track, { backgroundColor: colors.border }]}>
           <View style={[styles.fill, { backgroundColor: colors.primary, width: fillWidth }]} />
@@ -108,17 +117,29 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate }: Props)
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderRadius: 16, borderWidth: 2, padding: 14, marginBottom: 12 },
-  badge: { fontSize: 11, fontWeight: "900", letterSpacing: 0.5, marginBottom: 8 },
-  level: { fontSize: 14, fontWeight: "800", marginTop: 4 },
+  wrap: {
+    borderRadius: 14,
+    borderWidth: 1.5,
+    padding: 14,
+    marginBottom: 12,
+  },
+  headRow: { flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 },
+  emoji: { fontSize: 28 },
+  badge: { fontSize: 10, fontWeight: "900", letterSpacing: 0.5 },
+  level: { fontSize: 14, fontWeight: "800", marginTop: 2 },
   sub: { fontSize: 12, marginTop: 2 },
-  track: { height: 6, borderRadius: 3, overflow: "hidden", marginTop: 10, marginBottom: 10 },
+  track: { height: 6, borderRadius: 3, overflow: "hidden", marginBottom: 10 },
   fill: { height: "100%", borderRadius: 3 },
   task: { fontSize: 15, fontWeight: "700", lineHeight: 21 },
   why: { fontSize: 12, marginTop: 6, lineHeight: 17 },
   pending: { fontSize: 11, marginTop: 6, fontStyle: "italic" },
   nudge: { marginTop: 10 },
   nudgeText: { fontSize: 12, fontWeight: "600", lineHeight: 17 },
-  shareBtn: { marginTop: 12, borderRadius: 12, paddingVertical: 12, alignItems: "center" },
+  shareBtn: {
+    marginTop: 12,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
   shareText: { color: "#fff", fontWeight: "800", fontSize: 14 },
 });

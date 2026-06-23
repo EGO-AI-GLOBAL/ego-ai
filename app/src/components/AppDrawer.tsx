@@ -39,7 +39,7 @@ const NAV: NavItem[] = [
     caption: "1 toque/dia · ranking · Stories",
   },
   {
-    label: "Companheiro de Bolso 🥚",
+    label: "EGO de Bolso 🥚",
     href: "/(main)/wellness-journey",
     caption: "Níveis estilo anos 90",
   },

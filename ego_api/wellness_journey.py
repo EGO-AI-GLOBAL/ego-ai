@@ -318,7 +318,7 @@ def _procedural_level(n: int) -> dict[str, Any]:
         "today_task": "Complete os passos de hoje — um de cada vez",
         "why": "Pequenos passos diários constroem bem-estar duradouro.",
         "requirements": reqs,
-        "share_challenge": f"Nível {n} do Companheiro de Bolso no EGO-AI 🥚",
+        "share_challenge": f"Qual é teu nível? {n} do EGO de Bolso no EGO-AI 🥚",
         "plan_nudge": "Plano Conexão desbloqueia mais voz e lembretes." if n % 17 == 0 else None,
     }
 

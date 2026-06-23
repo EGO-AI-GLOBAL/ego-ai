@@ -12,7 +12,7 @@ import { WellnessJourneyCard } from "@/components/WellnessJourneyCard";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 
-/** Companheiro de Bolso — níveis longos de bem-estar no app. */
+/** EGO de Bolso — níveis longos de bem-estar no app. */
 export default function WellnessJourneyScreen() {
   const colors = useColors();
   const { data, loading, refreshing, error, refresh, mergeWellnessJourney } = useDashboard();
@@ -24,7 +24,7 @@ export default function WellnessJourneyScreen() {
   );
 
   return (
-    <ScreenShell title="Companheiro de Bolso" subtitle="Níveis de bem-estar no seu ritmo">
+    <ScreenShell title="EGO de Bolso" subtitle="Níveis de bem-estar no seu ritmo">
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
@@ -40,7 +40,8 @@ export default function WellnessJourneyScreen() {
         {!loading || refreshing ? (
           <>
             <Text style={[styles.lead, { color: colors.textMuted }]}>
-              Seu bichinho de bolso evolui com chat, agenda e desabafo — estilo anos 90.
+              Use o chat, a agenda e o desabafo para evoluir seu EGO de Bolso. Cada nível tem uma
+              tarefa clara.
             </Text>
             <WellnessJourneyCard
               colors={colors}

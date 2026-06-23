@@ -45,6 +45,22 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["MONSTRINHOS DO HUMOR", "MoodMonsterScene", "RankingLadder"],
     ),
     (
+        "app/src/components/EgoDeBolsoChatCard.tsx",
+        ["EGO DE BOLSO", "PocketCompanionShareModal", "Cuidar agora"],
+    ),
+    (
+        "app/src/components/SocialShareModal.tsx",
+        ["Instagram Stories", "Instagram Post", "Instagram Reels", "WhatsApp"],
+    ),
+    (
+        "app/src/components/PocketCompanionShareModal.tsx",
+        ["EGO de Bolso", "Eu estou no nível", "sharePocketCompanionWhatsApp"],
+    ),
+    (
+        "app/src/components/WellnessJourneyCard.tsx",
+        ["EGO DE BOLSO", "Postar e desafiar amigos"],
+    ),
+    (
         "app/src/context/AuthContext.tsx",
         ["refreshSessionToken", "saveSecureItem", "STORAGE_KEY"],
     ),

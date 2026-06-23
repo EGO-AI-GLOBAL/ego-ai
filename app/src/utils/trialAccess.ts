@@ -39,7 +39,7 @@ export function buildTrialExpiredMessage(
     parts.push(`Monstrinhos do Humor: ${careDays} ${careDays === 1 ? "dia" : "dias"}.`);
   }
   if (journeyLevel > 1) {
-    parts.push(`Companheiro de Bolso: nível ${journeyLevel}/${journey?.max_level ?? 20}.`);
+    parts.push(`EGO de Bolso: nível ${journeyLevel}/${journey?.max_level ?? 20}.`);
   }
   parts.push("Assine para continuar — não perca seu progresso.");
   return parts.join(" ");

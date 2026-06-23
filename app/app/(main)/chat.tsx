@@ -28,6 +28,7 @@ import {
   extractScheduleBannerItems,
 } from "@/components/ChatScheduleBanner";
 import { ChatDayStrip } from "@/components/ChatDayStrip";
+import { EgoDeBolsoChatCard } from "@/components/EgoDeBolsoChatCard";
 import { ScreenShell } from "@/components/ScreenShell";
 import { PersonaPicker } from "@/components/PersonaPicker";
 import { TrialExpiredBanner } from "@/components/TrialExpiredBanner";
@@ -1106,6 +1107,14 @@ export default function ChatScreen() {
                   void sendMessageText(`Alterar ou cancelar: ${item.title}`, item.title);
                 }
               }}
+            />
+          ) : null}
+
+          {!loading || refreshing ? (
+            <EgoDeBolsoChatCard
+              colors={colors}
+              journey={data.wellness_journey}
+              onCareHint={setChatNotice}
             />
           ) : null}
 

@@ -86,4 +86,10 @@ export async function openTikTokProfile(): Promise<void> {
 
 /** Dica após partilhar — adesivo @ no Story não vem automático do app. */
 export const STORIES_POST_TIP =
-  "No Instagram: depois de publicar, edite o Story e adicione o adesivo «Menção» com @egoai__seu_amigo_no_bolso — assim quem tocar vai ao nosso perfil.";
+  "Stories: escolha Instagram no menu. Cole a legenda (links Play + iPhone). Adicione @egoai__seu_amigo_no_bolso no Story.";
+
+export const INSTAGRAM_POST_TIP =
+  "Post: escolha Instagram → Feed. Use o cartão como foto e cole a legenda com os links de download.";
+
+export const INSTAGRAM_REELS_TIP =
+  "Reels: escolha Instagram → Reels. Use o cartão como capa ou grave 3s do ecrã com o bichinho — legenda com links na descrição.";

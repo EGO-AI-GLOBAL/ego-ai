@@ -120,24 +120,25 @@ export function buildStreakStoriesCaption(opts: {
 
 function rebrandShareLine(text: string): string {
   return text
-    .replace(/Jornada de Cuidado/gi, "Companheiro de Bolso")
+    .replace(/Jornada de Cuidado/gi, "EGO de Bolso")
+    .replace(/Companheiro de Bolso/gi, "EGO de Bolso")
     .replace(/Desafio Diário/gi, "Monstrinhos do Humor");
 }
 
 export function buildPocketCompanionShareText(journey: WellnessJourney): string {
   const level = journey.level ?? 1;
-  const title = (journey.title || "Companheiro").trim();
+  const title = (journey.title || "EGO de Bolso").trim();
   const emoji = journey.emoji || "🥚";
   const headline = rebrandShareLine(
     (
       journey.share_challenge ||
-      `Nível ${level} ${emoji} ${title} — Companheiro de Bolso EGO-AI`
+      `Qual é teu nível? ${level} ${emoji} ${title} — EGO de Bolso EGO-AI`
     ).trim()
   );
   return (
     `${headline}\n\n` +
     `Eu estou no nível ${level}. E você?\n\n` +
-    `Bichinho de bolso de bem-estar — estilo anos 90, com a Luna 💜\n` +
+    `Tamagotchi de bem-estar — estilo anos 90, com a Luna 💜\n` +
     `👉 Responde com seu nível (ex: 2, 5 ou 10) 🥚\n\n` +
     buildAppDownloadLinksBlock() +
     `\n\n` +
@@ -225,7 +226,7 @@ export async function sharePocketCompanionTikTok(journey: WellnessJourney): Prom
   const s = getSocialProfiles();
   const message = `${buildPocketCompanionShareText(journey)}\n\n${s.tiktokUrl}`;
   try {
-    await Share.share({ message, title: "Companheiro de Bolso EGO-AI" });
+    await Share.share({ message, title: "EGO de Bolso EGO-AI" });
   } catch {
     /* cancelado */
   }
@@ -242,7 +243,7 @@ export async function shareWellnessJourneyNative(
       await Share.share({ url: imageUri, message });
       return;
     }
-    await Share.share({ message, title: "Companheiro de Bolso EGO-AI" });
+    await Share.share({ message, title: "EGO de Bolso EGO-AI" });
   } catch {
     /* cancelado */
   }
