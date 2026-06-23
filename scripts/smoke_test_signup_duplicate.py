@@ -80,8 +80,8 @@ def main() -> int:
 
     tag = uuid.uuid4().hex[:10]
     email = f"ego.smoke.{tag}@example.com"
-    digits = f"{(uuid.uuid4().int % 900000000) + 100000000:09d}"
-    phone = f"(11) 9{digits[:4]}-{digits[4:]}"
+    suffix = f"{uuid.uuid4().int % 100_000_000:08d}"
+    phone = f"(11) 9{suffix[:4]}-{suffix[4:]}"
     password = f"Smoke{tag}1!"
     payload = {
         "email": email,
@@ -93,13 +93,17 @@ def main() -> int:
     code1, body1 = post_signup(payload)
     err1 = _err(body1).lower()
     print(f"POST /auth/signup 1a conta -> {code1} ok={body1.get('ok')}")
-    if code1 not in (200, 201) and "cadastrado" not in err1:
+    first_ok = code1 in (200, 201) or body1.get("ok") is True
+    if not first_ok and "cadastrado" not in err1:
         print(f"  AVISO  1o cadastro inesperado: {_err(body1)!r}")
+        failed += 1
+    elif not first_ok and "cadastrado" in err1:
+        print("  INFO  conta smoke ja existia — testes de duplicado seguem validos")
 
     code2, body2 = post_signup(payload)
     err2 = _err(body2).lower()
     print(f"POST /auth/signup repetido (email) -> {code2} error={_err(body2)!r}")
-    if code2 != 400 or "e-mail" not in err2 and "email" not in err2:
+    if code2 != 400 or ("cadastrado" not in err2 and "e-mail" not in err2 and "email" not in err2):
         failed += 1
 
     email2 = f"ego.smoke.other.{tag}@example.com"

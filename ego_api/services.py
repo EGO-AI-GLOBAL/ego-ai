@@ -254,9 +254,16 @@ def refresh_session(refresh_token: str) -> tuple[dict | None, str | None]:
 
 
 def ensure_user_profile(
-    supabase: Client | None, user_id: str, *, email: str = "", full_name: str = ""
+    supabase: Client | None,
+    user_id: str,
+    *,
+    email: str = "",
+    full_name: str = "",
+    phone: str = "",
 ) -> tuple[bool, str]:
-    return db.ensure_user_profile(supabase, user_id, email=email, full_name=full_name)
+    return db.ensure_user_profile(
+        supabase, user_id, email=email, full_name=full_name, phone=phone
+    )
 
 
 def touch_last_login(supabase: Client | None, user_id: str) -> None:
