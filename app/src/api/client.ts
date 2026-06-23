@@ -212,6 +212,7 @@ function parseDashboard(data: unknown): DashboardData {
     delegation_requests: body.delegation_requests ?? [],
     streak: body.streak ?? { current: 0, longest: 0, active_today: false, at_risk: false },
     shared_calendars: body.shared_calendars ?? [],
+    pending_calendar_invites: body.pending_calendar_invites ?? [],
     messages: body.messages ?? [],
     chat_local_history: Boolean(body.chat_local_history),
   };
@@ -352,6 +353,10 @@ export async function validateReferralCode(
     display_name: body.display_name,
     error: body.error ?? null,
   };
+}
+
+export async function updateProfilePhone(phone: string): Promise<void> {
+  await api.patch("profile", { phone: phone.trim() });
 }
 
 export async function signup(
@@ -960,6 +965,13 @@ export async function respondEntreNosEvent(
 
 export async function deleteSharedCalendar(calendarId: string): Promise<void> {
   await api.delete(`shared-calendars/${calendarId}`);
+}
+
+export async function respondSharedCalendarMemberInvite(
+  memberId: string,
+  accept: boolean
+): Promise<void> {
+  await api.post(`shared-calendars/member-invites/${memberId}/respond`, { accept });
 }
 
 export function localDateTimeToIso(dateBr: string, timeHm: string): string | null {

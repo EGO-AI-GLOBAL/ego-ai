@@ -19,7 +19,8 @@ import {
 } from "@/api/client";
 import type { SharedCalendar } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
-import { shareEntreNosEventWhatsApp, shareEntreNosInviteWhatsApp } from "@/utils/whatsappShare";
+import { shareEntreNosEventWhatsApp } from "@/utils/whatsappShare";
+import { promptLeaveSharedCalendar } from "@/utils/sharedCalendarLeave";
 import { formatScheduledLocal } from "@/utils/scheduleTime";
 import {
   canCreateMoreEntreNos,
@@ -41,6 +42,7 @@ import {
   sortSharedEvents,
 } from "./agendaUtils";
 import { SharedEventRow } from "./SharedEventRow";
+import { SharedCalendarSocialInvite } from "./SharedCalendarSocialInvite";
 
 type Props = {
   colors: AppColors;
@@ -60,6 +62,7 @@ export function EntreNosAgendaSection({
   const initialSlot = defaultScheduleSlot();
   const [selectedSharedId, setSelectedSharedId] = useState<string | null>(null);
   const [inviteContact, setInviteContact] = useState("");
+  const [registeredInviteContact, setRegisteredInviteContact] = useState("");
   const [inviting, setInviting] = useState(false);
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [newCalendarName, setNewCalendarName] = useState("");
@@ -209,13 +212,14 @@ export function EntreNosAgendaSection({
     setInviting(true);
     try {
       const member = await addSharedCalendarMember(String(selectedCalendar.id), contact);
+      setRegisteredInviteContact(contact);
       setInviteContact("");
       await onRefresh();
       const label = memberDisplayName(member);
       Alert.alert(
         member.status === "pending" ? "Convite enviado" : "Adicionado",
         member.status === "pending"
-          ? `${label} verá quando entrar no EGO com o mesmo contacto.`
+          ? `${label} verá na Agenda → Entre Nós para aceitar, com o mesmo contacto no cadastro.`
           : `${label} já tem acesso.`,
         member.status === "pending"
           ? [
@@ -224,7 +228,8 @@ export function EntreNosAgendaSection({
                 text: "Convidar no WhatsApp",
                 onPress: () => {
                   void shareEntreNosInviteWhatsApp(
-                    (selectedCalendar?.name || "Entre Nós").trim()
+                    (selectedCalendar?.name || "Entre Nós").trim(),
+                    contact
                   );
                 },
               },
@@ -476,6 +481,9 @@ export function EntreNosAgendaSection({
                     autoCapitalize="none"
                     style={inputStyle}
                   />
+                  <Text style={[s.muted, { color: colors.textMuted, marginTop: 6, fontSize: 12 }]}>
+                    Sem telefone no cadastro? Use o e-mail da pessoa — ela entra com o mesmo e-mail.
+                  </Text>
                   <Pressable
                     onPress={onInvitePartner}
                     disabled={inviting}
@@ -487,26 +495,12 @@ export function EntreNosAgendaSection({
                       <Text style={s.inviteBtnText}>Convidar parceiro(a)</Text>
                     )}
                   </Pressable>
-                  <Pressable
-                    onPress={() =>
-                      void shareEntreNosInviteWhatsApp(
-                        (selectedCalendar?.name || "Entre Nós").trim()
-                      )
-                    }
-                    style={[
-                      s.inviteBtn,
-                      {
-                        backgroundColor: colors.bgCard,
-                        borderWidth: 1.5,
-                        borderColor: "#25D366",
-                        marginTop: 8,
-                      },
-                    ]}
-                  >
-                    <Text style={[s.inviteBtnText, { color: "#128C7E" }]}>
-                      Convidar pelo WhatsApp
-                    </Text>
-                  </Pressable>
+                  <SharedCalendarSocialInvite
+                    colors={colors}
+                    calendarName={(selectedCalendar?.name || "Entre Nós").trim()}
+                    kind="entre_nos"
+                    inviteContact={inviteContact.trim() || registeredInviteContact}
+                  />
                 </>
               )}
               {selectedCalendar.is_owner ? (
@@ -516,9 +510,27 @@ export function EntreNosAgendaSection({
                   }
                   style={[styles.manageBtn, { borderColor: colors.primary }]}
                 >
-                  <Text style={{ color: colors.primary, fontWeight: "600" }}>Gerir grupo</Text>
+                  <Text style={{ color: colors.primary, fontWeight: "600" }}>
+                    Gerir grupo · apagar Entre Nós
+                  </Text>
                 </Pressable>
-              ) : null}
+              ) : (
+                <Pressable
+                  onPress={() =>
+                    promptLeaveSharedCalendar({
+                      calendar: selectedCalendar,
+                      currentUserId,
+                      onLeft: async () => {
+                        setSelectedSharedId(null);
+                        await onRefresh();
+                      },
+                    })
+                  }
+                  style={[styles.manageBtn, { borderColor: colors.danger, marginTop: 16 }]}
+                >
+                  <Text style={{ color: colors.danger, fontWeight: "600" }}>Sair deste Entre Nós</Text>
+                </Pressable>
+              )}
             </View>
           ) : null}
         </>

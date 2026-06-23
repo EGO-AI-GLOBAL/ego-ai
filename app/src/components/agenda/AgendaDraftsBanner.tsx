@@ -45,12 +45,15 @@ export function AgendaDraftsBanner({
   drafts,
   onRefresh,
   familyOnly = false,
+  nightDumpNights = 0,
 }: {
   colors: AppColors;
   drafts: AgendaDraft[];
   onRefresh: () => Promise<void>;
   /** true = aba compartilhada; false = só itens pessoais */
   familyOnly?: boolean;
+  /** Noites seguidas de desabafo (ofensiva noturna). */
+  nightDumpNights?: number;
 }) {
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const nightReveal = isNightRevealWindow();
@@ -192,7 +195,7 @@ export function AgendaDraftsBanner({
       </View>
       <Text style={[s.muted, { color: colors.textMuted, marginBottom: 8 }]}>
         {revealCollapsed
-          ? amanhaReveladoDraftHint()
+          ? amanhaReveladoDraftHint(nightDumpNights)
           : familyOnly
             ? "Grava na agenda Entre Nós — seu parceiro vê ao abrir a Agenda."
             : "Revise item a item — Agendar grava na agenda pessoal; Excluir descarta só este."}

@@ -332,7 +332,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-22-1.0.35-fase1-ofensiva-whatsapp",
+        "api_build": "2026-06-22-1.0.36-entre-nos-convites-telefone",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -903,9 +903,25 @@ def profile_patch():
         fields["ui_state"] = merged
     if "country" in data:
         fields["country"] = str(data["country"])[:80]
+    if "phone" in data:
+        from ego_api.phone_utils import normalize_phone_br
+
+        phone_norm, phone_err = normalize_phone_br(str(data.get("phone") or ""))
+        if phone_err:
+            return _json_error(phone_err, 400)
+        fields["phone"] = phone_norm
     ok, err = db.update_profile_fields(g.supabase, g.user_id, fields)
     if not ok:
         return _json_error(err or "Falha ao atualizar perfil.")
+    if "phone" in fields:
+        try:
+            from ego_api import shared_calendars as sc
+
+            sc.link_shared_memberships_for_user_phone(
+                g.supabase, g.user_id, str(fields["phone"])
+            )
+        except Exception:
+            pass
     return _json_ok({"updated": True})
 
 
@@ -1332,6 +1348,30 @@ def agenda_create():
 def agenda_delete(agenda_id: str):
     ok = db.delete_agenda(g.supabase, g.user_id, agenda_id)
     return _json_ok({"deleted": ok})
+
+
+@app.get("/api/v1/shared-calendars/pending-invites")
+@require_auth
+def shared_calendars_pending_invites():
+    from ego_api import shared_calendars as sc
+
+    rows = sc.list_pending_invites_for_user(g.supabase, g.user_id)
+    return _json_ok({"pending_calendar_invites": rows})
+
+
+@app.post("/api/v1/shared-calendars/member-invites/<member_id>/respond")
+@require_auth
+def shared_calendars_respond_member_invite(member_id: str):
+    from ego_api import shared_calendars as sc
+
+    data = request.get_json(silent=True) or {}
+    accept = bool(data.get("accept"))
+    ok, err, row = sc.respond_member_invite(
+        g.supabase, g.user_id, member_id, accept=accept
+    )
+    if not ok:
+        return _json_error(err or "Não foi possível responder ao convite.", 400)
+    return _json_ok({"member": row, "accepted": accept})
 
 
 @app.get("/api/v1/shared-calendars")

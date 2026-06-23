@@ -73,8 +73,8 @@ EMAIL_NO_ACCOUNT_MSG = (
 )
 
 PENDING_INVITE_MSG = (
-    "Convite enviado. A pessoa verá esta agenda quando entrar no EGO "
-    "com o mesmo e-mail."
+    "Convite enviado. A pessoa verá na Agenda (Entre Nós) para aceitar "
+    "quando entrar no EGO com o mesmo e-mail ou telefone."
 )
 
 
@@ -300,6 +300,100 @@ def _calendar_owner_id(admin, calendar_id: str) -> str:
     return ""
 
 
+def _calendar_name_by_id(admin, calendar_id: str) -> str:
+    try:
+        res = (
+            admin.table(SUPABASE_SHARED_CALENDARS_TABLE)
+            .select("name")
+            .eq("id", calendar_id)
+            .limit(1)
+            .execute()
+        )
+        if res.data:
+            return str(res.data[0].get("name") or "")
+    except Exception:
+        pass
+    return ""
+
+
+def _owner_display_name(admin, owner_user_id: str) -> str:
+    if not owner_user_id:
+        return "Alguém"
+    try:
+        from ego_api import db
+
+        prof = db.load_profile(admin, owner_user_id) or {}
+        name = str(prof.get("full_name") or "").strip()
+        if name:
+            return name
+    except Exception:
+        pass
+    return "Alguém"
+
+
+def _member_link_patch_for_calendar(
+    admin,
+    calendar_id: str,
+    user_id: str,
+    *,
+    phone_norm: str | None = None,
+) -> dict[str, Any]:
+    """Entre Nós fica pendente até aceitar; outras agendas activam ao entrar."""
+    patch: dict[str, Any] = {"user_id": user_id}
+    if phone_norm:
+        patch["invited_phone"] = phone_norm
+    cal_name = _calendar_name_by_id(admin, calendar_id)
+    if is_entre_nos_calendar(cal_name):
+        patch["status"] = "pending"
+    else:
+        patch["status"] = "active"
+    return patch
+
+
+def _user_contact_keys(
+    supabase: Client | None, user_id: str
+) -> tuple[str, str, list[str]]:
+    """E-mail normalizado, telefone E.164 e placeholders de convite."""
+    from ego_api import db
+    from ego_api.request_ctx import get_session
+
+    email_norm = ""
+    phone_norm = ""
+    placeholders: list[str] = []
+    try:
+        sess = get_session()
+        em = (sess.email if sess else "") or ""
+        if not em:
+            prof = db.load_profile(supabase, user_id) or {}
+            em = str(prof.get("email") or "")
+        email_norm, _ = _normalize_invite_email(em)
+        prof = db.load_profile(supabase, user_id) or {}
+        ph = str(prof.get("phone") or "").strip()
+        if ph:
+            phone_norm, _ = normalize_phone_br(ph)
+            if phone_norm:
+                placeholders.append(phone_invite_email_placeholder(phone_norm))
+    except Exception:
+        pass
+    return email_norm, phone_norm, placeholders
+
+
+def _user_is_active_member(admin, user_id: str, calendar_id: str) -> bool:
+    try:
+        res = (
+            admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+            .select("id")
+            .eq("calendar_id", calendar_id)
+            .eq("user_id", user_id)
+            .eq("status", "active")
+            .limit(1)
+            .execute()
+        )
+        return bool(res.data)
+    except Exception:
+        return False
+
+
 def link_shared_memberships_for_user_phone(
     supabase: Client | None, user_id: str, phone: str
 ) -> int:
@@ -328,15 +422,18 @@ def link_shared_memberships_for_user_phone(
                     continue
                 current = str(row.get("user_id") or "")
                 status = str(row.get("status") or "")
-                if current == user_id and status == "active":
+                cid = str(row.get("calendar_id") or "")
+                if current == user_id and status in ("active", "pending"):
                     continue
+                patch = _member_link_patch_for_calendar(
+                    admin, cid, user_id, phone_norm=phone_norm
+                )
                 admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(
-                    {"user_id": user_id, "status": "active", "invited_phone": phone_norm}
+                    patch
                 ).eq("id", rid).execute()
                 updated += 1
-                cid = str(row.get("calendar_id") or "")
                 owner = _calendar_owner_id(admin, cid) if cid else ""
-                if cid and owner:
+                if patch.get("status") == "active" and cid and owner:
                     push_after_member_invited(
                         cid,
                         owner,
@@ -463,15 +560,16 @@ def link_shared_memberships_for_user(
                 continue
             current = str(row.get("user_id") or "")
             status = str(row.get("status") or "")
-            if current == user_id and status == "active":
-                continue
-            admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(
-                {"user_id": user_id, "status": "active"}
-            ).eq("id", rid).execute()
-            updated += 1
             cid = str(row.get("calendar_id") or "")
+            if current == user_id and status in ("active", "pending"):
+                continue
+            patch = _member_link_patch_for_calendar(admin, cid, user_id)
+            admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(patch).eq(
+                "id", rid
+            ).execute()
+            updated += 1
             owner = _calendar_owner_id(admin, cid) if cid else ""
-            if cid and owner:
+            if patch.get("status") == "active" and cid and owner:
                 push_after_member_invited(
                     cid,
                     owner,
@@ -554,6 +652,177 @@ def list_calendars_for_user(supabase: Client | None, user_id: str) -> list[dict]
     except Exception as exc:
         print(f"[EGO] list_calendars_for_user error user={user_id}: {exc}", flush=True)
         return []
+
+
+def list_pending_invites_for_user(
+    supabase: Client | None, user_id: str
+) -> list[dict]:
+    """Convites de grupo ainda não aceites (Entre Nós / Família)."""
+    if not user_id:
+        return []
+    admin = create_service_client()
+    if not admin:
+        return []
+    email_norm, phone_norm, placeholders = _user_contact_keys(supabase, user_id)
+    seen: set[str] = set()
+    rows: list[dict] = []
+
+    def _collect(res) -> None:  # noqa: ANN001
+        for row in res.data or []:
+            rid = str(row.get("id") or "")
+            if not rid or rid in seen:
+                continue
+            cid = str(row.get("calendar_id") or "")
+            if not cid or _user_is_active_member(admin, user_id, cid):
+                continue
+            seen.add(rid)
+            rows.append(row)
+
+    try:
+        if email_norm:
+            _collect(
+                admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                .select("*")
+                .eq("status", "pending")
+                .eq("invited_email", email_norm)
+                .execute()
+            )
+        if phone_norm:
+            _collect(
+                admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                .select("*")
+                .eq("status", "pending")
+                .eq("invited_phone", phone_norm)
+                .execute()
+            )
+        for placeholder in placeholders:
+            _collect(
+                admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                .select("*")
+                .eq("status", "pending")
+                .eq("invited_email", placeholder)
+                .execute()
+            )
+        _collect(
+            admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+            .select("*")
+            .eq("status", "pending")
+            .eq("user_id", user_id)
+            .execute()
+        )
+    except Exception as exc:
+        print(
+            f"[EGO] list_pending_invites_for_user error user={user_id}: {exc}",
+            flush=True,
+        )
+        return []
+
+    out: list[dict] = []
+    for row in rows:
+        cid = str(row.get("calendar_id") or "")
+        cal_name = _calendar_name_by_id(admin, cid)
+        owner_id = _calendar_owner_id(admin, cid)
+        invited_phone = str(row.get("invited_phone") or "")
+        invited_email = str(row.get("invited_email") or "")
+        out.append(
+            {
+                "member_id": str(row.get("id") or ""),
+                "calendar_id": cid,
+                "calendar_name": cal_name,
+                "owner_name": _owner_display_name(admin, owner_id),
+                "invited_email": invited_email,
+                "invited_phone": invited_phone,
+                "invited_phone_display": format_phone_display(invited_phone)
+                if invited_phone
+                else "",
+                "is_entre_nos": is_entre_nos_calendar(cal_name),
+                "role": str(row.get("role") or "member"),
+            }
+        )
+    return out
+
+
+def _member_invite_matches_user(
+    row: dict,
+    user_id: str,
+    email_norm: str,
+    phone_norm: str,
+    placeholders: list[str],
+) -> bool:
+    if str(row.get("user_id") or "") == user_id:
+        return True
+    invited_email = str(row.get("invited_email") or "").strip().lower()
+    invited_phone = str(row.get("invited_phone") or "").strip()
+    if email_norm and invited_email == email_norm:
+        return True
+    if phone_norm and invited_phone == phone_norm:
+        return True
+    if invited_email and invited_email in placeholders:
+        return True
+    return False
+
+
+def respond_member_invite(
+    supabase: Client | None,
+    user_id: str,
+    member_id: str,
+    *,
+    accept: bool,
+) -> tuple[bool, str, dict | None]:
+    """Aceitar ou recusar convite para entrar numa agenda partilhada."""
+    if not user_id or not member_id:
+        return False, "Pedido inválido.", None
+    admin = create_service_client()
+    if not admin:
+        return False, "Servidor indisponível.", None
+    email_norm, phone_norm, placeholders = _user_contact_keys(supabase, user_id)
+    try:
+        res = (
+            admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+            .select("*")
+            .eq("id", member_id)
+            .limit(1)
+            .execute()
+        )
+        if not res.data:
+            return False, "Convite não encontrado.", None
+        row = res.data[0]
+        if str(row.get("status") or "") != "pending":
+            return False, "Este convite já foi respondido.", None
+        if not _member_invite_matches_user(
+            row, user_id, email_norm, phone_norm, placeholders
+        ):
+            return False, "Este convite não é para a sua conta.", None
+        cid = str(row.get("calendar_id") or "")
+        if accept:
+            if _user_is_active_member(admin, user_id, cid):
+                return False, "Você já faz parte desta agenda.", None
+            patch = {"user_id": user_id, "status": "active"}
+            if phone_norm and not str(row.get("invited_phone") or "").strip():
+                patch["invited_phone"] = phone_norm
+            admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(patch).eq(
+                "id", member_id
+            ).execute()
+            refreshed = (
+                admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                .select("*")
+                .eq("id", member_id)
+                .limit(1)
+                .execute()
+            )
+            data = (refreshed.data or [row])[0]
+            owner = _calendar_owner_id(admin, cid)
+            if cid and owner:
+                push_after_member_invited(
+                    cid, owner, {"user_id": user_id, "status": "active"}
+                )
+            return True, "", data
+        admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).delete().eq(
+            "id", member_id
+        ).execute()
+        return True, "", None
+    except Exception as exc:
+        return False, str(exc), None
 
 
 def count_owned_calendars(supabase: Client | None, owner_user_id: str) -> int:

@@ -19,13 +19,33 @@ export function buildEventWhatsAppMessage(opts: {
   return msg;
 }
 
-export function buildEntreNosInviteMessage(groupName: string): string {
-  const name = (groupName || "Entre Nós").trim();
+export function buildEntreNosInviteMessage(
+  groupName: string,
+  contactHint?: string
+): string {
+  return buildSharedCalendarInviteMessage(groupName, "entre_nos", contactHint);
+}
+
+export function buildSharedCalendarInviteMessage(
+  calendarName: string,
+  kind: "entre_nos" | "grupo" = "grupo",
+  contactHint?: string
+): string {
+  const name = (calendarName || (kind === "entre_nos" ? "Entre Nós" : "nossa agenda")).trim();
+  const intro =
+    kind === "entre_nos"
+      ? `Oi! Criei nosso *Entre Nós* «${name}» no EGO-AI.`
+      : `Oi! Te convidei para a agenda *${name}* no EGO-AI.`;
+  const hint = (contactHint || "").trim();
+  const contactLine = hint
+    ? `\n\nNo cadastro, use *exatamente* este contacto:\n${hint}`
+    : "\n\nEntre com o mesmo telefone ou e-mail que eu usei no convite.";
   return (
-    `Oi! Criei nosso *Entre Nós* «${name}» no EGO-AI.\n\n` +
+    `${intro}\n\n` +
     `Baixe grátis:\n🤖 Android:\n${PLAY_TESTING}\n\n` +
-    `🍎 iPhone:\n${TESTFLIGHT}\n\n` +
-    `Entre com o mesmo telefone ou e-mail que eu usei no convite.`
+    `🍎 iPhone:\n${TESTFLIGHT}` +
+    contactLine +
+    `\n\nDepois abra *Agenda → Entre Nós* e toque em *Aceitar*.`
   );
 }
 
@@ -77,8 +97,33 @@ export async function shareEventMessage(opts: {
   }
 }
 
-export async function shareEntreNosInviteWhatsApp(groupName: string): Promise<void> {
-  await shareWhatsAppText(buildEntreNosInviteMessage(groupName));
+export async function shareEntreNosInviteWhatsApp(
+  groupName: string,
+  contactHint?: string
+): Promise<void> {
+  await shareWhatsAppText(buildEntreNosInviteMessage(groupName, contactHint));
+}
+
+export async function shareSharedCalendarInviteWhatsApp(
+  calendarName: string,
+  kind: "entre_nos" | "grupo" = "grupo",
+  contactHint?: string
+): Promise<void> {
+  await shareWhatsAppText(buildSharedCalendarInviteMessage(calendarName, kind, contactHint));
+}
+
+/** Instagram, SMS, etc. — mesmo texto com links Play + TestFlight. */
+export async function shareSharedCalendarInviteNative(
+  calendarName: string,
+  kind: "entre_nos" | "grupo" = "grupo",
+  contactHint?: string
+): Promise<void> {
+  const message = buildSharedCalendarInviteMessage(calendarName, kind, contactHint);
+  try {
+    await Share.share({ message, title: "Convite EGO-AI" });
+  } catch {
+    /* cancelado */
+  }
 }
 
 export async function shareEntreNosEventWhatsApp(opts: {

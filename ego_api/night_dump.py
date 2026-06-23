@@ -180,6 +180,7 @@ def process_night_dump(
     from ego_api import streaks
 
     streaks.record_streak_activity(supabase, user_id, source="night_dump")
+    streaks.record_night_dump_streak(supabase, user_id)
 
     return {
         "draft": row,

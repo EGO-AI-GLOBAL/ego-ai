@@ -69,11 +69,13 @@ export default function AgendaScreen() {
               agendaDrafts={data.agenda_drafts ?? []}
               shoppingOrphans={data.shopping_orphans ?? []}
               onRefresh={onRefresh}
+              nightDumpNights={data.streak?.night_dump?.current ?? 0}
             />
           ) : (
             <SharedAgendaManual
               colors={colors}
               sharedCalendars={data.shared_calendars ?? []}
+              pendingCalendarInvites={data.pending_calendar_invites ?? []}
               agendaDrafts={data.agenda_drafts ?? []}
               currentUserId={session?.user?.id}
               onRefresh={onRefresh}

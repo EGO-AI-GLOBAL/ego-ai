@@ -222,6 +222,18 @@ export type SharedCalendar = {
   events?: SharedCalendarEvent[];
 };
 
+export type PendingCalendarInvite = {
+  member_id: string;
+  calendar_id: string;
+  calendar_name?: string;
+  owner_name?: string;
+  invited_email?: string;
+  invited_phone?: string;
+  invited_phone_display?: string;
+  is_entre_nos?: boolean;
+  role?: string;
+};
+
 export type ChatMessage = {
   role: "user" | "assistant";
   content: string;
@@ -282,12 +294,17 @@ export type HealthInfo = {
   gemini_configured: boolean;
 };
 
-export type StreakInfo = {
+export type StreakSlice = {
   current: number;
   longest: number;
   last_date?: string;
   active_today?: boolean;
   at_risk?: boolean;
+};
+
+export type StreakInfo = StreakSlice & {
+  /** Ofensiva do desabafo noturno (noites seguidas). */
+  night_dump?: StreakSlice;
 };
 
 export type DelegationRequest = {
@@ -315,6 +332,7 @@ export type DashboardData = {
   delegation_requests?: DelegationRequest[];
   streak?: StreakInfo;
   shared_calendars?: SharedCalendar[];
+  pending_calendar_invites?: PendingCalendarInvite[];
   messages: ChatMessage[];
   chat_local_history?: boolean;
 };

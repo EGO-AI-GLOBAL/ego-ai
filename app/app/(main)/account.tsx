@@ -1,3 +1,4 @@
+import * as Application from "expo-application";
 import { router } from "expo-router";
 import React from "react";
 import {
@@ -10,6 +11,8 @@ import {
   View,
 } from "react-native";
 import { PersonaPicker } from "@/components/PersonaPicker";
+import { AccountUpdateCard } from "@/components/AccountUpdateCard";
+import { ProfilePhoneCard } from "@/components/ProfilePhoneCard";
 import { ScreenShell } from "@/components/ScreenShell";
 import { UsageDashboard } from "@/components/UsageDashboard";
 import { accountPersona } from "@/constants/personas";
@@ -17,6 +20,7 @@ import { isProductionApiOk } from "@/constants/config";
 import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
+import { getInstalledAppVersion } from "@/utils/appVersion";
 
 export default function AccountScreen() {
   const colors = useColors();
@@ -40,6 +44,8 @@ export default function AccountScreen() {
     Boolean(emailAlias) &&
     profileName.trim().toLowerCase() === emailAlias;
   const name = !nameLooksLikeEmailAlias && profileName ? profileName : "Utilizador";
+  const profilePhone =
+    (typeof profile?.phone === "string" && profile.phone.trim()) || "";
   const accessStatus = data.access?.access_status || data.me?.access?.status || "—";
 
   return (
@@ -69,6 +75,16 @@ export default function AccountScreen() {
           <>
             <Text style={[styles.name, { color: colors.text }]}>{name}</Text>
             <Text style={[styles.badge, { color: colors.textMuted }]}>{accessStatus}</Text>
+            <Text style={[styles.version, { color: colors.textMuted }]}>
+              Versão {getInstalledAppVersion()}
+              {Application.nativeBuildVersion
+                ? ` · build ${Application.nativeBuildVersion}`
+                : ""}
+            </Text>
+
+            <AccountUpdateCard />
+
+            <ProfilePhoneCard colors={colors} phone={profilePhone} onSaved={refresh} />
 
             <UsageDashboard colors={colors} access={data.access} />
 
@@ -151,7 +167,8 @@ export default function AccountScreen() {
 const styles = StyleSheet.create({
   scroll: { padding: 20, paddingBottom: 32 },
   name: { fontSize: 24, fontWeight: "700", letterSpacing: -0.3 },
-  badge: { fontSize: 14, marginTop: 4, marginBottom: 20 },
+  badge: { fontSize: 14, marginTop: 4, marginBottom: 8 },
+  version: { fontSize: 12, marginBottom: 20 },
   row: {
     flexDirection: "row",
     justifyContent: "space-between",

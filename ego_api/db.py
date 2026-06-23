@@ -1045,7 +1045,7 @@ def update_profile_fields(
 ) -> tuple[bool, str]:
     if not supabase or not user_id:
         return False, "Sem cliente Supabase."
-    allowed = {"full_name", "ui_state", "country", "document_type"}
+    allowed = {"full_name", "ui_state", "country", "document_type", "phone"}
     payload = {k: v for k, v in fields.items() if k in allowed}
     if not payload:
         return False, "Nenhum campo válido para atualizar."

@@ -1,0 +1,8 @@
+Novidades 1.0.36:
+
+• Convites Entre Nós — aceitar ou recusar no app
+• Telefone no cadastro para convites funcionarem
+• Lembrete 7h da agenda do desabafo da noite
+• Correções no fluxo de convite pelo WhatsApp
+
+Versão: 1.0.36 | Version code: 68 | teste fechado

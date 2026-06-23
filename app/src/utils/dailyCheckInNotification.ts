@@ -26,6 +26,8 @@ import { getLocalPersonaChoice } from "@/storage/personaPrefs";
 
 import { isDailyCheckInEnabled } from "@/storage/chatHints";
 
+import { loadStreakCache } from "@/storage/streakCache";
+
 import { ensureReminderNotificationPermission } from "@/utils/reminderNotifications";
 
 import { resolveUserId } from "@/utils/resolveUserId";
@@ -186,6 +188,11 @@ export async function syncDailyCheckInNotification(): Promise<void> {
 
     const userName = resolveUserDisplayName();
 
+    const streakCache = await loadStreakCache();
+
+    const streakCurrent = streakCache?.current ?? 0;
+    const nightDumpStreak = streakCache?.night_dump?.current ?? 0;
+
 
 
     for (const ritual of rituals) {
@@ -194,7 +201,13 @@ export async function syncDailyCheckInNotification(): Promise<void> {
 
       const id = ritualNotificationId(ritual);
 
-      const copy = ritualNotificationCopy(ritual, assistantName, userName);
+      const copy = ritualNotificationCopy(
+        ritual,
+        assistantName,
+        userName,
+        ritual === "evening" ? streakCurrent : undefined,
+        ritual === "reveal" || ritual === "evening" ? nightDumpStreak : undefined
+      );
 
       await Notifications.cancelScheduledNotificationAsync(id);
 
@@ -210,7 +223,10 @@ export async function syncDailyCheckInNotification(): Promise<void> {
 
           sound: true,
 
-          data: { ritual, screen: "chat" },
+          data: {
+            ritual,
+            screen: ritual === "reveal" ? "agenda" : "chat",
+          },
 
         },
 

@@ -10,6 +10,9 @@ export function amanhaReveladoDraftTitle(itemCount: number): string {
   return `${itemCount} itens separados para amanhã`;
 }
 
-export function amanhaReveladoDraftHint(): string {
+export function amanhaReveladoDraftHint(nightDumpNights?: number): string {
+  if (nightDumpNights && nightDumpNights >= 2) {
+    return `🔥 ${nightDumpNights} noites de desabafo — abra pela manhã e toque Agendar.`;
+  }
   return "Abra pela manhã e toque Agendar — ou veja a prévia agora.";
 }

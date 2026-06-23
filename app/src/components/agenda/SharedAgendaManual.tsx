@@ -1,15 +1,17 @@
 import React, { useMemo } from "react";
-import type { SharedCalendar } from "@/api/types";
+import type { PendingCalendarInvite, SharedCalendar } from "@/api/types";
 import type { AgendaDraft } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { isEntreNosCalendarName } from "@/utils/entreNos";
 import { AgendaDraftsBanner } from "./AgendaDraftsBanner";
 import { ClassicSharedAgendaSection } from "./ClassicSharedAgendaSection";
 import { EntreNosAgendaSection } from "./EntreNosAgendaSection";
+import { PendingCalendarInvitesBanner } from "./PendingCalendarInvitesBanner";
 
 type Props = {
   colors: AppColors;
   sharedCalendars: SharedCalendar[];
+  pendingCalendarInvites?: PendingCalendarInvite[];
   agendaDrafts?: AgendaDraft[];
   currentUserId?: string;
   onRefresh: () => Promise<void>;
@@ -21,6 +23,7 @@ type Props = {
 export function SharedAgendaManual({
   colors,
   sharedCalendars,
+  pendingCalendarInvites = [],
   agendaDrafts = [],
   currentUserId,
   onRefresh,
@@ -37,6 +40,11 @@ export function SharedAgendaManual({
 
   return (
     <>
+      <PendingCalendarInvitesBanner
+        colors={colors}
+        invites={pendingCalendarInvites}
+        onRefresh={onRefresh}
+      />
       <AgendaDraftsBanner
         colors={colors}
         drafts={agendaDrafts}

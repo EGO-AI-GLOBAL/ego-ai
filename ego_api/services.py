@@ -194,9 +194,10 @@ def signup(
         ref_err = _apply_referral_after_signup(uid, referral_code)
         if ref_err:
             return None, ref_err
-        if phone_norm:
-            from ego_api import shared_calendars as sc
+        from ego_api import shared_calendars as sc
 
+        sc.link_shared_memberships_for_user(client, uid, email_norm)
+        if phone_norm:
             sc.link_shared_memberships_for_user_phone(client, uid, phone_norm)
         from ego_api.signup_emails import queue_welcome_email
 
@@ -1249,6 +1250,19 @@ def _list_shared_calendars_safe(supabase: Client | None, user_id: str) -> list:
         return []
 
 
+def _list_pending_calendar_invites_safe(supabase: Client | None, user_id: str) -> list:
+    try:
+        from ego_api import shared_calendars as sc
+
+        return sc.list_pending_invites_for_user(supabase, user_id)
+    except Exception as exc:
+        print(
+            f"[EGO] bootstrap pending_calendar_invites error user={user_id}: {exc}",
+            flush=True,
+        )
+        return []
+
+
 def _bootstrap_section(label: str, fn, default):  # noqa: ANN001
     try:
         return fn()
@@ -1289,6 +1303,9 @@ def bootstrap_payload_fallback(supabase: Client | None, user_id: str) -> dict:
         "agenda_drafts": [],
         "shopping_orphans": [],
         "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
+        "pending_calendar_invites": _list_pending_calendar_invites_safe(
+            supabase, user_id
+        ),
         "messages": [],
     }
 
@@ -1356,6 +1373,9 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
             },
         ),
         "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
+        "pending_calendar_invites": _list_pending_calendar_invites_safe(
+            supabase, user_id
+        ),
         "messages": _bootstrap_section(
             "messages", lambda: db.load_chat_history(supabase, user_id), []
         ),

@@ -4,6 +4,7 @@ import { ActivityIndicator, View } from "react-native";
 import { syncDailyCheckInNotification } from "@/utils/dailyCheckInNotification";
 import { AppDrawer } from "@/components/AppDrawer";
 import { PersonaGate } from "@/components/PersonaGate";
+import { ProfilePhoneGate } from "@/components/ProfilePhoneGate";
 import { DashboardProvider } from "@/context/DashboardContext";
 import { DrawerProvider } from "@/context/DrawerContext";
 import { useAuth } from "@/context/AuthContext";
@@ -13,26 +14,29 @@ import { useColors } from "@/theme/ThemeContext";
 function MainShell() {
   const colors = useColors();
   const segments = useSegments();
-  const hideDrawer = segments.includes("choose-avatar");
+  const hideDrawer =
+    segments.includes("choose-avatar") || segments.includes("complete-profile");
   useDailyRitualNotifications();
 
   return (
-    <PersonaGate>
-      <DrawerProvider>
-        <>
-          <View style={{ flex: 1, backgroundColor: colors.bg }}>
-            <Stack
-              screenOptions={{
-                headerShown: false,
-                contentStyle: { backgroundColor: colors.bg },
-                animation: "fade",
-              }}
-            />
-          </View>
-          {!hideDrawer ? <AppDrawer /> : null}
-        </>
-      </DrawerProvider>
-    </PersonaGate>
+    <ProfilePhoneGate>
+      <PersonaGate>
+        <DrawerProvider>
+          <>
+            <View style={{ flex: 1, backgroundColor: colors.bg }}>
+              <Stack
+                screenOptions={{
+                  headerShown: false,
+                  contentStyle: { backgroundColor: colors.bg },
+                  animation: "fade",
+                }}
+              />
+            </View>
+            {!hideDrawer ? <AppDrawer /> : null}
+          </>
+        </DrawerProvider>
+      </PersonaGate>
+    </ProfilePhoneGate>
   );
 }
 

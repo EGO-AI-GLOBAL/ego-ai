@@ -1,8 +1,9 @@
-/** Rituais diários — 8h briefing, 14h checkpoint, 21h descarrego. */
+/** Rituais diários — 7h amanhã revelado, 8h briefing, 14h checkpoint, 21h descarrego. */
 
-export type DailyRitualId = "morning" | "afternoon" | "evening";
+export type DailyRitualId = "reveal" | "morning" | "afternoon" | "evening";
 
 export const DAILY_RITUAL_HOURS: Record<DailyRitualId, number> = {
+  reveal: 7,
   morning: 8,
   afternoon: 14,
   evening: 21,
@@ -17,6 +18,13 @@ export function ritualNotificationId(ritual: DailyRitualId): string {
 /** Prompt enviado ao chat quando o utilizador toca na notificação. */
 export function ritualChatPrompt(ritual: DailyRitualId, assistantName: string): string {
   switch (ritual) {
+    case "reveal":
+      return (
+        `[Ritual 7h — amanhã revelado] Sou ${assistantName}. ` +
+        `Diga que itens do desabafo da noite estão na Agenda para confirmar (Agendar / Excluir). ` +
+        `Peça para ABRIR a Agenda AGORA e revisar cada item — leva menos de 1 minuto. ` +
+        `Tom acolhedor: «Bom dia! Vamos confirmar juntos o que você desabafou ontem?»`
+      );
     case "morning":
       return (
         `[Ritual 8h — briefing] Sou ${assistantName}. ` +
@@ -49,10 +57,25 @@ export function ritualChatPrompt(ritual: DailyRitualId, assistantName: string): 
 export function ritualNotificationCopy(
   ritual: DailyRitualId,
   assistantName: string,
-  userName?: string
+  userName?: string,
+  streakCurrent?: number,
+  nightDumpStreak?: number
 ): { title: string; body: string } {
   const name = userName?.trim() || "você";
   switch (ritual) {
+    case "reveal": {
+      const nights = nightDumpStreak ?? 0;
+      if (nights >= 3) {
+        return {
+          title: "🌙 Amanhã revelado",
+          body: `🔥 ${nights} noites de desabafo! Toque — confirme na Agenda o que guardou ontem.`,
+        };
+      }
+      return {
+        title: "🌙 Amanhã revelado",
+        body: `${assistantName}: bom dia! Abra a Agenda e confirme o desabafo de ontem.`,
+      };
+    }
     case "morning":
       return {
         title: `${name}, seu dia começa agora ☀️`,
@@ -63,10 +86,25 @@ export function ritualNotificationCopy(
         title: "Metade do dia — não deixe escapar",
         body: `${assistantName}: abra agora, confira a tarde e atualize sua agenda.`,
       };
-    case "evening":
+    case "evening": {
+      const nights = nightDumpStreak ?? 0;
+      const streak = streakCurrent ?? 0;
+      if (nights >= 3) {
+        return {
+          title: `🌙 ${nights} noites de desabafo`,
+          body: `${assistantName}: grave agora — amanhã você confirma na Agenda. Não quebre a sequência!`,
+        };
+      }
+      if (streak >= 3) {
+        return {
+          title: `🔥 ${streak} dias seguidos!`,
+          body: `Ei, você já está com ${streak} dias de organização! Não vai deixar a peteca cair hoje, né? ${assistantName}: grave um áudio rápido.`,
+        };
+      }
       return {
-        title: "Descarrego da noite",
+        title: "Desabafo da noite",
         body: `${assistantName}: toque, grave o que está na cabeça. Amanhã confirma na Agenda.`,
       };
+    }
   }
 }

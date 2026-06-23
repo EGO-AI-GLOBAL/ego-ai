@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { getLocalPersonaChoice } from "@/storage/personaPrefs";
 import { useColors } from "@/theme/ThemeContext";
+import { isProfilePhoneMissing } from "@/utils/profileComplete";
 import { resolveUserId } from "@/utils/resolveUserId";
 
 type Props = {
@@ -17,6 +18,7 @@ export function PersonaGate({ children }: Props) {
   const { data, loading } = useDashboard();
   const segments = useSegments();
   const onChooseAvatar = segments.includes("choose-avatar");
+  const onCompleteProfile = segments.includes("complete-profile");
   const [localReady, setLocalReady] = useState(false);
   const [hasLocalChoice, setHasLocalChoice] = useState(false);
   const uid = resolveUserId(session, data.me?.user_id);
@@ -48,7 +50,12 @@ export function PersonaGate({ children }: Props) {
     );
   }
 
-  if (!hasLocalChoice && !onChooseAvatar) {
+  if (
+    !hasLocalChoice &&
+    !onChooseAvatar &&
+    !onCompleteProfile &&
+    !isProfilePhoneMissing(data.me)
+  ) {
     return <Redirect href="/(main)/choose-avatar" />;
   }
 

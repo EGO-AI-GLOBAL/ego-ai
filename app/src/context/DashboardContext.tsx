@@ -25,6 +25,8 @@ import {
   notifyNewSharedEventsFromOthers,
   syncSharedCalendarLocalNotifications,
 } from "@/utils/sharedCalendarNotifications";
+import { syncDailyCheckInNotification } from "@/utils/dailyCheckInNotification";
+import { saveStreakCache } from "@/storage/streakCache";
 import {
   getLocalPersonaChoice,
   isPersonaConfiguredLocal,
@@ -40,7 +42,10 @@ const empty: DashboardData = {
   agenda: [],
   agenda_drafts: [],
   shopping_orphans: [],
+  delegation_requests: [],
+  streak: { current: 0, longest: 0, active_today: false, at_risk: false },
   shared_calendars: [],
+  pending_calendar_invites: [],
   messages: [],
 };
 
@@ -143,6 +148,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         access: normalizeAccessInfo(dashboard.access),
       };
       setData(dashboard);
+      void saveStreakCache(dashboard.streak);
       setPersonaLocalOk(Boolean(uid && localChoice));
       if (dashboard.me || (dashboard.shared_calendars?.length ?? 0) > 0) {
         setError(null);
@@ -153,6 +159,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         void registerExpoPushToken();
         void notifyNewSharedEventsFromOthers(shared, uid).catch(() => {});
         void syncSharedCalendarLocalNotifications(shared).catch(() => {});
+        void syncDailyCheckInNotification().catch(() => {});
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar dados.";

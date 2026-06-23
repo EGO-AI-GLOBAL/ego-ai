@@ -15,7 +15,12 @@ function screenFromData(data: unknown): "chat" | "agenda" | null {
 function ritualFromData(data: unknown): DailyRitualId | null {
   if (!data || typeof data !== "object") return null;
   const ritual = (data as { ritual?: string }).ritual;
-  if (ritual === "morning" || ritual === "afternoon" || ritual === "evening") {
+  if (
+    ritual === "reveal" ||
+    ritual === "morning" ||
+    ritual === "afternoon" ||
+    ritual === "evening"
+  ) {
     return ritual;
   }
   return null;
@@ -28,6 +33,10 @@ async function openChatWithRitual(ritual: DailyRitualId): Promise<void> {
 
 function handleNotificationData(data: unknown): void {
   const ritual = ritualFromData(data);
+  if (ritual === "reveal") {
+    router.push("/(main)/agenda");
+    return;
+  }
   if (ritual) {
     void openChatWithRitual(ritual);
     return;

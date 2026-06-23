@@ -33,6 +33,8 @@ import {
   sortSharedEvents,
 } from "./agendaUtils";
 import { SharedEventRow } from "./SharedEventRow";
+import { SharedCalendarSocialInvite } from "./SharedCalendarSocialInvite";
+import { promptLeaveSharedCalendar } from "@/utils/sharedCalendarLeave";
 
 type Props = {
   colors: AppColors;
@@ -52,6 +54,7 @@ export function ClassicSharedAgendaSection({
   const initialSlot = defaultScheduleSlot();
   const [selectedSharedId, setSelectedSharedId] = useState<string | null>(null);
   const [inviteContact, setInviteContact] = useState("");
+  const [registeredInviteContact, setRegisteredInviteContact] = useState("");
   const [inviting, setInviting] = useState(false);
   const [actionBusy, setActionBusy] = useState<string | null>(null);
   const [newCalendarName, setNewCalendarName] = useState("Família");
@@ -159,6 +162,7 @@ export function ClassicSharedAgendaSection({
     setInviting(true);
     try {
       const member = await addSharedCalendarMember(String(selectedCalendar.id), contact);
+      setRegisteredInviteContact(contact);
       setInviteContact("");
       await onRefresh();
       const pending = member.status === "pending";
@@ -166,7 +170,7 @@ export function ClassicSharedAgendaSection({
       Alert.alert(
         pending ? "Convite enviado" : "Adicionado",
         pending
-          ? `${label} verá a agenda quando entrar no EGO com o mesmo telefone ou e-mail.`
+          ? `${label} verá na Agenda para aceitar, com o mesmo contacto no cadastro.`
           : `${label} já tem acesso à agenda.`
       );
     } catch (e) {
@@ -254,7 +258,7 @@ export function ClassicSharedAgendaSection({
             )}
           </Pressable>
           <Text style={[s.muted, { color: colors.textMuted, marginTop: 4 }]}>
-            Várias pessoas · marque compromissos · convide por e-mail ou telefone.
+            Várias pessoas · convide por WhatsApp, Instagram ou telefone/e-mail.
           </Text>
         </View>
       ) : (
@@ -452,6 +456,12 @@ export function ClassicSharedAgendaSection({
                   <Text style={s.inviteBtnText}>Convidar</Text>
                 )}
               </Pressable>
+              <SharedCalendarSocialInvite
+                colors={colors}
+                calendarName={(selectedCalendar.name || "Família").trim()}
+                kind="grupo"
+                inviteContact={inviteContact.trim() || registeredInviteContact}
+              />
               {selectedCalendar.is_owner ? (
                 <>
                   <Pressable
@@ -461,17 +471,35 @@ export function ClassicSharedAgendaSection({
                     style={[styles.manageBtn, { borderColor: colors.primary }]}
                   >
                     <Text style={{ color: colors.primary, fontWeight: "600" }}>
-                      Gerir agenda (convidar, membros)
+                      Gerir agenda (membros)
                     </Text>
                   </Pressable>
                   <Pressable
                     onPress={onDeleteSelectedCalendar}
                     style={[styles.deleteBtn, { borderColor: colors.danger }]}
                   >
-                    <Text style={{ color: colors.danger, fontWeight: "600" }}>Apagar esta agenda</Text>
+                    <Text style={{ color: colors.danger, fontWeight: "600" }}>
+                      Apagar esta agenda
+                    </Text>
                   </Pressable>
                 </>
-              ) : null}
+              ) : (
+                <Pressable
+                  onPress={() =>
+                    promptLeaveSharedCalendar({
+                      calendar: selectedCalendar,
+                      currentUserId,
+                      onLeft: async () => {
+                        setSelectedSharedId(null);
+                        await onRefresh();
+                      },
+                    })
+                  }
+                  style={[styles.manageBtn, { borderColor: colors.danger, marginTop: 16 }]}
+                >
+                  <Text style={{ color: colors.danger, fontWeight: "600" }}>Sair do grupo</Text>
+                </Pressable>
+              )}
             </View>
           ) : null}
         </>
