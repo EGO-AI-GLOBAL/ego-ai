@@ -134,6 +134,9 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
 
   const days = care.current ?? 0;
   const borderColor = care.at_risk ? colors.warning : colors.primary;
+  const todayMood = (care.moods ?? []).find((m) => m.key === care.last_mood);
+  const todayLabel = todayMood?.label ?? care.last_mood_label;
+  const todayEmoji = todayMood?.emoji ?? care.last_mood_emoji;
 
   return (
     <>
@@ -185,7 +188,7 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
         {care.checked_today ? (
           <>
             <Text style={[styles.done, { color: colors.success }]}>
-              ✓ Hoje: {care.last_mood_emoji} {care.last_mood_label}
+              ✓ Hoje: {todayEmoji} {todayLabel}
             </Text>
             <Text style={[styles.hook, { color: colors.textMuted }]}>{care.share_hook}</Text>
             <Pressable
