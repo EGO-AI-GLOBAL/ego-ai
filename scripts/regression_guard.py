@@ -36,7 +36,13 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "recordStreakActivity",
             "confirmDelegationRequest",
             "respondEntreNosEvent",
+            "submitDailyCareCheckin",
+            "completeWellnessJourneyStep",
         ],
+    ),
+    (
+        "app/src/components/DailyCareChallenge.tsx",
+        ["DESAFIO DIÁRIO", "RankingLadder"],
     ),
     (
         "app/src/context/AuthContext.tsx",
@@ -77,7 +83,22 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "delegation_requests_pending",
             "streaks_record_activity",
             "shopping_list_get",
+            '@app.post("/api/v1/daily-care/checkin")',
+            '@app.post("/api/v1/wellness-journey/step")',
+            '@app.get("/go")',
         ],
+    ),
+    (
+        "ego_api/daily_care.py",
+        ["get_daily_care", "record_checkin", "CARE_TIERS"],
+    ),
+    (
+        "ego_api/wellness_journey.py",
+        ["get_journey", "record_step", "JOURNEY_LEVELS"],
+    ),
+    (
+        "ego_api/download_go.py",
+        ["public_go_url"],
     ),
     (
         "ego_api/services.py",
@@ -106,7 +127,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/streaks.py",
-        ["record_streak_activity", "get_streak", "evening_streak_notification_body"],
+        ["record_streak_activity", "get_streak", "get_night_dump_streak", "record_night_dump_streak", "evening_streak_notification_body"],
     ),
     (
         "ego_api/shared_calendar_notify.py",

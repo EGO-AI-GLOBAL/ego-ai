@@ -1,0 +1,36 @@
+DESCARREGO NAO ABRE — diagnostico rapido
+=======================================
+
+PASSO 1 — Voce tem a versao certa?
+-----------------------------------
+Abra Menu > Conta e olhe a versao.
+
+  ERRADO (nao tem Descarrego de verdade):
+    • Chat mostra 1.5x e 2x
+    • Conta: build 11 (iOS) ou 1.0.28 (Android)
+
+  CERTO:
+    • Chat: botao "Descarrego agora" (nao 1.5x/2x)
+    • iOS build 12 | Android build 60/61
+
+  Se ERRADO:
+    Android: ANDROID-DESCARREGO-AGORA.bat (desinstalar + APK)
+    iPhone: TestFlight > build 12 > Atualizar (espere Apple processar)
+
+PASSO 2 — Como usar o Descarrego (versao certa)
+-----------------------------------------------
+1. Toque "Descarrego agora" (acima do campo Mensagem)
+2. Deve ficar ROXO + texto "Modo descarrego ativo"
+3. Segure o microfone de baixo OU escreva e envie
+4. Abra Agenda > puxe para baixo > Agendar ou Excluir
+
+PASSO 3 — Se o botao nao reage
+-------------------------------
+• Feche o teclado (toque fora do campo Mensagem)
+• Veja se aparece "Limite diario atingido" no chat
+• Feche e abra o app de novo
+
+PASSO 4 — Me responda assim
+----------------------------
+Android: build __ | ve Descarrego sim/nao | abre modo roxo sim/nao
+iPhone: build __ | ve Descarrego sim/nao | abre modo roxo sim/nao

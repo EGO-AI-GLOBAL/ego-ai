@@ -12,7 +12,7 @@ import type { AccessInfo } from "@/api/types";
 import { loadLocalChatHistory } from "@/storage/chatHistoryLocal";
 import { estimateTokenDelta } from "@/utils/usageStats";
 import { resolveUserId } from "@/utils/resolveUserId";
-import type { DashboardData, SendChatResult } from "@/api/types";
+import type { DashboardData, SendChatResult, WellnessJourney, DailyCareInfo } from "@/api/types";
 import { chatResultChangedData, mergeChatIntoDashboard } from "@/utils/mergeChatDashboard";
 import { accountPersona } from "@/constants/personas";
 import { useAuth } from "@/context/AuthContext";
@@ -46,6 +46,8 @@ const empty: DashboardData = {
   shopping_orphans: [],
   delegation_requests: [],
   streak: { current: 0, longest: 0, active_today: false, at_risk: false },
+  wellness_journey: undefined,
+  daily_care: undefined,
   shared_calendars: [],
   pending_calendar_invites: [],
   messages: [],
@@ -69,6 +71,9 @@ type DashboardContextValue = {
   setPersona: (avatarId: string, voiceId: string) => void | Promise<void>;
   /** Atualiza telefone no estado local após PATCH /profile (evita loop no gate). */
   mergeProfilePhone: (phone: string) => void;
+  /** Atualiza jornada de bem-estar após passo concluído. */
+  mergeWellnessJourney: (journey: WellnessJourney) => void;
+  mergeDailyCare: (care: DailyCareInfo, journey?: WellnessJourney) => void;
   /** true se o servidor ou o telemóvel já registou escolha de assistente */
   personaGateOk: boolean;
 };
@@ -287,6 +292,18 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
+  const mergeWellnessJourney = useCallback((journey: WellnessJourney) => {
+    setData((prev) => ({ ...prev, wellness_journey: journey }));
+  }, []);
+
+  const mergeDailyCare = useCallback((care: DailyCareInfo, journey?: WellnessJourney) => {
+    setData((prev) => ({
+      ...prev,
+      daily_care: care,
+      ...(journey ? { wellness_journey: journey } : {}),
+    }));
+  }, []);
+
   const setPersona = useCallback(async (avatarId: string, voiceId: string) => {
     const persona = accountPersona({ avatar_id: avatarId, voice_id: voiceId });
     const uid = resolveUserId(session, data.me?.user_id);
@@ -364,6 +381,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       refreshAccess,
       setPersona,
       mergeProfilePhone,
+      mergeWellnessJourney,
+      mergeDailyCare,
       personaGateOk,
     }),
     [
@@ -376,6 +395,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       refreshAccess,
       setPersona,
       mergeProfilePhone,
+      mergeWellnessJourney,
+      mergeDailyCare,
       personaGateOk,
     ]
   );

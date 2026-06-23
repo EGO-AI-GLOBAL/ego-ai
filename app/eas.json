@@ -15,6 +15,12 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://ego-ai-production-a2c2.up.railway.app",
+        "EXPO_PUBLIC_ALLOW_HTTP": "0",
+        "APP_ENV": "production",
+        "EAS_BUILD_NO_EXPO_GO_WARNING": "true"
       }
     },
     "production": {

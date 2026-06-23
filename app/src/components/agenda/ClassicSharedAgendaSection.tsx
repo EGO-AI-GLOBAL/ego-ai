@@ -35,6 +35,7 @@ import {
 import { SharedEventRow } from "./SharedEventRow";
 import { SharedCalendarSocialInvite } from "./SharedCalendarSocialInvite";
 import { promptLeaveSharedCalendar } from "@/utils/sharedCalendarLeave";
+import { shareSharedCalendarInviteWhatsApp } from "@/utils/whatsappShare";
 
 type Props = {
   colors: AppColors;
@@ -170,8 +171,23 @@ export function ClassicSharedAgendaSection({
       Alert.alert(
         pending ? "Convite enviado" : "Adicionado",
         pending
-          ? `${label} verá na Agenda para aceitar, com o mesmo contacto no cadastro.`
-          : `${label} já tem acesso à agenda.`
+          ? `${label} verá na Agenda compartilhada para aceitar, com o mesmo contacto no cadastro.`
+          : `${label} já tem acesso à agenda.`,
+        pending
+          ? [
+              { text: "OK", style: "cancel" },
+              {
+                text: "Convidar no WhatsApp",
+                onPress: () => {
+                  void shareSharedCalendarInviteWhatsApp(
+                    (selectedCalendar?.name || "Família").trim(),
+                    "grupo",
+                    contact
+                  );
+                },
+              },
+            ]
+          : undefined
       );
     } catch (e) {
       Alert.alert("Convite", e instanceof Error ? e.message : "Não foi possível convidar.");

@@ -1,0 +1,232 @@
+================================================================================
+  EGO-AI — CAMPANHA TESTE FECHADO (Play Store)
+  Versão app: 1.0.18 · versionCode 46
+  Stripe: DEPOIS (trial 20 dias Essencial — sem pagamento no teste)
+================================================================================
+
+ÍNDICE (Ctrl+F para achar)
+--------------------------------------------------------------------------------
+  [A] LINK OFICIAL ........................... busque: LINK OFICIAL
+  [B] ANTES DA PLAY APROVAR .................. busque: ANTES DA PLAY
+  [C] DEPOIS DA PLAY APROVAR ................ busque: DEPOIS DA PLAY  ← ATIVO
+  [D] ANÚNCIO PAGO — TEXTO FINAL ............ busque: ANÚNCIO PAGO
+  [E] COMENTÁRIO FIXADO ..................... busque: COMENTÁRIO FIXADO
+  [F] VÍDEO 4 AVATARES ...................... busque: VÍDEO — 4 AVATARES
+  [G] VÍDEO 12 AVATARES ..................... busque: VÍDEO LONGO
+  [H] RESPOSTAS RÁPIDAS ..................... busque: RESPOSTAS RÁPIDAS
+
+Caminho: marketing\CAMPANHA-TESTE-FECHADO.txt
+
+LINK OFICIAL (usar na campanha — NÃO usar store/apps/details como CTA principal)
+--------------------------------------------------------------------------------
+  Participar (opt-in):
+  https://play.google.com/apps/testing/com.egoai.app
+
+  Página da loja (só DEPOIS de aceitar o teste, ou passo 2):
+  https://play.google.com/store/apps/details?id=com.egoai.app
+
+REGRA DE OURO (repetir em todo lugar)
+--------------------------------------------------------------------------------
+  TESTE 100% GRÁTIS
+  · Não paga nada para entrar
+  · Não pede cartão
+  · Não cobra na Play Store
+  · Não precisa mandar e-mail no privado
+  · Trial 20 dias no Essencial (sem cartão)
+
+================================================================================
+  ANTES DA PLAY APROVAR (revisão em andamento)
+================================================================================
+
+Texto anúncio temporário (link ainda não instala — ou pausar R$ 30/dia):
+--------------------------------------------------------------------------------
+EGO-AI — teste GRÁTIS no Android (em breve)
+
+Assistente com voz e agenda.
+100% grátis · Sem cartão · Sem cobrança
+
+Estamos liberando o link na Play Store em 1–2 dias.
+Comenta QUERO ou manda DM — te aviso quando abrir.
+(Não precisa mandar e-mail se não quiser.)
+
+Resposta DM (quem mandou e-mail — já na lista):
+--------------------------------------------------------------------------------
+Obrigado! Já te coloquei na lista de testadores do EGO-AI.
+
+A Google ainda está analisando a versão (1–2 dias).
+Assim que liberar, te mando o link para instalar no Android.
+
+É 100% grátis, sem cartão e sem pagamento.
+
+================================================================================
+  [C] DEPOIS DA PLAY APROVAR (status: Disponível / Ativo)
+================================================================================
+
+CHECKLIST (ordem)
+--------------------------------------------------------------------------------
+  [ ] 1. VOCÊ testa no SEU Android (link apps/testing) — 5 min
+  [ ] 2. Atualiza anúncio pago → link + texto final abaixo
+  [ ] 3. Publica vídeo (4 avatares ou 12)
+  [ ] 4. Comentário fixado com link
+  [ ] 5. Manda link aos testadores da lista (32+)
+  [ ] 6. Mantém ≥12 opt-in no fechado por 14 dias seguidos
+
+Fluxo para o usuário
+--------------------------------------------------------------------------------
+  1) Abrir NO CELULAR Android:
+     https://play.google.com/apps/testing/com.egoai.app
+  2) Entrar com conta Google da Play Store
+  3) «Tornar-se testador» → Aceitar
+  4) Play Store → Ego-IA → Instalar ou Atualizar
+  5) Criar conta no app · escolher avatar · usar trial 20 dias
+
+================================================================================
+  ANÚNCIO PAGO — TEXTO FINAL
+================================================================================
+
+Título:
+  EGO-AI — teste grátis Android
+
+Texto principal:
+  Teste o EGO-AI sem pagar nada.
+
+  ✅ 100% grátis
+  ✅ Sem cartão de crédito
+  ✅ Sem cobrança na Play Store
+  ✅ Não precisa mandar e-mail
+
+  Abra o link no celular → Instalar → Testar.
+
+  Assistente com voz, agenda e avatares.
+  Trial 20 dias no app.
+
+CTA botão:  Testar grátis  (ou Saiba mais)
+URL:        https://play.google.com/apps/testing/com.egoai.app
+
+Bio / capa (Android + iPhone — copiar de BIO-REDES-2-LINKS.txt):
+  Teste grátis 1.0.34 · Sem cartão
+  Android: https://play.google.com/apps/testing/com.egoai.app
+  iPhone: https://testflight.apple.com/join/eNDKdFWF
+
+================================================================================
+  COMENTÁRIO FIXADO / DESCRIÇÃO DO VÍDEO
+================================================================================
+
+🆓 TESTE FECHADO — TOTALMENTE GRÁTIS
+
+1) Abra NO CELULAR Android:
+https://play.google.com/apps/testing/com.egoai.app
+
+2) «Tornar-se testador» → Aceitar
+3) Play Store → Ego-IA → Instalar ou Atualizar
+
+❌ Não paga nada
+❌ Não pede cartão
+❌ Não precisa me mandar e-mail
+
+Trial 20 dias · Essencial grátis
+Fica no teste ~14 dias sem sair — ajuda a ir para a loja pública
+
+Se o link Android não abrir, tente no navegador do celular:
+(mesmo URL apps/testing)
+
+================================================================================
+  VÍDEO — 4 AVATARES (~32 s) — ANÚNCIO RECOMENDADO
+================================================================================
+
+Legenda fixa nos primeiros 3 s de TODO vídeo:
+  GRÁTIS · SEM CARTÃO · SEM E-MAIL
+
+Ordem de edição: Luna → Leo → Malik → Hana → tela com link
+
+--- 1. LUNA (avatar-f1 · avatar-f1-speaking.mp4) — 8 s ---
+Fala:
+  Oi! Sou a Luna, do EGO-AI. O teste é cem por cento grátis.
+  Sem cartão, sem taxa escondida. Abra o link no celular Android!
+
+Prompt (gerador / direção):
+  Mulher brasileira ~26 anos, tom caloroso e sereno, sorriso acolhedor,
+  olhar câmera, gesto suave, fundo verde-sálvia, PT-BR, 8 segundos.
+
+--- 2. LEO (avatar-m1 · avatar-m1-speaking.mp4) — 8 s ---
+Fala:
+  Eu sou o Leo. Conversa por texto e voz, organiza sua agenda
+  e lembra seus compromissos. Trial de vinte dias — você não paga nada!
+
+Prompt:
+  Homem latino ~29 anos, tom claro e confiante, camisa azul,
+  fundo café desfocado, PT-BR natural, 8 segundos.
+
+--- 3. MALIK (avatar-m5 · avatar-m5-speaking.mp4) — 8 s ---
+Fala:
+  E aí! Malik aqui. Não precisa me mandar e-mail no privado —
+  só abrir o link, virar testador e instalar. Rápido e grátis!
+
+Prompt:
+  Homem afro-brasileiro ~28 anos, energia alta, sorriso confiante,
+  moletom moderno, fundo urbano, tom jovem e direto, PT-BR, 8 s.
+
+--- 4. HANA (avatar-f3 · avatar-f3-speaking.mp4) — 8 s ---
+Fala:
+  Sou a Hana! Teste fechado do EGO-AI: grátis, sem cartão,
+  só Android. Link na descrição — tornar-se testador e instalar. Bora!
+
+Prompt:
+  Mulher leste-asiática ~24 anos, sorriso alegre, tom animado,
+  fundo branco limpo, PT-BR, 8 segundos.
+
+Tela final (5 s):
+  Link: play.google.com/apps/testing/com.egoai.app
+  Texto: GRÁTIS · SEM CARTÃO · LINK NA DESCRIÇÃO
+
+================================================================================
+  VÍDEO LONGO — 12 AVATARES (~96 s) — FEED / SITE
+================================================================================
+
+  1. Luna    — Oi! Sou a Luna. EGO-AI em teste grátis no Android — sem cartão, sem pagamento.
+  2. Leo     — Leo aqui. Texto, voz e agenda no mesmo app. Trial de vinte dias sem cobrar nada.
+  3. Aisha   — Aisha. Organizo seu dia — trabalho, estudos e lembretes na palma da mão.
+  4. Hana    — Hana! Ideias rápidas quando você trava — e organiza sua rotina com leveza.
+  5. Kai     — Kai. Agenda compartilhada com quem você convida — família, equipe, amigos no app.
+  6. Omar    — Omar. Tom calmo para conversar, planejar e refletir — no seu ritmo.
+  7. Amara   — Amara. Escuta ativa no dia a dia — apoio e organização com acolhimento.
+  8. Ravi    — Ravi. Manda PDF ou foto no chat — resumo e respondo sobre o arquivo na hora.
+  9. Alex    — Alex. Escolha o avatar que combina com você — conversa natural, seu estilo.
+ 10. Sara    — Sara. Planejamento para rotinas exigentes — compromissos e hábitos num lugar.
+ 11. Malik   — Malik! Sem e-mail no privado — abre o link, aceita o teste e instala. Grátis!
+ 12. Jordan  — Jordan. EGO-AI: assistente com rosto e voz. Link na descrição — vem testar grátis!
+
+Arquivos: app/assets/avatar-{id}-speaking.mp4 (f1,m1,f2,f3,m2,m3,f4,m4,g1,f5,m5,g2)
+
+================================================================================
+  RESPOSTAS RÁPIDAS (privado / comentários)
+================================================================================
+
+«É grátis?»
+  Sim, 100% grátis para testar. Sem cartão, sem cobrança na Play Store.
+  Link: https://play.google.com/apps/testing/com.egoai.app
+
+«Preciso mandar e-mail?»
+  Não. Só abrir o link no celular Android com sua conta Google da Play Store.
+
+«Quanto custa o teste?»
+  R$ 0. Trial de 20 dias no app. Cartão só se você quiser assinar plano depois.
+
+«Não consigo instalar»
+  1) Abriu no celular (não no PC)?
+  2) Mesma conta Google da Play Store?
+  3) Tornar-se testador → Aceitar → depois Instalar/Atualizar?
+
+================================================================================
+  PLAY CONSOLE — REFERÊNCIA
+================================================================================
+
+  Faixa:     Teste fechado - 1.0.18
+  Versão:    1.0.18 (46)
+  Testadores: lista Testadores EGO 3 (32+) + opt-in pelo link
+  Mínimo produção: 12 opt-in · 14 dias consecutivos (só fechado conta)
+  Interno:   pode continuar; novos → link do fechado
+
+  Stripe planos pagos: configurar DEPOIS do teste fechado rodando.
+
+================================================================================

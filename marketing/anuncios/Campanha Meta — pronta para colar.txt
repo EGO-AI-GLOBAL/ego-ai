@@ -1,0 +1,151 @@
+Campanha Meta — pronta para colar
+Use no Gerenciador de Anúncios (business.facebook.com). Objetivo: mensagens no Instagram, não instalação direta.
+
+1) Estrutura da campanha
+Nível	Nome sugerido	Configuração
+Campanha
+EGO-IA Teste BR — DM Gmail
+Objetivo: Engajamento ou Tráfego → destino Instagram Direct / Mensagens
+Conjunto 1
+Criativo A — Noite/Solidão
+Orçamento: R$ 30/dia
+Conjunto 2
+Criativo B — Agenda/Organização
+Orçamento: R$ 30/dia (ligue só depois de 3 dias se A for melhor)
+Duração teste: 7 dias
+Gasto total teste: ~R$ 210 (só conjunto A) ou ~R$ 420 (A + B)
+
+2) Público (conjunto de anúncios)
+Campo	Valor
+País
+Brasil
+Idade
+25–54
+Gênero
+Todos
+Idioma
+Português
+Posicionamentos
+Só Instagram (Feed + Reels + Stories) — desmarque Facebook no início
+Interesses (adicione 3–5)
+Bem-estar · Produtividade pessoal · Aplicativos móveis · Saúde mental · Estilo de vida
+Público amplo: pode deixar Meta otimizar se o orçamento for baixo (R$ 30/dia).
+
+Excluir: quem já segue @egoai__seu_amigo_no_bolso (público personalizado “seguidores”, se tiver Business).
+
+3) Criativo A — Noite / solidão (principal)
+Vídeo: o que você já postou (“O seu amigo no bolso”) ou corte 15–30 s noturno.
+
+Texto principal (copiar)
+Chega de scrollar sozinho à noite.
+O Ego-IA é um assistente no celular com rosto e voz — conversa de verdade, lembra compromissos e ajuda na rotina. Não é ChatGPT frio: é companhia no bolso.
+🤝 Teste grátis no Android (fase de testes)
+📩 Manda seu Gmail no direct que eu te libero na Play
+Comece com Luna ou Leo — grátis.
+Título (se pedir)
+Seu amigo no bolso — teste grátis
+Descrição (link / legenda curta)
+Chat + agenda + voz. Manda Gmail no direct.
+CTA do botão
+Enviar mensagem
+ou Saiba mais → link: https://egoai.com.br
+
+Hashtags (no post orgânico; no ads opcional)
+#egoai #ia #android #bemestar #produtividade #amigonobolso
+4) Criativo B — Agenda / organização (teste B)
+Vídeo: tela do app marcando “agenda pessoal amanhã 9h” + confirmação.
+
+Texto principal (copiar)
+Esqueceu reunião de novo?
+Fale ou digite: «Marca na agenda pessoal consulta amanhã às 9h» — o Ego-IA organiza com voz e rosto no celular.
+📅 Agenda, lembretes e chat num app só
+📩 Quer testar? Manda seu Gmail no direct (Android, grátis por enquanto)
+Luna e Leo te esperam.
+Título
+Organize o dia falando com o celular
+CTA
+Enviar mensagem
+5) Resposta automática no Instagram (opcional, mas ajuda)
+Configuração: Instagram → Configurações → Mensagens → Resposta automática (ou ManyChat depois)
+
+Oi! Obrigado pelo interesse no Ego-IA 🤝
+Para testar grátis no Android:
+1) Me manda seu e-mail Gmail (o mesmo da Play Store)
+2) Em até 30 min te envio o link
+3) Instala, cria conta e digita: Oi
+Dúvida ou bug? Manda print aqui.
+Site: egoai.com.br
+6) Script quando chegar Gmail (você, no privado)
+Oi! Adicionei seu Gmail na Play.
+Abra NO CELULAR ANDROID (mesma conta Google):
+https://play.google.com/apps/internaltest/4700773173398888106
+1) Tornar-se testador → Aceitar
+2) Play Store → Ego-IA → Instalar
+3) Abre o app → Oi no chat
+Me conta em 2 dias: ✅ ou ❌
+Obrigado por testar!
+7) Orçamento e regras
+Item	Valor
+Dia 1–7
+R$ 30/dia só Criativo A
+Pausar se
+Gmail > R$ 40 cada e ninguém instala
+Escalar se
+≥ 3 Gmails/dia e testadores ativos
+Não gastar mais se
+Agenda/chat ainda com “Erro interno” frequente
+Meta de sucesso (7 dias):
+
+15–30 Gmails no direct
+8–15 instalaram
+Custo por Gmail: < R$ 25
+8) Pixel / conta (checklist antes de publicar)
+
+ Conta Meta Business criada
+
+ Instagram @egoai__seu_amigo_no_bolso ligado à página
+
+ Forma de pagamento no Ads
+
+ Vídeo vertical 9:16, 15–45 s
+
+ Não prometer “cura”, “terapia” ou “substitui médico”
+9) Frase legal (rodapé do anúncio, se couber)
+App em teste. Não substitui profissionais de saúde. Android.
+Ordem de execução hoje
+Colar Resposta automática no Instagram
+Criar campanha com Criativo A, R$ 30/dia, 7 dias
+Anotar Gmails numa planilha: nome · email · instalou? · feedback
+Só depois de estável → ligar Criativo B ou subir para R$ 50/dia
+Se quiser, no próximo passo monto a mesma campanha para TikTok Ads (texto + orçamento) no dia 12 quando o perfil estiver pronto.
+
+Oi! Obrigado pelo interesse no Ego-IA 🤝
+
+Para testar grátis no Android:
+1) Me manda seu e-mail Gmail (o mesmo da Play Store)
+2) Em até 30 min te envio o link
+3) Instala, abre o app e digita: Oi
+
+Site: egoai.com.br
+Bug? Manda print aqui. Obrigado!
+
+Oi! Cadastrei seu Gmail na Play.
+
+Abra NO CELULAR ANDROID (mesma conta Google):
+https://play.google.com/apps/internaltest/4700773173398888106
+
+1) Tornar-se testador → Aceitar
+2) Play Store → Ego-IA → Instalar
+3) Chat → digite: Oi
+
+Me conta em 2 dias: ✅ ou ❌
+Obrigado!
+
+Ego-IA — O seu amigo no bolso 🤝
+Chat, agenda e voz no celular.
+Quer testar grátis no Android? Manda seu Gmail no direct 📩
+#egoai #ia #android #produtividade
+
+video 1 
+Chega de scrollar sozinho à noite. Ego-IA — assistente com rosto e voz.
+📩 Manda seu Gmail no direct · teste grátis Android

@@ -1,0 +1,193 @@
+PROMPTS WAYIN / IMAGEM→VÍDEO — EGO-AI (copiar e colar)
+======================================================
+
+CONFIGURAÇÕES (todos)
+  Duração: 4–8 s | Formato: 9:16 vertical | Sem legenda | Sem logo | Sem áudio
+
+FRASE (script / fala — todos falam igual)
+  Oi, estou aqui com você — pode falar comigo quando quiser, estou te ouvindo.
+
+PROMPT DE CENA (inglês — campo visual/motion — usar em todos)
+-------------------------------------------------------------
+Talking-head video for mobile app assistant. Person looks directly at camera,
+upper body and face centered, soft natural lighting, shallow depth of field,
+static camera, minimal head movement. Continuous natural speech with lips
+always moving — never fully closed mouth, no long pauses. Seamless loop:
+first frame and last frame must match (same face angle, same mouth position
+slightly open). No subtitles, no captions, no logo, no watermark, no text
+overlay. Vertical 9:16 framing, professional but warm, friendly presence.
+
+IMAGEM → VÍDEO (recomendado — foto já existe no app)
+  Referência: app\assets\avatar-{id}.png
+  Motion prompt: Animate speaking to camera, continuous lip movement 6 seconds,
+  loop-friendly, minimal head motion, no text on screen, vertical 9:16.
+
+DEPOIS DO EXPORT
+  Salvar: app\assets\incoming\{id}-speaking-original.mp4
+  Processar: python scripts\make_avatar_speaking_loop.py --id {id} --skip-still-sync
+
+TABELA
+  f1 Luna    ✅ feito
+  m1 Leo     ✅ feito
+  f2 Aisha   ✅ feito
+  f3 Hana    ✅ feito
+  f4 Amara   ✅ feito
+  f5 Sara    ✅ feito
+  m2 Kai     ✅ feito
+  m3 Omar    ✅ feito
+  m4 Ravi    ✅ feito
+  m5 Malik   ✅ feito
+  g1 Alex    ✅ feito (vídeo antigo reprocessado 9:16)
+  g2 Jordan  ✅ feito (WayIn; boca pode variar com TTS)
+
+PADRÃO FINAL (todos)
+  avatar-{id}.png           → foto parada
+  avatar-{id}-speaking.mp4  → 720×1280, ~7,8 s, sem áudio, loop crossfade 200ms
+
+══════════════════════════════════════════════════════
+LUNA (f1) — ✅ JÁ FEITO ONTEM
+══════════════════════════════════════════════════════
+
+Brazilian Latina woman, 26 years old, warm caramel skin, medium copper/auburn
+curly hair, warm brown eyes, terracotta or sage green sweater, minimal sage
+green background, welcoming serene expression.
+
+She speaks slowly in Brazilian Portuguese: "Oi, estou aqui com você — pode
+falar comigo quando quiser, estou te ouvindo." Lips move entire time, ends
+with mouth slightly open for seamless loop. 6–8 seconds, vertical 9:16, no subtitles.
+
+══════════════════════════════════════════════════════
+LEO (m1) — PRÓXIMO
+══════════════════════════════════════════════════════
+
+Latino man Colombian-Brazilian look, 29 years old, caramel skin, short fade
+hair with wavy top, light stubble, light blue chambray shirt rolled sleeves,
+blurred café background, confident warm smile.
+
+He speaks slowly in Brazilian Portuguese: "Oi, estou aqui com você — pode
+falar comigo quando quiser, estou te ouvindo." Continuous lip movement,
+seamless loop, 6–8 seconds, vertical 9:16, no subtitles.
+
+══════════════════════════════════════════════════════
+AISHA (f2)
+══════════════════════════════════════════════════════
+
+Arab-Mediterranean woman Lebanese-Egyptian look, 33 years old, olive skin,
+dark brown wavy hair to shoulders, subtle gold earrings, modern teal blazer,
+soft cream background with gentle geometric shadow, serene professional expression.
+
+She speaks slowly in Brazilian Portuguese: "Oi, estou aqui com você — pode
+falar comigo quando quiser, estou te ouvindo." Continuous lip movement,
+seamless loop, 6–8 seconds, vertical 9:16, no subtitles.
+
+══════════════════════════════════════════════════════
+HANA (f3)
+══════════════════════════════════════════════════════
+
+East Asian woman, 24 years old, fair skin, short black hair with bangs, bright
+cheerful smile, light natural makeup, colorful youthful top, clean white
+background with subtle color accent.
+
+She speaks slowly in Brazilian Portuguese: "Oi, estou aqui com você — pode
+falar comigo quando quiser, estou te ouvindo." Continuous lip movement,
+seamless loop, 6–8 seconds, vertical 9:16, no subtitles.
+
+══════════════════════════════════════════════════════
+AMARA (f4)
+══════════════════════════════════════════════════════
+
+Black African woman, 30 years old, deep dark skin, voluminous natural afro
+hair, warm smile, simple earrings, colorful blouse with subtle pattern, warm
+golden soft background light.
+
+She speaks slowly in Brazilian Portuguese: "Oi, estou aqui com você — pode
+falar comigo quando quiser, estou te ouvindo." Continuous lip movement,
+seamless loop, 6–8 seconds, vertical 9:16, no subtitles.
+
+══════════════════════════════════════════════════════
+SARA (f5)
+══════════════════════════════════════════════════════
+
+European woman, 40 years old, fair skin, straight blonde or light brown hair,
+mature elegant expression, neutral blazer, discreet accessory, blurred modern
+office background.
+
+She speaks slowly in Brazilian Portuguese: "Oi, estou aqui com você — pode
+falar comigo quando quiser, estou te ouvindo." Continuous lip movement,
+seamless loop, 6–8 seconds, vertical 9:16, no subtitles.
+
+══════════════════════════════════════════════════════
+KAI (m2)
+══════════════════════════════════════════════════════
+
+Young mixed-heritage man South American and Asian features, 25 years old,
+medium skin tone, black textured hair, big friendly smile, casual hoodie,
+blurred urban background.
+
+He speaks slowly in Brazilian Portuguese: "Oi, estou aqui com você — pode
+falar comigo quando quiser, estou te ouvindo." Continuous lip movement,
+seamless loop, 6–8 seconds, vertical 9:16, no subtitles.
+
+══════════════════════════════════════════════════════
+OMAR (m3)
+══════════════════════════════════════════════════════
+
+Arab man, 38 years old, darker brown skin, well-groomed beard, dark calm eyes,
+mature calm expression, navy blue dress shirt, light beige background, natural
+side lighting.
+
+He speaks slowly in Brazilian Portuguese: "Oi, estou aqui com você — pode
+falar comigo quando quiser, estou te ouvindo." Continuous lip movement,
+seamless loop, 6–8 seconds, vertical 9:16, no subtitles.
+
+══════════════════════════════════════════════════════
+RAVI (m4)
+══════════════════════════════════════════════════════
+
+South Asian Indian man, 35 years old, darker brown skin, neatly cut dark hair,
+short beard, intellectual friendly expression, polo or dress shirt, neutral
+gray background.
+
+He speaks slowly in Brazilian Portuguese: "Oi, estou aqui com você — pode
+falar comigo quando quiser, estou te ouvindo." Continuous lip movement,
+seamless loop, 6–8 seconds, vertical 9:16, no subtitles.
+
+══════════════════════════════════════════════════════
+MALIK (m5)
+══════════════════════════════════════════════════════
+
+Afro-Brazilian man, 28 years old, black skin, short dreads or voluminous curly
+hair, confident smile, modern streetwear hoodie, discreet chain, vibrant urban
+background.
+
+He speaks slowly in Brazilian Portuguese: "Oi, estou aqui com você — pode
+falar comigo quando quiser, estou te ouvindo." Continuous lip movement,
+seamless loop, 6–8 seconds, vertical 9:16, no subtitles.
+
+══════════════════════════════════════════════════════
+JORDAN (g2) — use prompt SEGURO (sem bloqueio WayIn)
+══════════════════════════════════════════════════════
+
+IMPORTANTE: exportar SEM ÁUDIO / SEM VOZ / SEM SCRIPT em inglês.
+Se o vídeo vier com fala, a boca fica desenquadrada com o TTS em português.
+
+Young adult, 32 years old, medium-dark skin, medium wavy black hair,
+thin round glasses, calm friendly smile, open olive shirt over white t-shirt,
+blurred library background.
+
+Speaks silently to camera, continuous lip movement only, vertical 9:16,
+6-8 seconds, no audio track, no subtitles, no watermark, no text on screen.
+
+IMAGEM → VÍDEO (recomendado): avatar-g2.png + motion:
+Animate talking head, subtle lip movement, silent, no speech audio, 6 seconds.
+
+══════════════════════════════════════════════════════
+ALEX (g1) — prompt SEGURO (WayIn bloqueia "non-binary")
+══════════════════════════════════════════════════════
+
+Young adult, 27 years old, light-medium skin, short platinum blonde hair,
+modern casual style, warm friendly smile, plain t-shirt, soft pastel background.
+
+Silent lip movement to camera, vertical 9:16, 6-8 seconds, no audio, no subtitles.
+
+IMAGEM → VÍDEO: avatar-g1.png + Animate talking head, silent, lip movement, 6 seconds.

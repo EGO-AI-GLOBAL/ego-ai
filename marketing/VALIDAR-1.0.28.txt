@@ -1,0 +1,50 @@
+EGO-AI 1.0.28 — gate Android (antes da 1.0.29)
+=================================================
+
+O QUE ENTROU NESTA VERSAO
+-------------------------
+• Avatar (12): video anima ao falar — MP4 originais (862x1070, 24fps).
+• Agenda manual: hora abre relogio nativo do Android (nao rodas spinner).
+• Textos em portugues corrigidos (acentos).
+• Agenda limpa: sem caixa de instrucoes; "Comprar quando puder" so se houver itens.
+
+NAO MEXER / NAO NESTA VERSAO
+----------------------------
+• Descarrego item a item, compras +/-, remover agenda por voz → 1.0.29
+• Streaks → 1.0.30
+• Railway EGO_LATEST_APP_VERSION=1.0.28 → so DEPOIS de publicar na Play e testar
+
+BUILD PARA A PLAY
+-----------------
+• Usar build 60 (.aab production) — NAO usar 57, 58 ou 59.
+• Link builds: https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds
+• Build 60: https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/179e3d5d-50a4-4164-9ffd-f7652c232ef3
+
+COMO SABER SE ESTA NA VERSAO CERTA
+----------------------------------
+Play testadores: https://play.google.com/apps/testing/com.egoai.app
+Versao 1.0.28, build 60+. Fechar app nao basta — "Atualizar" na Play.
+
+TESTAR NO CELULAR (obrigatorio antes da 1.0.29)
+------------------------------------------------
+[ ] 1. Luna — enviar mensagem — video anima ao falar
+[ ] 2. Agenda + Novo compromisso — tocar hora — relogio abre — OK
+[ ] 3. Marcar compromisso — aparece na lista — Apagar funciona
+[ ] 4. Agenda: subtitulo legivel (Toque + · escolha data/hora) — sem caracteres estranhos
+[ ] 5. Agenda: sem caixa grande no meio — vai direto para Compromissos
+[ ] 6. (Opcional) Leo ou outro avatar — voz ou texto — video ok
+
+SE TUDO OK
+----------
+1. Publicar build 60 no teste fechado Play
+2. Testadores confirmam os 6 itens acima
+3. Railway: EGO_LATEST_APP_VERSION=1.0.28
+4. So entao comecar 1.0.29
+
+NOTAS DA VERSAO (Play Console)
+------------------------------
+Correcoes nesta versao:
+• Video do avatar anima corretamente ao falar (todos os 12 avatares)
+• Seletor de hora na agenda com relogio nativo do Android
+• Textos e layout da agenda corrigidos
+• Salvar compromissos na agenda manual funcionando

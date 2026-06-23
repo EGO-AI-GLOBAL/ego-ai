@@ -1,5 +1,5 @@
-import { Redirect, Stack, useSegments } from "expo-router";
-import { useEffect } from "react";
+import { Redirect, Stack, useRouter, useSegments, type Href } from "expo-router";
+import { useEffect, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
 import { syncDailyCheckInNotification } from "@/utils/dailyCheckInNotification";
 import { AppDrawer } from "@/components/AppDrawer";
@@ -8,8 +8,25 @@ import { ProfilePhoneGate } from "@/components/ProfilePhoneGate";
 import { DashboardProvider } from "@/context/DashboardContext";
 import { DrawerProvider } from "@/context/DrawerContext";
 import { useAuth } from "@/context/AuthContext";
+import { useDashboard } from "@/hooks/useDashboard";
 import { useDailyRitualNotifications } from "@/hooks/useDailyRitualNotifications";
 import { useColors } from "@/theme/ThemeContext";
+
+function PendingInviteRedirect() {
+  const router = useRouter();
+  const { data, loading } = useDashboard();
+  const redirected = useRef(false);
+
+  useEffect(() => {
+    if (loading || redirected.current) return;
+    if ((data.pending_calendar_invites?.length ?? 0) > 0) {
+      redirected.current = true;
+      router.replace("/(main)/agenda" as Href);
+    }
+  }, [loading, data.pending_calendar_invites?.length, router]);
+
+  return null;
+}
 
 function MainShell() {
   const colors = useColors();
@@ -21,6 +38,7 @@ function MainShell() {
   return (
     <ProfilePhoneGate>
       <PersonaGate>
+        <PendingInviteRedirect />
         <DrawerProvider>
           <>
             <View style={{ flex: 1, backgroundColor: colors.bg }}>

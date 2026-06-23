@@ -332,7 +332,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-22-1.0.37-profile-phone-gate-fix",
+        "api_build": "2026-06-23-1.0.38-daily-care-journey-trial",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -644,6 +644,25 @@ def _legal_html_page(title: str, markdown_text: str) -> Response:
 </body>
 </html>"""
     return Response(page, mimetype="text/html; charset=utf-8")
+
+
+@app.get("/go")
+@app.get("/baixar")
+@app.get("/cadastro")
+@app.get("/api/v1/go")
+def download_go_page():
+    from ego_api.download_go import render_go_page
+
+    ref = str(request.args.get("ref") or "")
+    nxt = str(request.args.get("next") or "")
+    fmt = str(request.args.get("format") or "").strip().lower()
+    body, status, headers = render_go_page(
+        ref=ref,
+        next_step=nxt,
+        user_agent=str(request.headers.get("User-Agent") or ""),
+        force_format=fmt,
+    )
+    return Response(body, status=status, headers=headers)
 
 
 @app.get("/privacy")
@@ -1272,6 +1291,50 @@ def streaks_record_activity():
     return _json_ok({"streak": streak})
 
 
+@app.post("/api/v1/wellness-journey/step")
+@require_auth
+@rate_limit(48, 60, scope="user")
+def wellness_journey_record_step():
+    from ego_api import wellness_journey
+
+    data = request.get_json(silent=True) or {}
+    step = str(data.get("step") or "").strip()[:32]
+    if not step:
+        return _json_error("Informe o passo (step).")
+    prof = db.load_profile(g.supabase, g.user_id) or {}
+    tier, _ = db.user_plan_limits(prof)
+    journey = wellness_journey.record_step(g.supabase, g.user_id, step, plan_tier=tier)
+    journey = wellness_journey.sync_streak_levels(g.supabase, g.user_id, plan_tier=tier)
+    return _json_ok({"wellness_journey": journey})
+
+
+@app.post("/api/v1/wellness-journey/dismiss-level-up")
+@require_auth
+@rate_limit(12, 60, scope="user")
+def wellness_journey_dismiss_level_up():
+    from ego_api import wellness_journey
+
+    journey = wellness_journey.clear_level_up_flag(g.supabase, g.user_id)
+    return _json_ok({"wellness_journey": journey})
+
+
+@app.post("/api/v1/daily-care/checkin")
+@require_auth
+@rate_limit(12, 60, scope="user")
+def daily_care_checkin():
+    from ego_api import daily_care, wellness_journey
+
+    data = request.get_json(silent=True) or {}
+    mood = str(data.get("mood") or data.get("mood_key") or "").strip()[:16]
+    if not mood:
+        return _json_error("Informe o humor (mood).")
+    care = daily_care.record_checkin(g.supabase, g.user_id, mood)
+    prof = db.load_profile(g.supabase, g.user_id) or {}
+    tier, _ = db.user_plan_limits(prof)
+    journey = wellness_journey.sync_streak_levels(g.supabase, g.user_id, plan_tier=tier)
+    return _json_ok({"daily_care": care, "wellness_journey": journey})
+
+
 @app.post("/api/v1/reminders")
 @require_auth
 def reminders_create():
@@ -1299,6 +1362,16 @@ def reminders_create():
                 friendly_api_error(err or "", context="reminder")
                 or "Não foi possível criar o lembrete."
             )
+        try:
+            from ego_api import wellness_journey
+
+            prof = db.load_profile(g.supabase, g.user_id) or {}
+            tier, _ = db.user_plan_limits(prof)
+            wellness_journey.record_step(
+                g.supabase, g.user_id, "reminder", plan_tier=tier
+            )
+        except Exception:
+            pass
         return _json_ok({"reminder": row}, 201)
     except Exception as exc:  # noqa: BLE001
         log_api_exception(exc, route="/api/v1/reminders")
@@ -1453,6 +1526,14 @@ def shared_calendars_add_member(calendar_id: str):
     )
     if not ok:
         return _json_error(err or "Não foi possível adicionar o membro.")
+    try:
+        from ego_api import wellness_journey
+
+        prof = db.load_profile(g.supabase, g.user_id) or {}
+        tier, _ = db.user_plan_limits(prof)
+        wellness_journey.record_step(g.supabase, g.user_id, "invite", plan_tier=tier)
+    except Exception:
+        pass
     pending = str((row or {}).get("status") or "") == "pending"
     return _json_ok(
         {"member": row, "pending": pending, "message": err or ""},

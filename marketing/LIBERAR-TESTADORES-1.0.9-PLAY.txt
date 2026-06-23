@@ -1,0 +1,30 @@
+=== COPIAR E ENVIAR NO WHATSAPP (Play Store — teste interno 1.0.9) ===
+
+Oi! Você foi convidado(a) a testar o *EGO-AI 1.0.9* (assistente com avatares no celular).
+
+📲 *Instalar (Android)*
+1) Abra ESTE link NO CELULAR (não no PC):
+https://play.google.com/apps/internaltest/4700773173398888106
+2) Entre com a conta Google que você usa na Play Store
+3) Toque em *Tornar-se testador* / *Aceitar*
+4) Abra a *Play Store* → procure *Ego-IA* → *Instalar* ou *Atualizar*
+
+👤 *Testar (10 min)*
+• Criar conta (nome + telefone + e-mail) ou entrar na sua
+• Escolher avatar (Leo, Luna, Hana, Sara…)
+• Chat: digite *Oi* (texto)
+• Menu → *Planos* → ver oferta (opcional)
+
+🐛 Bug? Mande print + o que fez antes do erro.
+contato@egoai.com.br
+
+Obrigado!
+
+---
+
+=== VOCÊ (antes de enviar) ===
+[ ] Seu e-mail Google está na lista de testadores (Play Console)
+[ ] Testou Oi + avatar no SEU celular (versão 1.0.9)
+[ ] E-mails dos testadores adicionados na Play (se ainda não)
+
+Link opt-in: https://play.google.com/apps/internaltest/4700773173398888106

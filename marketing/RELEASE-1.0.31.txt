@@ -1,0 +1,42 @@
+EGO-AI 1.0.31 — o que entra (fechado no código, ainda NÃO buildado)
+====================================================================
+
+INCLUI TUDO DO 1.0.30 +
+-----------------------
+• Descarrego agora + Ouvir (sem 1.5x/2x)
+• ✓ branco na lista de compras (Ionicons)
+• Descarrego acima do teclado no chat
+• Banner / Conta → Atualizar
+
+NOVIDADES 1.0.31 (Agenda + UI)
+------------------------------
+• Banner descarrego: fundo legível (não roxo com texto escuro)
+• Depois de Agendar: banner some (app + API limpa rascunho vazio)
+• Checkbox compras: vazio = roxo claro; marcado = roxo + ✓
+• Lista de compras no compromisso: caixa “Lista de compras · 0/5”
+• Modo descarrego no chat: fundo legível
+• Cartão Atualizar na Conta: contraste corrigido
+• Formulários agenda: fundo roxo claro (não roxo forte)
+
+BUILDS ESPERADOS
+----------------
+• iOS: 1.0.31 build 14
+• Android: 1.0.31 versionCode 63
+
+ORDEM AO PUBLICAR (não pular)
+-----------------------------
+1. GERAR-1.0.31.bat (iOS + Android)
+2. SUBMIT-IOS-1.0.31.bat — UMA vez, espere verde
+3. PUBLICAR-1.0.31-PLAY.bat (.aab na Play)
+4. Testar nos 2 aparelhos → VALIDAR-1.0.31.bat
+5. Railway: EGO_LATEST_APP_VERSION=1.0.31
+           EGO_LATEST_ANDROID_VERSION_CODE=63
+6. TestFlight externo + testadores Play
+
+CHECKLIST VALIDAÇÃO
+-------------------
+Conta → 1.0.31 | iOS build 14 | Android 63
+Chat → Descarrego agora, visível com teclado
+Descarrego → Agenda → Agendar lista → banner SOME
+Agenda → Ir ao mercado → lista legível, ✓ visível
+Banner/Conta → Atualizar (só quem está em versão antiga)

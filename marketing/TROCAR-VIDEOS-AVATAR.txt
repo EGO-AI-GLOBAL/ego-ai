@@ -1,0 +1,51 @@
+EGO-AI — Trocar vídeos dos avatares (sem mexer no código)
+============================================================
+
+COMPORTAMENTO NO APP (já pronto)
+--------------------------------
+• Silêncio      → foto parada (avatar-f1.png)
+• Falando (TTS) → vídeo 9:16 em loop
+• Áudio acabou  → volta para a foto
+
+
+FORMATO DO EXPORT (único aceite)
+--------------------------------
+• Proporção: 9:16 vertical (1080×1920 ou 720×1280)
+• Duração: 4 a 8 segundos (o script usa o vídeo inteiro se for ≤8 s)
+• FPS: 30
+• SEM legenda, SEM logo, SEM áudio no MP4
+• Rosto/ombros centrados, boca em movimento
+
+Frase (~8 s):
+  «Oi, estou aqui com você — pode falar comigo quando quiser, estou te ouvindo.»
+
+
+TROCAR SÓ A LUNA (exemplo)
+--------------------------
+1. Salve o export em:
+     app\assets\incoming\f1-speaking-original.mp4
+2. Rode: TESTE-LOOP-LUNA.bat
+3. Gera: app\assets\avatar-f1-speaking.mp4 (720×1280, enquadrado)
+
+Ou substitua direto app\assets\avatar-f1-speaking.mp4 se já vier pronto.
+
+
+TABELA ID → FICHEIRO
+--------------------
+  f1 Luna   avatar-f1-speaking.mp4
+  m1 Leo    avatar-m1-speaking.mp4
+  (f2…g2)   avatar-{id}-speaking.mp4
+
+Não apague avatar-f1.png — é a foto parada.
+
+
+DEPOIS
+------
+  cd app  →  npx expo start -c
+  TestFlight/Play: novo build para ver no telefone
+
+STATUS 12/12 (finalizado)
+-------------------------
+Todos com avatar-{id}.png + avatar-{id}-speaking.mp4
+Padrão: 720×1280, ~7,8 s, sem áudio, loop crossfade.
+Alex/Jordan: melhor export futuro opcional (WayIn); app já funciona.

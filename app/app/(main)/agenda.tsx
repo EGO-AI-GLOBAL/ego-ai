@@ -1,5 +1,5 @@
 import { useFocusEffect } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -21,6 +21,12 @@ export default function AgendaScreen() {
   const { session } = useAuth();
   const { data, loading, refreshing, error, refresh } = useDashboard();
   const [tab, setTab] = useState<AgendaTab>("personal");
+
+  useEffect(() => {
+    if ((data.pending_calendar_invites?.length ?? 0) > 0) {
+      setTab("shared");
+    }
+  }, [data.pending_calendar_invites?.length]);
 
   const onRefresh = useCallback(
     () => refresh({ skipNotifications: true }),

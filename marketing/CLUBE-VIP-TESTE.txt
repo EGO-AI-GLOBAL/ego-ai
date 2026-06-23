@@ -1,0 +1,33 @@
+EGO-AI — Fluxo de teste (Android + iOS) · 1.0.34
+=================================================
+
+AGORA (Android + iPhone — 2 links na bio e nos posts)
+-----------------------------------------------------
+
+🤖 ANDROID
+  https://play.google.com/apps/testing/com.egoai.app
+  • Abrir no celular → Tornar-se testador → Instalar
+
+🍎 IPHONE (TestFlight externo — sem lista de e-mail)
+  https://testflight.apple.com/join/eNDKdFWF
+  • Instalar app TestFlight (Apple) → abrir link → Instalar EGO-AI
+
+Bio / legenda / comentário fixado: use os 2 links.
+Texto pronto: marketing/BIO-REDES-2-LINKS.txt
+
+
+LEGENDA CURTA (post)
+--------------------
+📱 Android: https://play.google.com/apps/testing/com.egoai.app
+🍎 iPhone: https://testflight.apple.com/join/eNDKdFWF
+
+
+QUANDO O SITE VOLTAR (UOL)
+--------------------------
+Bio pode resumir para: https://egoai.com.br
+(página com os 2 botões)
+
+
+PLAY CONSOLE — Android
+----------------------
+Teste fechado → link apps/testing (opt-in sem add manual de e-mail)

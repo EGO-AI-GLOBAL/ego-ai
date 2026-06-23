@@ -1,0 +1,8 @@
+{
+  "_comment": "Copie para config.json e preencha URLs reais antes de publicar.",
+  "brandName": "EGO-AI",
+  "domain": "seudominio.com",
+  "siteUrl": "https://seudominio.com",
+  "playStoreUrl": "https://play.google.com/store/apps/details?id=com.egoai.app",
+  "privacyUrl": "https://seudominio.com/privacidade"
+}

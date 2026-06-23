@@ -1,0 +1,14 @@
+Play Console — 1.0.38 (versionCode 72)
+========================================
+
+O que há de novo
+---------------
+• Desafio Diário de bem-estar com ranking
+• Jornada de Cuidado (20 níveis)
+• Aviso de dias grátis restantes
+• Partilha para redes sociais
+• Melhorias em convites Entre Nós
+
+Testadores
+----------
+Peça para testar: cadastro → chat → emoji do Desafio → postar Story → convite Entre Nós

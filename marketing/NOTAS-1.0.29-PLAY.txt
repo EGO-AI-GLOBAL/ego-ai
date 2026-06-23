@@ -1,0 +1,11 @@
+NOTAS DA VERSÃO — Play Console (copiar e colar)
+================================================
+
+Novidades nesta versão:
+• Descarrego: fale tudo à noite e revise na Agenda — Agendar ou Excluir item por item
+• Botão Descarrego agora no chat, abaixo do avatar
+• Lista de compras nos compromissos: marcar feito e Apagar itens
+• Voz no chat não grava agenda automaticamente (só o modo Descarrego organiza)
+• Melhorias no banner de atualização (iOS)
+
+Versão: 1.0.29 | Version code: 61 | .aab production

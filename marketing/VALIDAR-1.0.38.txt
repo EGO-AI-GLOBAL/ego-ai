@@ -1,0 +1,41 @@
+VALIDAR 1.0.38 — checklist (Android + iOS)
+==========================================
+
+Antes de divulgar, marque cada item:
+
+CADASTRO E TRIAL
+[ ] Conta nova mostra «X dias grátis restantes» no chat
+[ ] Dia 18–20: banner fica laranja (urgência)
+[ ] Após 20 dias (ou conta teste expirada): paywall com streak/jornada
+
+DESAFIO DIÁRIO
+[ ] Emoji aparece no topo do chat
+[ ] 1 toque grava o dia
+[ ] Ranking (escada de tiers) visível
+[ ] «Postar e desafiar» abre WhatsApp / Stories / TikTok
+[ ] Botões Instagram e TikTok abrem o perfil
+
+JORNADA
+[ ] Cartão «Nível X/20» abaixo do Desafio
+[ ] Mensagem no chat avança jornada
+[ ] Level-up mostra alerta
+
+CHAT ESTÁVEL
+[ ] Login → mensagem texto → resposta
+[ ] Voz: gravar → enviar → TTS
+[ ] Desabafo noturno
+
+AGENDA / ENTRE NÓS
+[ ] Criar lembrete manual
+[ ] Convidar por WhatsApp (com link)
+[ ] Convidado aceita convite pendente
+
+PLANOS
+[ ] Tela Planos abre Stripe / oferta lançamento
+[ ] Paywall oferece Conexão / Premium / Total
+
+LINKS
+[ ] https://ego-ai-production-a2c2.up.railway.app/go abre página de download
+[ ] Partilha WhatsApp inclui link /go
+
+Se tudo OK → pode gravar o vídeo de divulgação.

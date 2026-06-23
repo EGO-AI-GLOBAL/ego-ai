@@ -1,0 +1,33 @@
+EGO-AI 1.0.27 — notas para testadores (Play + TestFlight)
+==========================================================
+
+NOVIDADES
+---------
+• Banner de atualização legível, clicável (Android + iOS) e botão ✕ para fechar.
+• Banner some quando já está na versão certa (lê versão da loja).
+• Vídeo do avatar ao falar no Android — foto não some no vazio (todos os 12).
+
+TESTAR NO CELULAR (15 min)
+--------------------------
+1. Login
+2. Luna + Jordan + Leo — voz → vídeo anima enquanto fala
+3. Banner — ler msg, tocar Atualizar, ✕ se aparecer sem necessidade
+4. Chat texto + voz
+5. Agenda manual (+)
+
+NÃO TESTAR NESTA VERSÃO (próxima fase)
+--------------------------------------
+• Agenda por voz igual iOS (API — deploy depois)
+• Descarrego auto-marcar (feature futura)
+
+ANDROID — notas Play
+--------------------
+Versão 1.0.27: banner de atualização melhorado e vídeo dos avatares corrigido no Android. Obrigado por testar!
+
+WHATSAPP
+--------
+Nova 1.0.27 no ar
+• Avatares com vídeo ao falar (Android corrigido)
+• Banner de update legível
+Android: https://play.google.com/apps/testing/com.egoai.app
+iPhone: TestFlight quando processar

@@ -1,5 +1,6 @@
 import React from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import type { AppColors } from "@/theme/colors";
 
 type Props = {
@@ -17,21 +18,27 @@ export function ShoppingItemRow({ colors, title, done, busy, onToggle, onApagar 
       <Pressable
         onPress={onToggle}
         disabled={busy}
+        hitSlop={6}
         style={({ pressed }) => [
           styles.main,
           { opacity: pressed || busy ? 0.7 : 1 },
         ]}
+        accessibilityRole="checkbox"
+        accessibilityState={{ checked: done }}
+        accessibilityLabel={title || "Item da lista"}
       >
         <View
           style={[
             styles.checkbox,
             {
               borderColor: colors.primary,
-              backgroundColor: done ? colors.primary : "transparent",
+              backgroundColor: done ? colors.primary : colors.primaryTint,
             },
           ]}
         >
-          {done ? <Text style={styles.check}>✓</Text> : null}
+          {done ? (
+            <Ionicons name="checkmark" size={16} color="#fff" />
+          ) : null}
         </View>
         <Text
           style={{
@@ -60,17 +67,16 @@ export function ShoppingItemRow({ colors, title, done, busy, onToggle, onApagar 
 
 const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", paddingVertical: 4, gap: 6 },
-  main: { flex: 1, flexDirection: "row", alignItems: "center" },
+  main: { flex: 1, flexDirection: "row", alignItems: "center", minHeight: 36 },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
+    width: 24,
+    height: 24,
+    borderRadius: 6,
     borderWidth: 2,
-    marginRight: 8,
+    marginRight: 10,
     alignItems: "center",
     justifyContent: "center",
   },
-  check: { color: "#fff", fontSize: 13, fontWeight: "800", lineHeight: 15 },
   apagarBtn: {
     paddingHorizontal: 10,
     paddingVertical: 6,

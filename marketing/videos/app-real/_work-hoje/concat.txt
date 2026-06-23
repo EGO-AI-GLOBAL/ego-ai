@@ -1,0 +1,7 @@
+file 'C:/Users/Iury/OneDrive/Área de Trabalho/EGO-AI-APP - Copia/marketing/videos/app-real/_work-hoje/clip-00.mp4'
+file 'C:/Users/Iury/OneDrive/Área de Trabalho/EGO-AI-APP - Copia/marketing/videos/app-real/_work-hoje/clip-01.mp4'
+file 'C:/Users/Iury/OneDrive/Área de Trabalho/EGO-AI-APP - Copia/marketing/videos/app-real/_work-hoje/clip-02.mp4'
+file 'C:/Users/Iury/OneDrive/Área de Trabalho/EGO-AI-APP - Copia/marketing/videos/app-real/_work-hoje/clip-03.mp4'
+file 'C:/Users/Iury/OneDrive/Área de Trabalho/EGO-AI-APP - Copia/marketing/videos/app-real/_work-hoje/clip-04.mp4'
+file 'C:/Users/Iury/OneDrive/Área de Trabalho/EGO-AI-APP - Copia/marketing/videos/app-real/_work-hoje/clip-05.mp4'
+file 'C:/Users/Iury/OneDrive/Área de Trabalho/EGO-AI-APP - Copia/marketing/videos/app-real/_work-hoje/clip-cta.mp4'

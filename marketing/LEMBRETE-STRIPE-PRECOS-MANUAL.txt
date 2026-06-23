@@ -1,0 +1,133 @@
+================================================================================
+  EGO-AI — LEMBRETE: REAJUSTE MANUAL DE PREÇOS NO STRIPE
+  Produto: EGO Lançamento · Link já criado · R$ 9,99/mês
+================================================================================
+
+LINK ATUAL (não mudar agora):
+  https://buy.stripe.com/7sYfZjfeC3mWfu810S4ow0K
+
+MODELO:
+  · Cliente assina UMA VEZ no link → cobrança automática todo mês no cartão.
+  · Você NÃO precisa criar cronograma automático no Stripe.
+  · Depois de 6 meses, você sobe o preço MANUALMENTE nas ASSINATURAS ativas.
+  · Mudar só o link NÃO altera quem já assinou — sempre atualize em Assinaturas.
+
+--------------------------------------------------------------------------------
+  TEXTO OFICIAL (Stripe + app) — copiar no link/produto EGO Lançamento
+--------------------------------------------------------------------------------
+
+  Oferta de lançamento: R$ 9,99/mês por 6 meses. Depois R$ 19,90/mês por 6 meses.
+  Depois R$ 29,90/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.
+
+  (Substitui o texto antigo que pulava direto de 9,99 para 29,90.)
+
+--------------------------------------------------------------------------------
+  AGORA (jun/2026) — NÃO PRECISA EDITAR NADA NO STRIPE
+--------------------------------------------------------------------------------
+
+  [x] Nome: EGO Lançamento
+  [x] Preço no link: R$ 9,99/mês (recorrente)
+  [x] Cobrança automática ativa
+
+  Só confira uma vez:
+  1. dashboard.stripe.com → Links de pagamento → EGO Lançamento
+  2. Está "Assinatura" / recorrente mensal? Sim → pronto, não mexa mais.
+
+--------------------------------------------------------------------------------
+  LEMBRETE 1 — DEZEMBRO/2026 (~6 meses após lançamento)
+  Data sugerida: 01/12/2026
+--------------------------------------------------------------------------------
+
+  OBJETIVO: Quem paga R$ 9,99 passa a R$ 19,90 no PRÓXIMO ciclo.
+
+  PASSO A PASSO NO STRIPE:
+
+  1. Entrar em dashboard.stripe.com
+  2. Menu → Faturamento → Assinaturas
+  3. Filtrar:
+     · Produto: EGO Lançamento
+     · Preço: R$ 9,99/mês
+     · Status: Ativa
+  4. Para CADA assinatura (ou em lote, se o painel permitir):
+     · Abrir a assinatura
+     · Ações → Atualizar assinatura
+     · Trocar preço para R$ 19,90/mês
+     · Quando aplicar: "No próximo ciclo de faturamento"  ← IMPORTANTE
+     · Salvar
+  5. (Opcional) Link de pagamento:
+     · Se ainda quiser novos em promo, pode deixar em 9,99 até a campanha acabar
+     · Se a campanha no app já sumiu, pode mudar o link para 19,90 para novos
+
+  ANOTAR:
+  · Quantas assinaturas atualizou: _______
+  · Data feita: ___/___/2026
+
+--------------------------------------------------------------------------------
+  LEMBRETE 2 — JUNHO/2027 (~12 meses após lançamento)
+  Data sugerida: 01/06/2027
+--------------------------------------------------------------------------------
+
+  OBJETIVO: Quem paga R$ 19,90 passa a R$ 29,90 (preço final EGO Conexão).
+
+  PASSO A PASSO NO STRIPE:
+
+  1. Faturamento → Assinaturas
+  2. Filtrar:
+     · Produto: EGO Lançamento (ou EGO Conexão, se já renomeou)
+     · Preço: R$ 19,90/mês
+     · Status: Ativa
+  3. Atualizar assinatura → R$ 29,90/mês
+  4. Aplicar: "No próximo ciclo de faturamento"
+  5. Salvar em todas
+
+  (Opcional) Link de pagamento → R$ 29,90 para novos clientes
+  ou esconder oferta de lançamento no app (só plano Conexão normal).
+
+  ANOTAR:
+  · Quantas assinaturas atualizadas: _______
+  · Data feita: ___/___/2027
+
+--------------------------------------------------------------------------------
+  CALENDÁRIO RÁPIDO (colar no celular / agenda)
+--------------------------------------------------------------------------------
+
+  01/06/2026  Lançamento · link em R$ 9,99 — não editar Stripe
+  01/12/2026  ⚠️ Stripe: assinaturas 9,99 → 19,90 (próximo ciclo)
+  01/06/2027  ⚠️ Stripe: assinaturas 19,90 → 29,90 (próximo ciclo)
+
+--------------------------------------------------------------------------------
+  SE ALGUÉM ASSINAR DEPOIS DO LANÇAMENTO (ex.: em ago/2026)
+--------------------------------------------------------------------------------
+
+  Essa pessoa só completa 6 meses em fev/2027, não em dez/2026.
+
+  Opções:
+  A) Na data fixa (dez/2026), atualizar só quem já tem 6+ meses de assinatura
+  B) Ou marcar na agenda individual: "6 meses após data de início" de cada uma
+
+  No Stripe, ao abrir a assinatura, veja "Início" / "Start date" para saber
+  quando subir o preço daquela pessoa.
+
+--------------------------------------------------------------------------------
+  O QUE O CLIENTE PERCEBE
+--------------------------------------------------------------------------------
+
+  · NÃO precisa assinar de novo
+  · NÃO precisa abrir link outra vez
+  · No mês seguinte à sua alteração, a fatura vem no valor novo
+  · Mesmo cartão, mesma assinatura
+
+--------------------------------------------------------------------------------
+  RAILWAY (só se ainda não colocou — não é editar Stripe)
+--------------------------------------------------------------------------------
+
+  STRIPE_CHECKOUT_LAUNCH_URL=https://buy.stripe.com/7sYfZjfeC3mWfu810S4ow0K
+  EGO_LAUNCH_OFFER_START_DATE=2026-06-01
+  EGO_LAUNCH_OFFER_MONTHS=6
+  EGO_LAUNCH_OFFER_PRICE_BRL=9.99
+
+  Depois: Redeploy da API.
+
+================================================================================
+  Arquivo criado em: marketing/LEMBRETE-STRIPE-PRECOS-MANUAL.txt
+================================================================================

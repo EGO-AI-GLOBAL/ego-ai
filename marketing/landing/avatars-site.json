@@ -1,0 +1,86 @@
+[
+  {
+    "id": "f1",
+    "name": "Luna",
+    "plan": "Grátis",
+    "img": "img/avatar-f1.png",
+    "quote": "Rotina e lembretes — para você viver o dia com mais calma."
+  },
+  {
+    "id": "m1",
+    "name": "Leo",
+    "plan": "Grátis",
+    "img": "img/avatar-m1.png",
+    "quote": "Conversa por texto e voz, com clareza e proximidade."
+  },
+  {
+    "id": "f2",
+    "name": "Aisha",
+    "plan": "Conexão",
+    "img": "img/avatar-f2.png",
+    "quote": "Organização para trabalho e estudos — passo a passo."
+  },
+  {
+    "id": "f3",
+    "name": "Hana",
+    "plan": "Conexão",
+    "img": "img/avatar-f3.png",
+    "quote": "Ideias rápidas quando você trava num projeto."
+  },
+  {
+    "id": "m2",
+    "name": "Kai",
+    "plan": "Conexão",
+    "img": "img/avatar-m2.png",
+    "quote": "Agenda compartilhada com quem já tem conta no EGO-AI."
+  },
+  {
+    "id": "m3",
+    "name": "Omar",
+    "plan": "Conexão",
+    "img": "img/avatar-m3.png",
+    "quote": "Tom calmo para conversas longas e reflexivas."
+  },
+  {
+    "id": "f4",
+    "name": "Amara",
+    "plan": "Premium",
+    "img": "img/avatar-f4.png",
+    "quote": "Escuta ativa no dia a dia — apoio, não terapia nem diagnóstico."
+  },
+  {
+    "id": "m4",
+    "name": "Ravi",
+    "plan": "Premium",
+    "img": "img/avatar-m4.png",
+    "quote": "PDF ou foto no chat — resumo e perguntas sobre o arquivo."
+  },
+  {
+    "id": "g1",
+    "name": "Alex",
+    "plan": "Premium",
+    "img": "img/avatar-g1.png",
+    "quote": "Estilo neutro — escolha quem combina com a sua energia."
+  },
+  {
+    "id": "f5",
+    "name": "Sara",
+    "plan": "Total",
+    "img": "img/avatar-f5.png",
+    "quote": "Agenda e planejamento para rotinas exigentes."
+  },
+  {
+    "id": "m5",
+    "name": "Malik",
+    "plan": "Total",
+    "img": "img/avatar-m5.png",
+    "quote": "Foco e energia para destravar o que importa hoje."
+  },
+  {
+    "id": "g2",
+    "name": "Jordan",
+    "plan": "Total",
+    "img": "img/avatar-g2.png",
+    "quote": "Conversas no seu ritmo — texto ou voz."
+  }
+]

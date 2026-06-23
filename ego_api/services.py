@@ -303,6 +303,38 @@ def _history_from_client(client_history: list | None) -> list[dict[str, str]]:
     return out[-16:]
 
 
+def _access_expired_message(supabase: Client | None, user_id: str) -> str:
+    """Mensagem de paywall com contexto de progresso (streak/jornada)."""
+    from ego_api import daily_care, streaks, wellness_journey
+
+    parts = ["Seu teste grátis de 20 dias terminou."]
+    try:
+        st = streaks.get_streak(supabase, user_id)
+        days = int(st.get("current") or 0)
+        if days > 0:
+            parts.append(f"Você tinha {days} dias de cuidado seguidos.")
+    except Exception:
+        pass
+    try:
+        care = daily_care.get_daily_care(supabase, user_id)
+        cd = int(care.get("current") or 0)
+        if cd > 0:
+            parts.append(f"Desafio Diário: {cd} dias.")
+    except Exception:
+        pass
+    try:
+        prof = db.load_profile(supabase, user_id) or {}
+        tier, _ = db.user_plan_limits(prof)
+        j = wellness_journey.get_journey(supabase, user_id, plan_tier=tier)
+        lv = int(j.get("level") or 0)
+        if lv > 1:
+            parts.append(f"Jornada: nível {lv}/{j.get('max_level', 20)}.")
+    except Exception:
+        pass
+    parts.append("Assine um plano para continuar.")
+    return " ".join(parts)
+
+
 def process_chat_message(
     supabase: Client | None,
     user_id: str,
@@ -322,7 +354,7 @@ def process_chat_message(
     tier, limits = db.user_plan_limits(prof)
     ok_access, status = db.check_access(supabase, user_id)
     if not ok_access:
-        return None, f"Acesso expirado ({status})."
+        return None, _access_expired_message(supabase, user_id)
 
     ok_tok, msg_tok, used_tok, lim_tok = db.check_token_allowance(supabase, user_id, prof)
     if not ok_tok:
@@ -1322,6 +1354,76 @@ def list_reminders_enriched(supabase: Client | None, user_id: str) -> list[dict]
     return rows
 
 
+def _wellness_journey_default() -> dict:
+    from ego_api.wellness_journey import JOURNEY_LEVELS
+
+    first = JOURNEY_LEVELS[0]
+    return {
+        "level": 1,
+        "max_level": len(JOURNEY_LEVELS),
+        "title": first["title"],
+        "subtitle": first["subtitle"],
+        "emoji": first["emoji"],
+        "today_task": first["today_task"],
+        "why": first["why"],
+        "progress": 0.0,
+        "level_complete": False,
+        "steps": [],
+        "show_level_up": False,
+        "share_challenge": first["share_challenge"],
+        "plan_nudge": None,
+        "journey_finished": False,
+    }
+
+
+def _wellness_journey_bootstrap(supabase, user_id: str) -> dict:  # noqa: ANN001
+    from ego_api import wellness_journey
+
+    prof = db.load_profile(supabase, user_id) or {}
+    tier, _ = db.user_plan_limits(prof)
+    journey = wellness_journey.sync_streak_levels(supabase, user_id, plan_tier=tier)
+    return journey
+
+
+def _daily_care_default() -> dict:
+    from ego_api.daily_care import MOODS, question_for_today
+
+    return {
+        "current": 0,
+        "longest": 0,
+        "last_date": "",
+        "checked_today": False,
+        "at_risk": False,
+        "last_mood": "",
+        "last_mood_emoji": "",
+        "last_mood_label": "",
+        "total_checkins": 0,
+        "question": question_for_today(),
+        "moods": MOODS,
+        "can_share": False,
+        "share_hook": "Faça o check-in de hoje para subir no ranking.",
+        "ranking": {
+            "tier_index": 1,
+            "tier_total": 5,
+            "tier_emoji": "🌱",
+            "tier_label": "Iniciante",
+            "next_tier_days": 1,
+            "next_tier_label": "Iniciante",
+            "personal_best": 0,
+            "community_top_days": 21,
+            "days_to_next_tier": 1,
+            "challenge_line": "Comece hoje — dia 1 no ranking.",
+            "ladder": [],
+        },
+    }
+
+
+def _daily_care_bootstrap(supabase, user_id: str) -> dict:  # noqa: ANN001
+    from ego_api import daily_care
+
+    return daily_care.get_daily_care(supabase, user_id)
+
+
 def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
     """Um único payload para o painel (evita vários GET no cliente)."""
     from ego_api import delegation_db, habits_db, streaks
@@ -1371,6 +1473,16 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
                 "active_today": False,
                 "at_risk": False,
             },
+        ),
+        "wellness_journey": _bootstrap_section(
+            "wellness_journey",
+            lambda: _wellness_journey_bootstrap(supabase, user_id),
+            _wellness_journey_default(),
+        ),
+        "daily_care": _bootstrap_section(
+            "daily_care",
+            lambda: _daily_care_bootstrap(supabase, user_id),
+            _daily_care_default(),
         ),
         "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
         "pending_calendar_invites": _list_pending_calendar_invites_safe(

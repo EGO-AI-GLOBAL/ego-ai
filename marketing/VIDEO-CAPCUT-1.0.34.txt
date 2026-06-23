@@ -1,0 +1,148 @@
+EGO-AI — ROTEIRO CAPCUT (1.0.34) · ~70 seg · 9:16 vertical
+================================================================
+Use as fotos que você mandou. NÃO use a foto com erro vermelho no rodapé
+("Only one Recording…") nem a que mostra resposta estranha do Google.
+
+MÚSICA (CapCut): busque "motivacional suave" ou "corporate uplifting"
+— volume baixo (15–25%), voz/legenda por cima.
+
+================================================================
+ORDEM DAS CENAS (12 fotos + 1 slide final)
+================================================================
+
+CENA 1 · 0:00–0:05 · CAPA
+Foto: Luna · "pronto para ajudar" (avatar grande, chat limpo)
+Legenda na tela (grande):  EGO-AI
+Legenda 2 (menor):         Seu dia organizado. Sem WhatsApp de cobrança.
+Narração: "Conheça o EGO-AI — assistente com rosto e voz, no seu bolso."
+
+---
+
+CENA 2 · 0:05–0:11 · CHAT TEXTO
+Foto: Chat — "Bom dia acordei bem e vc?" + resposta da Luna
+Legenda na tela:           Fale ou digite
+Legenda 2:                 Luna responde na hora
+Narração: "Conversa por texto com Luna ou Leo — como falar com alguém de verdade."
+
+---
+
+CENA 3 · 0:11–0:17 · CHAT VOZ
+Foto: Chat — "Mensagem de voz" + resposta empática da Luna
+Legenda na tela:           Segure o microfone
+Legenda 2:                 Ela ouve e responde com voz
+Narração: "Prefere falar? Grava a mensagem — a IA entende e responde."
+
+---
+
+CENA 4 · 0:17–0:23 · DESABAFO
+Foto: "Modo desabafo ativo" + "A gravar… toque na seta ↑"
+       (SEM erro vermelho no rodapé)
+Legenda na tela:           Desabafo da noite
+Legenda 2:                 Desabafa — a app organiza amanhã
+Narração: "À noite, usa o Desabafo: fala ou escreve tudo que está na cabeça."
+
+---
+
+CENA 5 · 0:23–0:29 · DESABAFO → AGENDA
+Foto: Agenda pessoal — card "Do desabafo da noite" + botão Agendar
+Legenda na tela:           Vira compromisso e compras
+Legenda 2:                 Você confirma item a item
+Narração: "Ela separa compromissos e lista de compras — você só toca Agendar ou Excluir."
+
+---
+
+CENA 6 · 0:29–0:35 · AGENDA PESSOAL
+Foto: Agenda pessoal — compromissos + lista de compras expandida
+Legenda na tela:           Sua agenda pessoal
+Legenda 2:                 Compromissos · hábitos · mercado
+Narração: "Tudo fica na sua agenda: consultas, churrasco, mercado com checklist."
+
+---
+
+CENA 7 · 0:35–0:41 · FAMÍLIA
+Foto: Agenda compartilhada — grupo Família + Convidar + compromisso
+Legenda na tela:           Agenda compartilhada
+Legenda 2:                 Família · convites · todos veem
+Narração: "Para a família: agenda compartilhada — convida quem quiser, marca junto."
+
+---
+
+CENA 8 · 0:41–0:49 · ENTRE NÓS
+Foto: Entre Nós · Eu e voce — convites e tarefas
+Legenda na tela:           Entre Nós
+Legenda 2:                 Você + 1 pessoa
+Narração: "Entre Nós é diferente: só você e uma pessoa — casal, parceiro, melhor amigo."
+
+---
+
+CENA 9 · 0:49–0:55 · CONFIRMAR / RECUSAR
+Foto: Entre Nós — "Almoço empresarial" com Confirmar e Recusar
+Legenda na tela:           Confirmar ou Recusar
+Legenda 2:                 Sem "viu?" no WhatsApp
+Narração: "Manda a tarefa — a pessoa confirma ou recusa na hora. Push nos dois lados."
+
+---
+
+CENA 10 · 0:55–0:60 · OFENSIVA (opcional)
+Foto: Chat com badge 🔥 "2 dias · Ofensiva ativa" (ou 1 dia)
+Legenda na tela:           Ofensiva diária 🔥
+Legenda 2:                 Mantém o ritmo todo dia
+Narração: "Ofensiva: quantos dias seguidos você cuida da sua rotina."
+
+---
+
+CENA 11 · 0:60–0:65 · RESUMO
+Foto: Entre Nós OU Família (a que ficou mais bonita)
+Legenda na tela:           Chat · Agenda · Família · Entre Nós
+Legenda 2:                 Versão 1.0.34
+Narração: "Chat, voz, desabafo, agenda pessoal, família e Entre Nós — tudo num app."
+
+---
+
+CENA 12 · 0:65–0:75 · CTA FINAL (Canva ou CapCut texto)
+Fundo roxo + logo EGO-AI (pode repetir foto 1 escurecida)
+Legenda na tela (grande):  BAIXE GRÁTIS · TESTE FECHADO
+Legenda 2:                 👆 Toque no perfil
+Legenda 3:                 Android + iPhone na bio
+Narração: "Toque no perfil — links na bio. Android e iPhone. Entra no teste e me conta o que achou."
+
+================================================================
+LEGENDA DO POST (copiar — sem links; manda pro perfil)
+================================================================
+
+(Use marketing/POST-VIDEO-HOJE.txt — legenda completa)
+
+Resumo: termina com «👆 Toque no perfil — links Android e iPhone na bio.»
+Bio: marketing/BIO-REDES-2-LINKS.txt
+
+================================================================
+NARRAÇÃO COMPLETA (colar no CapCut → Texto → Narração automática)
+================================================================
+
+Conheça o EGO-AI — assistente com rosto e voz, no seu bolso.
+Conversa por texto com Luna ou Leo — como falar com alguém de verdade.
+Prefere falar? Grava a mensagem — a IA entende e responde.
+À noite, usa o Desabafo: fala ou escreve tudo que está na cabeça.
+Ela separa compromissos e lista de compras — você só toca Agendar ou Excluir.
+Tudo fica na sua agenda: consultas, churrasco, mercado com checklist.
+Para a família: agenda compartilhada — convida quem quiser, marca junto.
+Entre Nós é diferente: só você e uma pessoa — casal, parceiro, melhor amigo.
+Manda a tarefa — a pessoa confirma ou recusa na hora. Push nos dois lados.
+Chat, voz, desabafo, agenda pessoal, família e Entre Nós — tudo num app.
+Toque no perfil — links na bio. Android e iPhone. Entra no teste e me conta o que achou.
+
+================================================================
+CAPCUT — PASSO A PASSO RÁPIDO
+================================================================
+
+1. Novo projeto → proporção 9:16
+2. Importar as 11 fotos (sem a do erro vermelho)
+3. Arrastar na ordem das cenas acima (~5–6 s cada)
+4. Texto → adicionar legendas (fonte bold branca, contorno preto)
+5. Transição: "Deslizar" suave entre cenas
+6. Áudio → música de fundo baixa
+7. Texto → Narração automática (colar bloco acima) OU gravar sua voz
+8. Último slide: texto + links (Canva)
+9. Exportar 1080p → publicar com legenda do post
+
+================================================================

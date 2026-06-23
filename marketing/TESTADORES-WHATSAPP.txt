@@ -1,0 +1,18 @@
+Olá! Você foi convidado(a) a testar o *EGO-AI* (assistente Leo/Luna no celular).
+
+📲 *Como instalar*
+1) Abra o link da Play (teste interno) que enviei
+2) Instale e abra o app *Ego-IA*
+
+👤 *Primeiro uso (5 min)*
+1) Crie conta (nome, telefone, e-mail)
+2) Escolha o avatar *Leo* (ou Luna)
+3) No chat, ouça a apresentação e leia o guia
+4) Toque em *Marcar* ou diga: "marcar reunião amanhã 15h"
+5) Menu ☰ → *Planos* → oferta *R$ 9,90* (opcional, para testar assinatura)
+
+⚠️ Use o *mesmo e-mail* no app e no pagamento Stripe.
+
+🐛 *Problema?* Me mande print da tela + o que fez antes do erro.
+
+Obrigado por testar!

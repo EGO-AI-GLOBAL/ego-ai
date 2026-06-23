@@ -1,0 +1,10 @@
+NOTAS DA VERSAO — Play Console (copiar e colar)
+================================================
+
+Correções nesta versão:
+• Vídeo do avatar anima corretamente ao falar (todos os 12 avatares)
+• Seletor de hora na agenda com relógio nativo do Android
+• Textos e layout da agenda corrigidos
+• Salvar compromissos na agenda manual funcionando
+
+Build: 60 | Versão: 1.0.28 | .aab production

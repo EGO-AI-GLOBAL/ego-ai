@@ -1,0 +1,35 @@
+EGO-AI 1.0.23 — notas para loja e WhatsApp testadores
+====================================================
+
+NOTAS DA VERSÃO (Play / TestFlight):
+• Agenda mais rápida: atalhos Hoje e Amanhã, marcar em poucos toques
+• Avatar no chat ensina a usar o app (não marca agenda por você)
+• Rituais 8h / 14h / 21h puxam você a abrir e organizar o dia
+• Ícone e layout do chat melhorados no iPhone
+• Login mantém sessão entre aberturas
+
+---
+
+WHATSAPP — iPhone (TestFlight):
+Oi! Nova versão 1.0.23 do EGO-AI no TestFlight.
+1) Instale o app TestFlight (se não tiver)
+2) Abra o convite/link que envio
+3) Toque Instalar
+Teste: Agenda → + Novo compromisso → Hoje/Amanhã → Marcar
+No chat: pergunte "Como marco um compromisso?" — o avatar explica.
+
+---
+
+WHATSAPP — Android (teste interno Play):
+Oi! Nova versão 1.0.23 do EGO-AI.
+Link do teste: https://play.google.com/apps/testing/com.egoai.app
+(ou convite que aparece no Play Console)
+Mesmos testes: Agenda manual + chat que ensina.
+
+---
+
+Arquivo Android no PC:
+releases\ego-ai-1.0.23-build52.aab
+
+Build Expo:
+https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/be67e5a9-8337-462a-aaac-beaf0c43a1b8

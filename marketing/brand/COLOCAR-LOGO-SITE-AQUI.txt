@@ -1,0 +1,13 @@
+Coloque o ícone NOVO do site com um destes nomes (PNG, quadrado, fundo transparente ou navy):
+
+  logo-site.png   (preferido)
+  logo-master.png
+
+Depois, no PC, rode:
+
+  python scripts/build_site_publico.py --modo completo
+  python scripts/package_site_envio_uol.py
+
+O ficheiro vai para site-publico/img/icon.png e site-envio-UOL/02-imagens-e-brand/img/icon.png
+
+Na UOL: substitua só public_html/img/icon.png pelo novo ficheiro.

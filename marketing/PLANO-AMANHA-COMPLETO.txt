@@ -1,0 +1,97 @@
+EGO-AI — PLANO AMANHÃ COMPLETO (1.0.24 + hábitos)
+==================================================
+Base: 1.0.23 no ar. Foco: público 35–55 — tempo, paz mental, confirmação (não IA grava sozinha).
+
+══════════════════════════════════════════════════════
+MANHÃ — 1.0.24 AVATAR (2–3 h) — PRIMEIRO
+══════════════════════════════════════════════════════
+
+[ ] 1. Vídeos WayIn Luna + Leo → incoming\f1 / m1-speaking-original.mp4
+[ ] 2. AVATAR-VIDEO-LOOP.bat
+[ ] 3. Código: SpeakingAvatar + useVoiceChat (boca enquanto fala)
+[ ] 4. Build 1.0.24 + TestFlight + Play teste fechado
+      Detalhe: marketing\PLANO-AMANHA-AVATAR.txt
+
+══════════════════════════════════════════════════════
+TARDE — NOVO HÁBITO: DESCARREGO DA NOITE (1.0.25)
+══════════════════════════════════════════════════════
+
+Público: mente cheia à noite → confirma de manhã em 1 toque.
+
+[ ] 5. NOTIFICAÇÃO 21h (Omar/Amara/Luna)
+      Texto: «Dia longo? Grava um áudio e solta o que está na cabeça
+      para amanhã. Eu seguro o peso — você dorme em paz.»
+
+[ ] 6. FLUXO NOITE
+      • Usuário grava áudio longo (até 3 min) no chat ou tela «Descarrego»
+      • API: transcreve → extrai compromissos + itens de compra
+      • Resposta acolhedora curta (avatar psicólogo)
+      • Salva RASCUNHOS (não grava agenda ainda)
+
+[ ] 7. FLUXO MANHÃ (8h)
+      • Card na Agenda: «Organizei sua mente! Confirmar?»
+      • Cada bloco: [09:00 Ligar contador] [Confirmar] [Editar] [Ignorar]
+      • Confirmar → createReminder (manual, 1 toque)
+      • «Confirmar todos» opcional
+
+[ ] 8. REGRAS
+      • IA NUNCA grava sem confirmar
+      • Avatar pode mencionar lista de compras se ouvir «leite, remédio»
+
+Spec técnica: marketing\SPEC-DESCARREGO-NOITE.txt
+
+══════════════════════════════════════════════════════
+TARDE — LISTA DE COMPRAS (mesmo pacote 1.0.25)
+══════════════════════════════════════════════════════
+
+Ideia: acabou leite/remédio em casa → + no app → no mercado lista pronta.
+
+[ ] 9. LISTA CONECTADA À AGENDA (não tela fria de supermercado)
+      • Compromisso «Ir ao mercado 18h» + lista expansível embaixo (Leite, Sabão)
+      • Vem do Descarrego ou + manual no item
+      • Itens avulsos (remédio) → «Comprar quando puder» no topo da Agenda
+      Spec: marketing\SPEC-LISTA-COMPRAS.txt
+
+══════════════════════════════════════════════════════
+FIM DO DIA — BUILD 1.0.25
+══════════════════════════════════════════════════════
+
+[ ] 12. Testar no iPhone:
+      • 21h: gravar descarrego fictício
+      • Manhã: confirmar 2–3 blocos na Agenda
+      • Lista: add leite + remédio, marcar comprado
+
+[ ] 13. eas build + submit iOS + .aab Play teste fechado
+
+[ ] 14. WhatsApp testadores:
+      «Nova versão: Descarrego da noite + Lista de compras.
+      Deita e fala o que tem na cabeça; amanhã só confirma.»
+
+══════════════════════════════════════════════════════
+ORDEM SE FALTAR TEMPO
+══════════════════════════════════════════════════════
+
+1. Avatar 1.0.24 (obrigatório)
+2. Lista de compras simples (rápida, valor imediato)
+3. Descarrego noite MVP (maior diferencial)
+4. Vídeos f2/m2… depois
+
+══════════════════════════════════════════════════════
+CUSTO EXTRA (estimativa)
+══════════════════════════════════════════════════════
+
+• Descarrego: ~US$ 0,01–0,05/noite/usuário (Gemini áudio+JSON)
+• Lista: ~US$ 0 (só Supabase)
+• Limite grátis: ex. 3 descarregos/semana; ilimitado Premium
+
+NÃO AMANHÃ
+----------
+• Localização / SOS família (pausado)
+• Marcar agenda direto pelo chat
+
+ARQUIVOS
+--------
+AMANHA-1.0.24.bat              → manhã avatar
+AMANHA-HABITOS.bat             → tarde descarrego + lista
+marketing\SPEC-DESCARREGO-NOITE.txt
+marketing\SPEC-LISTA-COMPRAS.txt

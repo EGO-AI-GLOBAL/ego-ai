@@ -307,6 +307,81 @@ export type StreakInfo = StreakSlice & {
   night_dump?: StreakSlice;
 };
 
+export type WellnessJourneyStep = {
+  key: string;
+  label: string;
+  done: boolean;
+  have?: number;
+  need?: number;
+};
+
+export type WellnessJourney = {
+  level: number;
+  max_level: number;
+  title: string;
+  subtitle: string;
+  emoji: string;
+  today_task: string;
+  why: string;
+  progress: number;
+  level_complete: boolean;
+  steps: WellnessJourneyStep[];
+  show_level_up: boolean;
+  share_challenge: string;
+  plan_nudge?: string | null;
+  journey_finished: boolean;
+};
+
+export type DailyCareMood = {
+  key: string;
+  emoji: string;
+  label: string;
+};
+
+export type DailyCareQuestion = {
+  index: number;
+  total: number;
+  text: string;
+};
+
+export type DailyCareInfo = {
+  current: number;
+  longest: number;
+  last_date?: string;
+  checked_today: boolean;
+  at_risk: boolean;
+  last_mood?: string;
+  last_mood_emoji: string;
+  last_mood_label: string;
+  total_checkins: number;
+  question: DailyCareQuestion;
+  moods: DailyCareMood[];
+  can_share: boolean;
+  share_hook: string;
+  ranking?: DailyCareRanking;
+};
+
+export type DailyCareRankingLadder = {
+  min_days: number;
+  emoji: string;
+  label: string;
+  reached: boolean;
+};
+
+export type DailyCareRanking = {
+  tier_index: number;
+  tier_total: number;
+  tier_emoji: string;
+  tier_label: string;
+  next_tier_days?: number | null;
+  next_tier_label?: string | null;
+  personal_best: number;
+  community_top_days: number;
+  days_to_next_tier: number;
+  challenge_line: string;
+  ladder: DailyCareRankingLadder[];
+};
+
 export type DelegationRequest = {
   id: string;
   from_user_id?: string;
@@ -331,6 +406,8 @@ export type DashboardData = {
   shopping_orphans?: ShoppingListItem[];
   delegation_requests?: DelegationRequest[];
   streak?: StreakInfo;
+  wellness_journey?: WellnessJourney;
+  daily_care?: DailyCareInfo;
   shared_calendars?: SharedCalendar[];
   pending_calendar_invites?: PendingCalendarInvite[];
   messages: ChatMessage[];

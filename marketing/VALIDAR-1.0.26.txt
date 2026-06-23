@@ -1,0 +1,42 @@
+EGO-AI 1.0.26 — notas para testadores (Play + TestFlight)
+==========================================================
+
+NOVIDADES
+---------
+• Ícone Android igual ao iPhone (logo grande, sem círculo minúsculo).
+• Avatares: removidos rótulos de voz («Francisca (BR)», etc.) — só nome + foto.
+• Banner «Atualizar agora»: Android abre Play; iPhone abre TestFlight.
+
+TESTAR NO CELULAR
+-----------------
+1. Desinstalar versão antiga OU instalar por cima e ver se o ícone mudou no launcher.
+2. Escolher avatar: só nome (Luna, Atlas…), sem linha de voz abaixo.
+3. Se ainda estiver na 1.0.25: banner no topo → «Atualizar agora» → link certo por plataforma.
+4. Smoke: login → chat texto → voz → agenda (nada regrediu da 1.0.25).
+
+ANTES DO BUILD
+--------------
+• Git push feito (api_build 2026-06-01-1.0.26-ui-icon-update)
+• Railway: EGO_LATEST_APP_VERSION=1.0.26, EGO_TESTFLIGHT_URL, EGO_APP_UPDATE_MESSAGE
+• VERIFICAR-ANTES-DO-BUILD.bat + regression_guard (opcional)
+
+ANDROID (Play — teste fechado)
+------------------------------
+Link testadores: https://play.google.com/apps/testing/com.egoai.app
+
+Notas da versão (colar na Play):
+Versão 1.0.26: ícone Android renovado, interface dos avatares mais limpa e aviso de atualização com link direto para a loja. Obrigado por testar!
+
+iOS (TestFlight)
+----------------
+Build 1.0.26 — após processamento Apple, enviar a testadores externos quando a beta estiver aprovada.
+Link público (quando Apple liberar): https://testflight.apple.com/join/eNDKdFWF
+
+WHATSAPP (copiar)
+-----------------
+Nova 1.0.26 no ar ✨
+• Ícone Android igual ao iPhone
+• Avatares mais limpos (sem rótulo de voz)
+• Banner «Atualizar agora» na Play / TestFlight
+Android: https://play.google.com/apps/testing/com.egoai.app
+iPhone: https://testflight.apple.com/join/eNDKdFWF (ou e-mail se a beta ainda não estiver aberta)

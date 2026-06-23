@@ -1,0 +1,78 @@
+═══════════════════════════════════════
+  EGO-AI — TESTE INTERNO (v 1.0.2)
+  Copie e envie no WhatsApp + link Play
+═══════════════════════════════════════
+
+Oi! Você foi convidado(a) a testar o *EGO-AI* antes do lançamento público.
+
+*O que é*
+Assistente com rosto e voz (Luna ou Leo): conversa por texto e áudio, organiza lembretes na agenda e *lê PDFs* que você anexar (resume e responde perguntas sobre o documento).
+
+*Instalar (Android)*
+1) Use o *mesmo Gmail* que cadastrei na lista de testadores
+2) Link teste interno Play Store:
+[COLE_AQUI_O_LINK_DA_PLAY_CONSOLE]
+3) «Tornar-se testador» → Play Store → *Atualizar* ou *Instalar*
+4) Confirme versão *1.0.2*
+
+*Conta*
+• Cadastro: e-mail + senha + confirmar senha
+• Escolha Luna ou Leo
+• (Opcional) «Tem código de indicação?» se alguém te passou código
+
+───────────────────────────────────────
+*O QUE TESTAR (checklist ~20 min)*
+───────────────────────────────────────
+
+*1. Chat*
+• 3 mensagens de texto
+• Microfone: grave 5–10 s e envie
+• Ligue «Ouvir ao responder» e ouça a resposta
+• Menu ☰ (canto) → Chat / Uso / Agenda / Planos / Conta
+
+*2. PDF (importante)*
+• Ícone *Doc* ao lado da mensagem
+• Escolha um PDF (1–3 páginas)
+• Toque *Enviar resumo* OU escreva: «Resume em 5 tópicos»
+• Pergunte algo específico do PDF
+
+*3. Foto (opcional)*
+• Doc → Galeria ou Câmera → foto com texto → pergunte sobre o texto
+
+*4. Agenda pessoal*
+• Menu ☰ → *Agenda*
+• *Marcar compromisso* → Agenda pessoal → título + data + hora
+• Ou peça no chat: «Lembra-me amanhã às 9h de…»
+
+*5. Assistente*
+• No chat, toque no nome do assistente e troque Luna ↔ Leo (ou outro, se desbloqueado)
+
+*6. Planos (só olhar)*
+• Menu ☰ → Planos — plano grátis Essencial; pagos opcionais
+
+*Por enquanto NÃO precisa testar:*
+• Agenda *compartilhada* com outras pessoas (equipe testa antes)
+
+───────────────────────────────────────
+*Plano grátis (Essencial) — limites*
+───────────────────────────────────────
+• ~10 mensagens texto/dia
+• ~3 mensagens voz/dia
+• Até 3 hábitos + 3 lembretes na agenda
+Se aparecer limite, é normal — avise se a mensagem não ficou clara.
+
+───────────────────────────────────────
+*Bug?*
+───────────────────────────────────────
+Responda aqui ou contato@egoai.com.br com:
+• O que fez → o que deu errado
+• *Print* ou vídeo curto
+• Modelo do celular + versão 1.0.2
+
+Site: https://egoai.com.br
+Obrigado! 🙏
+
+═══════════════════════════════════════
+Guia completo (PDF/texto longo):
+marketing/GUIA-TESTADORES-FUNCOES.md
+═══════════════════════════════════════

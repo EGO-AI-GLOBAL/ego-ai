@@ -87,6 +87,7 @@ def record_streak_activity(
         raw["last_source"] = source[:32]
         ui["streak"] = raw
         db.update_profile_fields(supabase, user_id, {"ui_state": ui})
+        _touch_wellness_journey(supabase, user_id, source)
         return get_streak(supabase, user_id)
 
     yesterday = _yesterday(today)
@@ -103,7 +104,28 @@ def record_streak_activity(
     }
     ui["streak"] = raw
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})
+    _touch_wellness_journey(supabase, user_id, source)
     return get_streak(supabase, user_id)
+
+
+def _touch_wellness_journey(
+    supabase: Client | None, user_id: str, source: str
+) -> None:
+    try:
+        from ego_api import wellness_journey
+
+        alias = {
+            "habit": "habit",
+            "night_dump": "night_dump",
+            "draft_confirm": "draft_confirm",
+            "delegation_confirm": "draft_confirm",
+            "checkin": "checkin",
+        }.get(str(source or "").strip())
+        if alias:
+            wellness_journey.record_step(supabase, user_id, alias)
+        wellness_journey.sync_streak_levels(supabase, user_id)
+    except Exception as exc:
+        print(f"[EGO] wellness_journey touch error: {exc}", flush=True)
 
 
 def record_night_dump_streak(supabase: Client | None, user_id: str) -> dict:

@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="EGO-AI — O seu amigo no bolso. Assistente com voz, agenda e PDF. Plano Essencial grátis. Não substitui profissional de saúde." />
+  <title>EGO-AI — O seu amigo no bolso</title>
+  <link rel="icon" href="img/icon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #121c2c;
+      --card: #1a2638;
+      --border: #2a3a52;
+      --primary: #4d96ff;
+      --primary-dim: #3a7ad9;
+      --cta: #ff6f59;
+      --text: #ffffff;
+      --muted: #e2e8f0;
+      --success: #22c55e;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+    a { color: var(--primary); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .wrap { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+    header {
+      padding: 18px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .logo-wrap {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none !important;
+      color: var(--text);
+    }
+    .logo-img { width: 44px; height: 44px; border-radius: 12px; }
+    .logo { font-weight: 800; font-size: 1.25rem; }
+    .logo span { color: var(--primary); }
+    .nav-mini {
+      display: flex;
+      gap: 16px;
+      font-size: 0.88rem;
+    }
+    .nav-mini a { color: var(--muted); text-decoration: none !important; }
+    .nav-mini a:hover { color: var(--primary); }
+    .hero {
+      padding: 40px 0 36px;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+      align-items: center;
+    }
+    @media (min-width: 720px) {
+      .hero-grid { grid-template-columns: auto 1fr; }
+    }
+    .hero-glow {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 60px;
+      height: 320px;
+      background: radial-gradient(ellipse at 30% 40%, rgba(77, 150, 255, 0.18), transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    main { position: relative; z-index: 1; }
+    h1 {
+      font-size: clamp(1.65rem, 4.5vw, 2.35rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .lead {
+      color: var(--muted);
+      font-size: 1.05rem;
+      max-width: 32rem;
+      margin-bottom: 8px;
+    }
+    .hero-note {
+      font-size: 0.85rem;
+      color: var(--muted);
+      opacity: 0.85;
+      margin-bottom: 20px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 14px 28px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 0.95rem;
+      text-align: center;
+      text-decoration: none !important;
+      border: 1px solid var(--border);
+      color: var(--text);
+      background: transparent;
+      transition: transform 0.12s, box-shadow 0.12s;
+      cursor: pointer;
+    }
+    .btn:hover { transform: translateY(-1px); text-decoration: none !important; }
+    .btn-cta {
+      background: var(--cta);
+      border: none;
+      color: #fff;
+      box-shadow: 0 8px 28px rgba(255, 111, 89, 0.35);
+    }
+    .btn-buy {
+      background: linear-gradient(135deg, var(--primary-dim), var(--primary));
+      border: none;
+      color: #fff;
+      box-shadow: 0 6px 24px rgba(77, 150, 255, 0.3);
+    }
+    .btn-muted {
+      color: var(--muted);
+      cursor: default;
+      pointer-events: none;
+      opacity: 0.7;
+    }
+    .store-badge {
+      pointer-events: none;
+      cursor: default;
+      opacity: 0.55;
+      min-width: 180px;
+    }
+    .pillars {
+      padding: 8px 0 40px;
+    }
+    .pillars h2, .avatars h2, .plans h2, .download h2, .cta-final h2 {
+      font-size: 1.2rem;
+      margin-bottom: 6px;
+      text-align: center;
+    }
+    .section-sub {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 22px;
+    }
+    .pillar-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .pillar {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px;
+    }
+    .pillar h3 { font-size: 1rem; margin-bottom: 6px; color: var(--primary); }
+    .pillar p { font-size: 0.88rem; color: var(--muted); }
+    .avatars { padding: 16px 0 44px; }
+    .avatar-strip {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .avatar-card {
+      flex: 0 0 100px;
+      scroll-snap-align: start;
+      text-align: center;
+      cursor: pointer;
+      border: 2px solid transparent;
+      border-radius: 14px;
+      padding: 8px 6px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .avatar-card:hover, .avatar-card.active {
+      border-color: var(--primary);
+      background: rgba(77, 150, 255, 0.08);
+    }
+    .avatar-card img {
+      width: 72px;
+      height: 72px;
+      border-radius: 14px;
+      object-fit: cover;
+      border: 1px solid var(--border);
+    }
+    .avatar-card .name { font-size: 0.8rem; font-weight: 700; margin-top: 6px; }
+    .avatar-card .plan-tag {
+      font-size: 0.65rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .speech {
+      margin-top: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--primary);
+      border-radius: 12px;
+      padding: 16px 18px;
+      min-height: 4.5rem;
+    }
+    .speech strong { color: var(--primary); }
+    .speech p { color: var(--muted); font-size: 0.95rem; }
+    .plans { padding: 8px 0 48px; }
+    .plan-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 14px;
+    }
+    .plan {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+    }
+    .plan.featured {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+    .plan h3 { font-size: 1rem; margin-bottom: 4px; }
+    .plan .price { font-size: 1.45rem; font-weight: 800; margin: 8px 0 10px; }
+    .plan.free .price { color: var(--success); }
+    .plan ul {
+      list-style: none;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: left;
+      margin-bottom: 14px;
+    }
+    .plan ul li { margin-bottom: 4px; padding-left: 1em; text-indent: -1em; }
+    .plan ul li::before { content: "· "; color: var(--primary); }
+    .btn-block { display: block; width: 100%; }
+    .download {
+      text-align: center;
+      padding: 32px 0 24px;
+      border-top: 1px solid var(--border);
+    }
+    .download-row {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .cta-final {
+      text-align: center;
+      padding: 28px 0 32px;
+    }
+    .legal-mini {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 20px 28px;
+      font-size: 0.78rem;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.65;
+    }
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 22px 0;
+      text-align: center;
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    footer a { margin: 0 6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap logo-row">
+      <a class="logo-wrap" href="#" id="logo-home">
+        <img class="logo-img" id="brand-logo" src="img/icon.png" alt="EGO-AI" width="44" height="44" />
+        <div class="logo" id="brand-logo-text">EGO<span>-AI</span></div>
+      </a>
+      <nav class="nav-mini" aria-label="Secções">
+        <a href="#funcoes">Funções</a>
+        <a href="#amigos">Avatares</a>
+        <a href="#planos">Planos</a>
+        <a href="contato/">Suporte</a>
+      </nav>
+    </div>
+  </header>
+
+  <div class="hero-glow" aria-hidden="true"></div>
+  <main>
+    <section class="hero">
+      <div class="wrap hero-grid">
+        <img class="logo-img" src="img/icon.png" alt="" width="120" height="120" style="border-radius:20px;max-width:120px" />
+        <div>
+          <h1>EGO-AI: O seu amigo no bolso.</h1>
+          <p class="lead">Sua vida em ordem. Você vive o dia; ele organiza a sua agenda.</p>
+          <p class="hero-note">Plano Essencial grátis · Luna e Leo · sem cartão de crédito</p>
+          <a class="btn btn-cta" href="#planos">Começar grátis</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="pillars" id="funcoes">
+      <div class="wrap">
+        <h2>O que o app faz</h2>
+        <p class="section-sub">Texto curto, funções reais — sem promessas médicas ou jurídicas</p>
+        <div class="pillar-grid">
+          <article class="pillar">
+            <h3>Chat e voz</h3>
+            <p>Converse com Luna ou Leo por texto ou microfone. Respostas em áudio opcional.</p>
+          </article>
+          <article class="pillar">
+            <h3>PDF e fotos</h3>
+            <p>Anexe um PDF ou foto com texto e peça resumos ou perguntas (limites do seu plano).</p>
+          </article>
+          <article class="pillar">
+            <h3>Agenda</h3>
+            <p>Lembretes pessoais e agendas compartilhadas — convite para quem já tem conta EGO-AI.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="avatars" id="amigos">
+      <div class="wrap">
+        <h2>Conheça os assistentes</h2>
+        <p class="section-sub">12 perfis no app · Luna e Leo grátis · mais perfis nos planos pagos</p>
+        <div class="avatar-strip" id="avatar-strip" role="list"></div>
+        <div class="speech" id="avatar-speech" aria-live="polite">
+          <p><strong>Luna</strong> — Rotina e lembretes — para você viver o dia com mais calma.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="plans" id="planos">
+      <div class="wrap">
+        <h2>Planos</h2>
+        <p class="section-sub">Pagamento seguro via Stripe · cancele quando quiser</p>
+        <div class="plan-grid">
+          <div class="plan free">
+            <h3>Essencial</h3>
+            <div class="price">Grátis</div>
+            <ul>
+              <li>Luna e Leo</li>
+              <li>10 textos e 3 vozes/dia</li>
+              <li>3 hábitos e 3 lembretes</li>
+              <li>Sem cartão</li>
+            </ul>
+            <span class="btn btn-muted btn-block">Cadastro no aplicativo</span>
+          </div>
+          <div class="plan">
+            <h3>Conexão</h3>
+            <div class="price">R$ 29,90</div>
+            <ul>
+              <li>+4 assistentes</li>
+              <li>Mais mensagens e voz</li>
+              <li>Agenda ampliada</li>
+            </ul>
+            <a class="btn btn-buy btn-block" id="plan-cta-connection" href="#">Assinar</a>
+          </div>
+          <div class="plan featured">
+            <h3>Premium</h3>
+            <div class="price">R$ 49,90</div>
+            <ul>
+              <li>Texto e voz ilimitados/dia*</li>
+              <li>7 assistentes</li>
+              <li>Agenda sem limite de itens</li>
+            </ul>
+            <a class="btn btn-buy btn-block" id="plan-cta-premium" href="#">Assinar</a>
+          </div>
+          <div class="plan">
+            <h3>Total</h3>
+            <div class="price">R$ 99,90</div>
+            <ul>
+              <li>12 assistentes</li>
+              <li>Uso intenso · 5M tokens/mês</li>
+              <li>Máximo de recursos</li>
+            </ul>
+            <a class="btn btn-buy btn-block" id="plan-cta-total" href="#">Assinar</a>
+          </div>
+        </div>
+        <p class="section-sub" style="margin-top:14px;font-size:0.75rem">* Dentro do pacote mensal de tokens. Ver termos.</p>
+      </div>
+    </section>
+
+    <section class="download" id="baixar">
+      <div class="wrap">
+        <h2>Em breve nas lojas</h2>
+        <p id="download-hint">Android (Google Play) e iPhone (App Store) — links ativos no lançamento público.</p>
+        <div class="download-row">
+          <span class="btn store-badge" id="footer-cta-play" role="img" aria-label="Google Play em breve">Google Play</span>
+          <span class="btn store-badge" id="footer-cta-ios" role="img" aria-label="App Store em breve">App Store</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="cta-final">
+      <div class="wrap">
+        <h2>Pronto para organizar a rotina?</h2>
+        <p class="section-sub">Comece pelo plano Essencial no app ou assine online.</p>
+        <a class="btn btn-cta" href="#planos">Ver planos</a>
+      </div>
+    </section>
+
+    <div class="legal-mini" id="privacidade">
+      <p>
+        <strong style="color:var(--text)">Aviso importante:</strong>
+        O EGO-AI usa inteligência artificial (Google Gemini). Não substitui médico, psicólogo, advogado ou serviços de emergência.
+        Em crise, procure ajuda profissional ou o CVV 188. Dados tratados conforme a LGPD.
+        <a href="privacidade/">Privacidade</a> ·
+        <a href="termos/">Termos</a> ·
+        <a href="exclusao-conta/">Exclusão de conta</a> ·
+        <a href="mailto:contato@egoai.com.br" id="legal-email">contato@egoai.com.br</a>.
+      </p>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      © <span id="footer-brand">EGO-AI</span> · <span id="footer-domain">egoai.com.br</span> · O seu amigo no bolso<br />
+      <a id="footer-email" href="mailto:contato@egoai.com.br">contato@egoai.com.br</a>
+      <a id="footer-instagram" href="#">@egoai.br</a>
+    </div>
+  </footer>
+
+  <script src="avatars-ui.js"></script>
+  <script src="brand.js"></script>
+</body>
+</html>

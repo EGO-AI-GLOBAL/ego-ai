@@ -28,20 +28,13 @@ type WebRecorderState = {
   chunks: Blob[];
 };
 
-/** Evita "Recorder does not exist" ao parar gravação já libertada (Android/expo-av). */
+/** Liberta gravação nativa (prepared ou a gravar) — evita "Only one Recording object…". */
 async function safeStopNativeRecording(rec: Audio.Recording | null): Promise<void> {
   if (!rec) return;
   try {
-    const status = await rec.getStatusAsync();
-    if (status.isRecording) {
-      await rec.stopAndUnloadAsync();
-    }
+    await rec.stopAndUnloadAsync();
   } catch {
-    try {
-      await rec.stopAndUnloadAsync();
-    } catch {
-      /* gravação já inexistente — ignorar */
-    }
+    /* gravação já inexistente ou nunca iniciou — ignorar */
   }
 }
 

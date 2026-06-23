@@ -22,7 +22,7 @@ export function ChatQuickActions({ colors, disabled, onPick, actions }: Props) {
           style={({ pressed }) => [
             styles.chip,
             {
-              backgroundColor: pressed ? colors.primaryLight : colors.bgCard,
+              backgroundColor: pressed ? colors.primaryTint : colors.bgCard,
               borderColor: colors.border,
               opacity: disabled ? 0.45 : 1,
             },

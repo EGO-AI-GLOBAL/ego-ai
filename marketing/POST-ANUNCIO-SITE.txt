@@ -1,0 +1,119 @@
+EGO-AI — ANÚNCIO (versão 1.0.34 — Android + iPhone)
+====================================================
+
+>>> BIO DE TODAS AS REDES: marketing/BIO-REDES-2-LINKS.txt <<<
+
+>>> SITE FORA (UOL) — USE LINKS DIRETOS ATÉ egoai.com.br VOLTAR <<<
+
+Android: https://play.google.com/apps/testing/com.egoai.app
+iPhone:  https://testflight.apple.com/join/eNDKdFWF
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEM SITE — BIO / COMENTÁRIO FIXADO (copiar)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Teste grátis EGO-AI 1.0.34 📱
+
+Android:
+https://play.google.com/apps/testing/com.egoai.app
+
+iPhone (TestFlight):
+https://testflight.apple.com/join/eNDKdFWF
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEM SITE — LEGENDA REELS / POST ORGÂNICO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Organize sua vida. Sem cobrança no Zap. 📱
+
+EGO-AI — Luna e Leo no bolso.
+Versão 1.0.34 — teste fechado GRÁTIS.
+
+Android 👇
+https://play.google.com/apps/testing/com.egoai.app
+
+iPhone 👇
+https://testflight.apple.com/join/eNDKdFWF
+
+#egoai #organização #produtividade #agenda #família #android #iphone
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SEM SITE — ANÚNCIO META (Turbinar)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Objetivo: Tráfego (clique no link)
+URL destino: https://play.google.com/apps/testing/com.egoai.app
+  (ou faça 2 anúncios: um Android, um iPhone com link TestFlight)
+Botão: "Instalar app" ou "Saiba mais"
+Texto: mencione "iPhone: link nos comentários" + comentário fixado TestFlight
+
+Quando o site voltar, troque destino para https://egoai.com.br
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COM SITE (quando UOL corrigir)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+LINK PRINCIPAL (use em TODOS os anúncios):
+https://egoai.com.br
+
+Com rastreio Meta (opcional):
+https://egoai.com.br?utm_source=meta&utm_medium=ads&utm_campaign=testadores_jun2026
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TÍTULO DO ANÚNCIO (Meta / Instagram)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Organize sua vida sem WhatsApp de cobrança
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TEXTO PRINCIPAL (anúncio)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Esqueceu reunião de novo?
+
+No EGO-AI você fala com Luna ou Leo — assistente com rosto e voz no celular.
+
+✅ Chat texto + voz
+✅ Desabafo da noite → sua agenda
+✅ Família + Entre Nós (confirmar ou recusar)
+
+Teste fechado GRÁTIS — versão 1.0.34
+
+👉 Toque em Saiba mais e baixe no seu celular:
+
+Android: https://play.google.com/apps/testing/com.egoai.app
+iPhone: https://testflight.apple.com/join/eNDKdFWF
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+LEGENDA ORGÂNICA (Reels / vídeo — sem pagar)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+(Use a secção «SEM SITE — LEGENDA REELS» no topo deste ficheiro
+ ou marketing/BIO-REDES-2-LINKS.txt)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+COMENTÁRIO FIXADO
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+(Use marketing/BIO-REDES-2-LINKS.txt — secção COMENTÁRIO FIXADO)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+CONFIGURAR ANÚNCIO META (Turbinar / Ads Manager)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+(Use a secção «SEM SITE — ANÚNCIO META» no topo.
+ Quando egoai.com.br voltar, destino único: https://egoai.com.br)
+
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+PUBLICAR SITE (1 vez — PC)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Duplo clique: PUBLICAR-SITE-TESTADORES.bat
+Envie site-publico\ para public_html na UOL
+Teste no celular: https://egoai.com.br

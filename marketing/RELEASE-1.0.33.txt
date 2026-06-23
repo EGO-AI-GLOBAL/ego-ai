@@ -1,0 +1,45 @@
+EGO-AI 1.0.33 — Entre Nós + Desabafo + Ofensivas
+=================================================
+
+INCLUI 1.0.32 (ofensivas, desabafo, compras) +
+----------------------------------------------
+💜 ENTRE NÓS (agenda de casal / 1-a-1)
+• Aba Agenda → Entre Nós
+• Crie até 10 grupos (nome + 1 pessoa cada)
+• Convite manual: nome + data → Confirmar / Recusar
+• Os dois criam compromissos e veem a resposta
+• Push ao ser convidado + push quando o outro confirma/recusa
+• Desabafo com parceiro → grava na agenda Entre Nós (sem avatar)
+
+🗣️ DESABAFO
+• Botão «Desabafo agora» (antes Descarrego)
+• Banner na aba Entre Nós para itens familiares
+
+🔥 OFENSIVAS
+• Mantidas da 1.0.32
+
+BUILDS
+------
+• iOS: 1.0.33 build 16
+• Android: 1.0.33 versionCode 65
+
+ANTES DE PUBLICAR
+-----------------
+1. Supabase: supabase\COLE-1.0.33-ENTRE-NOS.sql
+2. python scripts\regression_guard.py
+3. python scripts\smoke_test_api.py
+4. git push → Railway (deploy API)
+5. Railway vars:
+   EGO_LATEST_APP_VERSION=1.0.33
+   EGO_LATEST_ANDROID_VERSION_CODE=65
+6. GERAR-1.0.33.bat
+7. SUBMIT-IOS-1.0.33.bat
+8. PUBLICAR-1.0.33-PLAY.bat
+9. VALIDAR-1.0.33.bat (2 celulares)
+
+TESTAR (2 celulares)
+--------------------
+A) Criar Entre Nós · Maria → convidar B → B recebe push
+B) A envia convite compromisso → B confirma → A recebe push
+C) Desabafo «marido buscar…» → Entre Nós → Agendar
+D) Chat: Desabafo agora + badge 🔥

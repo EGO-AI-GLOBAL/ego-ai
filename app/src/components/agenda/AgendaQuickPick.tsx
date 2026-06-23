@@ -42,7 +42,7 @@ export function AgendaQuickPick({
                 styles.chip,
                 {
                   borderColor: active ? colors.primary : colors.border,
-                  backgroundColor: active ? colors.primaryLight : colors.bg,
+                  backgroundColor: active ? colors.primaryTint : colors.bg,
                 },
               ]}
             >
@@ -71,7 +71,7 @@ export function AgendaQuickPick({
                   styles.chipSmall,
                   {
                     borderColor: active ? colors.primary : colors.border,
-                    backgroundColor: active ? colors.primaryLight : colors.bg,
+                    backgroundColor: active ? colors.primaryTint : colors.bg,
                   },
                 ]}
               >

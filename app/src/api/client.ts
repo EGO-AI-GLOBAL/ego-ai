@@ -22,6 +22,8 @@ import type {
   SharedCalendarMember,
   ShoppingListItem,
   StreakInfo,
+  WellnessJourney,
+  DailyCareInfo,
 } from "./types";
 
 const STORAGE_KEY = "ego_auth_session";
@@ -211,6 +213,8 @@ function parseDashboard(data: unknown): DashboardData {
     shopping_orphans: body.shopping_orphans ?? [],
     delegation_requests: body.delegation_requests ?? [],
     streak: body.streak ?? { current: 0, longest: 0, active_today: false, at_risk: false },
+    wellness_journey: body.wellness_journey,
+    daily_care: body.daily_care,
     shared_calendars: body.shared_calendars ?? [],
     pending_calendar_invites: body.pending_calendar_invites ?? [],
     messages: body.messages ?? [],
@@ -571,6 +575,42 @@ export async function recordStreakActivity(
   const { data } = await api.post("streaks/activity", { source });
   const body = unwrap<{ streak: StreakInfo }>(data);
   return body.streak ?? { current: 0, longest: 0 };
+}
+
+export async function completeWellnessJourneyStep(
+  step: "chat" | "voice" | "habit" | "reminder" | "night_dump" | "draft_confirm" | "invite"
+): Promise<WellnessJourney | null> {
+  try {
+    const { data } = await api.post("wellness-journey/step", { step });
+    const body = unwrap<{ wellness_journey: WellnessJourney }>(data);
+    return body.wellness_journey ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function dismissWellnessLevelUp(): Promise<WellnessJourney | null> {
+  try {
+    const { data } = await api.post("wellness-journey/dismiss-level-up");
+    const body = unwrap<{ wellness_journey: WellnessJourney }>(data);
+    return body.wellness_journey ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function submitDailyCareCheckin(moodKey: string): Promise<{
+  daily_care: DailyCareInfo;
+  wellness_journey?: WellnessJourney;
+} | null> {
+  try {
+    const { data } = await api.post("daily-care/checkin", { mood: moodKey });
+    const body = unwrap<{ daily_care: DailyCareInfo; wellness_journey?: WellnessJourney }>(data);
+    if (!body.daily_care) return null;
+    return body;
+  } catch {
+    return null;
+  }
 }
 
 export async function createShoppingItem(payload: {

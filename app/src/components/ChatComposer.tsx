@@ -151,7 +151,7 @@ export function ChatComposer({
               styles.docBtn,
               {
                 borderColor: pdfActive ? colors.primary : colors.border,
-                backgroundColor: pdfActive ? colors.primaryLight : colors.bgCard,
+                backgroundColor: pdfActive ? colors.primaryTint : colors.bgCard,
                 opacity: sending || pdfLoading ? 0.5 : pressed ? 0.85 : 1,
               },
             ]}

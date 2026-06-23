@@ -1,0 +1,32 @@
+EGO-AI 1.0.29 — PUBLICADO (iOS + Android + Railway)
+===============================================
+
+STATUS
+------
+• Android Play teste fechado: version code 61 (.aab production)
+• iOS TestFlight: build 12 (1.0.29)
+• Railway: EGO_LATEST_APP_VERSION=1.0.29 ✅
+
+NOVIDADES (igual nos 2 sistemas)
+--------------------------------
+• Descarrego: revisar item a item — Agendar / Excluir
+• Descarrego agora — botão abaixo do avatar
+• Compras: + adiciona, Apagar remove, ✓ marca feito
+• Voz no chat NÃO grava agenda (só explica aba Agenda)
+• Descarrego 21h mantido (rascunho → confirmar de manhã)
+• Banner iOS: Atualizar abre link direto + mensagem da API
+
+LINKS TESTADORES
+----------------
+Android Play: https://play.google.com/apps/testing/com.egoai.app
+iOS TestFlight: https://testflight.apple.com/join/eNDKdFWF
+
+TESTAR (Android e iPhone — mesma checklist)
+-------------------------------------------
+[ ] Descarrego agora → falar → Agenda → Agendar 1 item
+[ ] Excluir 1 item do rascunho sem agendar os outros
+[ ] Compromisso com lista → + item → Apagar → marcar feito ✓
+[ ] Falar "marca consulta amanhã" → NÃO grava → explica Agenda manual
+[ ] Luna vídeo + agenda hora (regressão 1.0.28)
+[ ] (iOS) Banner atualização → toque abre TestFlight/Safari
+[ ] Conta mostra versão 1.0.29

@@ -1,0 +1,64 @@
+EGO-AI — PLANO AMANHÃ (1.0.24)
+================================
+Status hoje: 1.0.23 OK (iPhone testado, Android em análise Play).
+
+ORDEM DO DIA (~2–3 h)
+---------------------
+
+[ ] 1. VÍDEOS WayIn (Luna + Leo primeiro)
+      • Abrir: https://wayin.ai/wayinvideo/
+      • Copiar prompts de: marketing\PROMPTS-WAYIN-AVATAR.txt
+      • Frase: «Oi, estou aqui com você — pode falar comigo quando quiser, estou te ouvindo.»
+      • Exportar SEM legenda, SEM logo, quadrado 1:1, ~10 s
+      • Salvar:
+          app\assets\incoming\f1-speaking-original.mp4
+          app\assets\incoming\m1-speaking-original.mp4
+
+[ ] 2. PROCESSAR vídeos no PC
+      • Duplo clique: AVATAR-VIDEO-LOOP.bat
+      • Ou: python scripts\make_avatar_speaking_loop.py --id f1
+      • Depois: python scripts\make_avatar_speaking_loop.py --id m1
+      • Confere se gerou: app\assets\avatar-f1-speaking.mp4 e avatar-m1-speaking.mp4
+
+[ ] 3. CÓDIGO (Cursor — pedir ao agente)
+      • SpeakingAvatar: vídeo NÃO reinicia no frame 0 se já está tocando
+      • useVoiceChat: isSpeaking=true ANTES de buscar TTS; false só quando áudio acaba
+      • app.config.ts: version 1.0.24
+
+[ ] 4. TESTE RÁPIDO (opcional)
+      • cd app && npm run start:lan
+      • iPhone Expo Go OU aguardar build
+
+[ ] 5. BUILD + LOJAS
+      • cd app
+      • set NODE_TLS_REJECT_UNAUTHORIZED=0
+      • eas build --platform all --profile production --non-interactive
+      • eas submit --platform ios --latest --profile production --non-interactive
+      • Android: upload .aab na Play → TESTE FECHADO (não interno)
+      • Atalho: VALIDAR-1.0.24.bat (criar amanhã após build)
+
+[ ] 6. AVISAR TESTADORES
+      • WhatsApp: nova 1.0.24 — boca do avatar fica falando o tempo todo
+      • iPhone: TestFlight | Android: link teste fechado
+
+SE SOBRAR TEMPO
+---------------
+• Repetir vídeos f2, m2, f3… (resto dos 12)
+• Ou só Luna+Leo na 1.0.24 e resto na 1.0.25
+
+NÃO FAZER AMANHÃ DE MANHÃ
+-------------------------
+• Não refazer 1.0.23 inteira
+• Não mudar API (avatar guia já está no ar)
+• Não testar Expo Go se TestFlight já funcionou
+
+ARQUIVOS ÚTEIS
+--------------
+AMANHA-1.0.24.bat          ← abre este plano + WayIn + pasta incoming
+AVATAR-VIDEO-LOOP.bat      ← processa MP4
+marketing\PROMPTS-WAYIN-AVATAR.txt
+releases\                  ← .aab vai parar aqui de novo
+
+COMMIT AMANHÃ (mensagem sugerida)
+---------------------------------
+feat: v1.0.24 — loop de fala 8s Luna/Leo + sync boca com áudio

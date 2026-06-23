@@ -1,0 +1,19 @@
+EGO-AI 1.0.38 — notas de release
+==================================
+
+NOVIDADES
+---------
+• Desafio Diário 💜 no topo do chat (1 toque/dia + ranking)
+• Jornada de Cuidado 🌱 (20 níveis progressivos)
+• Banner «X dias grátis restantes» (urgência nos últimos 5 dias)
+• Paywall emocional no dia 21 (mostra streak + jornada)
+• Partilha Stories/WhatsApp/TikTok + seguir @egoai no Instagram/TikTok
+• Link inteligente /go (Android + iPhone)
+• Convites pendentes Entre Nós + deep link pós-cadastro
+
+VERSÃO
+------
+App: 1.0.38
+iOS build: 23
+Android versionCode: 72
+API build: 2026-06-23-1.0.38-daily-care-journey-trial

@@ -1,0 +1,9 @@
+Google Play — lista de testadores (CSV)
+
+1. Abra marketing/testadores-ego-ai.csv
+2. Substitua pelos e-mails Gmail reais (um por linha).
+3. NÃO use linha de cabeçalho (ex.: "Email address") — a Play interpreta como e-mail inválido.
+4. Na Play Console: Teste interno → Testadores → Importar lista → escolha o CSV.
+5. Copie o link de adesão e cole em marketing/TESTADORES-WHATSAPP.txt onde está [COLE_AQUI_...]
+
+Para começar só com você: deixe uma única linha com seu Gmail.

@@ -1,5 +1,5 @@
-import React from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import type { AppColors } from "@/theme/colors";
 import type { AgendaItem as AgendaRow } from "@/api/types";
 
@@ -7,10 +7,14 @@ export function AgendaItemRow({
   item,
   colors,
   onDelete,
+  onDoneToday,
+  doneTodayBusy,
 }: {
   item: AgendaRow;
   colors: AppColors;
   onDelete?: (id: string) => void;
+  onDoneToday?: (id: string) => void;
+  doneTodayBusy?: boolean;
 }) {
   const hor = String(item.horario || "").slice(0, 5);
   const id = String(item.id || "");
@@ -27,6 +31,20 @@ export function AgendaItemRow({
           {item.dias_da_semana || "—"}
         </Text>
       </View>
+      {onDoneToday && id ? (
+        <Pressable
+          onPress={() => onDoneToday(id)}
+          disabled={doneTodayBusy}
+          style={[styles.doneBtn, { borderColor: colors.primary, backgroundColor: colors.primaryTint }]}
+          accessibilityLabel="Marcar hábito feito hoje"
+        >
+          {doneTodayBusy ? (
+            <ActivityIndicator color={colors.primary} size="small" />
+          ) : (
+            <Text style={[styles.doneText, { color: colors.primary }]}>Feito hoje</Text>
+          )}
+        </Pressable>
+      ) : null}
       {onDelete && id ? (
         <Pressable
           onPress={() => onDelete(id)}
@@ -65,5 +83,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
   },
+  doneBtn: {
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginRight: 6,
+    minWidth: 72,
+    alignItems: "center",
+  },
+  doneText: { fontSize: 11, fontWeight: "800" },
   delText: { fontSize: 12, fontWeight: "700" },
 });

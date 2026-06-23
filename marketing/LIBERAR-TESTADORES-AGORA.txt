@@ -1,0 +1,33 @@
+=== BUILD 19 — LIBERAR TESTADORES (copiar WhatsApp) ===
+
+Oi! O EGO-AI *1.0.2* está no teste interno da Play Store.
+
+*Instalar / atualizar*
+1) Mesmo Gmail que cadastrei na lista
+2) Link: [COLE_LINK_TESTE_INTERNO_PLAY]
+3) «Tornar-se testador» → Play Store → *Atualizar* (versão 1.0.2)
+
+*Testar (10 min)*
+• Criar conta (e-mail + senha) — escolher Luna ou Leo
+• Chat texto + microfone
+• PDF: ícone ao lado do chat → anexar PDF → «resume em 5 tópicos»
+
+*Ainda NÃO testar:* agenda compartilhada (só equipe interna).
+
+Bug? Responda aqui ou contato@egoai.com.br (print ajuda).
+
+Obrigado!
+
+---
+
+=== PARA VOCÊ (depois que baixarem) ===
+
+1. Espere 2–3 testadores instalarem
+2. Crie 2 contas (ou use testador + você)
+3. Teste agenda compartilhada (convite e-mail = conta já existente)
+4. Avise no Cursor: «agenda OK» ou «agenda erro: …»
+
+=== RELEASE CONGELADA ===
+
+Build 19 blindado — ver RELEASE-TESTADORES-BUILD-19.md
+Só hotfix se bug crítico.

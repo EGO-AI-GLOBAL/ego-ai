@@ -1,0 +1,35 @@
+=== COPIAR E ENVIAR NO WHATSAPP (mais rapido — sem Play Store) ===
+
+Oi! Voce foi convidado(a) a testar o *EGO-AI 1.0.8* (assistente com avatares no celular).
+
+📲 *Instalar (Android)*
+1) Abra ESTE link NO CELULAR (nao no PC):
+https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/3e2a3633-1aec-4f1b-83a5-a8d85226efa2
+2) Toque em *Install* / *Baixar APK*
+3) Se pedir, permita instalar pelo Chrome
+4) Abra o app *Ego-IA*
+
+👤 *Testar (10 min)*
+• Criar conta (nome + telefone + e-mail)
+• Escolher avatar (Leo, Luna, Hana, Sara…)
+• Chat: digite *Oi* (texto)
+• Menu → *Planos* → ver oferta R$ 9,90 (opcional)
+
+🐛 Bug? Mande print + o que fez antes do erro.
+contato@egoai.com.br
+
+Obrigado!
+
+---
+
+=== VOCE (antes de enviar) ===
+[ ] Railway com OPENAI_API_KEY + GOOGLE_API_KEY + Redeploy OK
+[ ] Testou Oi + avatar no SEU celular
+[ ] Lista de e-mails/telefones dos testadores pronta
+
+=== DEPOIS (opcional — Play Store teste interno) ===
+Quando quiser link oficial da Play:
+1) 6-eas-build.bat (gera .aab)
+2) Play Console → Teste interno → enviar .aab
+3) Adicionar e-mails dos testadores na lista
+4) Enviar link opt-in da Play (substitui o link Expo acima)

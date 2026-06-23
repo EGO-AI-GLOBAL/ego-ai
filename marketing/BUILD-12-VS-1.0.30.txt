@@ -1,0 +1,20 @@
+EGO-AI — build 12 vs 1.0.30
+=============================
+
+BUILD 12 (TestFlight atual) TEM:
+• Descarrego agora + Ouvir
+• Apagar na lista de compras
+• NAO TEM: quadrado com tick visivel (iOS)
+• NAO TEM: Descarrego acima do teclado
+• NAO TEM: banner Atualizar corrigido
+
+BUILD 1.0.30 (codigo pronto, NUNCA GERADO) TEM:
+• Tick branco no quadrado roxo (Ionicons)
+• Descarrego sempre acima do campo Mensagem
+• Banner + botao Atualizar na Conta
+• TestFlight abre direto (itms-beta)
+
+CONFIRMAR NO IPHONE:
+Conta > Versao 1.0.29 > build 12 (nao 11)
+
+Se build 12 e tick ainda errado = normal, fix so no 1.0.30.

@@ -85,5 +85,5 @@ export function collectUpcomingItems(
 
 export function defaultCalendarName(calendars: SharedCalendar[]): string {
   const first = calendars[0]?.name?.trim();
-  return first || "Família";
+  return first || "Entre Nós";
 }

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="EGO-AI em breve — Luna e Leo, o amigo que não te abandona." />
+  <title>EGO-AI — Em breve</title>
+  <link rel="icon" href="img/icon.png" type="image/png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #09090b;
+      --card: #141416;
+      --border: #27272a;
+      --primary: #a78bfa;
+      --primary-dim: #7c3aed;
+      --text: #fafafa;
+      --muted: #a1a1aa;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      background: #09090b;
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 20px;
+      text-align: center;
+      line-height: 1.5;
+    }
+    .glow {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 50% at 50% 20%, rgba(124, 58, 237, 0.22), transparent);
+      pointer-events: none;
+      z-index: 0;
+    }
+    .card {
+      position: relative;
+      z-index: 1;
+      max-width: 420px;
+      width: 100%;
+    }
+    .logo-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .logo-row img {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+    }
+    .logo {
+      font-weight: 800;
+      font-size: 1.35rem;
+      letter-spacing: -0.02em;
+    }
+    .logo span { color: var(--primary); }
+    .badge {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--primary);
+      border: 1px solid var(--border);
+      padding: 6px 14px;
+      border-radius: 999px;
+      margin-bottom: 20px;
+      background: var(--card);
+    }
+    .duo {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .duo figure { margin: 0; }
+    .duo img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 18px;
+      border: 2px solid var(--border);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    }
+    .duo figcaption {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+    h1 {
+      font-size: clamp(1.5rem, 5vw, 2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .tagline {
+      color: var(--muted);
+      font-size: 1rem;
+      margin-bottom: 28px;
+      max-width: 22rem;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .contact {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .contact p {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .contact a {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .contact a:hover { text-decoration: underline; }
+    .note {
+      font-size: 0.78rem;
+      color: var(--muted);
+      max-width: 20rem;
+      margin: 0 auto;
+    }
+    .note strong { color: var(--text); font-weight: 600; }
+    footer {
+      position: relative;
+      z-index: 1;
+      margin-top: 40px;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+    footer a { color: var(--primary); text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+  <div class="card">
+    <div class="logo-row">
+      <img src="img/icon.png" alt="EGO-AI" width="44" height="44" />
+      <div class="logo">EGO<span>-AI</span></div>
+    </div>
+    <span class="badge">Site em construção</span>
+    <div class="duo">
+      <figure>
+        <img src="img/avatar-f1.png" alt="Luna" width="100" height="100" />
+        <figcaption>Luna</figcaption>
+      </figure>
+      <figure>
+        <img src="img/avatar-m1.png" alt="Leo" width="100" height="100" />
+        <figcaption>Leo</figcaption>
+      </figure>
+    </div>
+    <h1>O amigo que não te abandona.</h1>
+    <p class="tagline">
+      Estamos preparando o site e o app. Em breve: planos, download e tudo em um só lugar.
+    </p>
+    <div class="contact">
+      <p>Dúvidas, parcerias ou suporte:</p>
+      <a href="mailto:contato@egoai.com.br">contato@egoai.com.br</a>
+    </div>
+    <p class="note">
+      <strong>EGO-AI</strong> é companhia digital com IA — não substitui médico, psicólogo ou emergência.
+    </p>
+  </div>
+  <footer>
+    © EGO-AI · egoai.com.br<br />
+    <a href="privacidade/">Privacidade</a> · <a href="termos/">Termos</a>
+  </footer>
+</body>
+</html>

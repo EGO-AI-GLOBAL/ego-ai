@@ -19,7 +19,7 @@ import {
 } from "@/api/client";
 import type { SharedCalendar } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
-import { shareEntreNosEventWhatsApp } from "@/utils/whatsappShare";
+import { shareEntreNosEventWhatsApp, shareEntreNosInviteWhatsApp } from "@/utils/whatsappShare";
 import { promptLeaveSharedCalendar } from "@/utils/sharedCalendarLeave";
 import { formatScheduledLocal } from "@/utils/scheduleTime";
 import {

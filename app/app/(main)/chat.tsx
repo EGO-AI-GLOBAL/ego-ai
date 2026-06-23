@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { checkoutUrlForTier } from "@/utils/planCheckout";
-import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText } from "@/api/client";
+import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText, completeWellnessJourneyStep } from "@/api/client";
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { ChatComposer } from "@/components/ChatComposer";
 import { ChatPreview } from "@/components/ChatPreview";
@@ -32,6 +32,10 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { PersonaPicker } from "@/components/PersonaPicker";
 import { StreakBadge } from "@/components/StreakBadge";
 import { StreakShareModal } from "@/components/StreakShareModal";
+import { TrialBanner } from "@/components/TrialBanner";
+import { TrialExpiredBanner } from "@/components/TrialExpiredBanner";
+import { WellnessJourneyCard } from "@/components/WellnessJourneyCard";
+import { DailyCareChallenge } from "@/components/DailyCareChallenge";
 import { SpeakingAvatar } from "@/components/SpeakingAvatar";
 import { findAvatarInCatalog } from "@/constants/avatarCatalog";
 import { accountPersona, isMaleAvatar } from "@/constants/personas";
@@ -69,6 +73,7 @@ import {
 import { consumePendingRitual } from "@/storage/pendingRitual";
 import { computeDayProgress } from "@/utils/dayProgress";
 import { streakAvatarSubtitle } from "@/utils/streakReactions";
+import { isTrialExpired } from "@/utils/trialAccess";
 import {
   buildChatOnboardingMessage,
   buildChatOnboardingSpeech,
@@ -99,7 +104,7 @@ export default function ChatScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
-  const { data, loading, refreshing, error, refresh, refreshAccess, setPersona, mergeChatResult } =
+  const { data, loading, refreshing, error, refresh, refreshAccess, setPersona, mergeChatResult, mergeWellnessJourney, mergeDailyCare } =
     useDashboard();
   const userId = data.me?.user_id?.trim() ?? session?.user?.id?.trim() ?? "";
 
@@ -158,6 +163,15 @@ export default function ChatScreen() {
     findAvatarInCatalog(persona.avatar_id)?.shortName ??
     (isMaleAvatar(persona.avatar_id) ? "Leo" : "Luna");
   const voice = useVoiceChat();
+
+  const trackJourneyStep = useCallback(
+    (step: "chat" | "voice") => {
+      void completeWellnessJourneyStep(step).then((j) => {
+        if (j) mergeWellnessJourney(j);
+      });
+    },
+    [mergeWellnessJourney]
+  );
 
   const finishNightDump = useCallback(
     (dump: { items?: { length: number }; comfort_reply?: string }) => {
@@ -408,8 +422,13 @@ export default function ChatScreen() {
     (textLimit > 0 && textUsed >= textLimit);
   const isDailyLimitFromError = /limite\s+di[aá]rio\s+atingido/i.test(chatError || "");
   const isDailyLimitReached = isDailyLimitFromAccess || isDailyLimitFromError;
+  const trialExpired = isTrialExpired(access);
 
   const onNightDumpPress = useCallback(() => {
+    if (trialExpired) {
+      Alert.alert("Teste encerrado", "Assine um plano para continuar o desabafo e o chat.");
+      return;
+    }
     if (isDailyLimitReached) {
       Alert.alert(
         "Limite diário",
@@ -419,7 +438,7 @@ export default function ChatScreen() {
     }
     if (nightDumpMode) cancelNightDump();
     else startNightDump();
-  }, [isDailyLimitReached, nightDumpMode, cancelNightDump, startNightDump]);
+  }, [trialExpired, isDailyLimitReached, nightDumpMode, cancelNightDump, startNightDump]);
 
   const withUserRef = (url: string | null) => {
     if (!url) return null;
@@ -766,6 +785,7 @@ export default function ChatScreen() {
       ]);
       applyChatResult(result, userLabel);
       await afterChatSaved(result, userLabel);
+      trackJourneyStep("voice");
       if (result.voice_engine === "openai_realtime") {
         setChatNotice("A responder…");
       }
@@ -832,6 +852,10 @@ export default function ChatScreen() {
   const sendMessageText = useCallback(
     async (text: string, userLabel: string, opts?: { forceVoice?: boolean }) => {
       if (sending || !session || !text.trim()) return;
+      if (trialExpired) {
+        Alert.alert("Teste encerrado", "Assine um plano para continuar conversando com seu assistente.");
+        return;
+      }
       if (micActive) {
         await onMicPressOut();
         return;
@@ -855,6 +879,7 @@ export default function ChatScreen() {
         ]);
         applyChatResult(result, userLabel);
         await afterChatSaved(result, userLabel);
+        trackJourneyStep("chat");
         await saveExchange(userLabel, result.reply);
         setPendingChat([]);
         setLastChatResult(result);
@@ -889,6 +914,8 @@ export default function ChatScreen() {
       playVoice,
       scrollMessagesToEnd,
       voice,
+      trackJourneyStep,
+      trialExpired,
     ]
   );
 
@@ -914,7 +941,12 @@ export default function ChatScreen() {
         setChatNotice(intro);
         return;
       }
+      if (ritual === "reveal") {
+        router.push("/(main)/agenda");
+        return;
+      }
       const labels: Record<DailyRitualId, string> = {
+        reveal: "Amanhã revelado",
         morning: "Briefing",
         afternoon: "Ponto",
         evening: "Desabafo",
@@ -1080,6 +1112,40 @@ export default function ChatScreen() {
                   void sendMessageText(`Alterar ou cancelar: ${item.title}`, item.title);
                 }
               }}
+            />
+          ) : null}
+
+          {!loading || refreshing ? (
+            <TrialBanner colors={colors} access={data.access} />
+          ) : null}
+
+          {!loading || refreshing ? (
+            <TrialExpiredBanner
+              colors={colors}
+              access={data.access}
+              streak={data.streak}
+              journey={data.wellness_journey}
+              care={data.daily_care}
+              planOffers={planOffers}
+              onOpenCheckout={openCheckout}
+            />
+          ) : null}
+
+          {!loading || refreshing ? (
+            <DailyCareChallenge
+              colors={colors}
+              care={data.daily_care}
+              onUpdate={(care, journey) => {
+                mergeDailyCare(care, journey);
+              }}
+            />
+          ) : null}
+
+          {!loading || refreshing ? (
+            <WellnessJourneyCard
+              colors={colors}
+              journey={data.wellness_journey}
+              onJourneyUpdate={mergeWellnessJourney}
             />
           ) : null}
 
@@ -1292,14 +1358,16 @@ export default function ChatScreen() {
             onChangeText={setChatInput}
             onSend={onSendText}
             placeholder={
-              nightDumpMode
+              trialExpired
+                ? "Assine um plano para continuar…"
+                : nightDumpMode
                 ? "Escreva o desabafo e toque enviar…"
                 : composerPlaceholder
             }
-            sending={sending}
+            sending={sending || trialExpired}
             isRecording={voice.isRecording}
             micSessionActive={voice.micSessionActive}
-            voiceReady={voice.isRecording}
+            voiceReady={voice.isRecording && !trialExpired}
             onMicPress={onMicPress}
             onPdfPress={() => onDocPress()}
             pdfLoading={pdfLoading}

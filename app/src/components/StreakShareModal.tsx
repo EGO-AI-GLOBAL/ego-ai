@@ -3,15 +3,14 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
-  Share,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import type { StreakInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
-import { streakShareHeadline, streakShareTagline } from "@/utils/streakReactions";
-import { shareStreakWhatsApp, buildStreakShareText } from "@/utils/whatsappShare";
+import { streakShareHeadline } from "@/utils/streakReactions";
+import { shareStreakWhatsApp, shareStreakStories } from "@/utils/whatsappShare";
 
 type Props = {
   colors: AppColors;
@@ -39,8 +38,12 @@ function StreakCardFace({
       <Text style={styles.flame}>🔥</Text>
       <Text style={styles.days}>{current}</Text>
       <Text style={styles.headline}>{streakShareHeadline(current, atRisk)}</Text>
-      <Text style={styles.tagline}>{streakShareTagline(atRisk)}</Text>
-      <Text style={styles.footer}>Teste grátis · Android + iPhone</Text>
+      <Text style={styles.tagline}>
+        {atRisk ? "1 áudio salva hoje" : `Eu: ${current} dias`}
+      </Text>
+      <Text style={styles.cta}>Quantos você aguenta?</Text>
+      <Text style={styles.ctaSub}>Responde com teu número 🔥</Text>
+      <Text style={styles.footer}>EGO-AI · grátis · bem-estar</Text>
     </View>
   );
 }
@@ -64,14 +67,14 @@ export function StreakShareModal({
       try {
         const { captureRef } = await import("react-native-view-shot");
         const uri = await captureRef(cardRef, { format: "png", quality: 1 });
-        await Share.share({
-          url: uri,
-          message: `🔥 ${current} dias no EGO-AI`,
+        await shareStreakStories({
+          days: current,
+          atRisk,
+          assistantName,
+          imageUri: uri,
         });
       } catch {
-        await Share.share({
-          message: buildStreakShareText({ days: current, atRisk, assistantName }),
-        });
+        await shareStreakStories({ days: current, atRisk, assistantName });
       }
     } catch {
       /* cancelado */
@@ -96,7 +99,7 @@ export function StreakShareModal({
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
         <View style={[styles.sheet, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
-          <Text style={[styles.title, { color: colors.text }]}>Partilhar ofensiva</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Desafio entre amigos</Text>
           <View ref={cardRef} collapsable={false}>
             <StreakCardFace
               colors={colors}
@@ -121,7 +124,7 @@ export function StreakShareModal({
             disabled={busy}
             style={[styles.btn, { backgroundColor: colors.primary, opacity: busy ? 0.7 : 1 }]}
           >
-            <Text style={styles.btnText}>Instagram / Outros</Text>
+            <Text style={styles.btnText}>Instagram / Stories</Text>
           </Pressable>
           <Pressable onPress={onClose} style={styles.close}>
             <Text style={{ color: colors.textMuted, fontWeight: "600" }}>Fechar</Text>
@@ -164,7 +167,21 @@ const styles = StyleSheet.create({
     marginTop: 8,
     lineHeight: 20,
   },
-  footer: { color: "rgba(255,255,255,0.75)", fontSize: 12, marginTop: 16 },
+  cta: {
+    color: "#FFE566",
+    fontSize: 18,
+    fontWeight: "800",
+    textAlign: "center",
+    marginTop: 14,
+  },
+  ctaSub: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+    textAlign: "center",
+    marginTop: 4,
+  },
+  footer: { color: "rgba(255,255,255,0.75)", fontSize: 12, marginTop: 14 },
   btn: { borderRadius: 12, paddingVertical: 14, alignItems: "center" },
   btnText: { color: "#fff", fontWeight: "800", fontSize: 15 },
   close: { alignItems: "center", paddingVertical: 8 },

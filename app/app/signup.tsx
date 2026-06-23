@@ -25,10 +25,11 @@ import {
   validatePasswordConfirm,
   validatePhone,
 } from "@/utils/validation";
+import { savePostLoginRoute } from "@/storage/postLoginRoute";
 
 export default function SignupScreen() {
   const colors = useColors();
-  const params = useLocalSearchParams<{ ref?: string }>();
+  const params = useLocalSearchParams<{ ref?: string; next?: string }>();
   const { session, loading, signUp } = useAuth();
   const { bottomInset } = useKeyboardHeight();
   const [firstName, setFirstName] = useState("");
@@ -54,6 +55,14 @@ export default function SignupScreen() {
       setReferralOpen(true);
     }
   }, [params.ref]);
+
+  useEffect(() => {
+    const raw = params.next;
+    const next = (Array.isArray(raw) ? raw[0] : raw) || "";
+    if (next.trim().toLowerCase() === "agenda") {
+      void savePostLoginRoute("/(main)/agenda");
+    }
+  }, [params.next]);
 
   useEffect(() => {
     const code = referralCode.trim();

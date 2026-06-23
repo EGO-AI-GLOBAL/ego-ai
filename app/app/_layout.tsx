@@ -11,6 +11,7 @@ import { AppBannerOverlay } from "@/components/AppBannerOverlay";
 import { AppUpdateProvider } from "@/context/AppUpdateContext";
 import { MaintenanceProvider } from "@/context/MaintenanceContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { useDeepLinkRouting } from "@/hooks/useDeepLinkRouting";
 import { ThemeProvider } from "@/theme/ThemeContext";
 import { useColors } from "@/theme/ThemeContext";
 
@@ -27,6 +28,7 @@ const webInitialMetrics = {
 function RootNavigator() {
   const colors = useColors();
   const scheme = useColorScheme();
+  useDeepLinkRouting();
   return (
     <>
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />

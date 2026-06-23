@@ -119,3 +119,11 @@ export function membersGroupLine(
     })
     .join("\n");
 }
+
+export function myCalendarMember(
+  members: SharedCalendarMember[] | undefined,
+  myUserId?: string
+): SharedCalendarMember | undefined {
+  if (!myUserId || !members?.length) return undefined;
+  return members.find((m) => String(m.user_id || "") === myUserId);
+}

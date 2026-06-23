@@ -94,7 +94,20 @@ export function ReminderItem({
           </Text>
         </Pressable>
         {expanded && onShoppingChange ? (
-          <View style={styles.shopBox}>
+          <View
+            style={[
+              styles.shopBox,
+              {
+                backgroundColor: colors.primaryTint,
+                borderColor: colors.border,
+              },
+            ]}
+          >
+            {shopping.length > 0 ? (
+              <Text style={[styles.shopLabel, { color: colors.textMuted }]}>
+                Lista de compras · {doneCount}/{shopping.length}
+              </Text>
+            ) : null}
             {shopping.map((shop) => {
               const sid = String(shop.id || "");
               return (
@@ -165,7 +178,19 @@ const styles = StyleSheet.create({
   body: { flex: 1 },
   title: { fontSize: 15, fontWeight: "600" },
   when: { fontSize: 13, marginTop: 2 },
-  shopBox: { marginTop: 8 },
+  shopBox: {
+    marginTop: 10,
+    padding: 10,
+    borderRadius: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+  },
+  shopLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.4,
+    marginBottom: 6,
+  },
   addRow: { flexDirection: "row", gap: 8, marginTop: 6 },
   addInput: {
     flex: 1,

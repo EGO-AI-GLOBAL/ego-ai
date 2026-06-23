@@ -72,10 +72,24 @@ EMAIL_NO_ACCOUNT_MSG = (
     "o convite fica guardado e a agenda aparece quando ela entrar."
 )
 
-PENDING_INVITE_MSG = (
+PENDING_INVITE_MSG_ENTRE_NOS = (
     "Convite enviado. A pessoa verá na Agenda (Entre Nós) para aceitar "
     "quando entrar no EGO com o mesmo e-mail ou telefone."
 )
+
+PENDING_INVITE_MSG_GRUPO = (
+    "Convite enviado. A pessoa verá na Agenda compartilhada para aceitar "
+    "quando entrar no EGO com o mesmo e-mail ou telefone."
+)
+
+# Compatibilidade com código que ainda importa o nome antigo.
+PENDING_INVITE_MSG = PENDING_INVITE_MSG_ENTRE_NOS
+
+
+def _pending_invite_message(supabase: Client | None, calendar_id: str) -> str:
+    if is_entre_nos_calendar(_calendar_name(supabase, calendar_id)):
+        return PENDING_INVITE_MSG_ENTRE_NOS
+    return PENDING_INVITE_MSG_GRUPO
 
 
 def _normalize_invite_email(raw: str) -> tuple[str, str | None]:
@@ -1463,7 +1477,7 @@ def _add_pending_member_by_email(
                     .execute()
                 )
                 data = (refreshed.data or [prev])[0]
-                return True, PENDING_INVITE_MSG, data
+                return True, _pending_invite_message(supabase, calendar_id), data
             return False, "Este e-mail já está nesta agenda.", None
         ok_cap, cap_err = _ensure_calendar_member_capacity(supabase, calendar_id)
         if not ok_cap:
@@ -1481,7 +1495,7 @@ def _add_pending_member_by_email(
             supabase, SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE, row, raise_errors=True
         )
         data = inserted[0] if inserted else row
-        return True, PENDING_INVITE_MSG, data
+        return True, _pending_invite_message(supabase, calendar_id), data
     except Exception as exc:
         low = str(exc).lower()
         if "unique" in low or "duplicate" in low:
@@ -1601,7 +1615,7 @@ def add_member_by_email(
                         {
                             "user_id": target_uid,
                             "invited_email": email_norm,
-                            "status": "active",
+                            "status": "pending",
                         }
                     ).eq("id", member_id).execute()
                     refreshed = (
@@ -1612,7 +1626,7 @@ def add_member_by_email(
                         .execute()
                     )
                     data = (refreshed.data or [prev])[0]
-                    return True, "", data
+                    return True, _pending_invite_message(supabase, calendar_id), data
                 except Exception as exc:
                     return False, str(exc), None
             return False, "Este e-mail já está nesta agenda.", None
@@ -1624,7 +1638,7 @@ def add_member_by_email(
             "user_id": target_uid,
             "invited_email": email_norm,
             "role": "member",
-            "status": "active",
+            "status": "pending",
         }
         from ego_api.supabase_client import insert_with_admin_fallback
 
@@ -1632,7 +1646,7 @@ def add_member_by_email(
             supabase, SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE, row, raise_errors=True
         )
         data = inserted[0] if inserted else row
-        return True, "", data
+        return True, _pending_invite_message(supabase, calendar_id), data
     except Exception as exc:
         low = str(exc).lower()
         if "unique" in low or "duplicate" in low:
@@ -1694,7 +1708,7 @@ def _add_pending_member_by_phone(
                     .execute()
                 )
                 data = (refreshed.data or [prev])[0]
-                return True, PENDING_INVITE_MSG, data
+                return True, _pending_invite_message(supabase, calendar_id), data
             return False, "Este telefone já está nesta agenda.", None
         ok_cap, cap_err = _ensure_calendar_member_capacity(supabase, calendar_id)
         if not ok_cap:
@@ -1713,7 +1727,7 @@ def _add_pending_member_by_phone(
             supabase, SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE, row, raise_errors=True
         )
         data = inserted[0] if inserted else row
-        return True, PENDING_INVITE_MSG, data
+        return True, _pending_invite_message(supabase, calendar_id), data
     except Exception as exc:
         low = str(exc).lower()
         if "unique" in low or "duplicate" in low:
@@ -1779,7 +1793,7 @@ def add_member_by_phone(
                         "user_id": target_uid,
                         "invited_phone": phone_norm,
                         "invited_email": placeholder,
-                        "status": "active",
+                        "status": "pending",
                     }
                 ).eq("id", member_id).execute()
                 refreshed = (
@@ -1790,7 +1804,7 @@ def add_member_by_phone(
                     .execute()
                 )
                 data = (refreshed.data or [prev])[0]
-                return True, "", data
+                return True, _pending_invite_message(supabase, calendar_id), data
         ok_cap, cap_err = _ensure_calendar_member_capacity(supabase, calendar_id)
         if not ok_cap:
             return False, cap_err, None
@@ -1800,7 +1814,7 @@ def add_member_by_phone(
             "invited_email": placeholder,
             "invited_phone": phone_norm,
             "role": "member",
-            "status": "active",
+            "status": "pending",
         }
         from ego_api.supabase_client import insert_with_admin_fallback
 
@@ -1808,7 +1822,7 @@ def add_member_by_phone(
             supabase, SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE, row, raise_errors=True
         )
         data = inserted[0] if inserted else row
-        return True, "", data
+        return True, _pending_invite_message(supabase, calendar_id), data
     except Exception as exc:
         low = str(exc).lower()
         if "unique" in low or "duplicate" in low:

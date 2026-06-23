@@ -13,8 +13,14 @@ import {
   deleteAgendaItem,
   dismissReminder,
   localDateTimeToIso,
+  recordStreakActivity,
 } from "@/api/client";
-import type { AgendaDraft, AgendaItem, Reminder, ShoppingListItem } from "@/api/types";
+import type {
+  AgendaDraft,
+  AgendaItem,
+  Reminder,
+  ShoppingListItem,
+} from "@/api/types";
 import { AgendaItemRow } from "@/components/AgendaItem";
 import { ReminderItem } from "@/components/ReminderItem";
 import type { AppColors } from "@/theme/colors";
@@ -37,6 +43,7 @@ type Props = {
   agendaDrafts: AgendaDraft[];
   shoppingOrphans: ShoppingListItem[];
   onRefresh: () => Promise<void>;
+  nightDumpNights?: number;
 };
 
 /**
@@ -50,6 +57,7 @@ export function PersonalAgendaManual({
   agendaDrafts,
   shoppingOrphans,
   onRefresh,
+  nightDumpNights = 0,
 }: Props) {
   const initialSlot = defaultScheduleSlot();
   const [showPersonalForm, setShowPersonalForm] = useState(false);
@@ -62,6 +70,7 @@ export function PersonalAgendaManual({
   const [habitTime, setHabitTime] = useState(defaultTimeHm(8, 0));
   const [habitDays, setHabitDays] = useState("seg,ter,qua,qui,sex");
   const [savingHabit, setSavingHabit] = useState(false);
+  const [habitDoneBusy, setHabitDoneBusy] = useState<string | null>(null);
   const [listTick, setListTick] = useState(0);
 
   const openPersonalForm = () => {
@@ -193,9 +202,31 @@ export function PersonalAgendaManual({
     ]);
   };
 
+  const onHabitDoneToday = async (agendaId: string) => {
+    setHabitDoneBusy(agendaId);
+    try {
+      await recordStreakActivity("habit");
+      Alert.alert("Ofensiva", "Hábito marcado — sua sequência continua! 🔥");
+      await onRefresh();
+    } catch (e) {
+      Alert.alert(
+        "Erro",
+        e instanceof Error ? e.message : "Não foi possível registar o hábito."
+      );
+    } finally {
+      setHabitDoneBusy(null);
+    }
+  };
+
   return (
     <>
-      <AgendaDraftsBanner colors={colors} drafts={agendaDrafts} onRefresh={onRefresh} />
+      <AgendaDraftsBanner
+        colors={colors}
+        drafts={agendaDrafts}
+        onRefresh={onRefresh}
+        familyOnly={false}
+        nightDumpNights={nightDumpNights}
+      />
       <OrphanShoppingSection colors={colors} items={shoppingOrphans} onRefresh={onRefresh} />
       <Text style={[s.section, { color: colors.textMuted }]}>Compromissos</Text>
       <Pressable
@@ -204,7 +235,7 @@ export function PersonalAgendaManual({
           s.addBtn,
           {
             borderColor: colors.primary,
-            backgroundColor: showPersonalForm ? colors.primaryLight : colors.bgCard,
+            backgroundColor: showPersonalForm ? colors.primaryTint : colors.bgCard,
             opacity: pressed ? 0.88 : 1,
           },
         ]}
@@ -278,7 +309,7 @@ export function PersonalAgendaManual({
           s.addBtn,
           {
             borderColor: colors.primary,
-            backgroundColor: showHabitForm ? colors.primaryLight : colors.bgCard,
+            backgroundColor: showHabitForm ? colors.primaryTint : colors.bgCard,
             opacity: pressed ? 0.88 : 1,
           },
         ]}
@@ -327,6 +358,8 @@ export function PersonalAgendaManual({
               item={a}
               colors={colors}
               onDelete={onDeleteHabit}
+              onDoneToday={() => void onHabitDoneToday(aid)}
+              doneTodayBusy={habitDoneBusy === aid}
             />
           );
         })
