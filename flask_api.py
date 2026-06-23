@@ -332,7 +332,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-22-1.0.36-profile-phone-persist",
+        "api_build": "2026-06-22-1.0.36-profile-phone-upsert",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -903,33 +903,36 @@ def profile_patch():
         fields["ui_state"] = merged
     if "country" in data:
         fields["country"] = str(data["country"])[:80]
+    phone_norm: str | None = None
     if "phone" in data:
         from ego_api.phone_utils import normalize_phone_br
 
         phone_norm, phone_err = normalize_phone_br(str(data.get("phone") or ""))
         if phone_err:
             return _json_error(phone_err, 400)
-        fields["phone"] = phone_norm
-    ok, err = db.update_profile_fields(g.supabase, g.user_id, fields)
-    if not ok:
-        return _json_error(err or "Falha ao atualizar perfil.")
-    if "phone" in fields:
+        sess = get_session()
+        ok, err = db.upsert_profile_phone(
+            g.supabase,
+            g.user_id,
+            phone_norm,
+            email=str(sess.email or "") if sess else "",
+            full_name=str(sess.user_name or "") if sess and sess.user_name else "",
+        )
+        if not ok:
+            return _json_error(err or "Falha ao atualizar telefone.")
         try:
             from ego_api import shared_calendars as sc
 
             sc.link_shared_memberships_for_user_phone(
-                g.supabase, g.user_id, str(fields["phone"])
+                g.supabase, g.user_id, phone_norm
             )
         except Exception:
             pass
-    from ego_api.supabase_client import create_service_client
-
-    svc = create_service_client()
-    prof = (
-        db._load_profile_raw(svc, g.user_id)
-        if svc
-        else db.load_profile(g.supabase, g.user_id)
-    ) or {}
+    if fields:
+        ok, err = db.update_profile_fields(g.supabase, g.user_id, fields)
+        if not ok:
+            return _json_error(err or "Falha ao atualizar perfil.")
+    prof = db.load_profile_trusted(g.supabase, g.user_id) or {}
     return _json_ok({"updated": True, "profile": prof})
 
 

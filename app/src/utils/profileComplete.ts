@@ -5,6 +5,17 @@ export function profilePhoneFromMe(me: MeData | null | undefined): string {
   return typeof profile?.phone === "string" ? profile.phone.trim() : "";
 }
 
-export function isProfilePhoneMissing(me: MeData | null | undefined): boolean {
-  return !profilePhoneFromMe(me);
+export function hasProfilePhone(
+  me: MeData | null | undefined,
+  localPhone?: string | null
+): boolean {
+  if (localPhone?.trim()) return true;
+  return Boolean(profilePhoneFromMe(me));
+}
+
+export function isProfilePhoneMissing(
+  me: MeData | null | undefined,
+  localPhone?: string | null
+): boolean {
+  return !hasProfilePhone(me, localPhone);
 }

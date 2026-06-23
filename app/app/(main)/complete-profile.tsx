@@ -14,15 +14,19 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthTextInput } from "@/components/AuthTextInput";
 import { EgoLogo } from "@/components/EgoLogo";
 import { updateProfilePhone } from "@/api/client";
+import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
+import { saveLocalProfilePhone } from "@/storage/profilePhoneLocal";
 import { useColors } from "@/theme/ThemeContext";
 import { formatPhoneBrInput } from "@/utils/phoneBr";
+import { resolveUserId } from "@/utils/resolveUserId";
 import { validatePhone } from "@/utils/validation";
 
 export default function CompleteProfileScreen() {
   const colors = useColors();
-  const { refresh, mergeProfilePhone } = useDashboard();
+  const { session } = useAuth();
+  const { data, refresh, mergeProfilePhone } = useDashboard();
   const { bottomInset } = useKeyboardHeight();
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
@@ -38,8 +42,13 @@ export default function CompleteProfileScreen() {
     setBusy(true);
     try {
       const { phone: savedPhone } = await updateProfilePhone(phone.trim());
-      if (savedPhone) {
-        mergeProfilePhone(savedPhone);
+      const normalized = savedPhone || phone.trim();
+      const uid = resolveUserId(session, data.me?.user_id);
+      if (uid && normalized) {
+        await saveLocalProfilePhone(uid, normalized);
+      }
+      if (normalized) {
+        mergeProfilePhone(normalized);
       }
       await refresh();
       router.replace("/(main)/chat");

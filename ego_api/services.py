@@ -1399,7 +1399,7 @@ def ensure_persona_normalized(supabase: Client | None, user_id: str) -> tuple[st
 
 
 def me_payload(supabase: Client | None, user_id: str) -> dict:
-    prof = db.load_profile(supabase, user_id) or {}
+    prof = db.load_profile_trusted(supabase, user_id) or {}
     sess = get_session()
     email = (sess.email if sess else None) or str(prof.get("email") or "")
     if email and supabase and user_id:

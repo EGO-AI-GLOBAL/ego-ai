@@ -151,6 +151,18 @@ def load_profile(supabase: Client | None, user_id: str) -> dict | None:
         return None
 
 
+def load_profile_trusted(supabase: Client | None, user_id: str) -> dict | None:
+    """Perfil com service role quando disponível (telefone / bootstrap)."""
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+    if admin:
+        prof = _load_profile_raw(admin, user_id)
+        if prof:
+            return prof
+    return load_profile(supabase, user_id)
+
+
 def ensure_user_profile(
     supabase: Client | None,
     user_id: str,
@@ -1065,6 +1077,62 @@ def _profile_fields_match(prof: dict | None, payload: dict) -> bool:
         elif actual != expected:
             return False
     return True
+
+
+def upsert_profile_phone(
+    supabase: Client | None,
+    user_id: str,
+    phone: str,
+    *,
+    email: str = "",
+    full_name: str = "",
+) -> tuple[bool, str]:
+    """Garante linha em profiles e grava telefone (service role)."""
+    from ego_api.request_ctx import get_session
+    from ego_api.supabase_client import create_service_client
+
+    ph = str(phone or "").strip()
+    if not ph:
+        return False, "Telefone inválido."
+
+    admin = create_service_client()
+    if not admin:
+        return update_profile_fields(supabase, user_id, {"phone": ph})
+
+    prof = _load_profile_raw(admin, user_id)
+    sess = get_session()
+    em = (email or "").strip()[:254] or (
+        str(sess.email).strip()[:254] if sess and sess.email else ""
+    )
+    display = (full_name or "").strip()
+    if not display and sess and sess.user_name:
+        display = str(sess.user_name).strip()
+    if not display:
+        display = "Usuário"
+
+    try:
+        if prof:
+            admin.table(SUPABASE_PROFILES_TABLE).update({"phone": ph}).eq(
+                "id", user_id
+            ).execute()
+        else:
+            admin.table(SUPABASE_PROFILES_TABLE).insert(
+                {
+                    "id": user_id,
+                    "phone": ph,
+                    "full_name": display[:200],
+                    "email": em or None,
+                    "country": "Brasil",
+                    "document_type": "",
+                }
+            ).execute()
+    except Exception as exc:
+        return False, _profile_update_error_message(str(exc))
+
+    saved = _load_profile_raw(admin, user_id)
+    if not _profile_fields_match(saved, {"phone": ph}):
+        return False, "Não foi possível atualizar o perfil."
+    return True, ""
 
 
 def _verify_profile_update(
