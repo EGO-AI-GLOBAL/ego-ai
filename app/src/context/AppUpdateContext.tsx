@@ -1,61 +1,112 @@
-import Constants from "expo-constants";
 import React, {
   createContext,
   useCallback,
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { AppState, type AppStateStatus } from "react-native";
 import { fetchPublicHealth } from "@/api/client";
-import { isAppVersionBehind } from "@/utils/appVersion";
+import {
+  clearUpdateBannerDismissedVersion,
+  getUpdateBannerDismissedVersion,
+} from "@/storage/updateBannerPrefs";
+import {
+  getInstalledAppVersion,
+  isAppUpdateAvailable,
+} from "@/utils/appVersion";
 
 type AppUpdateContextValue = {
   showBanner: boolean;
+  needsUpdate: boolean;
   message: string;
   latestVersion: string;
   playStoreUrl: string;
   iosUpdateUrl: string;
   currentVersion: string;
   refresh: () => Promise<void>;
+  dismissBanner: () => Promise<void>;
 };
 
 const AppUpdateContext = createContext<AppUpdateContextValue | null>(null);
 
 const POLL_MS = 60_000;
 
-function currentAppVersion(): string {
-  return String(Constants.expoConfig?.version || "0.0.0").trim();
-}
-
 export function AppUpdateProvider({ children }: { children: React.ReactNode }) {
   const [showBanner, setShowBanner] = useState(false);
-  const [message, setMessage] = useState("Nova versão disponível na Play Store.");
+  const [needsUpdate, setNeedsUpdate] = useState(false);
+  const [message, setMessage] = useState("");
   const [latestVersion, setLatestVersion] = useState("");
   const [playStoreUrl, setPlayStoreUrl] = useState("");
   const [iosUpdateUrl, setIosUpdateUrl] = useState("");
-  const currentVersion = currentAppVersion();
+  const [currentVersion, setCurrentVersion] = useState(getInstalledAppVersion);
+  const sessionDismissedRef = useRef(false);
 
   const refresh = useCallback(async () => {
-    const health = await fetchPublicHealth();
-    const info = health?.app_update;
-    if (!info?.latest_version?.trim()) {
+    const installed = getInstalledAppVersion();
+    setCurrentVersion(installed);
+
+    try {
+      const health = await fetchPublicHealth();
+      const info = health?.app_update;
+      const latest = (info?.latest_version || "").trim();
+      const latestAndroidCode =
+        typeof info?.android_version_code === "number"
+          ? info.android_version_code
+          : parseInt(String(info?.android_version_code || ""), 10);
+
+      if (!latest) {
+        setShowBanner(false);
+        setNeedsUpdate(false);
+        setLatestVersion("");
+        return;
+      }
+
+      setLatestVersion(latest);
+      setPlayStoreUrl((info?.play_store_url || "").trim());
+      setIosUpdateUrl((info?.ios_update_url || "").trim());
+      setMessage((info?.message || "").trim());
+
+      const behind = isAppUpdateAvailable(
+        installed,
+        latest,
+        Number.isFinite(latestAndroidCode) ? latestAndroidCode : null
+      );
+
+      if (!behind) {
+        sessionDismissedRef.current = false;
+        await clearUpdateBannerDismissedVersion();
+        setNeedsUpdate(false);
+        setShowBanner(false);
+        return;
+      }
+
+      setNeedsUpdate(true);
+
+      // Dismiss antigo no storage: limpar para voltar a mostrar em quem ainda está atrás.
+      const legacyDismissed = await getUpdateBannerDismissedVersion();
+      if (legacyDismissed === latest) {
+        await clearUpdateBannerDismissedVersion();
+      }
+
+      if (sessionDismissedRef.current) {
+        setShowBanner(false);
+        return;
+      }
+
+      setShowBanner(true);
+    } catch {
       setShowBanner(false);
-      return;
+      setNeedsUpdate(false);
     }
-    const latest = info.latest_version.trim();
-    const url = (info.play_store_url || "").trim();
-    const iosUrl = (info.ios_update_url || "").trim();
-    setLatestVersion(latest);
-    setPlayStoreUrl(url);
-    setIosUpdateUrl(iosUrl);
-    setMessage(
-      (info.message || "").trim() ||
-        `Versão ${latest} disponível. Você está na ${currentVersion}.`
-    );
-    setShowBanner(isAppVersionBehind(currentVersion, latest));
-  }, [currentVersion]);
+  }, []);
+
+  const dismissBanner = useCallback(async () => {
+    sessionDismissedRef.current = true;
+    setShowBanner(false);
+  }, []);
 
   useEffect(() => {
     void refresh();
@@ -72,14 +123,26 @@ export function AppUpdateProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo(
     () => ({
       showBanner,
+      needsUpdate,
       message,
       latestVersion,
       playStoreUrl,
       iosUpdateUrl,
       currentVersion,
       refresh,
+      dismissBanner,
     }),
-    [showBanner, message, latestVersion, playStoreUrl, iosUpdateUrl, currentVersion, refresh]
+    [
+      showBanner,
+      needsUpdate,
+      message,
+      latestVersion,
+      playStoreUrl,
+      iosUpdateUrl,
+      currentVersion,
+      refresh,
+      dismissBanner,
+    ]
   );
 
   return (

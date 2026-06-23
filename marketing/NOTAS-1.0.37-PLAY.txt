@@ -1,0 +1,8 @@
+Novidades 1.0.37:
+
+• Correção ao completar cadastro com telefone (WhatsApp)
+• Aviso de nova versão com botão Atualizar agora
+• Convites do Entre Nós — aceitar ou recusar no app
+• Lembrete às 7h do desabafo da noite na agenda
+
+Versão: 1.0.37 | Version code: 71 | teste fechado

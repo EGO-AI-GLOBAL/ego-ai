@@ -4,7 +4,7 @@ chcp 65001 >nul
 
 cd /d "%~dp0"
 
-title Gerar 1.0.37 — iOS 21 + Android 70
+title Gerar 1.0.37 — iOS 22 + Android 71
 
 
 
@@ -20,7 +20,7 @@ echo.
 
 echo ANTES: git push main + Railway EGO_LATEST_APP_VERSION=1.0.37
 
-echo        EGO_LATEST_ANDROID_VERSION_CODE=70
+echo        EGO_LATEST_ANDROID_VERSION_CODE=71
 
 echo.
 
@@ -60,7 +60,7 @@ set NODE_TLS_REJECT_UNAUTHORIZED=0
 
 
 
-echo [1/2] iOS 1.0.37 build 21...
+echo [1/2] iOS 1.0.37 build 22...
 
 call eas build --platform ios --profile production --non-interactive
 
@@ -68,7 +68,7 @@ call eas build --platform ios --profile production --non-interactive
 
 echo.
 
-echo [2/2] Android 1.0.37 code 70...
+echo [2/2] Android 1.0.37 code 71...
 
 call eas build --platform android --profile production --non-interactive
 

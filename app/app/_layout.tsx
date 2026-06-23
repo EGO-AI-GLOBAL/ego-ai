@@ -7,8 +7,7 @@ initMonitoring();
 import { StatusBar } from "expo-status-bar";
 import { Dimensions, useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { AppUpdateBanner } from "@/components/AppUpdateBanner";
-import { SystemStatusBanner } from "@/components/SystemStatusBanner";
+import { AppBannerOverlay } from "@/components/AppBannerOverlay";
 import { AppUpdateProvider } from "@/context/AppUpdateContext";
 import { MaintenanceProvider } from "@/context/MaintenanceContext";
 import { AuthProvider } from "@/context/AuthContext";
@@ -57,9 +56,9 @@ export default function RootLayout() {
             <MaintenanceProvider>
               <AppUpdateProvider>
                 <View style={{ flex: 1 }}>
-                  <AppUpdateBanner />
-                  <SystemStatusBanner />
-                  <RootNavigator />
+                  <AppBannerOverlay>
+                    <RootNavigator />
+                  </AppBannerOverlay>
                 </View>
               </AppUpdateProvider>
             </MaintenanceProvider>

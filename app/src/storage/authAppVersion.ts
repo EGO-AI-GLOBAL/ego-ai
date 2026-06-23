@@ -1,10 +1,10 @@
-import Constants from "expo-constants";
 import { deleteSecureItem, getSecureItem, saveSecureItem } from "@/storage/sessionStorage";
+import { getInstalledAppVersion } from "@/utils/appVersion";
 
 const KEY = "ego_auth_app_version_v1";
 
 export function currentAppVersion(): string {
-  return String(Constants.expoConfig?.version || "0.0.0").trim();
+  return getInstalledAppVersion();
 }
 
 export async function getStoredAuthAppVersion(): Promise<string | null> {

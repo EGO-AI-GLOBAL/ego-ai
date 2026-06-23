@@ -4,7 +4,7 @@ chcp 65001 >nul
 
 cd /d "%~dp0\app"
 
-title Submit iOS 1.0.37 build 21
+title Submit iOS 1.0.37 build 22
 
 
 

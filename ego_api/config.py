@@ -279,7 +279,7 @@ def maintenance_message() -> str:
 
 def latest_android_version_code() -> int:
     """Version code Play (EAS autoIncrement) — Android usa para aviso de atualização."""
-    raw = read_env("EGO_LATEST_ANDROID_VERSION_CODE", "70").strip()
+    raw = read_env("EGO_LATEST_ANDROID_VERSION_CODE", "71").strip()
     try:
         return max(0, int(raw))
     except ValueError:
