@@ -22,7 +22,7 @@ import { validatePhone } from "@/utils/validation";
 
 export default function CompleteProfileScreen() {
   const colors = useColors();
-  const { refresh } = useDashboard();
+  const { refresh, mergeProfilePhone } = useDashboard();
   const { bottomInset } = useKeyboardHeight();
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
@@ -37,11 +37,25 @@ export default function CompleteProfileScreen() {
     }
     setBusy(true);
     try {
-      await updateProfilePhone(phone.trim());
+      const { phone: savedPhone } = await updateProfilePhone(phone.trim());
+      if (savedPhone) {
+        mergeProfilePhone(savedPhone);
+      }
       await refresh();
       router.replace("/(main)/chat");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Não foi possível guardar o telefone.");
+      const msg = e instanceof Error ? e.message : "Não foi possível guardar o telefone.";
+      if (/campo válido para atualizar/i.test(msg)) {
+        setError(
+          "Servidor ainda a atualizar. Aguarde 2 minutos e toque Continuar de novo."
+        );
+      } else if (/já está associado/i.test(msg)) {
+        setError(msg);
+      } else if (/não foi possível atualizar/i.test(msg)) {
+        setError("Não foi possível guardar o telefone. Tente de novo em instantes.");
+      } else {
+        setError(msg);
+      }
     } finally {
       setBusy(false);
     }

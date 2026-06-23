@@ -355,8 +355,12 @@ export async function validateReferralCode(
   };
 }
 
-export async function updateProfilePhone(phone: string): Promise<void> {
-  await api.patch("profile", { phone: phone.trim() });
+export async function updateProfilePhone(phone: string): Promise<{ phone: string }> {
+  const { data } = await api.patch("profile", { phone: phone.trim() });
+  const body = unwrap<{ profile?: { phone?: string } }>(data);
+  const saved =
+    typeof body.profile?.phone === "string" ? body.profile.phone.trim() : "";
+  return { phone: saved };
 }
 
 export async function signup(

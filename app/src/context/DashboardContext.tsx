@@ -65,6 +65,8 @@ type DashboardContextValue = {
   /** Atualiza só limites/uso (rápido após chat). */
   refreshAccess: () => Promise<void>;
   setPersona: (avatarId: string, voiceId: string) => void | Promise<void>;
+  /** Atualiza telefone no estado local após PATCH /profile (evita loop no gate). */
+  mergeProfilePhone: (phone: string) => void;
   /** true se o servidor ou o telemóvel já registou escolha de assistente */
   personaGateOk: boolean;
 };
@@ -279,6 +281,24 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   /** Só conta escolha guardada neste telemóvel (reinstalar = escolher de novo). */
   const personaGateOk = personaLocalOk;
 
+  const mergeProfilePhone = useCallback((phone: string) => {
+    const normalized = phone.trim();
+    if (!normalized) return;
+    setData((prev) => {
+      if (!prev.me) return prev;
+      return {
+        ...prev,
+        me: {
+          ...prev.me,
+          profile: {
+            ...(prev.me.profile ?? {}),
+            phone: normalized,
+          },
+        },
+      };
+    });
+  }, []);
+
   const value = useMemo(
     () => ({
       data,
@@ -289,6 +309,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       mergeChatResult,
       refreshAccess,
       setPersona,
+      mergeProfilePhone,
       personaGateOk,
     }),
     [
@@ -300,6 +321,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       mergeChatResult,
       refreshAccess,
       setPersona,
+      mergeProfilePhone,
       personaGateOk,
     ]
   );

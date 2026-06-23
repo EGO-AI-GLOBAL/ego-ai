@@ -332,7 +332,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-22-1.0.36-entre-nos-convites-telefone",
+        "api_build": "2026-06-22-1.0.36-profile-phone-persist",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -922,7 +922,15 @@ def profile_patch():
             )
         except Exception:
             pass
-    return _json_ok({"updated": True})
+    from ego_api.supabase_client import create_service_client
+
+    svc = create_service_client()
+    prof = (
+        db._load_profile_raw(svc, g.user_id)
+        if svc
+        else db.load_profile(g.supabase, g.user_id)
+    ) or {}
+    return _json_ok({"updated": True, "profile": prof})
 
 
 @app.get("/api/v1/plans")

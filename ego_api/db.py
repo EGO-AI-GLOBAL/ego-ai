@@ -1040,6 +1040,50 @@ def save_feedback(
         return False
 
 
+def _profile_update_error_message(exc: str) -> str:
+    low = (exc or "").lower()
+    if "profiles_phone_unique" in low or (
+        "duplicate key" in low and "phone" in low
+    ):
+        return "Este telefone já está associado a outra conta."
+    return exc or "Não foi possível atualizar o perfil."
+
+
+def _profile_fields_match(prof: dict | None, payload: dict) -> bool:
+    if not prof:
+        return False
+    for key, expected in payload.items():
+        actual = prof.get(key)
+        if key == "phone":
+            if str(actual or "").strip() != str(expected or "").strip():
+                return False
+        elif key == "ui_state" and isinstance(expected, dict):
+            current = _parse_ui_state(prof)
+            for ui_key, ui_val in expected.items():
+                if current.get(ui_key) != ui_val:
+                    return False
+        elif actual != expected:
+            return False
+    return True
+
+
+def _verify_profile_update(
+    supabase: Client | None, user_id: str, payload: dict
+) -> bool:
+    from ego_api.supabase_client import create_service_client
+
+    admin = create_service_client()
+    if admin:
+        prof = _load_profile_raw(admin, user_id)
+        if _profile_fields_match(prof, payload):
+            return True
+    if supabase:
+        prof = load_profile(supabase, user_id)
+        if _profile_fields_match(prof, payload):
+            return True
+    return False
+
+
 def update_profile_fields(
     supabase: Client | None, user_id: str, fields: dict
 ) -> tuple[bool, str]:
@@ -1049,25 +1093,35 @@ def update_profile_fields(
     payload = {k: v for k, v in fields.items() if k in allowed}
     if not payload:
         return False, "Nenhum campo válido para atualizar."
-    apply_user_auth(supabase)
-    user_err = ""
-    try:
-        supabase.table(SUPABASE_PROFILES_TABLE).update(payload).eq("id", user_id).execute()
-        return True, ""
-    except Exception as exc:
-        user_err = str(exc)
 
     from ego_api.supabase_client import create_service_client
 
     admin = create_service_client()
-    if admin:
-        try:
-            admin.table(SUPABASE_PROFILES_TABLE).update(payload).eq("id", user_id).execute()
-            return True, ""
-        except Exception as exc:
-            return False, str(exc) or user_err
+    clients: list[tuple[Client | None, bool]] = []
+    if "phone" in payload and admin:
+        clients.append((admin, False))
+    clients.append((supabase, True))
+    if admin and not any(client is admin for client, _ in clients):
+        clients.append((admin, False))
 
-    return False, user_err or "Não foi possível atualizar o perfil."
+    last_err = ""
+    for client, use_user_auth in clients:
+        if not client:
+            continue
+        try:
+            if use_user_auth:
+                apply_user_auth(client)
+            client.table(SUPABASE_PROFILES_TABLE).update(payload).eq(
+                "id", user_id
+            ).execute()
+            if _verify_profile_update(supabase, user_id, payload):
+                return True, ""
+        except Exception as exc:
+            last_err = _profile_update_error_message(str(exc))
+            if "já está associado" in last_err:
+                return False, last_err
+
+    return False, last_err or "Não foi possível atualizar o perfil."
 
 
 # --- Lembretes / agenda (lógica espelhada de app.py) ---
