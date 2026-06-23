@@ -1426,10 +1426,15 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
     configured = db.persona_is_configured(supabase, user_id)
     avatar_id, voice_id = ensure_persona_normalized(supabase, user_id)
     ok_access, status = db.check_access(supabase, user_id)
+    prof_phone = str(prof.get("phone") or "").strip()
+    if prof_phone:
+        prof = dict(prof)
+        prof["phone"] = prof_phone
     return {
         "user_id": user_id,
         "email": email or prof.get("email"),
         "profile": prof,
+        "profile_phone": prof_phone,
         "persona_configured": configured,
         "persona": {"avatar_id": avatar_id, "voice_id": voice_id},
         "access": {"allowed": ok_access, "status": status},

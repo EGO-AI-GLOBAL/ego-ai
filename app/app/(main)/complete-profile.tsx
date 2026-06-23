@@ -46,10 +46,9 @@ export default function CompleteProfileScreen() {
       if (uid && normalized) {
         await saveLocalProfilePhone(uid, normalized);
       }
-      if (normalized) {
-        mergeProfilePhone(normalized);
-      }
-      void refresh();
+      mergeProfilePhone(normalized);
+      await refresh();
+      mergeProfilePhone(normalized);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Não foi possível guardar o telefone.";
       if (/campo válido para atualizar/i.test(msg)) {

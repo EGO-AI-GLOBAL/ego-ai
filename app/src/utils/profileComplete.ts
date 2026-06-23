@@ -1,6 +1,10 @@
 import type { MeData } from "@/api/types";
 
 export function profilePhoneFromMe(me: MeData | null | undefined): string {
+  const root = me as { profile_phone?: string } | null | undefined;
+  const fromRoot =
+    typeof root?.profile_phone === "string" ? root.profile_phone.trim() : "";
+  if (fromRoot) return fromRoot;
   const profile = me?.profile as Record<string, unknown> | undefined;
   return typeof profile?.phone === "string" ? profile.phone.trim() : "";
 }

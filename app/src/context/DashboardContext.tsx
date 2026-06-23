@@ -33,6 +33,8 @@ import {
   markPersonaConfiguredLocal,
   saveLocalPersonaChoice,
 } from "@/storage/personaPrefs";
+import { getLocalProfilePhone } from "@/storage/profilePhoneLocal";
+import { profilePhoneFromMe } from "@/utils/profileComplete";
 
 const empty: DashboardData = {
   health: null,
@@ -72,6 +74,42 @@ type DashboardContextValue = {
 };
 
 const DashboardContext = createContext<DashboardContextValue | null>(null);
+
+async function mergeStoredProfilePhone(
+  dashboard: DashboardData,
+  uid: string | null
+): Promise<DashboardData> {
+  if (!uid) return dashboard;
+  const localPh = await getLocalProfilePhone(uid).catch(() => null);
+  if (!localPh?.trim() || profilePhoneFromMe(dashboard.me)) {
+    return dashboard;
+  }
+  const phone = localPh.trim();
+  if (dashboard.me) {
+    return {
+      ...dashboard,
+      me: {
+        ...dashboard.me,
+        profile: {
+          ...(dashboard.me.profile ?? {}),
+          phone,
+        },
+      },
+    };
+  }
+  return {
+    ...dashboard,
+    me: {
+      user_id: uid,
+      email: getSession()?.user?.email ?? null,
+      profile: { phone },
+      persona_configured: false,
+      persona: { avatar_id: "f1", voice_id: "vf1" },
+      access: { allowed: true, status: "ok" },
+      stripe_checkout: {},
+    },
+  };
+}
 
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
@@ -149,6 +187,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         ...dashboard,
         access: normalizeAccessInfo(dashboard.access),
       };
+      dashboard = await mergeStoredProfilePhone(dashboard, uid);
       setData(dashboard);
       void saveStreakCache(dashboard.streak);
       setPersonaLocalOk(Boolean(uid && localChoice));
@@ -284,20 +323,35 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const mergeProfilePhone = useCallback((phone: string) => {
     const normalized = phone.trim();
     if (!normalized) return;
+    const uid = resolveUserId(session, data.me?.user_id);
     setData((prev) => {
-      if (!prev.me) return prev;
+      if (prev.me) {
+        return {
+          ...prev,
+          me: {
+            ...prev.me,
+            profile: {
+              ...(prev.me.profile ?? {}),
+              phone: normalized,
+            },
+          },
+        };
+      }
+      if (!uid) return prev;
       return {
         ...prev,
         me: {
-          ...prev.me,
-          profile: {
-            ...(prev.me.profile ?? {}),
-            phone: normalized,
-          },
+          user_id: uid,
+          email: getSession()?.user?.email ?? null,
+          profile: { phone: normalized },
+          persona_configured: false,
+          persona: { avatar_id: "f1", voice_id: "vf1" },
+          access: { allowed: true, status: "ok" },
+          stripe_checkout: {},
         },
       };
     });
-  }, []);
+  }, [data.me?.user_id, session]);
 
   const value = useMemo(
     () => ({
