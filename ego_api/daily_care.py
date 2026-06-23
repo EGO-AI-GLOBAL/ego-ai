@@ -1,4 +1,4 @@
-"""Desafio Diário de Cuidado — check-in de 1 toque (estilo puzzle diário viral)."""
+"""Monstrinhos do Humor — check-in de 1 toque (gamificação de humor)."""
 
 from __future__ import annotations
 
@@ -15,11 +15,11 @@ except ImportError:
     from supabase import Client  # type: ignore[assignment]
 
 MOODS: list[dict[str, str]] = [
-    {"key": "heavy", "emoji": "😰", "label": "Peso"},
-    {"key": "anxious", "emoji": "😟", "label": "Ansiosa"},
-    {"key": "ok", "emoji": "😐", "label": "Ok"},
-    {"key": "good", "emoji": "🙂", "label": "Bem"},
-    {"key": "calm", "emoji": "😌", "label": "Leve"},
+    {"key": "heavy", "emoji": "😰", "label": "Nublina"},
+    {"key": "anxious", "emoji": "😟", "label": "Agita"},
+    {"key": "ok", "emoji": "😐", "label": "Neutro"},
+    {"key": "good", "emoji": "🙂", "label": "Sol"},
+    {"key": "calm", "emoji": "😌", "label": "Brisa"},
 ]
 
 DAILY_QUESTIONS: list[str] = [
@@ -197,13 +197,13 @@ def _share_hook(current: int, checked_today: bool, ranking: dict) -> str:
         return "Faça o check-in de hoje para subir no ranking."
     tier = f"{ranking.get('tier_emoji', '')} {ranking.get('tier_label', '')}".strip()
     if current <= 1:
-        return f"Dia 1 — nível {tier}. Desafie alguém no Stories!"
+        return f"Dia 1 — nível {tier}. Mostre seu monstrinho no Stories!"
     if ranking.get("days_to_next_tier", 0) > 0:
         return (
             f"{current} dias · {tier} — "
             f"faltam {ranking['days_to_next_tier']} para {ranking.get('next_tier_label')}."
         )
-    return f"{current} dias · {tier} — você está no topo! Quem bate?"
+    return f"{current} dias · {tier} — você está no topo! Quem doma o humor hoje?"
 
 
 def record_checkin(

@@ -14,7 +14,7 @@ import { TrialBanner } from "@/components/TrialBanner";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 
-/** Desafio Diário — check-in, ranking e partilha (WhatsApp, Instagram, TikTok). */
+/** Monstrinhos do Humor — check-in, ranking e partilha (WhatsApp, Instagram, TikTok). */
 export default function DailyCareScreen() {
   const colors = useColors();
   const { data, loading, refreshing, error, refresh, mergeDailyCare } = useDashboard();
@@ -26,7 +26,7 @@ export default function DailyCareScreen() {
   );
 
   return (
-    <ScreenShell title="Desafio Diário" subtitle="1 toque por dia · ranking · Stories">
+    <ScreenShell title="Monstrinhos do Humor" subtitle="1 toque por dia · ranking · Stories">
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
@@ -43,8 +43,8 @@ export default function DailyCareScreen() {
           <>
             <TrialBanner colors={colors} access={data.access} />
             <Text style={[styles.lead, { color: colors.textMuted }]}>
-              Toque no emoji de hoje, suba no ranking e desafie amigos no WhatsApp, Instagram ou
-              TikTok.
+              Escolha o monstrinho do dia, suba no ranking e desafie amigos no WhatsApp,
+              Instagram ou TikTok.
             </Text>
             <DailyCareChallenge
               colors={colors}

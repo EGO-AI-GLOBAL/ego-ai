@@ -30,8 +30,6 @@ import {
 import { ChatDayStrip } from "@/components/ChatDayStrip";
 import { ScreenShell } from "@/components/ScreenShell";
 import { PersonaPicker } from "@/components/PersonaPicker";
-import { StreakBadge } from "@/components/StreakBadge";
-import { StreakShareModal } from "@/components/StreakShareModal";
 import { TrialExpiredBanner } from "@/components/TrialExpiredBanner";
 import { SpeakingAvatar } from "@/components/SpeakingAvatar";
 import { findAvatarInCatalog } from "@/constants/avatarCatalog";
@@ -133,7 +131,6 @@ export default function ChatScreen() {
   const ritualPendingRef = useRef<DailyRitualId | null>(null);
   const [nightDumpMode, setNightDumpMode] = useState(false);
   const [saveCelebrationLine, setSaveCelebrationLine] = useState<string | null>(null);
-  const [streakShareOpen, setStreakShareOpen] = useState(false);
 
   useEffect(() => {
     void loadAutoPlayVoice().then(setAutoPlayVoice);
@@ -1028,18 +1025,6 @@ export default function ChatScreen() {
             isThinking={voice.isPhoneCall && voice.isAssistantThinking}
             compact
             hideLabel
-          />
-          <StreakBadge
-            streak={data.streak}
-            colors={colors}
-            onSharePress={() => setStreakShareOpen(true)}
-          />
-          <StreakShareModal
-            colors={colors}
-            streak={data.streak}
-            assistantName={assistantName}
-            visible={streakShareOpen}
-            onClose={() => setStreakShareOpen(false)}
           />
           <PersonaPicker
             colors={colors}

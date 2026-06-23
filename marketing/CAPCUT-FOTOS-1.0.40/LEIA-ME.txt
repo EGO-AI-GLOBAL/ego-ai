@@ -1,0 +1,12 @@
+﻿CAPCUT / video 1.0.40
+=====================
+
+Tire 2 screenshots no telemovel (apos instalar 1.0.40):
+
+1) Menu -> Monstrinhos do Humor (com monstrinhos visiveis)
+   Salvar como: 01-monstrinhos-humor.png
+
+2) Menu -> Companheiro de Bolso (nivel + barra de progresso)
+   Salvar como: 02-companheiro-bolso.png
+
+Legenda pronta: marketing\POST-VIDEO-1.0.40.txt

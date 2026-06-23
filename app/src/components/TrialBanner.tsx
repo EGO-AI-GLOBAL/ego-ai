@@ -29,7 +29,7 @@ export function TrialBanner({ colors, access }: Props) {
       </Text>
       <Text style={[styles.sub, { color: colors.textMuted }]}>
         {urgent
-          ? "Não perca sua ofensiva e sua Jornada — assine Conexão e continue."
+          ? "Não perca seus monstrinhos e seu companheiro — assine Conexão e continue."
           : "Teste completo por 20 dias. Depois, escolha um plano para seguir."}
       </Text>
       <Text style={[styles.cta, { color: colors.primary }]}>Ver planos →</Text>

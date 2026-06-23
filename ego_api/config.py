@@ -238,7 +238,7 @@ def beta_unlimited() -> bool:
 
 def latest_app_version() -> str:
     """Versão mais recente na loja — app antigo mostra aviso de atualização."""
-    return read_env("EGO_LATEST_APP_VERSION", "1.0.39")
+    return read_env("EGO_LATEST_APP_VERSION", "1.0.40")
 
 
 def play_store_update_url() -> str:
@@ -255,7 +255,7 @@ def play_store_update_url() -> str:
 def app_update_message() -> str:
     return read_env(
         "EGO_APP_UPDATE_MESSAGE",
-        "Nova versão disponível. Toque em Atualizar agora.",
+        "1.0.40: Monstrinhos do Humor + Companheiro de Bolso. Toque em Atualizar agora.",
     )
 
 
@@ -279,7 +279,7 @@ def maintenance_message() -> str:
 
 def latest_android_version_code() -> int:
     """Version code Play (EAS autoIncrement) — Android usa para aviso de atualização."""
-    raw = read_env("EGO_LATEST_ANDROID_VERSION_CODE", "72").strip()
+    raw = read_env("EGO_LATEST_ANDROID_VERSION_CODE", "75").strip()
     try:
         return max(0, int(raw))
     except ValueError:

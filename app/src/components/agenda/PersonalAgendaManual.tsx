@@ -206,7 +206,7 @@ export function PersonalAgendaManual({
     setHabitDoneBusy(agendaId);
     try {
       await recordStreakActivity("habit");
-      Alert.alert("Ofensiva", "Hábito marcado — sua sequência continua! 🔥");
+      Alert.alert("Hábito", "Marcado — monstrinhos e companheiro agradecem! 💜");
       await onRefresh();
     } catch (e) {
       Alert.alert(

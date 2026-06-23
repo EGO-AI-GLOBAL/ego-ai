@@ -1,0 +1,15 @@
+Play Console — 1.0.40 (versionCode 75)
+========================================
+
+O que há de novo
+---------------
+• Monstrinhos do Humor — check-in diário com ranking
+• Companheiro de Bolso — evolua nível a nível no seu ritmo
+• Partilha WhatsApp, Stories e TikTok nas duas abas
+• Chat mais focado na conversa com a Luna
+
+Testadores
+----------
+Menu → Monstrinhos do Humor → escolher monstrinho → Postar e desafiar
+Menu → Companheiro de Bolso → ver nível → Postar e desafiar
+Chat → confirmar que NÃO há badge Ofensiva no topo

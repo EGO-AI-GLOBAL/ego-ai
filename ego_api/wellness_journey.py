@@ -206,7 +206,7 @@ JOURNEY_LEVELS: list[dict[str, Any]] = [
         "title": "Check-in mestre",
         "subtitle": "10 desafios diários feitos",
         "emoji": "💜",
-        "today_task": "Complete o Desafio Diário de hoje",
+        "today_task": "Complete os Monstrinhos do Humor de hoje",
         "why": "Reconhecer como se sente todo dia é treino emocional.",
         "requirements": [{"type": "step", "key": "checkin", "min": 10}],
         "share_challenge": "10 check-ins 💜 Desafio Diário no sangue",
@@ -318,7 +318,7 @@ def _procedural_level(n: int) -> dict[str, Any]:
         "today_task": "Complete os passos de hoje — um de cada vez",
         "why": "Pequenos passos diários constroem bem-estar duradouro.",
         "requirements": reqs,
-        "share_challenge": f"Nível {n} da Jornada de Cuidado no EGO-AI 🌱",
+        "share_challenge": f"Nível {n} do Companheiro de Bolso no EGO-AI 🥚",
         "plan_nudge": "Plano Conexão desbloqueia mais voz e lembretes." if n % 17 == 0 else None,
     }
 

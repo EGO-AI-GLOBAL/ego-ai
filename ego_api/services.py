@@ -319,7 +319,7 @@ def _access_expired_message(supabase: Client | None, user_id: str) -> str:
         care = daily_care.get_daily_care(supabase, user_id)
         cd = int(care.get("current") or 0)
         if cd > 0:
-            parts.append(f"Desafio Diário: {cd} dias.")
+            parts.append(f"Monstrinhos do Humor: {cd} dias.")
     except Exception:
         pass
     try:
@@ -328,7 +328,7 @@ def _access_expired_message(supabase: Client | None, user_id: str) -> str:
         j = wellness_journey.get_journey(supabase, user_id, plan_tier=tier)
         lv = int(j.get("level") or 0)
         if lv > 1:
-            parts.append(f"Jornada: nível {lv}/{j.get('max_level', 20)}.")
+            parts.append(f"Companheiro de Bolso: nível {lv}/{j.get('max_level', 20)}.")
     except Exception:
         pass
     parts.append("Assine um plano para continuar.")

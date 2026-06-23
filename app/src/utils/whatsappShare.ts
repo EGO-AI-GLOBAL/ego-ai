@@ -118,51 +118,76 @@ export function buildStreakStoriesCaption(opts: {
   return buildStreakShareText(opts);
 }
 
-export function buildWellnessJourneyShareText(journey: WellnessJourney): string {
+function rebrandShareLine(text: string): string {
+  return text
+    .replace(/Jornada de Cuidado/gi, "Companheiro de Bolso")
+    .replace(/Desafio Diário/gi, "Monstrinhos do Humor");
+}
+
+export function buildPocketCompanionShareText(journey: WellnessJourney): string {
   const level = journey.level ?? 1;
-  const title = (journey.title || "Jornada de Cuidado").trim();
-  const emoji = journey.emoji || "💜";
-  const headline = (
-    journey.share_challenge ||
-    `Nível ${level} ${emoji} ${title} — Jornada de Cuidado EGO-AI`
-  ).trim();
+  const title = (journey.title || "Companheiro").trim();
+  const emoji = journey.emoji || "🥚";
+  const headline = rebrandShareLine(
+    (
+      journey.share_challenge ||
+      `Nível ${level} ${emoji} ${title} — Companheiro de Bolso EGO-AI`
+    ).trim()
+  );
   return (
     `${headline}\n\n` +
     `Eu estou no nível ${level}. E você?\n\n` +
-    `Jogo grátis de bem-estar — começa fácil e vai subindo.\n` +
-    `👉 Responde com seu nível (ex: 2, 5 ou 10) 🔥\n\n` +
+    `Bichinho de bolso de bem-estar — estilo anos 90, com a Luna 💜\n` +
+    `👉 Responde com seu nível (ex: 2, 5 ou 10) 🥚\n\n` +
     buildAppDownloadLinksBlock() +
     `\n\n` +
     buildSocialFollowBlock()
   );
+}
+
+export function buildWellnessJourneyShareText(journey: WellnessJourney): string {
+  return buildPocketCompanionShareText(journey);
+}
+
+export async function sharePocketCompanionWhatsApp(journey: WellnessJourney): Promise<void> {
+  await shareWhatsAppText(buildPocketCompanionShareText(journey));
 }
 
 export async function shareWellnessJourneyWhatsApp(journey: WellnessJourney): Promise<void> {
-  await shareWhatsAppText(buildWellnessJourneyShareText(journey));
+  await sharePocketCompanionWhatsApp(journey);
 }
 
-export function buildDailyCareShareText(care: DailyCareInfo): string {
+export function buildMoodMonstersShareText(care: DailyCareInfo): string {
   const days = Math.max(1, care.current ?? 1);
   const emoji = care.last_mood_emoji || "💜";
+  const monster = care.last_mood_label || "Monstrinho";
   const rank = care.ranking;
   const tierLine = rank
     ? `Ranking: ${rank.tier_emoji} ${rank.tier_label} (${days} dias)`
-    : `${days} dias seguidos`;
+    : `${days} dias no jardim`;
   const top = rank?.community_top_days ?? 21;
   return (
-    `💜 Desafio Diário EGO-AI\n\n` +
+    `💜 Monstrinhos do Humor — EGO-AI\n\n` +
     `${tierLine}\n` +
-    `Hoje: ${emoji}\n` +
-    `Top da comunidade: ${top} dias — quantos VOCÊ aguenta?\n\n` +
-    `👉 Responde com só o número 🔥\n\n` +
+    `Hoje: ${monster} ${emoji}\n` +
+    `Top da comunidade: ${top} dias — quem doma o humor hoje?\n\n` +
+    `👉 Responde com só o número 💜\n\n` +
     buildAppDownloadLinksBlock() +
     `\n\n` +
     buildSocialFollowBlock()
   );
 }
 
+export function buildDailyCareShareText(care: DailyCareInfo): string {
+  return buildMoodMonstersShareText(care);
+}
+
+export async function shareMoodMonstersWhatsApp(care: DailyCareInfo): Promise<void> {
+  await shareWhatsAppText(buildMoodMonstersShareText(care));
+}
+
 export async function shareDailyCareWhatsApp(care: DailyCareInfo): Promise<void> {
-  await shareWhatsAppText(buildDailyCareShareText(care));
+  await shareMoodMonstersWhatsApp(care);
 }
 
 export async function shareDailyCareStories(
@@ -175,18 +200,32 @@ export async function shareDailyCareStories(
       await Share.share({ url: imageUri, message });
       return;
     }
-    await Share.share({ message, title: "Desafio Diário EGO-AI" });
+    await Share.share({ message, title: "Monstrinhos do Humor EGO-AI" });
   } catch {
     /* cancelado */
   }
 }
 
 /** Partilhar legenda no TikTok (sheet nativo — utilizador escolhe TikTok). */
-export async function shareDailyCareTikTok(care: DailyCareInfo): Promise<void> {
+export async function shareMoodMonstersTikTok(care: DailyCareInfo): Promise<void> {
   const s = getSocialProfiles();
-  const message = `${buildDailyCareShareText(care)}\n\n${s.tiktokUrl}`;
+  const message = `${buildMoodMonstersShareText(care)}\n\n${s.tiktokUrl}`;
   try {
-    await Share.share({ message, title: "Desafio Diário EGO-AI" });
+    await Share.share({ message, title: "Monstrinhos do Humor EGO-AI" });
+  } catch {
+    /* cancelado */
+  }
+}
+
+export async function shareDailyCareTikTok(care: DailyCareInfo): Promise<void> {
+  await shareMoodMonstersTikTok(care);
+}
+
+export async function sharePocketCompanionTikTok(journey: WellnessJourney): Promise<void> {
+  const s = getSocialProfiles();
+  const message = `${buildPocketCompanionShareText(journey)}\n\n${s.tiktokUrl}`;
+  try {
+    await Share.share({ message, title: "Companheiro de Bolso EGO-AI" });
   } catch {
     /* cancelado */
   }
@@ -203,7 +242,7 @@ export async function shareWellnessJourneyNative(
       await Share.share({ url: imageUri, message });
       return;
     }
-    await Share.share({ message, title: "Desafio EGO-AI" });
+    await Share.share({ message, title: "Companheiro de Bolso EGO-AI" });
   } catch {
     /* cancelado */
   }

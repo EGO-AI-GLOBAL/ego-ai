@@ -89,7 +89,7 @@ function RankingLadder({
   );
 }
 
-/** Desafio diário de 1 toque — ranking visível (estilo Zip). */
+/** Monstrinhos do Humor — check-in diário com ranking visível. */
 export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
   const [busy, setBusy] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
@@ -97,7 +97,7 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
   if (!care?.question) {
     return (
       <View style={[styles.wrap, { borderColor: colors.border, backgroundColor: colors.bgCard, opacity: 0.92 }]}>
-        <Text style={[styles.badge, { color: colors.primary }]}>DESAFIO DIÁRIO 💜</Text>
+        <Text style={[styles.badge, { color: colors.primary }]}>MONSTRINHOS DO HUMOR 💜</Text>
         <Text style={[styles.hint, { color: colors.textMuted, marginTop: 8 }]}>
           A carregar… puxe o chat para baixo para atualizar.
         </Text>
@@ -119,7 +119,7 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
         const r = res.daily_care.ranking;
         const tier = r ? `${r.tier_emoji} ${r.tier_label}` : "";
         Alert.alert(
-          "Desafio de hoje ✓",
+          "Monstrinho de hoje ✓",
           `${res.daily_care.current} dias · ${tier}\nDesafie alguém a bater seu número!`,
           [
             { text: "Depois", style: "cancel" },
@@ -139,10 +139,10 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
     <>
       <View style={[styles.wrap, { borderColor, backgroundColor: colors.bgCard }]}>
         <View style={styles.head}>
-          <Text style={[styles.badge, { color: colors.primary }]}>DESAFIO DIÁRIO 💜</Text>
+          <Text style={[styles.badge, { color: colors.primary }]}>MONSTRINHOS DO HUMOR 💜</Text>
           {days > 0 ? (
             <Text style={[styles.streak, { color: colors.textMuted }]}>
-              🔥 {days} {days === 1 ? "dia" : "dias"}
+              💜 {days} {days === 1 ? "dia" : "dias"}
             </Text>
           ) : null}
         </View>
@@ -151,7 +151,7 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
 
         <Text style={[styles.question, { color: colors.text }]}>{care.question.text}</Text>
         <Text style={[styles.hint, { color: colors.textMuted }]}>
-          1 toque · volta amanhã · sobe no ranking
+          1 toque · volta amanhã · doma o humor
         </Text>
 
         <View style={styles.moodRow}>
@@ -172,6 +172,9 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
                 accessibilityLabel={m.label}
               >
                 <Text style={styles.moodEmoji}>{m.emoji}</Text>
+                <Text style={[styles.moodLabel, { color: colors.textMuted }]} numberOfLines={1}>
+                  {m.label}
+                </Text>
               </Pressable>
             );
           })}
@@ -258,6 +261,7 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   moodEmoji: { fontSize: 26 },
+  moodLabel: { fontSize: 9, fontWeight: "700", marginTop: 2 },
   done: { marginTop: 12, fontSize: 14, fontWeight: "700", textAlign: "center" },
   hook: { marginTop: 6, fontSize: 12, textAlign: "center", lineHeight: 17 },
   shareBtn: { marginTop: 12, borderRadius: 12, paddingVertical: 12, alignItems: "center" },

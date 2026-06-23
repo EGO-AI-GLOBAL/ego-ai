@@ -1,0 +1,39 @@
+EGO-AI 1.0.40 — checklist de teste
+===================================
+
+ANTES
+-----
+[ ] DEPLOY-API-1.0.40.bat (push + Railway redeploy)
+[ ] /health api_build contém 1.0.40-mood-monsters-companion
+[ ] Railway: EGO_LATEST_APP_VERSION=1.0.40 code 75
+
+MENU
+----
+[ ] Drawer → Monstrinhos do Humor 💜
+[ ] Drawer → Companheiro de Bolso 🥚
+[ ] Chat sem badge Ofensiva no topo
+
+MONSTRINHOS DO HUMOR
+--------------------
+[ ] Nomes: Nublina, Agita, Neutro, Sol, Brisa
+[ ] Check-in 1 toque + ranking
+[ ] Postar e desafiar → WhatsApp (2 links)
+[ ] Instagram / Stories (cartão)
+[ ] TikTok + seguir @egoai
+
+COMPANHEIRO DE BOLSO
+--------------------
+[ ] Nível atual / max_level
+[ ] Postar e desafiar → WA + Stories + TikTok (modal único)
+
+CHAT
+----
+[ ] Luna no avatar (sem pet no chat)
+[ ] Sem StreakBadge / partilha ofensiva
+[ ] Texto + voz + TTS OK
+
+ESTÁVEL (não regredir)
+----------------------
+[ ] Login + refresh sessão
+[ ] Agenda manual + Entre Nós
+[ ] Planos / trial banner

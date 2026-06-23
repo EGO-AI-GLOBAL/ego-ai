@@ -34,14 +34,14 @@ type NavItem = {
 const NAV: NavItem[] = [
   { label: "Chat", href: "/(main)/chat", caption: "Conversa com a assistente" },
   {
-    label: "Desafio Diário 💜",
+    label: "Monstrinhos do Humor 💜",
     href: "/(main)/daily-care",
     caption: "1 toque/dia · ranking · Stories",
   },
   {
-    label: "Jornada de Cuidado 🌱",
+    label: "Companheiro de Bolso 🥚",
     href: "/(main)/wellness-journey",
-    caption: "Níveis de bem-estar",
+    caption: "Níveis estilo anos 90",
   },
   { label: "Agenda", href: "/(main)/agenda", caption: "Lembretes e hábitos" },
   { label: "Uso", href: "/(main)/usage", caption: "Limite do plano (%)" },

@@ -12,7 +12,7 @@ import { WellnessJourneyCard } from "@/components/WellnessJourneyCard";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 
-/** Jornada de Cuidado — níveis longos de bem-estar no app. */
+/** Companheiro de Bolso — níveis longos de bem-estar no app. */
 export default function WellnessJourneyScreen() {
   const colors = useColors();
   const { data, loading, refreshing, error, refresh, mergeWellnessJourney } = useDashboard();
@@ -24,7 +24,7 @@ export default function WellnessJourneyScreen() {
   );
 
   return (
-    <ScreenShell title="Jornada de Cuidado" subtitle="Níveis de bem-estar no seu ritmo">
+    <ScreenShell title="Companheiro de Bolso" subtitle="Níveis de bem-estar no seu ritmo">
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
@@ -40,7 +40,8 @@ export default function WellnessJourneyScreen() {
         {!loading || refreshing ? (
           <>
             <Text style={[styles.lead, { color: colors.textMuted }]}>
-              Use o chat, a agenda e o desabafo para avançar. Cada nível tem uma tarefa clara.
+              Use o chat, a agenda e o desabafo para evoluir seu companheiro. Cada nível tem uma
+              tarefa clara.
             </Text>
             <WellnessJourneyCard
               colors={colors}

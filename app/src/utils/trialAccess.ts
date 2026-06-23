@@ -36,10 +36,10 @@ export function buildTrialExpiredMessage(
     parts.push(`Você construiu ${streakDays} ${streakDays === 1 ? "dia" : "dias"} de cuidado seguidos.`);
   }
   if (careDays > 0) {
-    parts.push(`Desafio Diário: ${careDays} ${careDays === 1 ? "dia" : "dias"}.`);
+    parts.push(`Monstrinhos do Humor: ${careDays} ${careDays === 1 ? "dia" : "dias"}.`);
   }
   if (journeyLevel > 1) {
-    parts.push(`Jornada: nível ${journeyLevel}/${journey?.max_level ?? 20}.`);
+    parts.push(`Companheiro de Bolso: nível ${journeyLevel}/${journey?.max_level ?? 20}.`);
   }
   parts.push("Assine para continuar — não perca seu progresso.");
   return parts.join(" ");
