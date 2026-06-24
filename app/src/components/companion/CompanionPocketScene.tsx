@@ -4,6 +4,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View, type DimensionValue } from "react-native";
 import type { WellnessJourney } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import { resolveEgoDeBolsoCareRoute } from "@/utils/egoDeBolsoCareRoute";
 import { CompanionSprite } from "./CompanionSprite";
 
 type Props = {
@@ -38,14 +39,7 @@ export function CompanionPocketScene({ colors, journey }: Props) {
       </LinearGradient>
       {needsCare ? (
         <Pressable
-          onPress={() => {
-            const key = pending[0]?.key ?? "";
-            if (key.includes("agenda") || key.includes("habit") || key.includes("reminder")) {
-              router.push("/(main)/agenda");
-            } else {
-              router.push("/(main)/chat");
-            }
-          }}
+          onPress={() => router.push(resolveEgoDeBolsoCareRoute(journey))}
           style={[styles.careBtn, { backgroundColor: colors.primary }]}
         >
           <Text style={styles.careBtnText}>Cuidar agora</Text>

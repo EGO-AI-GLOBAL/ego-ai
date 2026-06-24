@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { Pressable, StyleSheet, Text, View, type DimensionValue } from "react-native";
 import type { WellnessJourney } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import { resolveEgoDeBolsoCareRoute } from "@/utils/egoDeBolsoCareRoute";
 import { CompanionSprite } from "./companion/CompanionSprite";
 import { PocketCompanionShareModal } from "./PocketCompanionShareModal";
 
@@ -20,20 +21,15 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
 
   const care = journey.care_percent ?? Math.round((journey.progress ?? 0) * 100);
   const fillWidth = `${Math.max(care, care > 0 ? 8 : 0)}%` as DimensionValue;
-  const pending = journey.steps?.filter((s) => !s.done) ?? [];
   const stage = journey.companion_stage ?? "egg";
 
   const onCare = () => {
-    const key = pending[0]?.key ?? "";
-    if (key.includes("agenda") || key.includes("habit") || key.includes("reminder")) {
-      router.push("/(main)/agenda");
+    const route = resolveEgoDeBolsoCareRoute(journey);
+    if (route === "/(main)/chat") {
+      onCareHint?.(`Missão de hoje: ${journey.today_task}`);
       return;
     }
-    if (key.includes("checkin")) {
-      router.push("/(main)/daily-care");
-      return;
-    }
-    onCareHint?.(`Missão de hoje: ${journey.today_task}`);
+    router.push(route);
   };
 
   return (
