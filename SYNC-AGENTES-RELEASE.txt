@@ -1,36 +1,64 @@
-REGRA — DOIS AGENTES, UMA SUBIDA
-=================================
+REGRA — DOIS AGENTES, UMA SUBIDA (OBRIGATÓRIO)
+================================================
 
-Quando QUALQUER agente precisar de build/loja:
+Sempre que QUALQUER agente ou o utilizador pedir build/loja/TestFlight/Play:
 
-1. ESPERAR o outro
-   - Ambos fazem commit + push para main
-   - git pull origin main (sem conflitos)
-   - python scripts/wait_and_submit_eas.py sync-check
+  NÃO subir sozinho. Esperar o outro agente. Um build só para todos.
 
-2. GERAR uma vez só (iOS + Android juntos)
-   - GERAR-E-SUBMETER-JUNTO.bat
-   - Grava builds-VERSAO.ids.json (ex: builds-1.0.42.ids.json)
+FLUXO (copiar para o outro chat)
+--------------------------------
 
-3. SUBMETER uma vez só (depois que os dois builds FINISHED)
-   - AGUARDAR-E-SUBMETER.bat
-   - TestFlight + Play no mesmo fluxo
+1. ESPERAR — código fundido no Git
+   git pull origin main
+   (cada agente: commit + push do que fez)
+   python scripts/wait_and_submit_eas.py sync-check
+   → Só continuar se passar (sem diff pendente app/ + ego_api/)
+
+2. GERAR uma vez (iOS + Android JUNTOS)
+   GERAR-E-SUBMETER-JUNTO.bat
+   → Grava builds-VERSAO.ids.json (ex: builds-1.0.42.ids.json)
+
+3. SUBMETER uma vez (depois FINISHED nos dois)
+   AGUARDAR-E-SUBMETER.bat
+   → TestFlight + Play no mesmo fluxo
 
 PROIBIDO (dois agentes em paralelo)
 -----------------------------------
+- GERAR-1.0.*.bat / BUILD-*.bat sozinhos (só iOS ou só Android)
 - SUBMIT-IOS-*.bat sozinho
 - PUBLICAR-*-PLAY.bat sozinho
-- eas build só iOS ou só Android em releases normais
-- eas submit --latest (pode pegar build antigo de outro agente)
+- eas build --platform android (ou ios) sem o par
+- eas submit --latest (pode pegar build antigo do outro agente)
+
+MENSAGEM PARA O UTILIZADOR (quando terminar código)
+---------------------------------------------------
+"Diz ao outro agente: pronto para sync build. Quando os dois tiverem push,
+correr GERAR-E-SUBMETER-JUNTO.bat uma vez só."
 
 Zonas por agente (evitar conflito no código)
 --------------------------------------------
 • Agente A: EGO de Bolso, chat card, SocialShare, signup
-• Agente B: Monstrinhos, daily_care, moodMonsters/
+• Agente B: Monstrinhos, daily_care, moodMonsters/, segurança
 • Partilhado só com sync: flask_api.py, app.config.ts, config.py
+
+CHECKLIST PRÉ-BUILD
+-------------------
+python scripts/regression_guard.py
+python scripts/smoke_test_api.py
+python scripts/wait_and_submit_eas.py sync-check
+VERIFICAR-SEGURANCA.bat (se mexeu em segurança/API)
+
+EAS — variável segurança Android (se Play Integrity no Railway)
+---------------------------------------------------------------
+EXPO_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER = mesmo número do Railway
 
 Comandos úteis
 --------------
 python scripts/wait_and_submit_eas.py sync-check
 python scripts/wait_and_submit_eas.py queue
 python scripts/wait_and_submit_eas.py wait-submit
+
+Estado actual (atualizar manualmente se quiser)
+-----------------------------------------------
+• Segurança API: commit 1de2607 em main (Play Integrity backend)
+• Build loja: AGUARDAR outro agente → GERAR-E-SUBMETER-JUNTO.bat amanhã

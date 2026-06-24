@@ -1,0 +1,39 @@
+---
+description: Dois agentes em paralelo — um único build iOS+Android por release
+alwaysApply: true
+---
+
+# Sync build — EGO-AI (2 agentes)
+
+## Regra de ouro
+
+**Nunca** gerar build nem submeter loja sozinho se outro agente também está a trabalhar.
+
+| Fazer | Não fazer |
+|-------|-----------|
+| `commit + push` → esperar o outro → **um** `GERAR-E-SUBMETER-JUNTO.bat` | `GERAR-1.0.*.bat` só Android ou só iOS |
+| `AGUARDAR-E-SUBMETER.bat` depois dos dois FINISHED | `SUBMIT-IOS-*.bat` / `PUBLICAR-*-PLAY.bat` separados |
+| `python scripts/wait_and_submit_eas.py sync-check` antes do build | `eas submit --latest` |
+
+## Fluxo obrigatório
+
+1. Terminar código → `git pull origin main` → `commit` → `push`
+2. Avisar o utilizador: **"pronto para sync build"** — esperar o outro agente
+3. `python scripts/wait_and_submit_eas.py sync-check` (sem diff pendente em `app/` e `ego_api/`)
+4. `GERAR-E-SUBMETER-JUNTO.bat` (iOS + Android na mesma versão `app.config.ts`)
+5. Quando FINISHED: `AGUARDAR-E-SUBMETER.bat`
+
+## Antes de dizer "pode fazer build"
+
+- [ ] Ambos os agentes fizeram push para `main`
+- [ ] `sync-check` passou
+- [ ] `regression_guard.py` + `smoke_test_api.py` OK
+- [ ] Versão alinhada em `app/app.config.ts` (iOS + Android)
+
+## Segurança (build Android)
+
+Se Play Integrity activo no Railway, incluir no EAS production:
+
+`EXPO_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER` = mesmo valor que `GOOGLE_CLOUD_PROJECT_NUMBER`
+
+Detalhe: `SYNC-AGENTES-RELEASE.txt`

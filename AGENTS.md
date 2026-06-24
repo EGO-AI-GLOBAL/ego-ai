@@ -25,7 +25,11 @@ Quando **dois chats/agentes** trabalham ao mesmo tempo:
 2. **Gerar juntos** — `GERAR-E-SUBMETER-JUNTO.bat` (enfileira iOS + Android; grava `builds-VERSAO.ids.json`).
 3. **Submeter juntos** — `AGUARDAR-E-SUBMETER.bat` (espera FINISHED nos dois; TestFlight + Play **uma vez**).
 
-**Proibido** em release normal: `SUBMIT-IOS-*.bat` ou `PUBLICAR-*-PLAY.bat` separados; `eas submit --latest` (pode subir build antigo do outro agente).
+**Proibido** em release normal: `SUBMIT-IOS-*.bat` ou `PUBLICAR-*-PLAY.bat` separados; `GERAR-1.0.*.bat` / `BUILD-*.bat` só uma plataforma; `eas submit --latest` (pode subir build antigo do outro agente).
+
+**Quando terminar código:** avisar o utilizador — *"pronto para sync build"* — e **esperar** o outro agente antes de `GERAR-E-SUBMETER-JUNTO.bat`.
+
+Regra Cursor (sempre activa): `.cursor/rules/sync-build-dois-agentes.mdc`
 
 Detalhe: `SYNC-AGENTES-RELEASE.txt`
 
