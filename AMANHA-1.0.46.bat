@@ -5,18 +5,19 @@ title Amanha — build 1.0.46
 
 echo.
 echo ============================================================
-echo   AMANHA: EGO-AI 1.0.46 (API + app juntos)
+echo   AMANHA: so falta o BUILD EAS (API ja esta no ar)
 echo ============================================================
 echo.
-echo   1) Railway ja redeployou? Confira /health:
-echo      api_build = 2026-06-24-1.0.46-invite-growth
+echo   [OK] Railway: api_build 2026-06-24-1.0.46-invite-growth
+echo   [OK] regression_guard + smoke_test_api
+echo   [OK] Git main atualizado (1.0.46)
 echo.
-echo   2) Duplo-clique: GERAR-1.0.46.bat
-echo      (valida + enfileira iOS 33 e Android 84)
+echo   AMANHA:
+echo   1) eas login se precisar (5-eas-login.bat)
+echo   2) GERAR-1.0.46.bat
+echo   3) AGUARDAR-E-SUBMETER-1.0.46.bat
 echo.
-echo   3) Quando builds terminarem: AGUARDAR-E-SUBMETER-1.0.46.bat
-echo.
-echo   4) Railway (apos publicar nas lojas):
+echo   DEPOIS de publicar nas lojas (Railway):
 echo      EGO_LATEST_APP_VERSION=1.0.46
 echo      EGO_LATEST_ANDROID_VERSION_CODE=84
 echo.

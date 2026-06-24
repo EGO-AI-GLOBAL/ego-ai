@@ -2,10 +2,10 @@ CHECKLIST 1.0.46 — antes e depois do build
 ==========================================
 
 API (Railway)
-[ ] /api/v1/health → api_build 2026-06-24-1.0.46-invite-growth
-[ ] EGO_MAINTENANCE=0 (não ligado)
-[ ] python scripts/regression_guard.py OK
-[ ] python scripts/smoke_test_api.py OK
+[x] /api/v1/health → api_build 2026-06-24-1.0.46-invite-growth  (JA NO AR)
+[x] EGO_MAINTENANCE=0
+[x] python scripts/regression_guard.py OK
+[x] python scripts/smoke_test_api.py OK
 
 BUILD AMANHÃ
 [ ] GERAR-1.0.46.bat (iOS 33 + Android 84)
