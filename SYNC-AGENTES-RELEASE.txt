@@ -1,0 +1,36 @@
+REGRA — DOIS AGENTES, UMA SUBIDA
+=================================
+
+Quando QUALQUER agente precisar de build/loja:
+
+1. ESPERAR o outro
+   - Ambos fazem commit + push para main
+   - git pull origin main (sem conflitos)
+   - python scripts/wait_and_submit_eas.py sync-check
+
+2. GERAR uma vez só (iOS + Android juntos)
+   - GERAR-E-SUBMETER-JUNTO.bat
+   - Grava builds-VERSAO.ids.json (ex: builds-1.0.42.ids.json)
+
+3. SUBMETER uma vez só (depois que os dois builds FINISHED)
+   - AGUARDAR-E-SUBMETER.bat
+   - TestFlight + Play no mesmo fluxo
+
+PROIBIDO (dois agentes em paralelo)
+-----------------------------------
+- SUBMIT-IOS-*.bat sozinho
+- PUBLICAR-*-PLAY.bat sozinho
+- eas build só iOS ou só Android em releases normais
+- eas submit --latest (pode pegar build antigo de outro agente)
+
+Zonas por agente (evitar conflito no código)
+--------------------------------------------
+• Agente A: EGO de Bolso, chat card, SocialShare, signup
+• Agente B: Monstrinhos, daily_care, moodMonsters/
+• Partilhado só com sync: flask_api.py, app.config.ts, config.py
+
+Comandos úteis
+--------------
+python scripts/wait_and_submit_eas.py sync-check
+python scripts/wait_and_submit_eas.py queue
+python scripts/wait_and_submit_eas.py wait-submit

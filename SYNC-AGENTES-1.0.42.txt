@@ -25,5 +25,6 @@ Regra para não pisar um no outro
 
 Próximo passo único
 -------------------
-1 commit de docs/config (este sync) → push → Railway
-TestFlight build 28 já tem as duas features se foi gerado após 0338acd.
+GERAR-E-SUBMETER-JUNTO.bat  →  AGUARDAR-E-SUBMETER.bat
+
+Ver regra completa: SYNC-AGENTES-RELEASE.txt
