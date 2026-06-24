@@ -691,8 +691,10 @@ export async function createAgendaItem(payload: {
   titulo: string;
   horario: string;
   dias_da_semana: string;
-}): Promise<void> {
-  await api.post("agenda", payload);
+}): Promise<WellnessJourney | null> {
+  const { data } = await api.post("agenda", payload);
+  const body = unwrap<{ wellness_journey?: WellnessJourney }>(data);
+  return body.wellness_journey ?? null;
 }
 
 export async function createSharedCalendar(name: string): Promise<SharedCalendar> {

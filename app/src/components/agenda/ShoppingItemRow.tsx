@@ -25,7 +25,7 @@ export function ShoppingItemRow({ colors, title, done, busy, onToggle, onApagar 
         ]}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: done }}
-        accessibilityLabel={title || "Item da lista"}
+        accessibilityLabel={done ? title || "Item da lista" : `Marcar ${title || "item"} como comprado`}
       >
         <View
           style={[

@@ -63,7 +63,10 @@ JOURNEY_LEVELS: list[dict[str, Any]] = [
         "today_task": "Confirme 1 item do desabafo OU marque 1 compromisso",
         "why": "Ver o dia organizado dá sensação de controlo — importante para quem ansia.",
         "requirements": [
-            {"type": "or_steps", "options": [("draft_confirm", 1), ("reminder", 1)]}
+            {
+                "type": "or_steps",
+                "options": [("draft_confirm", 1), ("reminder", 1), ("habit", 1)],
+            }
         ],
         "share_challenge": "Nível 4 📅 Agenda no lugar, cabeça mais leve",
         "plan_nudge": None,
@@ -272,6 +275,8 @@ _STEP_ALIASES = {
     "draft_confirm": "draft_confirm",
     "delegation_confirm": "draft_confirm",
     "reminder": "reminder",
+    "commitment": "reminder",
+    "compromisso": "reminder",
     "chat": "chat",
     "voice": "voice",
     "invite": "invite",
@@ -474,7 +479,7 @@ def _step_label(key: str, need: int) -> str:
         "chat": "mensagem no chat" if need == 1 else f"{need} mensagens no chat",
         "voice": "mensagem de voz" if need == 1 else f"{need} mensagens de voz",
         "habit": "hábito marcado",
-        "reminder": "lembrete na Agenda",
+        "reminder": "compromisso ou lembrete na Agenda",
         "night_dump": "desabafo noturno",
         "draft_confirm": "confirmar desabafo na Agenda",
         "invite": "convidar alguém",

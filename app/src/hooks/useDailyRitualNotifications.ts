@@ -42,6 +42,10 @@ function handleNotificationData(data: unknown): void {
     return;
   }
   const type = data && typeof data === "object" ? (data as { type?: string }).type : "";
+  if (type === "mood_monster") {
+    router.push("/(main)/daily-care");
+    return;
+  }
   if (type === "ego_de_bolso") {
     const screen =
       data && typeof data === "object" ? (data as { screen?: string }).screen : "";

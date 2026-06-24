@@ -1375,6 +1375,17 @@ def list_reminders_enriched(supabase: Client | None, user_id: str) -> list[dict]
     return rows
 
 
+def shopping_list_for_dashboard(supabase: Client | None, user_id: str) -> list[dict]:
+    """Lista de compras persistente — inclui itens de compromissos já passados."""
+    from ego_api import habits_db
+
+    if not supabase or not user_id:
+        return []
+    rows = db.list_reminders(supabase, user_id)
+    visible_ids = {str(r.get("id") or "") for r in rows if r.get("id")}
+    return habits_db.list_persistent_shopping_items(supabase, user_id, visible_ids)
+
+
 def _wellness_journey_default() -> dict:
     from ego_api.wellness_journey import JOURNEY_LEVELS
 
@@ -1486,7 +1497,7 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
         ),
         "shopping_orphans": _bootstrap_section(
             "shopping_orphans",
-            lambda: habits_db.list_shopping_items(supabase, user_id, orphans_only=True),
+            lambda: shopping_list_for_dashboard(supabase, user_id),
             [],
         ),
         "delegation_requests": _bootstrap_section(

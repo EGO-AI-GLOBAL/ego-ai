@@ -36,7 +36,7 @@ import { SharedEventRow } from "./SharedEventRow";
 import { SharedCalendarSocialInvite } from "./SharedCalendarSocialInvite";
 import { promptLeaveSharedCalendar } from "@/utils/sharedCalendarLeave";
 import { shareSharedCalendarInviteWhatsApp } from "@/utils/whatsappShare";
-import { applyAgendaWellnessUpdate } from "@/utils/agendaWellnessSync";
+import { applyAgendaWellnessUpdate, ensureAgendaWellnessStep } from "@/utils/agendaWellnessSync";
 
 type Props = {
   colors: AppColors;
@@ -135,11 +135,12 @@ export function ClassicSharedAgendaSection({
     }
     setSavingSharedEvent(true);
     try {
-      const journey = await createSharedCalendarEvent(String(selectedCalendar.id), {
+      let journey = await createSharedCalendarEvent(String(selectedCalendar.id), {
         title,
         scheduled_at: iso,
         announce: title,
       });
+      journey = await ensureAgendaWellnessStep(journey, "reminder");
       applyAgendaWellnessUpdate(journey, onWellnessUpdate);
       setShowSharedEventForm(false);
       setSharedEventTitle("");

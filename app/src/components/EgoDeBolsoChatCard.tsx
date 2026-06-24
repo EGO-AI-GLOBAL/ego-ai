@@ -4,6 +4,11 @@ import { Pressable, StyleSheet, Text, View, type DimensionValue } from "react-na
 import type { WellnessJourney } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { resolveEgoDeBolsoCareRoute } from "@/utils/egoDeBolsoCareRoute";
+import {
+  companionNeedsCare,
+  EGO_BOLSO_DAY_COMPLETE_MSG,
+  egoDeBolsoMissionsComplete,
+} from "@/utils/egoDeBolsoCompanionMood";
 import { CompanionSprite } from "./companion/CompanionSprite";
 import { PocketCompanionShareModal } from "./PocketCompanionShareModal";
 
@@ -19,6 +24,7 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
 
   if (!journey) return null;
 
+  const dayComplete = egoDeBolsoMissionsComplete(journey);
   const care = journey.care_percent ?? Math.round((journey.progress ?? 0) * 100);
   const fillWidth = `${Math.max(care, care > 0 ? 8 : 0)}%` as DimensionValue;
   const stage = journey.companion_stage ?? "egg";
@@ -36,7 +42,7 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
     <>
       <View style={[styles.wrap, { backgroundColor: colors.bgCard, borderColor: colors.primary }]}>
         <Pressable onPress={() => router.push("/(main)/wellness-journey")} style={styles.row}>
-          <CompanionSprite stage={stage} size={52} happy={journey.level_complete} />
+          <CompanionSprite stage={stage} size={52} happy={dayComplete || journey.level_complete} />
           <View style={styles.body}>
             <Text style={[styles.badge, { color: colors.primary }]}>EGO DE BOLSO 🥚</Text>
             <Text style={[styles.level, { color: colors.text }]} numberOfLines={1}>
@@ -47,15 +53,23 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
                 style={[styles.fill, { backgroundColor: colors.primary, width: fillWidth }]}
               />
             </View>
-            <Text style={[styles.task, { color: colors.textMuted }]} numberOfLines={2}>
-              Hoje: {journey.today_task}
+            <Text
+              style={[
+                styles.task,
+                { color: dayComplete ? colors.primary : colors.textMuted },
+              ]}
+              numberOfLines={3}
+            >
+              {dayComplete ? EGO_BOLSO_DAY_COMPLETE_MSG : `Hoje: ${journey.today_task}`}
             </Text>
           </View>
         </Pressable>
         <View style={styles.actions}>
-          <Pressable onPress={onCare} style={[styles.btn, { backgroundColor: colors.primary }]}>
-            <Text style={styles.btnText}>Cuidar agora</Text>
-          </Pressable>
+          {!dayComplete ? (
+            <Pressable onPress={onCare} style={[styles.btn, { backgroundColor: colors.primary }]}>
+              <Text style={styles.btnText}>Cuidar agora</Text>
+            </Pressable>
+          ) : null}
           <Pressable
             onPress={() => setShareOpen(true)}
             style={[styles.btnOutline, { borderColor: colors.primary }]}

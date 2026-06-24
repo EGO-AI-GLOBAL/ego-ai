@@ -1327,6 +1327,9 @@ def dismiss_reminder(supabase: Client | None, user_id: str, reminder_id: str) ->
         return False
     apply_user_auth(supabase)
     try:
+        from ego_api import habits_db
+
+        habits_db.orphanize_shopping_for_reminder(supabase, user_id, reminder_id)
         supabase.table(SUPABASE_REMINDERS_TABLE).update({"dismissed": True}).eq(
             "id", reminder_id
         ).eq("user_id", user_id).execute()

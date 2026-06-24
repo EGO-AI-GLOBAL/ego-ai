@@ -27,6 +27,10 @@ import {
 } from "@/utils/sharedCalendarNotifications";
 import { syncDailyCheckInNotification } from "@/utils/dailyCheckInNotification";
 import { syncEgoDeBolsoCareNotification } from "@/utils/egoDeBolsoNotifications";
+import {
+  cancelMoodMonsterNotifications,
+  syncMoodMonsterNotifications,
+} from "@/utils/moodMonsterNotifications";
 import { saveStreakCache } from "@/storage/streakCache";
 import {
   getLocalPersonaChoice,
@@ -132,6 +136,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       setPersonaLocalOk(false);
       void cancelAllReminderLocalNotifications();
+      void cancelMoodMonsterNotifications();
       return;
     }
     if (!getSession()?.access_token?.trim()) {
@@ -208,6 +213,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         void syncSharedCalendarLocalNotifications(shared).catch(() => {});
         void syncDailyCheckInNotification().catch(() => {});
         void syncEgoDeBolsoCareNotification(dashboard.wellness_journey).catch(() => {});
+        void syncMoodMonsterNotifications(dashboard.daily_care).catch(() => {});
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar dados.";
@@ -245,6 +251,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
       setPersonaLocalOk(false);
       void cancelAllReminderLocalNotifications();
+      void cancelMoodMonsterNotifications();
       return;
     }
     setLoading(true);
@@ -305,6 +312,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       daily_care: care,
       ...(journey ? { wellness_journey: journey } : {}),
     }));
+    void syncMoodMonsterNotifications(care).catch(() => {});
   }, []);
 
   const setPersona = useCallback(async (avatarId: string, voiceId: string) => {

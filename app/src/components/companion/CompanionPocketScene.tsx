@@ -4,7 +4,10 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View, type DimensionValue } from "react-native";
 import type { WellnessJourney } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
-import { companionMoodLine } from "@/utils/egoDeBolsoCompanionMood";
+import {
+  companionMoodLine,
+  companionNeedsCare,
+} from "@/utils/egoDeBolsoCompanionMood";
 import { resolveEgoDeBolsoCareRoute } from "@/utils/egoDeBolsoCareRoute";
 import { CompanionSprite } from "./CompanionSprite";
 
@@ -17,8 +20,7 @@ export function CompanionPocketScene({ colors, journey }: Props) {
   const stage = journey.companion_stage ?? "egg";
   const care = journey.care_percent ?? Math.round((journey.progress ?? 0) * 100);
   const fillWidth = `${Math.max(care, care > 0 ? 8 : 0)}%` as DimensionValue;
-  const pending = journey.steps?.filter((s) => !s.done) ?? [];
-  const needsCare = pending.length > 0 || !journey.level_complete;
+  const needsCare = companionNeedsCare(journey);
   const moodLine = companionMoodLine(journey);
 
   return (

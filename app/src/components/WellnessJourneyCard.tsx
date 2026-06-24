@@ -6,6 +6,10 @@ import { dismissWellnessLevelUp } from "@/api/client";
 import type { AppColors } from "@/theme/colors";
 import { CompanionPocketScene } from "@/components/companion/CompanionPocketScene";
 import { EgoDeBolsoTrialNudge } from "@/components/EgoDeBolsoTrialNudge";
+import {
+  EGO_BOLSO_DAY_COMPLETE_MSG,
+  egoDeBolsoMissionsComplete,
+} from "@/utils/egoDeBolsoCompanionMood";
 import { PocketCompanionShareModal } from "./PocketCompanionShareModal";
 
 type Props = {
@@ -57,6 +61,7 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }
   const pct = Math.round(Math.min(1, Math.max(0, journey.progress)) * 100);
   const fillWidth = `${Math.max(pct, pct > 0 ? 6 : 0)}%` as DimensionValue;
   const pending = journey.steps?.filter((s) => !s.done) ?? [];
+  const dayComplete = egoDeBolsoMissionsComplete(journey);
 
   return (
     <>
@@ -85,10 +90,14 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }
           <View style={[styles.fill, { backgroundColor: colors.primary, width: fillWidth }]} />
         </View>
 
-        <Text style={[styles.task, { color: colors.text }]}>Hoje: {journey.today_task}</Text>
-        <Text style={[styles.why, { color: colors.textMuted }]}>{journey.why}</Text>
+        <Text style={[styles.task, { color: dayComplete ? colors.primary : colors.text }]}>
+          {dayComplete ? EGO_BOLSO_DAY_COMPLETE_MSG : `Hoje: ${journey.today_task}`}
+        </Text>
+        {!dayComplete ? (
+          <Text style={[styles.why, { color: colors.textMuted }]}>{journey.why}</Text>
+        ) : null}
 
-        {pending.length > 0 ? (
+        {!dayComplete && pending.length > 0 ? (
           <Text style={[styles.pending, { color: colors.textMuted }]}>
             Falta: {pending.map((s) => s.label).join(" · ")}
           </Text>

@@ -169,7 +169,8 @@ def _journey_after_agenda_step(step: str) -> dict[str, Any] | None:
         tier, _ = db.user_plan_limits(prof)
         wellness_journey.record_step(g.supabase, g.user_id, step, plan_tier=tier)
         return wellness_journey.sync_streak_levels(g.supabase, g.user_id, plan_tier=tier)
-    except Exception:
+    except Exception as exc:
+        print(f"[EGO] journey agenda step error ({step}): {exc}", flush=True)
         return None
 
 
@@ -364,7 +365,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-24-1.0.43-ego-bolso-f2-seed-shop",
+        "api_build": "2026-06-23-1.0.45-ego-bolso-agenda-shopping",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1256,13 +1257,19 @@ def shopping_list_get():
     from ego_api import habits_db
 
     orphan = request.args.get("orphans") in ("1", "true", "yes")
+    persistent = request.args.get("persistent") in ("1", "true", "yes")
     reminder_id = str(request.args.get("reminder_id") or "").strip() or None
-    rows = habits_db.list_shopping_items(
-        g.supabase,
-        g.user_id,
-        reminder_id=reminder_id,
-        orphans_only=orphan,
-    )
+    if persistent:
+        from ego_api import services as ego_services
+
+        rows = ego_services.shopping_list_for_dashboard(g.supabase, g.user_id)
+    else:
+        rows = habits_db.list_shopping_items(
+            g.supabase,
+            g.user_id,
+            reminder_id=reminder_id,
+            orphans_only=orphan,
+        )
     return _json_ok({"items": rows})
 
 
@@ -1358,7 +1365,7 @@ def streaks_record_activity():
     source = str(data.get("source") or "habit").strip()[:32]
     streak = streaks.record_streak_activity(g.supabase, g.user_id, source=source)
     payload: dict[str, Any] = {"streak": streak}
-    if str(source).strip() == "habit":
+    if str(source).strip() in ("habit", "reminder"):
         journey = _journey_snapshot()
         if journey:
             payload["wellness_journey"] = journey
@@ -1528,7 +1535,11 @@ def agenda_create():
                 friendly_api_error(err or "", context="agenda")
                 or "Não foi possível criar na agenda."
             )
-        return _json_ok({"item": row}, 201)
+        journey = _journey_after_agenda_step("habit")
+        payload: dict[str, Any] = {"item": row}
+        if journey:
+            payload["wellness_journey"] = journey
+        return _json_ok(payload, 201)
     except Exception as exc:  # noqa: BLE001
         log_api_exception(exc, route="/api/v1/agenda")
         return _json_error(friendly_api_error(exc, context="agenda"), 500)

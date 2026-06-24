@@ -36,7 +36,10 @@ import {
   defaultTimeHm,
   filterVisibleReminders,
 } from "./agendaUtils";
-import { applyAgendaWellnessUpdate } from "@/utils/agendaWellnessSync";
+import {
+  applyAgendaWellnessUpdate,
+  ensureAgendaWellnessStep,
+} from "@/utils/agendaWellnessSync";
 
 type Props = {
   colors: AppColors;
@@ -116,7 +119,8 @@ export function PersonalAgendaManual({
     }
     setSavingPersonal(true);
     try {
-      const journey = await createReminder({ title, scheduled_at: iso, announce: title });
+      let journey = await createReminder({ title, scheduled_at: iso, announce: title });
+      journey = await ensureAgendaWellnessStep(journey, "reminder");
       applyAgendaWellnessUpdate(journey, onWellnessUpdate);
       setShowPersonalForm(false);
       resetPersonalForm();
@@ -145,7 +149,9 @@ export function PersonalAgendaManual({
     }
     setSavingHabit(true);
     try {
-      await createAgendaItem({ titulo, horario, dias_da_semana: dias });
+      let journey = await createAgendaItem({ titulo, horario, dias_da_semana: dias });
+      journey = await ensureAgendaWellnessStep(journey, "habit");
+      applyAgendaWellnessUpdate(journey, onWellnessUpdate);
       setShowHabitForm(false);
       setHabitTitle("Academia");
       setHabitTime(defaultTimeHm(8, 0));
@@ -211,7 +217,9 @@ export function PersonalAgendaManual({
     setHabitDoneBusy(agendaId);
     try {
       const { wellness_journey } = await recordStreakActivity("habit");
-      applyAgendaWellnessUpdate(wellness_journey, onWellnessUpdate);
+      let journey = wellness_journey ?? null;
+      journey = await ensureAgendaWellnessStep(journey, "habit");
+      applyAgendaWellnessUpdate(journey, onWellnessUpdate);
       Alert.alert("Hábito", "Marcado — monstrinhos e EGO de Bolso agradecem! 💜");
       await onRefresh();
     } catch (e) {

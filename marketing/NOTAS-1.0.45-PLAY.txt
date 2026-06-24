@@ -1,0 +1,13 @@
+Play Console — 1.0.45 (versionCode 83)
+
+O que há de novo
+---------------
+• EGO de Bolso: marcar compromisso ou hábito na Agenda avança a missão
+• Mensagem «Volte amanhã» quando todas as missões do dia estão feitas
+• Lista de compras não desaparece ao remover compromisso
+
+Testar
+------
+Agenda → + Novo compromisso → ver missão EGO de Bolso completa
+Concluir todas as missões → card mostra «Volte amanhã» sem «Cuidar agora»
+Lista de compras → apagar compromisso → item continua na lista

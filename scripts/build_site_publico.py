@@ -371,8 +371,8 @@ Options -Indexes
         (d / "index.html").write_text(content, encoding="utf-8")
 
     if modo == "testadores":
-        print(f"OK {OUT} — modo TESTADORES (2 botões Android + iPhone)")
-        print("  https://egoai.com.br - baixar gratis")
+        print(f"OK {OUT} — landing completa + 2 botões Android/iPhone")
+        print("  https://egoai.com.br — funcoes do app + privacidade/termos")
     elif modo == "construcao":
         print(f"OK {OUT} — modo EM CONSTRUÇÃO (index.html)")
         print("  Site completo guardado em index-completo.html (troque quando estiver pronto)")

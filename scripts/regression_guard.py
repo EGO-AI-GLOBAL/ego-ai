@@ -57,6 +57,10 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["syncEgoDeBolsoCareNotification", "ego-de-bolso-care-18h"],
     ),
     (
+        "app/src/utils/moodMonsterNotifications.ts",
+        ["syncMoodMonsterNotifications", "mood-monster-streak-risk-20h", "mood-monster-goals-16h"],
+    ),
+    (
         "app/src/components/EgoDeBolsoTrialNudge.tsx",
         ["EGO de Bolso", "Ver planos"],
     ),
@@ -156,7 +160,13 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/habits_db.py",
-        ["list_pending_drafts", "insert_shopping_item", "SUPABASE_AGENDA_DRAFTS_TABLE"],
+        [
+            "list_pending_drafts",
+            "insert_shopping_item",
+            "list_persistent_shopping_items",
+            "orphanize_shopping_for_reminder",
+            "SUPABASE_AGENDA_DRAFTS_TABLE",
+        ],
     ),
     (
         "ego_api/night_dump.py",

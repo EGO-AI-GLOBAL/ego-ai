@@ -203,11 +203,50 @@ def insert_shopping_item(
         return None
 
 
+def list_persistent_shopping_items(
+    supabase,
+    user_id: str,
+    visible_reminder_ids: set[str] | frozenset[str],
+) -> list[dict]:
+    """Itens pendentes fora de compromissos ainda visíveis (lista não some com o dia)."""
+    all_items = list_shopping_items(supabase, user_id)
+    visible = {str(x).strip() for x in visible_reminder_ids if str(x).strip()}
+    out: list[dict] = []
+    for row in all_items:
+        rid = str(row.get("reminder_id") or "").strip()
+        if not rid or rid not in visible:
+            out.append(row)
+    return out
+
+
+def orphanize_shopping_for_reminder(
+    supabase, user_id: str, reminder_id: str
+) -> int:
+    """Desliga itens do compromisso apagado — ficam na lista persistente."""
+    if not supabase or not user_id or not reminder_id:
+        return 0
+    apply_user_auth(supabase)
+    try:
+        res = (
+            supabase.table(SUPABASE_SHOPPING_LIST_TABLE)
+            .update({"reminder_id": None})
+            .eq("user_id", user_id)
+            .eq("reminder_id", reminder_id)
+            .eq("done", False)
+            .execute()
+        )
+        return len(res.data or [])
+    except Exception:
+        return 0
+
+
 def patch_shopping_item(
     supabase, user_id: str, item_id: str, *, done: bool | None = None, title: str | None = None
 ) -> bool:
     if not supabase or not user_id or not item_id:
         return False
+    if done is True:
+        return delete_shopping_item(supabase, user_id, item_id)
     apply_user_auth(supabase)
     patch: dict[str, Any] = {}
     if done is not None:

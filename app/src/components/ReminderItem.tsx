@@ -8,7 +8,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { createShoppingItem, deleteShoppingItem, patchShoppingItem } from "@/api/client";
+import { createShoppingItem, deleteShoppingItem } from "@/api/client";
 import type { AppColors } from "@/theme/colors";
 import type { Reminder, ShoppingListItem } from "@/api/types";
 import { formatScheduledLocal } from "@/utils/scheduleTime";
@@ -35,10 +35,10 @@ export function ReminderItem({
 
   const onToggleItem = async (shop: ShoppingListItem) => {
     const sid = String(shop.id || "");
-    if (!sid || !onShoppingChange) return;
+    if (!sid || !onShoppingChange || shop.done) return;
     setBusyId(sid);
     try {
-      await patchShoppingItem(sid, { done: !shop.done });
+      await deleteShoppingItem(sid);
       await onShoppingChange();
     } finally {
       setBusyId(null);

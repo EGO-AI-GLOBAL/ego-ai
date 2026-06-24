@@ -7,7 +7,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { createShoppingItem, deleteShoppingItem, patchShoppingItem } from "@/api/client";
+import { createShoppingItem, deleteShoppingItem } from "@/api/client";
 import type { ShoppingListItem } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { ShoppingItemRow } from "@/components/agenda/ShoppingItemRow";
@@ -26,10 +26,6 @@ export function OrphanShoppingSection({
   const [saving, setSaving] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
 
-  if (!items.length) {
-    return null;
-  }
-
   const onAdd = async () => {
     const t = title.trim();
     if (!t) return;
@@ -45,10 +41,10 @@ export function OrphanShoppingSection({
 
   const onToggle = async (item: ShoppingListItem) => {
     const id = String(item.id || "");
-    if (!id) return;
+    if (!id || item.done) return;
     setBusyId(id);
     try {
-      await patchShoppingItem(id, { done: !item.done });
+      await deleteShoppingItem(id);
       await onRefresh();
     } finally {
       setBusyId(null);
@@ -78,7 +74,12 @@ export function OrphanShoppingSection({
 
   return (
     <>
-      <Text style={[s.section, { color: colors.textMuted }]}>Comprar quando puder</Text>
+      <Text style={[s.section, { color: colors.textMuted }]}>Lista de compras</Text>
+      {items.length === 0 ? (
+        <Text style={{ color: colors.textMuted, fontSize: 13, marginBottom: 8 }}>
+          Itens ficam aqui até você marcar como comprado — não somem com o dia.
+        </Text>
+      ) : null}
       {items.map((item) => {
         const id = String(item.id || "");
         return (

@@ -3,7 +3,19 @@ import { resolveEgoDeBolsoCareRoute } from "./egoDeBolsoCareRoute";
 
 export type CompanionMood = "happy" | "waiting" | "lonely";
 
+/** Todas as missões do nível actual estão feitas. */
+export function egoDeBolsoMissionsComplete(journey: WellnessJourney): boolean {
+  if (journey.level_complete) return true;
+  const steps = journey.steps ?? [];
+  if (steps.length === 0) return false;
+  return steps.every((s) => s.done);
+}
+
+export const EGO_BOLSO_DAY_COMPLETE_MSG =
+  "Todas as missões de hoje concluídas! Volte amanhã 💜";
+
 export function companionNeedsCare(journey: WellnessJourney): boolean {
+  if (egoDeBolsoMissionsComplete(journey)) return false;
   const pending = journey.steps?.filter((s) => !s.done) ?? [];
   return pending.length > 0 || !journey.level_complete;
 }
@@ -17,8 +29,8 @@ export function companionMood(journey: WellnessJourney): CompanionMood {
 
 /** Frase emocional do bichinho (Fase 2 — vínculo). */
 export function companionMoodLine(journey: WellnessJourney): string | null {
-  if (!companionNeedsCare(journey)) {
-    return "Feliz hoje! Obrigado por cuidar de mim 💜";
+  if (egoDeBolsoMissionsComplete(journey)) {
+    return EGO_BOLSO_DAY_COMPLETE_MSG;
   }
   const mood = companionMood(journey);
   const task = (journey.today_task || "").trim();
