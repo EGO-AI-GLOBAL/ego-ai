@@ -132,7 +132,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/wellness_journey.py",
-        ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "_format_today_task"],
+        ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "validate_journey_expansion_caps", "_format_today_task"],
     ),
     (
         "ego_api/download_go.py",
@@ -259,17 +259,23 @@ def check_journey_missions() -> int:
     try:
         if str(ROOT) not in sys.path:
             sys.path.insert(0, str(ROOT))
-        from ego_api.wellness_journey import HANDCRAFTED_MAX, validate_journey_levels
+        from ego_api.wellness_journey import (
+            HANDCRAFTED_MAX,
+            validate_journey_expansion_caps,
+            validate_journey_levels,
+        )
 
         cap = 500
         errors = validate_journey_levels(cap=cap)
+        if not errors:
+            errors = validate_journey_expansion_caps(caps=(500, 1000))
         if errors:
             for err in errors:
                 print(f"  ERRO  {err}")
             return len(errors)
         print(
-            f"  OK    {cap} níveis validados "
-            f"({HANDCRAFTED_MAX} guiados + {cap - HANDCRAFTED_MAX} procedurais)"
+            f"  OK    {cap} níveis + expansão até 1000 validados "
+            f"({HANDCRAFTED_MAX} guiados + procedurais automáticos)"
         )
         return 0
     except Exception as exc:

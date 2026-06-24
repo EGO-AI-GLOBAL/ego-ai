@@ -709,6 +709,29 @@ def validate_journey_levels(*, cap: int = 500) -> list[str]:
     return errors
 
 
+def validate_journey_expansion_caps(
+    caps: tuple[int, ...] = (500, 1000),
+) -> list[str]:
+    """Valida teto actual e próxima expansão (+500) — missões procedurais infinitas."""
+    errors: list[str] = []
+    seen: set[str] = set()
+    for cap in caps:
+        cap = max(HANDCRAFTED_MAX, int(cap))
+        for err in validate_journey_levels(cap=cap):
+            key = f"{cap}:{err}"
+            if key not in seen:
+                seen.add(key)
+                errors.append(f"cap {cap}: {err}")
+        # Amostra: convite a cada 10 mantém-se após expandir o teto.
+        for n in (cap - 10, cap):
+            if n < 10 or n > HANDCRAFTED_MAX:
+                continue
+            ld = _procedural_level(n)
+            if _is_invite_growth_level(n) and not _is_invite_only_level(ld):
+                errors.append(f"cap {cap}: nível {n} perdeu missão só de convite")
+    return errors
+
+
 def _step_label(key: str, need: int) -> str:
     labels = {
         "chat": "mensagem no chat" if need == 1 else f"{need} mensagens no chat",
