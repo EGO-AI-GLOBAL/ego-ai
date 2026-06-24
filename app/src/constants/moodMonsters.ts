@@ -75,6 +75,11 @@ export const DECOR_POSITIONS: Record<string, { left: string; top: number; size: 
   fountain: { left: "42%", top: 62, size: 28 },
   treehouse: { left: "68%", top: 48, size: 30 },
   rainbow: { left: "22%", top: 28, size: 32 },
+  mushroom: { left: "12%", top: 68, size: 22 },
+  lantern: { left: "55%", top: 42, size: 24 },
+  bench: { left: "32%", top: 72, size: 26 },
+  birdhouse: { left: "82%", top: 58, size: 24 },
+  windmill: { left: "48%", top: 24, size: 30 },
 };
 
 export function moodKeyOrDefault(key?: string): MoodKey {

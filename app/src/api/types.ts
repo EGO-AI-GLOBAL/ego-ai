@@ -373,6 +373,34 @@ export type DailyCareInfo = {
   decor_unlocked?: DailyCareDecor[];
   daily_goals?: DailyCareGoal[];
   adventure?: DailyCareAdventure;
+  shop_items?: DailyCareShopItem[];
+  shop_owned?: DailyCareShopOwned[];
+  seed_history?: DailyCareSeedHistoryEntry[];
+  all_goals_done?: boolean;
+  all_goals_bonus?: number;
+  goals_bonus_granted?: boolean;
+};
+
+export type DailyCareShopItem = {
+  id: string;
+  emoji: string;
+  label: string;
+  price: number;
+  owned: boolean;
+  can_afford: boolean;
+};
+
+export type DailyCareShopOwned = {
+  id: string;
+  emoji: string;
+  label: string;
+};
+
+export type DailyCareSeedHistoryEntry = {
+  action: string;
+  amount: number;
+  label: string;
+  date: string;
 };
 
 export type DailyCareDecor = {

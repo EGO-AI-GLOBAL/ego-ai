@@ -9,6 +9,7 @@ type Props = {
   colors: AppColors;
   care: DailyCareInfo;
   onUpdate: (care: DailyCareInfo) => void;
+  onGoalsBonus?: () => void;
 };
 
 function GoalRow({
@@ -55,7 +56,7 @@ function GoalRow({
   );
 }
 
-export function MoodDailyGoals({ colors, care, onUpdate }: Props) {
+export function MoodDailyGoals({ colors, care, onUpdate, onGoalsBonus }: Props) {
   const goals = care.daily_goals ?? [];
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [breatheCount, setBreatheCount] = useState<number | null>(null);
@@ -100,6 +101,9 @@ export function MoodDailyGoals({ colors, care, onUpdate }: Props) {
       if (!res?.daily_care) return;
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       onUpdate(res.daily_care);
+      if (res.daily_care.goals_bonus_granted) {
+        onGoalsBonus?.();
+      }
     } finally {
       setBusyKey(null);
     }

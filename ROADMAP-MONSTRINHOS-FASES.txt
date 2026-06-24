@@ -1,0 +1,14 @@
+ROADMAP — Monstrinhos do Humor (Finch)
+======================================
+
+| Fase | % projeto | Estado |
+|------|-----------|--------|
+| 1 Base (jardim, pet, ranking) | 100% | 1.0.40–41 ✅ |
+| 2 Loop diário (missões, sementes) | 100% | 1.0.42 ✅ |
+| 3 Economia (loja, burst, histórico) | 100% | 1.0.43 ✅ código |
+| 4 Retenção (push) | 0% | Próxima |
+| 5 Visual wow | 0% | — |
+| 6 Profundidade | 0% | — |
+| **Total 6 fases** | **~50%** | 3/6 fechadas |
+
+Feel Finch: ~75% após Fase 3 publicada.

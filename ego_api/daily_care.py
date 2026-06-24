@@ -63,6 +63,16 @@ DEFAULT_MONSTER_LINE = "Escolha o monstrinho do seu humor hoje."
 SEEDS_CHECKIN = 5
 SEEDS_BREATHE = 2
 SEEDS_ADVENTURE = 3
+SEEDS_ALL_GOALS_BONUS = 3
+SEED_HISTORY_MAX = 10
+
+SHOP_ITEMS: list[dict[str, str | int]] = [
+    {"id": "mushroom", "emoji": "🍄", "label": "Cogumelo", "price": 6},
+    {"id": "lantern", "emoji": "🏮", "label": "Lanterna", "price": 8},
+    {"id": "bench", "emoji": "🪑", "label": "Banco", "price": 10},
+    {"id": "birdhouse", "emoji": "🪺", "label": "Ninho", "price": 12},
+    {"id": "windmill", "emoji": "🎡", "label": "Moinho", "price": 15},
+]
 
 DECOR_UNLOCKS: list[dict[str, str | int]] = [
     {"id": "flowers", "emoji": "🌷", "min_days": 1, "label": "Flores"},
@@ -193,6 +203,95 @@ def _adventure_payload(raw: dict, today: str, checked_today: bool) -> dict:
         "collected": collected,
         "reward_seeds": SEEDS_ADVENTURE,
     }
+
+
+def _shop_owned_ids(raw: dict) -> list[str]:
+    owned = raw.get("shop_owned")
+    if not isinstance(owned, list):
+        return []
+    return [str(x).strip() for x in owned if str(x).strip()]
+
+
+def _append_seed_history(raw: dict, action: str, amount: int, label: str) -> None:
+    hist = raw.get("seed_history")
+    if not isinstance(hist, list):
+        hist = []
+    entry = {
+        "action": action[:12],
+        "amount": int(amount),
+        "label": str(label)[:48],
+        "date": _local_date_str(),
+    }
+    hist = [entry, *[h for h in hist if isinstance(h, dict)]]
+    raw["seed_history"] = hist[:SEED_HISTORY_MAX]
+
+
+def _shop_catalog(raw: dict, seeds: int) -> list[dict]:
+    owned = set(_shop_owned_ids(raw))
+    out: list[dict] = []
+    for item in SHOP_ITEMS:
+        iid = str(item["id"])
+        price = int(item["price"])
+        out.append(
+            {
+                "id": iid,
+                "emoji": str(item["emoji"]),
+                "label": str(item["label"]),
+                "price": price,
+                "owned": iid in owned,
+                "can_afford": seeds >= price and iid not in owned,
+            }
+        )
+    return out
+
+
+def _shop_owned_decor(raw: dict) -> list[dict[str, str]]:
+    owned = set(_shop_owned_ids(raw))
+    by_id = {str(i["id"]): i for i in SHOP_ITEMS}
+    return [
+        {
+            "id": iid,
+            "emoji": str(by_id[iid]["emoji"]),
+            "label": str(by_id[iid]["label"]),
+        }
+        for iid in _shop_owned_ids(raw)
+        if iid in by_id
+    ]
+
+
+def _seed_history_payload(raw: dict) -> list[dict]:
+    hist = raw.get("seed_history")
+    if not isinstance(hist, list):
+        return []
+    out: list[dict] = []
+    for h in hist[:SEED_HISTORY_MAX]:
+        if not isinstance(h, dict):
+            continue
+        out.append(
+            {
+                "action": str(h.get("action") or ""),
+                "amount": int(h.get("amount") or 0),
+                "label": str(h.get("label") or ""),
+                "date": str(h.get("date") or ""),
+            }
+        )
+    return out
+
+
+def _all_goals_done(goals: list[dict]) -> bool:
+    return bool(goals) and all(bool(g.get("done")) for g in goals)
+
+
+def _maybe_all_goals_bonus(raw: dict, today: str) -> bool:
+    goals = _daily_goals(raw, today, True)
+    if not _all_goals_done(goals):
+        return False
+    if str(raw.get("all_goals_bonus_date") or "") == today:
+        return False
+    raw["all_goals_bonus_date"] = today
+    raw["seeds"] = int(raw.get("seeds") or 0) + SEEDS_ALL_GOALS_BONUS
+    _append_seed_history(raw, "bonus", SEEDS_ALL_GOALS_BONUS, "Dia perfeito no jardim")
+    return True
 
 
 DAILY_QUESTIONS: list[str] = [
@@ -351,6 +450,7 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
     goals = _daily_goals(raw, today, checked_today)
     mission = _daily_mission(checked_today, current, goals)
     seeds = int(raw.get("seeds") or 0)
+    all_done = _all_goals_done(goals) if checked_today else False
     return {
         "current": current,
         "longest": longest_eff,
@@ -376,6 +476,11 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
         "decor_unlocked": _decor_unlocked(max(current, longest_eff)),
         "daily_goals": goals,
         "adventure": _adventure_payload(raw, today, checked_today),
+        "shop_items": _shop_catalog(raw, seeds),
+        "shop_owned": _shop_owned_decor(raw),
+        "seed_history": _seed_history_payload(raw),
+        "all_goals_done": all_done,
+        "all_goals_bonus": SEEDS_ALL_GOALS_BONUS,
     }
 
 
@@ -428,6 +533,7 @@ def record_checkin(
         longest = max(longest, current)
         total += 1
         seeds += SEEDS_CHECKIN
+        _append_seed_history(raw, "earn", SEEDS_CHECKIN, "Check-in de humor")
         raw.update(
             {
                 "current": current,
@@ -486,11 +592,13 @@ def record_goal(
         return get_daily_care(supabase, user_id)
 
     seeds = int(raw.get("seeds") or 0)
+    bonus_granted = False
     if key == "breathe":
         if str(raw.get("breathe_date") or "") == today:
             return get_daily_care(supabase, user_id)
         raw["breathe_date"] = today
         raw["seeds"] = seeds + SEEDS_BREATHE
+        _append_seed_history(raw, "earn", SEEDS_BREATHE, "Respiração")
     elif key == "adventure":
         if bool(raw.get("adventure_collected")):
             return get_daily_care(supabase, user_id)
@@ -498,6 +606,45 @@ def record_goal(
             return get_daily_care(supabase, user_id)
         raw["adventure_collected"] = True
         raw["seeds"] = seeds + SEEDS_ADVENTURE
+        _append_seed_history(raw, "earn", SEEDS_ADVENTURE, "Aventura")
+    bonus_granted = _maybe_all_goals_bonus(raw, today)
+
+    ui["daily_care"] = raw
+    db.update_profile_fields(supabase, user_id, {"ui_state": ui})
+    care = get_daily_care(supabase, user_id)
+    if bonus_granted:
+        care["goals_bonus_granted"] = True
+    return care
+
+
+def purchase_shop_item(
+    supabase: Client | None,
+    user_id: str,
+    item_id: str,
+) -> dict:
+    if not supabase or not user_id:
+        return get_daily_care(supabase, user_id)
+    iid = (item_id or "").strip().lower()[:24]
+    catalog = {str(i["id"]): i for i in SHOP_ITEMS}
+    item = catalog.get(iid)
+    if not item:
+        return get_daily_care(supabase, user_id)
+
+    prof = db.load_profile(supabase, user_id) or {}
+    ui = db._parse_ui_state(prof)  # noqa: SLF001
+    raw = dict(ui.get("daily_care") if isinstance(ui.get("daily_care"), dict) else {})
+    owned = _shop_owned_ids(raw)
+    if iid in owned:
+        return get_daily_care(supabase, user_id)
+
+    price = int(item["price"])
+    seeds = int(raw.get("seeds") or 0)
+    if seeds < price:
+        return get_daily_care(supabase, user_id)
+
+    raw["seeds"] = seeds - price
+    raw["shop_owned"] = owned + [iid]
+    _append_seed_history(raw, "spend", price, f"Loja: {item['label']}")
 
     ui["daily_care"] = raw
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})

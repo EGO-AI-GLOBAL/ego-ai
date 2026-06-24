@@ -7,7 +7,9 @@ import type { AppColors } from "@/theme/colors";
 import { DailyCareShareModal } from "./DailyCareShareModal";
 import { MoodAdventureBanner } from "./moodMonsters/MoodAdventureBanner";
 import { MoodDailyGoals } from "./moodMonsters/MoodDailyGoals";
+import { MoodGoalsCompleteBurst } from "./moodMonsters/MoodGoalsCompleteBurst";
 import { MoodMonsterScene } from "./moodMonsters/MoodMonsterScene";
+import { MoodSeedShop } from "./moodMonsters/MoodSeedShop";
 import { SocialFollowBar } from "./SocialFollowBar";
 
 type Props = {
@@ -61,6 +63,7 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
   const [busy, setBusy] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
+  const [goalsBurst, setGoalsBurst] = useState(false);
   const [hoverMood, setHoverMood] = useState<string | undefined>();
 
   if (!care?.question) {
@@ -113,6 +116,12 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
   return (
     <>
       <View style={[styles.wrap, { borderColor, backgroundColor: colors.bgCard }]}>
+        <MoodGoalsCompleteBurst
+          colors={colors}
+          visible={goalsBurst}
+          bonus={care.all_goals_bonus ?? 3}
+          onDone={() => setGoalsBurst(false)}
+        />
         <View style={styles.head}>
           <Text style={[styles.badge, { color: colors.primary }]}>MONSTRINHOS DO HUMOR 💜</Text>
           {days > 0 ? (
@@ -137,7 +146,10 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
           colors={colors}
           care={care}
           onUpdate={(next) => onUpdate(next)}
+          onGoalsBonus={() => setGoalsBurst(true)}
         />
+
+        <MoodSeedShop colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
 
         <RankingLadder colors={colors} care={care} />
 
@@ -211,7 +223,7 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderRadius: 16, borderWidth: 2, padding: 14, marginBottom: 12 },
+  wrap: { borderRadius: 16, borderWidth: 2, padding: 14, marginBottom: 12, overflow: "hidden" },
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   badge: { fontSize: 11, fontWeight: "900", letterSpacing: 0.6 },
   streak: { fontSize: 12, fontWeight: "700" },
