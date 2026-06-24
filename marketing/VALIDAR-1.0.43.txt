@@ -1,0 +1,28 @@
+VALIDAR 1.0.43 — 3 agentes
+=========================
+
+API
+---
+[ ] /health → api_build 1.0.43-ego-bolso-f2-seed-shop
+[ ] Railway: EGO_LATEST_APP_VERSION=1.0.43 code 80
+
+Monstrinhos (Fase 3)
+--------------------
+[ ] 3 missões → burst + bónus sementes
+[ ] Loja do jardim → comprar → decor no jardim
+
+EGO de Bolso (Fase 2)
+---------------------
+[ ] Menu EGO de Bolso + card no chat
+[ ] Cuidar agora → agenda (se missão hábito)
+[ ] Notificação 18h (se permitida)
+
+Agenda + estável
+----------------
+[ ] Criar lembrete manual → missão completa
+[ ] Login + chat texto + voz
+
+Links
+-----
+TestFlight: https://testflight.apple.com/join/eNDKdFWF
+Play: https://play.google.com/apps/testing/com.egoai.app

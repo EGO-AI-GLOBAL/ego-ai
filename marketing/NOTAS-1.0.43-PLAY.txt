@@ -1,13 +1,14 @@
-Play Console — 1.0.43
+Play Console — 1.0.43 (versionCode 80)
 
-O que há de novo (Monstrinhos)
-------------------------------
-• Loja do jardim com sementes
-• Decorações compráveis no jardim
-• Bónus ao completar as 3 missões do dia
-
-EGO de Bolso F2: ver notas do outro agente.
+O que há de novo
+---------------
+• Monstrinhos: loja do jardim com sementes e decorações
+• EGO de Bolso: lembretes de cuidado e trial nudge
+• Agenda: missões ligadas à agenda manual
+• Melhorias de segurança
 
 Testar
 ------
-Monstrinhos → completar 3 missões → ver burst → abrir Loja → comprar decoração
+Monstrinhos → Loja → comprar decoração
+EGO de Bolso → Cuidar agora
+Agenda → novo lembrete

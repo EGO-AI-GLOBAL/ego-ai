@@ -1,6 +1,10 @@
 {
   "version": "1.0.43",
+  "git_commit": "0527cce",
+  "note": "3 agentes: Monstrinhos F3 + EGO Bolso F2 + Segurança/Agenda",
   "ios": "8dc8e777-eb54-4f9e-9bde-78416e51405b",
   "android": "80651c7c-78b8-4342-bef2-1bf7326eb937",
-  "queued_at": "2026-06-23T12:00:00"
+  "ios_status": "FINISHED build 30",
+  "android_status": "see eas build:view",
+  "queued_at": "2026-06-24T02:43:52Z"
 }

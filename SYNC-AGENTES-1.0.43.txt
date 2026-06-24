@@ -1,0 +1,44 @@
+SINCRONIZAÇÃO 1.0.43 — TRÊS AGENTES, UMA RELEASE
+==================================================
+
+Git main (tudo junto): commit 0527cce
+API live: api_build=2026-06-24-1.0.43-ego-bolso-f2-seed-shop
+
+QUEM FEZ O QUÊ
+--------------
+| Agente | Foco | Commit principal |
+|--------|------|------------------|
+| Monstrinhos | Fase 3 — loja sementes, burst, histórico | 0527cce |
+| EGO de Bolso | Fase 2 — push 18h, trial nudge, companion mood | 657eb48 |
+| Segurança + Agenda | Play Integrity, missão agenda, Cuidar agora | 1de2607, ca05555, 28bd69c |
+
+BUILDS 1.0.43 (par iOS+Android)
+-------------------------------
+iOS  build 30 — FINISHED — 0527cce
+     8dc8e777-eb54-4f9e-9bde-78416e51405b
+
+Android code 80 — ver builds-1.0.43.ids.json
+     80651c7c-78b8-4342-bef2-1bf7326eb937
+
+SUBIR LOJAS (uma vez só)
+------------------------
+AGUARDAR-E-SUBMETER-1.0.43.bat
+  ou: AGUARDAR-E-SUBMETER.bat
+
+RAILWAY (banner Atualizar no app)
+---------------------------------
+EGO_LATEST_APP_VERSION=1.0.43
+EGO_LATEST_ANDROID_VERSION_CODE=80
+EGO_APP_UPDATE_MESSAGE=1.0.43: Loja Monstrinhos + EGO de Bolso F2 + agenda. Toque em Atualizar.
+
+TESTAR NOS 3 EIXOS
+------------------
+[ ] Monstrinhos: 3 missões → burst → Loja → comprar decoração
+[ ] EGO de Bolso: push 18h, Cuidar agora → agenda, trial nudge
+[ ] Agenda: missão hábito/lembrete completa com agenda manual
+[ ] Login + chat texto + voz OK
+
+Links
+-----
+TestFlight: https://testflight.apple.com/join/eNDKdFWF
+Play teste: https://play.google.com/apps/testing/com.egoai.app

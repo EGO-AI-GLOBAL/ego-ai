@@ -1,22 +1,30 @@
-EGO-AI 1.0.43 — notas (Monstrinhos Fase 3 + EGO de Bolso F2)
-=============================================================
+EGO-AI 1.0.43 — release conjunta (3 agentes)
+============================================
 
-MONSTRINHOS — Fase 3 Economia
------------------------------
-• Loja do jardim — gastar sementes em decorações (cogumelo, lanterna, banco…)
-• Decorações compradas aparecem no jardim
-• Histórico de sementes (ganhos e gastos)
-• Bónus +3 sementes ao completar as 3 missões do dia
-• Celebração visual “Dia perfeito no jardim!”
+A) MONSTRINHOS — Fase 3 Economia
+--------------------------------
+• Loja do jardim (gastar sementes em decorações)
+• Histórico de sementes
+• Bónus +3 ao completar as 3 missões do dia
+• Celebração “Dia perfeito no jardim!”
 
-API: POST /daily-care/shop · api_build 1.0.43-ego-bolso-f2-seed-shop
+B) EGO DE BOLSO — Fase 2
+------------------------
+• Notificação local 18h “Cuidar do EGO”
+• Trial nudge + companion mood
+• Cuidar agora abre agenda quando missão é hábito
+
+C) SEGURANÇA + AGENDA
+---------------------
+• Play Integrity backend
+• Missão EGO de Bolso completa com agenda manual
+• Fixes Cuidar agora (pessoal + compartilhada)
 
 VERSÃO
 ------
-App: 1.0.43 | iOS 30 | Android 80 (EAS remote)
+App: 1.0.43 | iOS build 30 | Android versionCode 80
+API: 2026-06-24-1.0.43-ego-bolso-f2-seed-shop
 
-BUILD CONJUNTO
---------------
-1. Outro agente termina EGO de Bolso F2 → push
-2. GERAR-E-SUBMETER-JUNTO.bat
-3. AGUARDAR-E-SUBMETER.bat
+SUBIR
+-----
+AGUARDAR-E-SUBMETER-1.0.43.bat (TestFlight + Play juntos)
