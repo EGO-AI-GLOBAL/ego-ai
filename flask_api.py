@@ -332,7 +332,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-23-1.0.42-ego-de-bolso-f1",
+        "api_build": "2026-06-24-1.0.42-fin-ego-bolso",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1333,6 +1333,20 @@ def daily_care_checkin():
     tier, _ = db.user_plan_limits(prof)
     journey = wellness_journey.sync_streak_levels(g.supabase, g.user_id, plan_tier=tier)
     return _json_ok({"daily_care": care, "wellness_journey": journey})
+
+
+@app.post("/api/v1/daily-care/goal")
+@require_auth
+@rate_limit(20, 60, scope="user")
+def daily_care_goal():
+    from ego_api import daily_care
+
+    data = request.get_json(silent=True) or {}
+    goal = str(data.get("goal") or data.get("goal_key") or "").strip()[:24]
+    if not goal:
+        return _json_error("Informe a missão (goal).")
+    care = daily_care.record_goal(g.supabase, g.user_id, goal)
+    return _json_ok({"daily_care": care})
 
 
 @app.post("/api/v1/reminders")

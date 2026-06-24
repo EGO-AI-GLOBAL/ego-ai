@@ -100,6 +100,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "streaks_record_activity",
             "shopping_list_get",
             '@app.post("/api/v1/daily-care/checkin")',
+            '@app.post("/api/v1/daily-care/goal")',
             '@app.post("/api/v1/wellness-journey/step")',
             '@app.get("/go")',
         ],
@@ -110,7 +111,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/daily_care.py",
-        ["get_daily_care", "record_checkin", "CARE_MILESTONES"],
+        ["get_daily_care", "record_checkin", "record_goal", "CARE_MILESTONES"],
     ),
     (
         "ego_api/wellness_journey.py",
