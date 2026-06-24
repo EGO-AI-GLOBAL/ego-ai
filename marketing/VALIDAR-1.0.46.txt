@@ -1,0 +1,24 @@
+CHECKLIST 1.0.46 — antes e depois do build
+==========================================
+
+API (Railway)
+[ ] /api/v1/health → api_build 2026-06-24-1.0.46-invite-growth
+[ ] EGO_MAINTENANCE=0 (não ligado)
+[ ] python scripts/regression_guard.py OK
+[ ] python scripts/smoke_test_api.py OK
+
+BUILD AMANHÃ
+[ ] GERAR-1.0.46.bat (iOS 33 + Android 84)
+[ ] AGUARDAR-E-SUBMETER-1.0.46.bat
+
+TESTE NO TELEMÓVEL
+[ ] Login → chat texto → OK
+[ ] Agenda → + compromisso → missão EGO de Bolso avança
+[ ] EGO de Bolso → companheiro futurista visível
+[ ] Agenda → convidar telefone → amigo novo aceita → missão convite OK
+[ ] Nível 10 bloqueado sem convite aceito (esperado)
+
+DEPOIS DE PUBLICAR
+[ ] Railway: EGO_LATEST_APP_VERSION=1.0.46
+[ ] Railway: EGO_LATEST_ANDROID_VERSION_CODE=84
+[ ] Banner «Atualizar agora» aparece em 1.0.45 ou menos

@@ -1,0 +1,14 @@
+Play Console — 1.0.46 (versionCode 84)
+
+O que há de novo
+---------------
+• EGO de Bolso: missão de convite a cada 10 níveis (traga amigos novos)
+• Convite válido quando a pessoa aceita na Agenda partilhada
+• Companheiro digital com visual renovado
+• Missões alinhadas com o que o app realmente faz
+
+Testar
+------
+Agenda → Entre Nós → convidar telefone sem conta → amigo aceita → missão nível 10
+EGO de Bolso → ver companheiro novo e missão do dia
+Nível 20 → nova missão só de convite

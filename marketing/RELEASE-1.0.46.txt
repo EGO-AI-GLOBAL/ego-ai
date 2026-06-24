@@ -1,0 +1,29 @@
+EGO-AI 1.0.46 — Convite viral + EGO de Bolso
+=============================================
+
+NOVIDADES
+---------
+• Missão de convite obrigatória nos níveis 10, 20, 30… (crescimento orgânico)
+• Convite conta só quando amigo SEM conta aceita na Agenda (telefone ou e-mail)
+• 500 missões validadas — uso do app + convite a cada 10 níveis
+• Companheiro EGO de Bolso visual futurista (ovo neon + evolução)
+• Agenda Entre Nós: placeholder prioriza telefone/WhatsApp
+
+VERSÃO
+------
+App: 1.0.46 | iOS build 33 | Android versionCode 84
+API: 2026-06-24-1.0.46-invite-growth
+
+AMANHÃ — ORDEM
+--------------
+1. Confirme Railway online (/api/v1/health)
+2. GERAR-1.0.46.bat
+3. AGUARDAR-E-SUBMETER-1.0.46.bat
+4. Railway variáveis (depois de publicar):
+   EGO_LATEST_APP_VERSION=1.0.46
+   EGO_LATEST_ANDROID_VERSION_CODE=84
+
+TESTADORES
+----------
+TestFlight: https://testflight.apple.com/join/eNDKdFWF
+Play teste fechado: https://play.google.com/apps/testing/com.egoai.app
