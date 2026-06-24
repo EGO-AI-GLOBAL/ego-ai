@@ -17,26 +17,27 @@ O app é **Expo/React Native**: quase todo o UI (`app/src/`, `app/app/`) corre *
 2. Caso contrário → tratar **sempre os dois** no mesmo commit/release.
 3. Nunca corrigir ícone/banner/texto numa plataforma e deixar a outra para “depois”.
 
-## Dois agentes em paralelo — uma subida só
+## Três agentes em paralelo — uma subida só
 
-Quando **dois chats/agentes** trabalham ao mesmo tempo:
+Quando **vários chats/agentes** trabalham ao mesmo tempo (actualmente **3**):
 
-1. **Esperar** — ambos fazem `commit + push` para `main`; `git pull` até não haver diff em `app/` nem `ego_api/`.
+1. **Esperar** — todos fazem `commit + push` para `main`; `git pull` até não haver diff em `app/` nem `ego_api/`.
 2. **Gerar juntos** — `GERAR-E-SUBMETER-JUNTO.bat` (enfileira iOS + Android; grava `builds-VERSAO.ids.json`).
 3. **Submeter juntos** — `AGUARDAR-E-SUBMETER.bat` (espera FINISHED nos dois; TestFlight + Play **uma vez**).
 
-**Proibido** em release normal: `SUBMIT-IOS-*.bat` ou `PUBLICAR-*-PLAY.bat` separados; `GERAR-1.0.*.bat` / `BUILD-*.bat` só uma plataforma; `eas submit --latest` (pode subir build antigo do outro agente).
+**Estado actual:** versão **1.0.43 já submetida** — não gerar novo build; só `git pull origin main`. Próximo build quando os 3 agentes tiverem push + `sync-check`.
 
-**Quando terminar código:** avisar o utilizador — *"pronto para sync build"* — e **esperar** o outro agente antes de `GERAR-E-SUBMETER-JUNTO.bat`.
+**Proibido** em release normal: `SUBMIT-IOS-*.bat` ou `PUBLICAR-*-PLAY.bat` separados; `GERAR-1.0.*.bat` / `BUILD-*.bat` só uma plataforma; `eas submit --latest` (pode subir build antigo de outro agente).
+
+**Quando terminar código:** avisar o utilizador — *"pronto para sync build"* — e **esperar os outros agentes** antes de `GERAR-E-SUBMETER-JUNTO.bat`.
 
 Regra Cursor (sempre activa): `.cursor/rules/sync-build-dois-agentes.mdc`
 
-Detalhe: `SYNC-AGENTES-RELEASE.txt`
-
 | Zona | Agente típico |
 |------|----------------|
-| Monstrinhos | `daily-care`, `moodMonsters/`, `ego_api/daily_care.py` |
 | EGO de Bolso | `wellness-journey`, `EgoDeBolsoChatCard`, `SocialShare` |
+| Monstrinhos | `daily-care`, `moodMonsters/`, `ego_api/daily_care.py` |
+| Segurança/API | Play Integrity, RLS, Railway (só se pedido) |
 | Estável | auth, voz, chat core, Stripe — **ninguém** sem pedido |
 
 ## Zonas ESTÁVEIS — não alterar sem pedido explícito + teste

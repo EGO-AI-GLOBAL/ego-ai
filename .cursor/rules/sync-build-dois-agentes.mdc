@@ -1,39 +1,38 @@
 ---
-description: Dois agentes em paralelo — um único build iOS+Android por release
+description: Vários agentes em paralelo — um único build iOS+Android por release
 alwaysApply: true
 ---
 
-# Sync build — EGO-AI (2 agentes)
+# Sync build — EGO-AI (3 agentes)
 
 ## Regra de ouro
 
-**Nunca** gerar build nem submeter loja sozinho se outro agente também está a trabalhar.
+**Nunca** gerar build nem submeter loja sozinho se outros agentes também estão a trabalhar.
 
 | Fazer | Não fazer |
 |-------|-----------|
-| `commit + push` → esperar o outro → **um** `GERAR-E-SUBMETER-JUNTO.bat` | `GERAR-1.0.*.bat` só Android ou só iOS |
+| `commit + push` → esperar **todos** → **um** `GERAR-E-SUBMETER-JUNTO.bat` | `GERAR-1.0.*.bat` só Android ou só iOS |
 | `AGUARDAR-E-SUBMETER.bat` depois dos dois FINISHED | `SUBMIT-IOS-*.bat` / `PUBLICAR-*-PLAY.bat` separados |
 | `python scripts/wait_and_submit_eas.py sync-check` antes do build | `eas submit --latest` |
 
 ## Fluxo obrigatório
 
 1. Terminar código → `git pull origin main` → `commit` → `push`
-2. Avisar o utilizador: **"pronto para sync build"** — esperar o outro agente
+2. Avisar o utilizador: **"pronto para sync build"** — esperar os **outros 2 agentes**
 3. `python scripts/wait_and_submit_eas.py sync-check` (sem diff pendente em `app/` e `ego_api/`)
 4. `GERAR-E-SUBMETER-JUNTO.bat` (iOS + Android na mesma versão `app.config.ts`)
 5. Quando FINISHED: `AGUARDAR-E-SUBMETER.bat`
 
-## Antes de dizer "pode fazer build"
+## Estado actual
 
-- [ ] Ambos os agentes fizeram push para `main`
-- [ ] `sync-check` passou
-- [ ] `regression_guard.py` + `smoke_test_api.py` OK
-- [ ] Versão alinhada em `app/app.config.ts` (iOS + Android)
+**1.0.43 já submetido** — não gerar build de novo. Só `git pull origin main`.
 
-## Segurança (build Android)
+Próximo build: quando os **3 agentes** tiverem push + `sync-check` OK.
 
-Se Play Integrity activo no Railway, incluir no EAS production:
+## Zonas
 
-`EXPO_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER` = mesmo valor que `GOOGLE_CLOUD_PROJECT_NUMBER`
+- **A** — EGO de Bolso
+- **B** — Monstrinhos
+- **C** — Segurança/API
 
 Detalhe: `SYNC-AGENTES-RELEASE.txt`

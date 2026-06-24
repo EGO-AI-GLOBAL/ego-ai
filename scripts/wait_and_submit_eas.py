@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import time
@@ -27,11 +28,25 @@ def _env() -> dict[str, str]:
     return env
 
 
+def _eas_cmd() -> list[str]:
+    for name in ("eas", "eas.cmd", "eas.bat"):
+        found = shutil.which(name)
+        if found:
+            return [found]
+    return ["eas"]
+
+
 def _run(cmd: list[str], *, cwd: Path = APP) -> subprocess.CompletedProcess[str]:
+    if cmd and cmd[0] == "eas":
+        cmd = _eas_cmd() + cmd[1:]
+    env = _env()
+    npm_bin = os.path.join(os.environ.get("APPDATA", ""), "npm")
+    if npm_bin and npm_bin not in env.get("PATH", ""):
+        env["PATH"] = npm_bin + os.pathsep + env.get("PATH", "")
     return subprocess.run(
         cmd,
         cwd=cwd,
-        env=_env(),
+        env=env,
         text=True,
         capture_output=True,
         check=False,
@@ -144,8 +159,8 @@ def load_ids(path: Path) -> tuple[str, str]:
 
 
 def sync_check() -> None:
-    """Garante que os dois agentes já fundiram no main antes de build."""
-    print("=== Sync check (dois agentes) ===")
+    """Garante que todos os agentes já fundiram no main antes de build."""
+    print("=== Sync check (todos os agentes) ===")
     fetch = subprocess.run(
         ["git", "fetch", "origin"],
         cwd=ROOT,

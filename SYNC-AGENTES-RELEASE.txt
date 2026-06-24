@@ -1,45 +1,46 @@
-REGRA — DOIS AGENTES, UMA SUBIDA (OBRIGATÓRIO)
-================================================
+REGRA — TRÊS AGENTES, UMA SUBIDA (OBRIGATÓRIO)
+=================================================
 
 Sempre que QUALQUER agente ou o utilizador pedir build/loja/TestFlight/Play:
 
-  NÃO subir sozinho. Esperar o outro agente. Um build só para todos.
+  NÃO subir sozinho. Esperar TODOS os agentes. Um build só para todos.
 
-FLUXO (copiar para o outro chat)
---------------------------------
+FLUXO (copiar para os 3 chats)
+------------------------------
 
 1. ESPERAR — código fundido no Git
    git pull origin main
    (cada agente: commit + push do que fez)
    python scripts/wait_and_submit_eas.py sync-check
-   → Só continuar se passar (sem diff pendente app/ + ego_api/)
+   → Só continuar se passar (sem diff pendente em app/ + ego_api/)
 
 2. GERAR uma vez (iOS + Android JUNTOS)
    GERAR-E-SUBMETER-JUNTO.bat
-   → Grava builds-VERSAO.ids.json (ex: builds-1.0.42.ids.json)
+   → Grava builds-VERSAO.ids.json
 
 3. SUBMETER uma vez (depois FINISHED nos dois)
    AGUARDAR-E-SUBMETER.bat
    → TestFlight + Play no mesmo fluxo
 
-PROIBIDO (dois agentes em paralelo)
------------------------------------
+PROIBIDO (vários agentes em paralelo)
+-------------------------------------
 - GERAR-1.0.*.bat / BUILD-*.bat sozinhos (só iOS ou só Android)
 - SUBMIT-IOS-*.bat sozinho
 - PUBLICAR-*-PLAY.bat sozinho
 - eas build --platform android (ou ios) sem o par
-- eas submit --latest (pode pegar build antigo do outro agente)
+- eas submit --latest (pode pegar build antigo de outro agente)
 
 MENSAGEM PARA O UTILIZADOR (quando terminar código)
 ---------------------------------------------------
-"Diz ao outro agente: pronto para sync build. Quando os dois tiverem push,
+"Diz aos outros agentes: pronto para sync build. Quando os TRÊS tiverem push,
 correr GERAR-E-SUBMETER-JUNTO.bat uma vez só."
 
 Zonas por agente (evitar conflito no código)
 --------------------------------------------
-• Agente A: EGO de Bolso, chat card, SocialShare, signup
-• Agente B: Monstrinhos, daily_care, moodMonsters/, segurança
-• Partilhado só com sync: flask_api.py, app.config.ts, config.py
+• Agente A — EGO de Bolso: wellness-journey, EgoDeBolsoChatCard, SocialShare
+• Agente B — Monstrinhos: daily_care, moodMonsters/, habits
+• Agente C — Segurança/API: Play Integrity, RLS, Railway, stripe (só se pedido)
+• Partilhado só com sync: flask_api.py, app.config.ts, ego_api/config.py
 
 CHECKLIST PRÉ-BUILD
 -------------------
@@ -58,7 +59,17 @@ python scripts/wait_and_submit_eas.py sync-check
 python scripts/wait_and_submit_eas.py queue
 python scripts/wait_and_submit_eas.py wait-submit
 
-Estado actual (atualizar manualmente se quiser)
------------------------------------------------
-• Segurança API: commit 1de2607 em main (Play Integrity backend)
-• Build loja: AGUARDAR outro agente → GERAR-E-SUBMETER-JUNTO.bat amanhã
+ESTADO ACTUAL — 1.0.43 (SUBMETIDO)
+----------------------------------
+• Versão loja: 1.0.43 (app.config.ts)
+• Builds: builds-1.0.43.ids.json
+  iOS:     8dc8e777-eb54-4f9e-9bde-78416e51405b
+  Android: 80651c7c-78b8-4342-bef2-1bf7326eb937
+• Segurança API: main (Play Integrity backend, commit 1de2607+)
+• Próximo build: só quando os 3 agentes tiverem push → sync-check → GERAR-E-SUBMETER-JUNTO.bat
+
+O QUE CADA AGENTE FAZ AGORA (pós-1.0.43)
+----------------------------------------
+1. git pull origin main
+2. NÃO gerar novo build — 1.0.43 já foi
+3. Continuar código para 1.0.44 (ou hotfix) só após sync dos 3
