@@ -39,7 +39,7 @@ export function CompanionPocketScene({ colors, journey }: Props) {
         <View style={[styles.careTrack, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
           <View style={[styles.careFill, { width: fillWidth, backgroundColor: "#FFE566" }]} />
         </View>
-        <Text style={styles.pocketHint}>Estilo anos 90 — no bolso, com a Luna 💜</Text>
+        <Text style={styles.pocketHint}>Companheiro digital — energia no bolso 💜</Text>
         {moodLine ? (
           <Text style={[styles.moodLine, needsCare ? styles.moodLonely : styles.moodHappy]}>
             {moodLine}

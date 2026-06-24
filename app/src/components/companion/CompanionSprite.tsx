@@ -1,3 +1,4 @@
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
 
@@ -9,9 +10,107 @@ type Props = {
   happy?: boolean;
 };
 
+const STAGE_PALETTE: Record<
+  CompanionStage,
+  { body: [string, string, string]; ring: string; glow: string; accent: string }
+> = {
+  egg: {
+    body: ["#1E0A3C", "#5B21B6", "#22D3EE"],
+    ring: "#A78BFA",
+    glow: "rgba(34, 211, 238, 0.45)",
+    accent: "#E879F9",
+  },
+  hatchling: {
+    body: ["#312E81", "#7C3AED", "#38BDF8"],
+    ring: "#C4B5FD",
+    glow: "rgba(167, 139, 250, 0.5)",
+    accent: "#FDE047",
+  },
+  teen: {
+    body: ["#0C4A6E", "#2563EB", "#22D3EE"],
+    ring: "#67E8F9",
+    glow: "rgba(56, 189, 248, 0.5)",
+    accent: "#A5F3FC",
+  },
+  adult: {
+    body: ["#4C1D95", "#7C3AED", "#F472B6"],
+    ring: "#F0ABFC",
+    glow: "rgba(244, 114, 182, 0.45)",
+    accent: "#FDE68A",
+  },
+};
+
+function GlowRing({
+  size,
+  color,
+  pulse,
+}: {
+  size: number;
+  color: string;
+  pulse: Animated.Value;
+}) {
+  const scale = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.08],
+  });
+  const opacity = pulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.35, 0.75],
+  });
+  return (
+    <Animated.View
+      style={[
+        styles.glowRing,
+        {
+          width: size * 1.15,
+          height: size * 1.15,
+          borderRadius: size * 0.58,
+          borderColor: color,
+          opacity,
+          transform: [{ scale }],
+        },
+      ]}
+    />
+  );
+}
+
+function CircuitDots({ size, color }: { size: number; color: string }) {
+  return (
+    <View style={styles.circuitRow}>
+      {[0, 1, 2].map((i) => (
+        <View
+          key={i}
+          style={[
+            styles.circuitDot,
+            {
+              width: size * 0.06,
+              height: size * 0.06,
+              backgroundColor: color,
+              marginHorizontal: size * 0.04,
+            },
+          ]}
+        />
+      ))}
+    </View>
+  );
+}
+
 export function CompanionSprite({ stage = "egg", size = 100, happy = false }: Props) {
   const s = (stage as CompanionStage) || "egg";
+  const palette = STAGE_PALETTE[s] ?? STAGE_PALETTE.egg;
   const wobble = useRef(new Animated.Value(0)).current;
+  const pulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 1400, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0, duration: 1400, useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
 
   useEffect(() => {
     if (!happy) return;
@@ -30,98 +129,189 @@ export function CompanionSprite({ stage = "egg", size = 100, happy = false }: Pr
   if (s === "egg") {
     return (
       <Animated.View style={[styles.center, { transform: [{ rotate }] }]}>
-        <View style={[styles.egg, { width: size * 0.7, height: size, borderRadius: size * 0.35 }]}>
-          <View style={styles.eggShine} />
-          <View style={[styles.eggSpot, { width: size * 0.15, height: size * 0.15 }]} />
-        </View>
+        <GlowRing size={size} color={palette.ring} pulse={pulse} />
+        <LinearGradient
+          colors={palette.body}
+          start={{ x: 0.1, y: 0 }}
+          end={{ x: 0.9, y: 1 }}
+          style={[
+            styles.egg,
+            {
+              width: size * 0.72,
+              height: size,
+              borderRadius: size * 0.36,
+              borderColor: palette.ring,
+            },
+          ]}
+        >
+          <View style={[styles.eggCore, { backgroundColor: palette.glow }]} />
+          <View style={[styles.eggScan, { borderColor: palette.accent }]} />
+          <CircuitDots size={size} color={palette.accent} />
+          <View style={[styles.eggShine, { backgroundColor: "rgba(255,255,255,0.35)" }]} />
+        </LinearGradient>
       </Animated.View>
     );
   }
 
-  const bodyColor = s === "hatchling" ? "#FFE566" : s === "teen" ? "#7DD3FC" : "#A78BFA";
-  const bodyDark = s === "hatchling" ? "#E5C235" : s === "teen" ? "#38BDF8" : "#7C3AED";
-  const bodyH = s === "adult" ? size * 0.85 : size * 0.75;
+  const bodyH = s === "adult" ? size * 0.88 : size * 0.78;
 
   return (
     <Animated.View style={[styles.center, { transform: [{ rotate }] }]}>
-      <View
+      <GlowRing size={size} color={palette.ring} pulse={pulse} />
+      <LinearGradient
+        colors={palette.body}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
         style={[
-          styles.birdBody,
+          styles.creatureBody,
           {
-            width: size * 0.82,
+            width: size * 0.84,
             height: bodyH,
-            borderRadius: size * 0.41,
-            backgroundColor: bodyColor,
-            borderColor: bodyDark,
+            borderRadius: size * 0.42,
+            borderColor: palette.ring,
           },
         ]}
       >
-        <View style={styles.birdEyes}>
-          <View style={styles.birdEye} />
-          <View style={styles.birdEye} />
+        <View style={styles.antennaRow}>
+          <View style={[styles.antenna, { backgroundColor: palette.accent }]} />
+          <View style={[styles.antenna, { backgroundColor: palette.accent }]} />
         </View>
-        <View style={[styles.beak, { borderBottomColor: "#F59E0B" }]} />
-        {s === "adult" ? <Text style={styles.crown}>👑</Text> : null}
+        <View style={styles.eyes}>
+          <View style={[styles.eyeGlow, { shadowColor: palette.accent }]}>
+            <View style={[styles.eye, { backgroundColor: "#0F172A" }]} />
+          </View>
+          <View style={[styles.eyeGlow, { shadowColor: palette.accent }]}>
+            <View style={[styles.eye, { backgroundColor: "#0F172A" }]} />
+          </View>
+        </View>
+        <View style={[styles.mouthBar, { backgroundColor: palette.accent }]} />
+        {s === "adult" ? (
+          <Text style={[styles.crown, { color: palette.accent }]}>◆</Text>
+        ) : null}
         {s === "hatchling" ? (
-          <View style={[styles.shell, { backgroundColor: "#FFF8E7" }]}>
-            <Text style={{ fontSize: 10 }}>🥚</Text>
+          <View style={[styles.shellChip, { borderColor: palette.ring }]}>
+            <Text style={{ fontSize: 9, color: palette.accent }}>BOOT</Text>
           </View>
         ) : null}
-      </View>
-      <View style={styles.birdFeet}>
-        <View style={[styles.birdFoot, { backgroundColor: bodyDark }]} />
-        <View style={[styles.birdFoot, { backgroundColor: bodyDark }]} />
+      </LinearGradient>
+      <View style={styles.feet}>
+        <View style={[styles.foot, { backgroundColor: palette.ring }]} />
+        <View style={[styles.foot, { backgroundColor: palette.ring }]} />
       </View>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  center: { alignItems: "center" },
+  center: { alignItems: "center", justifyContent: "center" },
+  glowRing: {
+    position: "absolute",
+    borderWidth: 2,
+  },
   egg: {
-    backgroundColor: "#FFF8E7",
-    borderWidth: 3,
-    borderColor: "#E8D5B5",
+    borderWidth: 2,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
+  },
+  eggCore: {
+    position: "absolute",
+    width: "55%",
+    height: "40%",
+    borderRadius: 999,
+    top: "28%",
+    opacity: 0.35,
+  },
+  eggScan: {
+    position: "absolute",
+    width: "70%",
+    height: 2,
+    borderTopWidth: 1,
+    top: "46%",
+    opacity: 0.8,
   },
   eggShine: {
     position: "absolute",
-    top: 12,
-    left: 14,
-    width: 14,
-    height: 22,
+    top: 14,
+    left: 16,
+    width: 16,
+    height: 28,
     borderRadius: 8,
-    backgroundColor: "rgba(255,255,255,0.55)",
-    transform: [{ rotate: "-20deg" }],
+    transform: [{ rotate: "-18deg" }],
   },
-  eggSpot: {
+  circuitRow: {
+    flexDirection: "row",
+    marginTop: 8,
+    opacity: 0.9,
+  },
+  circuitDot: {
     borderRadius: 999,
-    backgroundColor: "#F5D0A8",
-    opacity: 0.7,
-    marginTop: 12,
   },
-  birdBody: { borderWidth: 3, alignItems: "center", justifyContent: "center" },
-  birdEyes: { flexDirection: "row", gap: 14, marginTop: 4 },
-  birdEye: { width: 12, height: 12, borderRadius: 6, backgroundColor: "#1E293B" },
-  beak: {
-    width: 0,
-    height: 0,
-    borderLeftWidth: 7,
-    borderRightWidth: 7,
-    borderBottomWidth: 10,
-    borderLeftColor: "transparent",
-    borderRightColor: "transparent",
-    marginTop: 4,
+  creatureBody: {
+    borderWidth: 2,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  crown: { position: "absolute", top: -16, fontSize: 18 },
-  shell: {
+  antennaRow: {
     position: "absolute",
-    bottom: -6,
+    top: -10,
+    flexDirection: "row",
+    gap: 22,
+  },
+  antenna: {
+    width: 3,
+    height: 12,
+    borderRadius: 2,
+  },
+  eyes: {
+    flexDirection: "row",
+    gap: 16,
+    marginTop: 2,
+  },
+  eyeGlow: {
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 6,
+    elevation: 4,
+  },
+  eye: {
+    width: 13,
+    height: 13,
+    borderRadius: 7,
+    borderWidth: 2,
+    borderColor: "#67E8F9",
+  },
+  mouthBar: {
+    width: 18,
+    height: 3,
+    borderRadius: 2,
+    marginTop: 8,
+    opacity: 0.85,
+  },
+  crown: {
+    position: "absolute",
+    top: -14,
+    fontSize: 16,
+    fontWeight: "900",
+  },
+  shellChip: {
+    position: "absolute",
+    bottom: -5,
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.55)",
   },
-  birdFeet: { flexDirection: "row", gap: 16, marginTop: -2 },
-  birdFoot: { width: 18, height: 8, borderRadius: 6 },
+  feet: {
+    flexDirection: "row",
+    gap: 18,
+    marginTop: -2,
+  },
+  foot: {
+    width: 16,
+    height: 6,
+    borderRadius: 4,
+    opacity: 0.85,
+  },
 });

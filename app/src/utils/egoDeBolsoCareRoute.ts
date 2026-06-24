@@ -9,7 +9,10 @@ function textHintsAgenda(text: string): boolean {
     t.includes("hábito") ||
     t.includes("habito") ||
     t.includes("lembrete") ||
-    t.includes("compromisso")
+    t.includes("compromisso") ||
+    t.includes("entre nós") ||
+    t.includes("entre nos") ||
+    t.includes("convite")
   );
 }
 
@@ -32,12 +35,12 @@ export function resolveEgoDeBolsoCareRoute(journey: WellnessJourney): EgoCareRou
     const key = (step.key ?? "").toLowerCase();
     const label = step.label ?? "";
 
-    if (key === "habit" || key === "reminder" || key.includes("agenda")) {
+    if (key === "habit" || key === "reminder" || key === "invite" || key === "draft_confirm") {
       return "/(main)/agenda";
     }
-    if (key === "checkin") return "/(main)/daily-care";
-    if (key === "night_dump" || key === "draft_confirm") return "/(main)/chat";
-    if (key === "chat" || key === "voice" || key === "invite") return "/(main)/chat";
+    if (key === "checkin" || key === "streak") return "/(main)/daily-care";
+    if (key === "night_dump") return "/(main)/chat";
+    if (key === "chat" || key === "voice") return "/(main)/chat";
 
     if (key === "or") {
       if (textHintsAgenda(label)) return "/(main)/agenda";

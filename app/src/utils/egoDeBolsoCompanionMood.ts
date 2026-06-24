@@ -3,9 +3,11 @@ import { resolveEgoDeBolsoCareRoute } from "./egoDeBolsoCareRoute";
 
 export type CompanionMood = "happy" | "waiting" | "lonely";
 
-/** Todas as missões do nível actual estão feitas. */
+/** Todas as missões do nível actual estão feitas (ou descanso de hoje). */
 export function egoDeBolsoMissionsComplete(journey: WellnessJourney): boolean {
+  if (journey.mission_done_today) return true;
   if (journey.level_complete) return true;
+  if (journey.show_level_up) return true;
   const steps = journey.steps ?? [];
   if (steps.length === 0) return false;
   return steps.every((s) => s.done);

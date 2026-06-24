@@ -486,13 +486,13 @@ export function EntreNosAgendaSection({
                   <TextInput
                     value={inviteContact}
                     onChangeText={setInviteContact}
-                    placeholder="Telefone ou e-mail"
+                    placeholder="11 99999-9999 ou email@exemplo.com"
                     placeholderTextColor={colors.textMuted}
                     autoCapitalize="none"
                     style={inputStyle}
                   />
                   <Text style={[s.muted, { color: colors.textMuted, marginTop: 6, fontSize: 12 }]}>
-                    Sem telefone no cadastro? Use o e-mail da pessoa — ela entra com o mesmo e-mail.
+                    Prefira o telefone (WhatsApp) — ou use o e-mail se a pessoa não tiver número.
                   </Text>
                   <Pressable
                     onPress={onInvitePartner}

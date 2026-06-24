@@ -208,9 +208,11 @@ def signup(
             return None, ref_err
         from ego_api import shared_calendars as sc
 
-        sc.link_shared_memberships_for_user(client, uid, email_norm)
+        sc.link_shared_memberships_for_user(client, uid, email_norm, source="signup")
         if phone_norm:
-            sc.link_shared_memberships_for_user_phone(client, uid, phone_norm)
+            sc.link_shared_memberships_for_user_phone(
+                client, uid, phone_norm, source="signup"
+            )
         from ego_api.signup_emails import queue_welcome_email
 
         queue_welcome_email(uid, email_norm, display)

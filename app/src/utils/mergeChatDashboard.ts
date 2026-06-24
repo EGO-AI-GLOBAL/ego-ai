@@ -94,6 +94,7 @@ export function mergeChatIntoDashboard(
     reminders: filterVisibleReminders(reminders),
     agenda,
     shared_calendars: sharedCalendars,
+    ...(result.wellness_journey ? { wellness_journey: result.wellness_journey } : {}),
   };
 }
 
@@ -103,6 +104,8 @@ export function chatResultChangedData(result: SendChatResult): boolean {
       result.agenda_saved?.length ||
       result.shared_events_saved?.length ||
       result.shared_calendars_saved?.length ||
-      result.shared_members_saved?.length
+      result.shared_members_saved?.length ||
+      result.wellness_journey ||
+      result.access
   );
 }

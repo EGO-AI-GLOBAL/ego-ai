@@ -7,7 +7,7 @@ from typing import Any
 
 from ego_api import db
 from ego_api import progression
-from ego_api.streaks import get_streak
+from ego_api.streaks import _local_date_str, get_streak
 
 try:
     from ego_supabase import Client
@@ -15,254 +15,273 @@ except ImportError:
     from supabase import Client  # type: ignore[assignment]
 
 
-# Cada nível exige requisitos; ao completar avança automaticamente.
+# Missões EGO de Bolso — USO do app (chat, voz, Monstrinhos, Agenda, desabafo)
+# + CRESCIMENTO: níveis 10, 20, 30… = só convite (amigo novo aceita na Agenda).
 JOURNEY_LEVELS: list[dict[str, Any]] = [
     {
         "level": 1,
-        "title": "Respirar",
-        "subtitle": "1 minuto — sem pressão",
+        "title": "Primeiro uso",
+        "subtitle": "Monstrinhos ou chat",
         "emoji": "🌱",
-        "today_task": "Toque no emoji de como está OU mande 1 mensagem",
-        "why": "Nomear o que sente já alivia — psicólogos chamam de check-in emocional.",
+        "today_task": "Toque no emoji de humor OU mande 1 mensagem no chat",
+        "why": "O app começa aqui — humor ou conversa com o avatar.",
         "requirements": [{"type": "or_steps", "options": [("checkin", 1), ("chat", 1)]}],
-        "share_challenge": "Comecei minha Jornada de Cuidado no EGO-AI 🌱 Nível 1 feito!",
+        "share_challenge": "Comecei a usar o EGO-AI 🌱 Quem vem comigo?",
         "plan_nudge": None,
     },
     {
         "level": 2,
-        "title": "Conectar",
-        "subtitle": "Fale ou escreva — você escolhe",
+        "title": "Conversar",
+        "subtitle": "Texto ou voz no chat",
         "emoji": "💬",
         "today_task": "3 mensagens no chat OU 1 áudio de voz",
-        "why": "Ouvir sua voz ou ler suas palavras ajuda a organizar a mente.",
+        "why": "Quanto mais você fala com o avatar, mais o app te conhece.",
         "requirements": [
-            {
-                "type": "or_steps",
-                "options": [("chat", 3), ("voice", 1)],
-            }
+            {"type": "or_steps", "options": [("chat", 3), ("voice", 1)]}
         ],
-        "share_challenge": "Nível 2 da Jornada de Cuidado 💬 Quem topa me acompanhar?",
+        "share_challenge": "Nível 2 💬 Já estou conversando com meu avatar",
         "plan_nudge": None,
     },
     {
         "level": 3,
-        "title": "Registrar",
-        "subtitle": "Tire da cabeça e ponha no papel",
+        "title": "Agenda",
+        "subtitle": "Hábito ou compromisso manual",
         "emoji": "📝",
-        "today_task": "Marque 1 hábito OU crie 1 lembrete na Agenda",
-        "why": "Anotar reduz ansiedade — o cérebro para de repetir a mesma preocupação.",
+        "today_task": "Marque 1 hábito OU 1 compromisso na Agenda",
+        "why": "A Agenda é o centro do seu dia — use os botões, sem depender do chat.",
         "requirements": [{"type": "or_steps", "options": [("habit", 1), ("reminder", 1)]}],
-        "share_challenge": "Nível 3 📝 Organizando a mente com EGO-AI",
+        "share_challenge": "Nível 3 📝 Minha Agenda no EGO-AI",
         "plan_nudge": "Plano Essencial: até 3 lembretes. Conexão libera 20.",
     },
     {
         "level": 4,
+        "title": "Desabafo",
+        "subtitle": "Função «Desabafo agora» no chat",
+        "emoji": "🌙",
+        "today_task": "Faça 1 desabafo noturno no chat",
+        "why": "O desabafo separa o que está na cabeça — amanhã você confirma na Agenda.",
+        "requirements": [{"type": "step", "key": "night_dump", "min": 1}],
+        "share_challenge": "Nível 4 🌙 Desabafo no EGO-AI — quem testa comigo?",
+        "plan_nudge": None,
+    },
+    {
+        "level": 5,
         "title": "Organizar",
-        "subtitle": "Seu dia com mais clareza",
+        "subtitle": "Agenda após o desabafo",
         "emoji": "📅",
-        "today_task": "Confirme 1 item do desabafo OU marque 1 compromisso",
-        "why": "Ver o dia organizado dá sensação de controlo — importante para quem ansia.",
+        "today_task": "Confirme 1 item do desabafo OU marque na Agenda",
+        "why": "Fechar o ciclo desabafo → Agenda é o diferencial do app.",
         "requirements": [
             {
                 "type": "or_steps",
                 "options": [("draft_confirm", 1), ("reminder", 1), ("habit", 1)],
             }
         ],
-        "share_challenge": "Nível 4 📅 Agenda no lugar, cabeça mais leve",
+        "share_challenge": "Nível 4 📅 Agenda no lugar no EGO-AI",
         "plan_nudge": None,
     },
     {
-        "level": 5,
-        "title": "Desabafar",
-        "subtitle": "Solte antes de dormir",
-        "emoji": "🌙",
-        "today_task": "Grave 1 desabafo noturno OU 1 mensagem de voz",
-        "why": "Desabafar à noite melhora o sono — amanhã você confirma na Agenda.",
-        "requirements": [
-            {"type": "or_steps", "options": [("night_dump", 1), ("voice", 1)]}
-        ],
-        "share_challenge": "Nível 5 🌙 Desabafo noturno — quem faz comigo?",
-        "plan_nudge": "Essencial: 3 áudios/dia. Conexão: 15 áudios + mais mensagens.",
-    },
-    {
         "level": 6,
-        "title": "Rotina da manhã",
-        "subtitle": "Confirmar é cuidar de si",
+        "title": "Manhã no app",
+        "subtitle": "Confirmar + conversar",
         "emoji": "☀️",
-        "today_task": "Confirme o desabafo de ontem E mande 1 mensagem",
-        "why": "Ritual matinal cria previsibilidade — ansiedade odeia surpresas.",
+        "today_task": "1 mensagem no chat E confirmar desabafo OU marcar na Agenda",
+        "why": "Rotina matinal no app: conversa com o avatar + Agenda no mesmo dia.",
         "requirements": [
-            {"type": "step", "key": "draft_confirm", "min": 1},
             {"type": "step", "key": "chat", "min": 1},
+            {
+                "type": "or_steps",
+                "options": [("draft_confirm", 1), ("reminder", 1), ("habit", 1)],
+            },
         ],
-        "share_challenge": "Nível 6 ☀️ Rotina de bem-estar funcionando!",
+        "share_challenge": "Nível 6 ☀️ Rotina EGO-AI funcionando",
         "plan_nudge": None,
     },
     {
         "level": 7,
-        "title": "Constância",
-        "subtitle": "3 dias seguidos de cuidado",
-        "emoji": "🔥",
-        "today_task": "Mantenha a ofensiva — 1 ação hoje (chat, hábito ou desabafo)",
-        "why": "3 dias formam hábito. Psicólogos dizem que a repetição acalma o sistema nervoso.",
-        "requirements": [{"type": "streak", "min": 3}],
-        "share_challenge": "3 dias na Jornada de Cuidado 🔥 Quem bate meu recorde?",
-        "plan_nudge": "Você está usando mais — veja os planos se bater limites diários.",
+        "title": "Voz",
+        "subtitle": "Áudio no chat",
+        "emoji": "🎙️",
+        "today_task": "1 áudio de voz OU 3 mensagens no chat",
+        "why": "A voz é um dos recursos mais usados — experimente o microfone.",
+        "requirements": [
+            {"type": "or_steps", "options": [("voice", 1), ("chat", 3)]}
+        ],
+        "share_challenge": "Nível 7 🎙️ Falando com meu avatar",
+        "plan_nudge": "Essencial: 3 áudios/dia. Conexão: 15 áudios + mais mensagens.",
     },
     {
         "level": 8,
-        "title": "Cuidado completo",
-        "subtitle": "Corpo e mente no mesmo ritmo",
+        "title": "Desabafo + Agenda",
+        "subtitle": "Duas áreas do app no mesmo dia",
         "emoji": "💜",
-        "today_task": "Marque 1 hábito E faça 1 desabafo noturno",
-        "why": "Combinar ação diária + desabafo é o combo que clínicas de bem-estar recomendam.",
+        "today_task": "Desabafo noturno E 1 hábito ou compromisso na Agenda",
+        "why": "Combinar chat e Agenda é como o app foi desenhado para funcionar.",
         "requirements": [
-            {"type": "step", "key": "habit", "min": 1},
             {"type": "step", "key": "night_dump", "min": 1},
+            {"type": "or_steps", "options": [("habit", 1), ("reminder", 1)]},
         ],
-        "share_challenge": "Nível 8 💜 Cuidado completo — desafio entre amigos!",
-        "plan_nudge": "Plano Essencial: 200 mil tokens/mês. Conexão: 800 mil.",
+        "share_challenge": "Nível 8 💜 Chat + Agenda no mesmo dia",
+        "plan_nudge": None,
     },
     {
         "level": 9,
-        "title": "Uma semana",
-        "subtitle": "7 dias de Jornada",
+        "title": "Humor + chat",
+        "subtitle": "Monstrinhos e mensagem",
         "emoji": "⭐",
-        "today_task": "Não quebre a sequência hoje",
-        "why": "Uma semana inteira prova que você consegue — marco que muita gente em terapia busca.",
-        "requirements": [{"type": "streak", "min": 7}],
-        "share_challenge": "7 dias de bem-estar ⭐ Quem consegue igual?",
+        "today_task": "Check-in nos Monstrinhos E 1 mensagem no chat",
+        "why": "Monstrinhos + avatar = as duas portas de entrada do app.",
+        "requirements": [
+            {"type": "step", "key": "checkin", "min": 1},
+            {"type": "step", "key": "chat", "min": 1},
+        ],
+        "share_challenge": "Nível 9 ⭐ Uso completo do EGO-AI hoje",
         "plan_nudge": None,
     },
     {
         "level": 10,
-        "title": "Compartilhar cuidado",
-        "subtitle": "Ninguém precisa fazer sozinho",
+        "title": "Trazer alguém",
+        "subtitle": "Amigo novo — Entre Nós ou grupo",
         "emoji": "🤝",
-        "today_task": "Convide 1 pessoa (Entre Nós) OU complete 14 dias de ofensiva",
-        "why": "Apoio social é gratuito e funciona — convide alguém de confiança.",
-        "requirements": [
-            {"type": "or_steps", "options": [("invite", 1), ("streak", 14)]}
-        ],
-        "share_challenge": "Completei 10 níveis da Jornada 🤝 Quem vem comigo?",
+        "today_task": "Convide pelo telefone (WhatsApp) alguém sem conta — cumpre quando aceitar",
+        "why": "Missão de crescimento: traga 1 amigo novo na Agenda. Sem propaganda — só convite.",
+        "requirements": [{"type": "step", "key": "invite", "min": 1}],
+        "share_challenge": "Convidei alguém para o EGO-AI 🤝 Quem você traz?",
         "plan_nudge": None,
     },
     {
         "level": 11,
-        "title": "Duas semanas",
-        "subtitle": "14 dias de cuidado",
+        "title": "Chat de novo",
+        "subtitle": "Manter a conversa",
         "emoji": "🌿",
-        "today_task": "Mantenha a sequência — você está perto de 2 semanas",
-        "why": "Duas semanas é quando muita gente em terapia sente mudança real.",
-        "requirements": [{"type": "streak", "min": 14}],
-        "share_challenge": "14 dias de bem-estar 🌿 Bate meu recorde?",
+        "today_task": "3 mensagens no chat OU 1 áudio de voz",
+        "why": "Voltar ao chat mantém o vínculo com o avatar.",
+        "requirements": [
+            {"type": "or_steps", "options": [("chat", 3), ("voice", 1)]}
+        ],
+        "share_challenge": "Nível 11 🌿 Ainda no chat do EGO-AI",
         "plan_nudge": None,
     },
     {
         "level": 12,
-        "title": "Desabafo frequente",
-        "subtitle": "3 noites de desabafo na semana",
+        "title": "Desabafo de rotina",
+        "subtitle": "Use o botão no chat",
         "emoji": "🌙",
-        "today_task": "Faça o desabafo noturno hoje",
-        "why": "Desabafar com regularidade evita acumular ansiedade.",
-        "requirements": [{"type": "step", "key": "night_dump", "min": 3}],
-        "share_challenge": "Nível 12 🌙 Desabafo virou hábito",
+        "today_task": "Faça o desabafo noturno no chat",
+        "why": "Usuários que desabafam voltam — é o coração do app.",
+        "requirements": [{"type": "step", "key": "night_dump", "min": 1}],
+        "share_challenge": "Nível 12 🌙 Desabafo virou hábito no app",
         "plan_nudge": None,
     },
     {
         "level": 13,
-        "title": "Agenda viva",
-        "subtitle": "5 lembretes ou hábitos marcados",
+        "title": "Agenda ativa",
+        "subtitle": "Marque algo hoje",
         "emoji": "📋",
-        "today_task": "Marque 1 coisa na Agenda hoje",
-        "why": "Agenda viva = menos surpresas na cabeça.",
+        "today_task": "1 hábito OU 1 compromisso na Agenda",
+        "why": "Agenda usada todo dia = app útil no dia a dia.",
         "requirements": [
-            {"type": "or_steps", "options": [("habit", 3), ("reminder", 3)]}
+            {"type": "or_steps", "options": [("habit", 1), ("reminder", 1)]}
         ],
-        "share_challenge": "Nível 13 📋 Agenda no piloto automático",
+        "share_challenge": "Nível 13 📋 Agenda viva no EGO-AI",
         "plan_nudge": None,
     },
     {
         "level": 14,
-        "title": "Três semanas",
-        "subtitle": "21 dias de Jornada",
+        "title": "Confirmar desabafo",
+        "subtitle": "Banner na Agenda",
         "emoji": "🏆",
-        "today_task": "Não quebre a sequência hoje",
-        "why": "21 dias — marco clássico para formar hábito duradouro.",
-        "requirements": [{"type": "streak", "min": 21}],
-        "share_challenge": "21 dias 🏆 Quem chega aqui comigo?",
+        "today_task": "Confirme 1 desabafo OU marque hábito/compromisso na Agenda",
+        "why": "Confirmar na Agenda transforma desabafo em plano — ou organize o dia manualmente.",
+        "requirements": [
+            {
+                "type": "or_steps",
+                "options": [("draft_confirm", 1), ("habit", 1), ("reminder", 1)],
+            }
+        ],
+        "share_challenge": "Nível 14 🏆 Ciclo desabafo fechado",
         "plan_nudge": None,
     },
     {
         "level": 15,
-        "title": "Voz confiante",
-        "subtitle": "5 mensagens de voz",
+        "title": "Só voz",
+        "subtitle": "Microfone no chat",
         "emoji": "🎙️",
-        "today_task": "Mande 1 áudio ao avatar",
-        "why": "Falar em voz alta organiza emoções mais rápido que só pensar.",
-        "requirements": [{"type": "step", "key": "voice", "min": 5}],
-        "share_challenge": "Nível 15 🎙️ Falando com coragem",
+        "today_task": "Mande 1 áudio de voz ao avatar",
+        "why": "Áudio gasta mais do plano — e é o que mais prende quem usa o app.",
+        "requirements": [{"type": "step", "key": "voice", "min": 1}],
+        "share_challenge": "Nível 15 🎙️ Voz no EGO-AI",
         "plan_nudge": "Voz usa mais do plano — veja Conexão se precisar.",
     },
     {
         "level": 16,
-        "title": "Check-in mestre",
-        "subtitle": "10 desafios diários feitos",
+        "title": "Monstrinhos",
+        "subtitle": "Check-in de humor",
         "emoji": "💜",
-        "today_task": "Complete os Monstrinhos do Humor de hoje",
-        "why": "Reconhecer como se sente todo dia é treino emocional.",
-        "requirements": [{"type": "step", "key": "checkin", "min": 10}],
-        "share_challenge": "10 check-ins 💜 Desafio Diário no sangue",
+        "today_task": "Toque no emoji de como está (Monstrinhos)",
+        "why": "Monstrinhos trazem gente de volta ao app todos os dias.",
+        "requirements": [{"type": "step", "key": "checkin", "min": 1}],
+        "share_challenge": "Check-in feito 💜 Monstrinhos no EGO-AI",
         "plan_nudge": None,
     },
     {
         "level": 17,
-        "title": "Um mês",
-        "subtitle": "30 dias seguidos",
+        "title": "Explorar tudo",
+        "subtitle": "Chat, Agenda ou desabafo",
         "emoji": "👑",
-        "today_task": "Proteja sua sequência hoje",
-        "why": "Um mês de cuidado — poucos chegam aqui. Você está.",
-        "requirements": [{"type": "streak", "min": 30}],
-        "share_challenge": "30 dias 👑 Quem aguenta igual?",
+        "today_task": "Desabafo, voz, hábito ou compromisso — escolha 1",
+        "why": "Você já conhece o app — use a função que fizer sentido hoje.",
+        "requirements": [
+            {
+                "type": "or_steps",
+                "options": [
+                    ("night_dump", 1),
+                    ("voice", 1),
+                    ("habit", 1),
+                    ("reminder", 1),
+                ],
+            }
+        ],
+        "share_challenge": "Nível 17 👑 Power user do EGO-AI",
         "plan_nudge": None,
     },
     {
         "level": 18,
-        "title": "Rede de apoio",
-        "subtitle": "2 pessoas convidadas",
+        "title": "Ciclo completo",
+        "subtitle": "Desabafo → confirmar na Agenda",
         "emoji": "🫶",
-        "today_task": "Convide mais 1 pessoa para o Entre Nós",
-        "why": "Cuidar junto é mais fácil — apoio social protege a saúde mental.",
-        "requirements": [{"type": "step", "key": "invite", "min": 2}],
-        "share_challenge": "Nível 18 🫶 Cuidado em rede",
+        "today_task": "Desabafo noturno E confirmar 1 item na Agenda",
+        "why": "O fluxo completo do app em um dia: desabafar e organizar.",
+        "requirements": [
+            {"type": "step", "key": "night_dump", "min": 1},
+            {"type": "step", "key": "draft_confirm", "min": 1},
+        ],
+        "share_challenge": "Nível 18 🫶 Dominei o fluxo do EGO-AI",
         "plan_nudge": None,
     },
     {
         "level": 19,
-        "title": "Rotina completa",
-        "subtitle": "Check-in + desabafo + agenda na mesma semana",
+        "title": "Super dia",
+        "subtitle": "Monstrinhos + Agenda",
         "emoji": "✨",
-        "today_task": "Check-in + 1 ação na Agenda",
-        "why": "Integrar corpo, mente e dia — o pacote completo de bem-estar.",
+        "today_task": "Check-in nos Monstrinhos E 1 hábito ou compromisso",
+        "why": "Humor + organização — o combo de retenção do app.",
         "requirements": [
-            {"type": "step", "key": "checkin", "min": 5},
-            {"type": "step", "key": "night_dump", "min": 2},
-            {"type": "or_steps", "options": [("habit", 2), ("reminder", 2)]},
+            {"type": "step", "key": "checkin", "min": 1},
+            {"type": "or_steps", "options": [("habit", 1), ("reminder", 1)]},
         ],
-        "share_challenge": "Nível 19 ✨ Rotina de bem-estar completa",
+        "share_challenge": "Nível 19 ✨ Uso forte do EGO-AI",
         "plan_nudge": None,
     },
     {
         "level": 20,
-        "title": "Lenda do cuidado",
-        "subtitle": "60 dias ou 20 níveis — você chegou",
+        "title": "Embaixador",
+        "subtitle": "Mais um amigo novo",
         "emoji": "🌟",
-        "today_task": "Celebre — e convide alguém a começar",
-        "why": "Você provou constância. Agora inspire outros.",
-        "requirements": [
-            {"type": "or_steps", "options": [("streak", 60), ("invite", 3)]}
-        ],
-        "share_challenge": "Completei a Jornada 20/20 no EGO-AI 🌟",
+        "today_task": "Convide outro amigo pelo telefone (sem conta) — cumpre quando aceitar",
+        "why": "A cada 10 níveis você traz alguém novo — assim o app cresce de graça, 1 vira 2, 2 vira 4…",
+        "requirements": [{"type": "step", "key": "invite", "min": 1}],
+        "share_challenge": "Nível 20/20 no EGO-AI 🌟 Embaixador do app",
         "plan_nudge": None,
     },
 ]
@@ -288,7 +307,43 @@ def _journey_cap(supabase: Client | None) -> int:
     return progression.get_cap(supabase, "wellness_journey")
 
 
+def _is_invite_growth_level(n: int) -> bool:
+    """Níveis 10, 20, 30… — só convite (crescimento viral)."""
+    return n > 0 and n % 10 == 0
+
+
+def _is_invite_only_level(level_def: dict[str, Any]) -> bool:
+    reqs = level_def.get("requirements") or []
+    if len(reqs) != 1:
+        return False
+    req = reqs[0]
+    return (
+        str(req.get("type") or "") == "step"
+        and str(req.get("key") or "") == "invite"
+        and int(req.get("min") or 1) == 1
+    )
+
+
+def _invite_growth_level(n: int) -> dict[str, Any]:
+    return {
+        "level": n,
+        "title": "Trazer alguém" if n < 100 else f"Embaixador {n}",
+        "subtitle": "Amigo novo aceita na Agenda",
+        "emoji": "🤝" if n % 20 else "🌟",
+        "today_task": "Convide pelo telefone alguém sem conta — missão fecha quando aceitar",
+        "why": (
+            "Missão de crescimento a cada 10 níveis: 1 amigo novo no app, "
+            "sem propaganda — só convite na Agenda."
+        ),
+        "requirements": [{"type": "step", "key": "invite", "min": 1}],
+        "share_challenge": f"Nível {n} 🤝 Convidei mais alguém pro EGO-AI — vem?",
+        "plan_nudge": None,
+    }
+
+
 def _procedural_level(n: int) -> dict[str, Any]:
+    if _is_invite_growth_level(n):
+        return _invite_growth_level(n)
     emojis = ("🌱", "💬", "📝", "📅", "🌙", "☀️", "🔥", "💜", "✨", "🌟")
     titles = (
         ("Constância", "Mais um passo de cuidado"),
@@ -297,24 +352,38 @@ def _procedural_level(n: int) -> dict[str, Any]:
         ("Desabafo", "Esvazie a mente"),
         ("Hábito", "Marque um hábito"),
         ("Voz", "Mande um áudio"),
-        ("Convite", "Traga alguém para o app"),
+        ("Monstrinhos", "Check-in de humor"),
     )
     t_idx = (n - 1) % len(titles)
     title, subtitle = titles[t_idx]
-    chat_need = 1 + max(0, (n - HANDCRAFTED_MAX) // 25)
-    voice_need = 1 + max(0, (n - HANDCRAFTED_MAX) // 40)
-    streak_need = max(3, n // 12)
-    mod = n % 5
+    chat_need = min(3, 1 + max(0, (n - HANDCRAFTED_MAX) // 25))
+    mod = (n - HANDCRAFTED_MAX) % 6
     if mod == 0:
-        reqs: list[dict[str, Any]] = [{"type": "streak", "min": streak_need}]
+        reqs: list[dict[str, Any]] = [
+            {
+                "type": "or_steps",
+                "options": [("night_dump", 1), ("checkin", 1), ("chat", 1)],
+            }
+        ]
     elif mod == 1:
         reqs = [{"type": "step", "key": "chat", "min": chat_need}]
     elif mod == 2:
-        reqs = [{"type": "or_steps", "options": [("chat", chat_need), ("checkin", 1)]}]
+        reqs = [
+            {"type": "or_steps", "options": [("chat", 1), ("checkin", 1)]}
+        ]
     elif mod == 3:
-        reqs = [{"type": "step", "key": "voice", "min": voice_need}]
+        reqs = [{"type": "step", "key": "voice", "min": 1}]
+    elif mod == 4:
+        reqs = [
+            {"type": "or_steps", "options": [("habit", 1), ("reminder", 1)]}
+        ]
     else:
-        reqs = [{"type": "or_steps", "options": [("habit", 1), ("reminder", 1)]}]
+        reqs = [
+            {
+                "type": "or_steps",
+                "options": [("draft_confirm", 1), ("habit", 1), ("reminder", 1)],
+            }
+        ]
     return {
         "level": n,
         "title": f"{title} {n}",
@@ -360,6 +429,7 @@ def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
         "step_counts": clean_counts,
         "levels_completed": list(raw.get("levels_completed") or []),
         "show_level_up": bool(raw.get("show_level_up")),
+        "mission_done_date": str(raw.get("mission_done_date") or "").strip()[:10],
     }
 
 
@@ -375,6 +445,7 @@ def _save_state(
         "step_counts": state["step_counts"],
         "levels_completed": state.get("levels_completed") or [],
         "show_level_up": bool(state.get("show_level_up")),
+        "mission_done_date": str(state.get("mission_done_date") or "").strip()[:10],
     }
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})
 
@@ -417,6 +488,10 @@ def _progress_for_level(
     return round(done / len(reqs), 2)
 
 
+def _streak_label(need: int) -> str:
+    return f"{need} dias de sequência"
+
+
 def _steps_status(
     level_def: dict[str, Any], counts: dict[str, int], streak: dict
 ) -> list[dict[str, Any]]:
@@ -444,7 +519,7 @@ def _steps_status(
             for key, need in opts:
                 if key == "streak":
                     have = int(streak.get("current") or 0)
-                    labels.append(f"{need} dias de ofensiva")
+                    labels.append(_streak_label(int(need)))
                     if have >= int(need):
                         any_done = True
                 else:
@@ -465,13 +540,173 @@ def _steps_status(
             out.append(
                 {
                     "key": "streak",
-                    "label": f"{need} dias seguidos de cuidado",
+                    "label": _streak_label(need),
                     "done": have >= need,
                     "have": have,
                     "need": need,
                 }
             )
     return out
+
+
+def _capitalize_pt(text: str) -> str:
+    t = text.strip()
+    if not t:
+        return t
+    return t[0].upper() + t[1:]
+
+
+def _format_today_task(
+    level_def: dict[str, Any], counts: dict[str, int], streak: dict[str, Any]
+) -> str:
+    """Missão mostrada ao utilizador — derivada das regras reais (não do marketing)."""
+    steps = _steps_status(level_def, counts, streak)
+    pending = [s for s in steps if not s.get("done")]
+    if not pending:
+        return str(level_def.get("today_task") or "Missão concluída neste nível")
+    parts: list[str] = []
+    for step in pending:
+        label = str(step.get("label") or "").strip()
+        have, need = step.get("have"), step.get("need")
+        if have is not None and need is not None and int(need) > 1:
+            label = f"{label} ({int(have)}/{int(need)})"
+        if label:
+            parts.append(label)
+    if not parts:
+        return str(level_def.get("today_task") or "")
+    if len(parts) == 1:
+        return _capitalize_pt(parts[0])
+    return _capitalize_pt(" e ".join(parts))
+
+
+_KNOWN_REQUIREMENT_KEYS = frozenset(
+    {
+        "checkin",
+        "chat",
+        "voice",
+        "habit",
+        "reminder",
+        "night_dump",
+        "draft_confirm",
+        "invite",
+        "streak",
+    }
+)
+
+# Passos que o utilizador consegue fazer hoje no app (sem sequência oculta nem convite).
+APP_MISSION_STEP_KEYS = frozenset(
+    {
+        "checkin",
+        "chat",
+        "voice",
+        "habit",
+        "reminder",
+        "night_dump",
+        "draft_confirm",
+        "invite",
+    }
+)
+
+# Passos com caminho implementado no app/API.
+WIRED_STEP_SOURCES: dict[str, str] = {
+    "checkin": "Monstrinhos do Humor (daily-care)",
+    "chat": "mensagem no chat",
+    "voice": "áudio de voz no chat",
+    "habit": "Agenda → hábito",
+    "reminder": "Agenda → compromisso",
+    "night_dump": "chat → Desabafo agora",
+    "draft_confirm": "Agenda → confirmar desabafo",
+    "invite": "Agenda → telefone ou e-mail sem conta; amigo aceita",
+}
+
+
+def _iter_requirement_keys(level_def: dict[str, Any]) -> list[str]:
+    keys: list[str] = []
+    for req in level_def.get("requirements") or []:
+        rtype = str(req.get("type") or "")
+        if rtype == "step":
+            keys.append(str(req.get("key") or ""))
+        elif rtype == "or_steps":
+            for key, _need in req.get("options") or []:
+                keys.append(str(key))
+        elif rtype == "streak":
+            keys.append("streak")
+    return keys
+
+
+def _max_need_for_key(level_def: dict[str, Any], step_key: str) -> int:
+    max_need = 0
+    for req in level_def.get("requirements") or []:
+        rtype = str(req.get("type") or "")
+        if rtype == "step" and str(req.get("key") or "") == step_key:
+            max_need = max(max_need, int(req.get("min") or 1))
+        elif rtype == "or_steps":
+            for key, need in req.get("options") or []:
+                if str(key) == step_key:
+                    max_need = max(max_need, int(need))
+    return max_need
+
+
+def _level_has_draft_confirm_escape(level_def: dict[str, Any]) -> bool:
+    """draft_confirm só é justo com desabafo no mesmo nível ou alternativa na Agenda."""
+    keys = _iter_requirement_keys(level_def)
+    if "draft_confirm" not in keys:
+        return True
+    if "night_dump" in keys:
+        return True
+    for req in level_def.get("requirements") or []:
+        if str(req.get("type") or "") == "or_steps":
+            opts = [str(k) for k, _ in req.get("options") or []]
+            if "draft_confirm" in opts and (
+                "habit" in opts or "reminder" in opts or "chat" in opts
+            ):
+                return True
+    return False
+
+
+def _validate_one_level(level_def: dict[str, Any], *, procedural: bool) -> list[str]:
+    errors: list[str] = []
+    n = int(level_def.get("level") or 0)
+    tag = f"nível {n}"
+    reqs = level_def.get("requirements") or []
+    if not reqs:
+        errors.append(f"{tag}: sem requirements")
+        return errors
+    keys = _iter_requirement_keys(level_def)
+    if _is_invite_growth_level(n):
+        if not _is_invite_only_level(level_def):
+            errors.append(f"{tag}: múltiplo de 10 deve ser missão só de convite")
+    elif "invite" in keys:
+        errors.append(f"{tag}: convite só nos níveis 10, 20, 30…")
+    if not _level_has_draft_confirm_escape(level_def):
+        errors.append(
+            f"{tag}: confirmar desabafo sem alternativa nem desabafo no mesmo dia"
+        )
+    for key in keys:
+        if key not in _KNOWN_REQUIREMENT_KEYS:
+            errors.append(f"{tag}: passo desconhecido '{key}'")
+        elif key not in APP_MISSION_STEP_KEYS:
+            errors.append(f"{tag}: passo '{key}' não é missão cumprível no app atual")
+        elif key not in WIRED_STEP_SOURCES:
+            errors.append(f"{tag}: passo '{key}' sem origem documentada")
+        need = _max_need_for_key(level_def, key)
+        if need > 3 and key in ("chat", "voice", "checkin", "night_dump"):
+            errors.append(f"{tag}: '{key}' pede {need} — máximo 3 por missão diária")
+    task = _format_today_task(level_def, {}, {"current": 0})
+    if not str(task or "").strip():
+        errors.append(f"{tag}: today_task vazio para estado inicial")
+    return errors
+
+
+def validate_journey_levels(*, cap: int = 500) -> list[str]:
+    """Garante que cada nível (1..cap) só pede passos justos e com fio no código."""
+    errors: list[str] = []
+    cap = max(HANDCRAFTED_MAX, int(cap or HANDCRAFTED_MAX))
+    for lv in JOURNEY_LEVELS:
+        errors.extend(_validate_one_level(lv, procedural=False))
+    for n in range(HANDCRAFTED_MAX + 1, cap + 1):
+        errors.extend(_validate_one_level(_procedural_level(n), procedural=True))
+    return errors
 
 
 def _step_label(key: str, need: int) -> str:
@@ -482,10 +717,12 @@ def _step_label(key: str, need: int) -> str:
         "reminder": "compromisso ou lembrete na Agenda",
         "night_dump": "desabafo noturno",
         "draft_confirm": "confirmar desabafo na Agenda",
-        "invite": "convidar alguém",
+        "invite": "convidar pelo telefone (ou e-mail) sem conta — aceitar na Agenda",
         "checkin": "check-in de hoje",
     }
     base = labels.get(key, key)
+    if key == "invite" and need > 1:
+        return f"{need} convites no Entre Nós"
     if need > 1 and key not in ("chat", "voice"):
         return f"{need}× {base}"
     return base
@@ -507,6 +744,50 @@ def _plan_nudge(level_def: dict[str, Any], plan_tier: str) -> str | None:
     return level_def.get("plan_nudge")
 
 
+def _mission_done_today(state: dict[str, Any]) -> bool:
+    return str(state.get("mission_done_date") or "").strip() == _local_date_str()
+
+
+def _maybe_advance_next_day(
+    state: dict[str, Any],
+    supabase: Client | None,
+    user_id: str,
+    streak_data: dict[str, Any],
+    cap: int,
+) -> dict[str, Any]:
+    """No dia seguinte, avança nível que ficou completo ontem."""
+    today = _local_date_str()
+    done_date = str(state.get("mission_done_date") or "").strip()
+    if not done_date or done_date == today:
+        return state
+    level_def = _level_def(int(state["level"]), cap)
+    if not _level_complete(level_def, state["step_counts"], streak_data):
+        state["mission_done_date"] = ""
+        return state
+    cur = int(state["level"])
+    if cur < cap:
+        state["level"] = cur + 1
+        state["step_counts"] = {}
+        state["show_level_up"] = True
+        try:
+            progression.maybe_expand_cap(supabase, "wellness_journey", state["level"])
+        except Exception as exc:
+            print(f"[EGO] journey advance next day error: {exc}", flush=True)
+    state["mission_done_date"] = ""
+    return state
+
+
+def _mark_level_complete_today(state: dict[str, Any]) -> None:
+    """Completa o nível hoje — «Volte amanhã» sem subir de nível no mesmo dia."""
+    completed = list(state.get("levels_completed") or [])
+    cur = int(state["level"])
+    if cur not in completed:
+        completed.append(cur)
+    state["levels_completed"] = completed
+    state["show_level_up"] = True
+    state["mission_done_date"] = _local_date_str()
+
+
 def build_journey_payload(
     supabase: Client | None,
     user_id: str,
@@ -518,10 +799,16 @@ def build_journey_payload(
     state = _load_state(supabase, user_id)
     streak_data = streak if streak is not None else get_streak(supabase, user_id)
     cap = _journey_cap(supabase)
+    before_level = int(state["level"])
+    before_done = str(state.get("mission_done_date") or "")
+    state = _maybe_advance_next_day(state, supabase, user_id, streak_data, cap)
+    if int(state["level"]) != before_level or str(state.get("mission_done_date") or "") != before_done:
+        _save_state(supabase, user_id, state)
     level = int(state["level"])
     level_def = _level_def(level, cap)
     counts = dict(state["step_counts"])
     complete = _level_complete(level_def, counts, streak_data)
+    mission_done_today = _mission_done_today(state) and complete
     show_level_up = bool(state.get("show_level_up"))
 
     if clear_level_up and show_level_up:
@@ -531,18 +818,29 @@ def build_journey_payload(
 
     at_max = level >= cap and complete
     companion = _companion_stage(level)
-    care_pct = int(round(min(100, max(0, (1.0 if at_max else _progress_for_level(level_def, counts, streak_data)) * 100))))
+    progress = 1.0 if (at_max or mission_done_today) else _progress_for_level(
+        level_def, counts, streak_data
+    )
+    care_pct = int(round(min(100, max(0, progress * 100))))
+    steps = _steps_status(level_def, counts, streak_data)
+    if mission_done_today:
+        steps = [{**s, "done": True} for s in steps]
+        complete = True
+        today_task = "Todas as missões de hoje concluídas — volte amanhã"
+    else:
+        today_task = _format_today_task(level_def, counts, streak_data)
     return {
         "level": level,
         "max_level": cap,
         "title": level_def["title"],
         "subtitle": level_def["subtitle"],
         "emoji": level_def["emoji"],
-        "today_task": level_def["today_task"],
+        "today_task": today_task,
         "why": level_def["why"],
-        "progress": 1.0 if at_max else _progress_for_level(level_def, counts, streak_data),
+        "progress": progress,
         "level_complete": complete,
-        "steps": _steps_status(level_def, counts, streak_data),
+        "mission_done_today": mission_done_today,
+        "steps": steps,
         "show_level_up": show_level_up,
         "share_challenge": level_def["share_challenge"],
         "plan_nudge": _plan_nudge(level_def, plan_tier),
@@ -575,30 +873,26 @@ def record_step(
         return get_journey(supabase, user_id, plan_tier=plan_tier)
 
     state = _load_state(supabase, user_id)
+    streak_data = get_streak(supabase, user_id)
+    cap = _journey_cap(supabase)
+    state = _maybe_advance_next_day(state, supabase, user_id, streak_data, cap)
+
+    if _mission_done_today(state):
+        level_def = _level_def(int(state["level"]), cap)
+        if _level_complete(level_def, state["step_counts"], streak_data):
+            _save_state(supabase, user_id, state)
+            return build_journey_payload(
+                supabase, user_id, streak=streak_data, plan_tier=plan_tier
+            )
+
     counts = dict(state["step_counts"])
     counts[key] = counts.get(key, 0) + 1
     state["step_counts"] = counts
 
-    streak_data = get_streak(supabase, user_id)
-    cap = _journey_cap(supabase)
     level_def = _level_def(int(state["level"]), cap)
 
     if _level_complete(level_def, counts, streak_data):
-        completed = list(state.get("levels_completed") or [])
-        cur = int(state["level"])
-        if cur not in completed:
-            completed.append(cur)
-        state["levels_completed"] = completed
-        if cur < cap:
-            state["level"] = cur + 1
-            state["step_counts"] = {}
-            state["show_level_up"] = True
-            try:
-                progression.maybe_expand_cap(supabase, "wellness_journey", state["level"])
-            except Exception as exc:
-                print(f"[EGO] journey expand cap error: {exc}", flush=True)
-        else:
-            state["show_level_up"] = True
+        _mark_level_complete_today(state)
 
     _save_state(supabase, user_id, state)
     return build_journey_payload(
@@ -609,36 +903,22 @@ def record_step(
 def sync_streak_levels(
     supabase: Client | None, user_id: str, *, plan_tier: str = "essential"
 ) -> dict[str, Any]:
-    """Avança níveis que dependem só da ofensiva (sem novo passo)."""
+    """Avança níveis que dependem só da sequência (sem novo passo)."""
     if not supabase or not user_id:
         return get_journey(supabase, user_id, plan_tier=plan_tier)
     state = _load_state(supabase, user_id)
     streak_data = get_streak(supabase, user_id)
     cap = _journey_cap(supabase)
-    advanced = False
-    while True:
+    state = _maybe_advance_next_day(state, supabase, user_id, streak_data, cap)
+    changed = False
+
+    if not _mission_done_today(state):
         level_def = _level_def(int(state["level"]), cap)
-        if not _level_complete(level_def, state["step_counts"], streak_data):
-            break
-        completed = list(state.get("levels_completed") or [])
-        cur = int(state["level"])
-        if cur not in completed:
-            completed.append(cur)
-        state["levels_completed"] = completed
-        if cur < cap:
-            state["level"] = cur + 1
-            state["step_counts"] = {}
-            state["show_level_up"] = True
-            advanced = True
-            try:
-                progression.maybe_expand_cap(supabase, "wellness_journey", state["level"])
-                cap = _journey_cap(supabase)
-            except Exception as exc:
-                print(f"[EGO] journey sync expand error: {exc}", flush=True)
-        else:
-            state["show_level_up"] = True
-            break
-    if advanced:
+        if _level_complete(level_def, state["step_counts"], streak_data):
+            _mark_level_complete_today(state)
+            changed = True
+
+    if changed or state.get("mission_done_date"):
         _save_state(supabase, user_id, state)
     return build_journey_payload(
         supabase, user_id, streak=streak_data, plan_tier=plan_tier

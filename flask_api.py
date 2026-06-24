@@ -168,7 +168,7 @@ def _journey_after_agenda_step(step: str) -> dict[str, Any] | None:
         prof = db.load_profile(g.supabase, g.user_id) or {}
         tier, _ = db.user_plan_limits(prof)
         wellness_journey.record_step(g.supabase, g.user_id, step, plan_tier=tier)
-        return wellness_journey.sync_streak_levels(g.supabase, g.user_id, plan_tier=tier)
+        return wellness_journey.get_journey(g.supabase, g.user_id, plan_tier=tier)
     except Exception as exc:
         print(f"[EGO] journey agenda step error ({step}): {exc}", flush=True)
         return None
@@ -365,7 +365,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-23-1.0.45-ego-bolso-agenda-shopping",
+        "api_build": "2026-06-24-1.0.45-invite-every-10",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1194,7 +1194,14 @@ def night_dump_submit():
         return _json_error(friendly_api_error(exc, context="chat"), 500)
     if err:
         return _json_error(err, 400)
-    return _json_ok(result or {}, 201)
+    try:
+        journey = _journey_snapshot()
+    except Exception:
+        journey = None
+    payload = dict(result or {})
+    if journey:
+        payload["wellness_journey"] = journey
+    return _json_ok(payload, 201)
 
 
 @app.get("/api/v1/agenda-drafts/pending")
@@ -1218,15 +1225,23 @@ def agenda_drafts_confirm(draft_id: str):
     reminders, shared_events, shopping, errors = night_dump.confirm_draft_items(
         g.supabase, g.user_id, draft_id, indices
     )
-    return _json_ok(
-        {
-            "reminders": reminders,
-            "shared_events": shared_events,
-            "shopping": shopping,
-            "errors": errors,
-            "confirmed": bool(reminders or shared_events or shopping),
-        }
-    )
+    confirmed = bool(reminders or shared_events or shopping)
+    journey = None
+    if confirmed:
+        try:
+            journey = _journey_after_agenda_step("draft_confirm")
+        except Exception:
+            journey = None
+    payload: dict[str, Any] = {
+        "reminders": reminders,
+        "shared_events": shared_events,
+        "shopping": shopping,
+        "errors": errors,
+        "confirmed": confirmed,
+    }
+    if journey:
+        payload["wellness_journey"] = journey
+    return _json_ok(payload)
 
 
 @app.post("/api/v1/agenda-drafts/<draft_id>/dismiss")
@@ -1636,14 +1651,6 @@ def shared_calendars_add_member(calendar_id: str):
     )
     if not ok:
         return _json_error(err or "Não foi possível adicionar o membro.")
-    try:
-        from ego_api import wellness_journey
-
-        prof = db.load_profile(g.supabase, g.user_id) or {}
-        tier, _ = db.user_plan_limits(prof)
-        wellness_journey.record_step(g.supabase, g.user_id, "invite", plan_tier=tier)
-    except Exception:
-        pass
     pending = str((row or {}).get("status") or "") == "pending"
     return _json_ok(
         {"member": row, "pending": pending, "message": err or ""},

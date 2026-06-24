@@ -132,7 +132,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/wellness_journey.py",
-        ["get_journey", "record_step", "JOURNEY_LEVELS"],
+        ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "_format_today_task"],
     ),
     (
         "ego_api/download_go.py",
@@ -254,8 +254,32 @@ def check_health() -> int:
         return 0
 
 
+def check_journey_missions() -> int:
+    print("\n=== Missões EGO de Bolso (texto vs regras) ===")
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from ego_api.wellness_journey import HANDCRAFTED_MAX, validate_journey_levels
+
+        cap = 500
+        errors = validate_journey_levels(cap=cap)
+        if errors:
+            for err in errors:
+                print(f"  ERRO  {err}")
+            return len(errors)
+        print(
+            f"  OK    {cap} níveis validados "
+            f"({HANDCRAFTED_MAX} guiados + {cap - HANDCRAFTED_MAX} procedurais)"
+        )
+        return 0
+    except Exception as exc:
+        print(f"  ERRO  validação jornada: {exc}")
+        return 1
+
+
 def main() -> int:
     failed = check_symbols()
+    failed += check_journey_missions()
     failed += check_health()
     print()
     if failed:

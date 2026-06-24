@@ -268,6 +268,7 @@ export type SendChatResult = {
   voice_engine?: string;
   /** Contadores atualizados após esta mensagem (barra de uso no chat). */
   access?: AccessInfo;
+  wellness_journey?: WellnessJourney;
 };
 
 export type AppUpdateInfo = {
@@ -325,6 +326,7 @@ export type WellnessJourney = {
   why: string;
   progress: number;
   level_complete: boolean;
+  mission_done_today?: boolean;
   steps: WellnessJourneyStep[];
   show_level_up: boolean;
   share_challenge: string;

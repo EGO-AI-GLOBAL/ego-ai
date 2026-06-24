@@ -409,7 +409,7 @@ def _user_is_active_member(admin, user_id: str, calendar_id: str) -> bool:
 
 
 def link_shared_memberships_for_user_phone(
-    supabase: Client | None, user_id: str, phone: str
+    supabase: Client | None, user_id: str, phone: str, *, source: str = "login"
 ) -> int:
     phone_norm, err = normalize_phone_br(phone)
     if err or not phone_norm or not user_id:
@@ -550,8 +550,175 @@ def _ensure_owner_membership_row(
         pass
 
 
+_SHARED_INVITE_CREDITED_UI_KEY = "shared_calendar_invite_credited"
+_LEGACY_INVITE_CREDITED_UI_KEY = "entre_nos_invite_credited"
+
+
+_PENDING_NEW_USER_INVITE_KEY = "pending_new_user_invites"
+
+
+def _register_new_user_invite_target(
+    admin, owner_id: str, member_id: str
+) -> None:
+    """Marca convite para contacto sem conta (telefone ou e-mail)."""
+    if not admin or not owner_id or not member_id:
+        return
+    try:
+        from ego_api import db
+
+        prof = db.load_profile(admin, owner_id) or {}
+        ui = db._parse_ui_state(prof)  # noqa: SLF001
+        pending = dict(ui.get(_PENDING_NEW_USER_INVITE_KEY) or {})
+        pending[str(member_id)[:64]] = True
+        # Mantém só os mais recentes.
+        if len(pending) > 60:
+            for old in list(pending.keys())[:-40]:
+                pending.pop(old, None)
+        ui[_PENDING_NEW_USER_INVITE_KEY] = pending
+        db.update_profile_fields(admin, owner_id, {"ui_state": ui})
+    except Exception as exc:
+        print(f"[EGO] register new user invite error: {exc}", flush=True)
+
+
+def _clear_new_user_invite_target(admin, owner_id: str, member_id: str) -> None:
+    if not admin or not owner_id or not member_id:
+        return
+    try:
+        from ego_api import db
+
+        prof = db.load_profile(admin, owner_id) or {}
+        ui = db._parse_ui_state(prof)  # noqa: SLF001
+        pending = dict(ui.get(_PENDING_NEW_USER_INVITE_KEY) or {})
+        if pending.pop(str(member_id)[:64], None) is None:
+            return
+        ui[_PENDING_NEW_USER_INVITE_KEY] = pending
+        db.update_profile_fields(admin, owner_id, {"ui_state": ui})
+    except Exception:
+        pass
+
+
+def _maybe_register_new_user_invite(
+    supabase: Client | None, calendar_id: str, row: dict | None
+) -> None:
+    """Convite pendente sem user_id = amigo ainda sem conta no app."""
+    if not row or str(row.get("status") or "") != "pending":
+        return
+    if str(row.get("user_id") or "").strip():
+        return
+    admin = create_service_client()
+    if not admin:
+        return
+    owner = _calendar_owner_id(admin, calendar_id)
+    member_id = str(row.get("id") or "")
+    if owner and member_id:
+        _register_new_user_invite_target(admin, owner, member_id)
+
+
+def _invitee_contact_matches_invite(
+    admin, member_row: dict[str, Any], joined_user_id: str
+) -> bool:
+    """Bate telefone OU e-mail do convite com o perfil de quem aceitou."""
+    from ego_api import db
+    from ego_api.phone_utils import is_phone_invite_email, normalize_phone_br
+
+    prof = db.load_profile(admin, joined_user_id) or {}
+    user_email = str(prof.get("email") or "").strip().lower()
+    user_phone, _ = normalize_phone_br(str(prof.get("phone") or ""))
+    invited_email = str(member_row.get("invited_email") or "").strip().lower()
+    invited_phone = str(member_row.get("invited_phone") or "").strip()
+    if invited_phone and user_phone and invited_phone == user_phone:
+        return True
+    if (
+        invited_email
+        and user_email
+        and not is_phone_invite_email(invited_email)
+        and invited_email == user_email
+    ):
+        return True
+    return False
+
+
+def _invitee_was_new_user_for_invite(
+    admin,
+    owner_id: str,
+    member_row: dict[str, Any],
+    joined_user_id: str,
+) -> bool:
+    """Missão: amigo sem conta no convite; telefone ou e-mail bate ao aceitar."""
+    if not _invitee_contact_matches_invite(admin, member_row, joined_user_id):
+        return False
+    member_id = str(member_row.get("id") or "")
+    if member_id:
+        prof = None
+        try:
+            from ego_api import db
+
+            prof = db.load_profile(admin, owner_id) or {}
+            ui = db._parse_ui_state(prof)  # noqa: SLF001
+            pending = ui.get(_PENDING_NEW_USER_INVITE_KEY) or {}
+            if pending.get(member_id):
+                return True
+        except Exception:
+            pass
+    from ego_api import db
+
+    invite_ts = db._parse_ts_iso(str(member_row.get("created_at") or ""))  # noqa: SLF001
+    prof_u = db.load_profile(admin, joined_user_id) or {}
+    user_ts = db._parse_ts_iso(str(prof_u.get("created_at") or ""))  # noqa: SLF001
+    if invite_ts and user_ts:
+        return user_ts >= invite_ts - datetime.timedelta(minutes=2)
+    return not str(member_row.get("user_id") or "").strip()
+
+
+def _credit_inviter_shared_calendar_mission(
+    admin,
+    calendar_id: str,
+    joined_user_id: str,
+    *,
+    member_row: dict[str, Any] | None = None,
+) -> None:
+    """EGO de Bolso: amigo novo aceitou convite (Entre Nós ou agenda de grupo)."""
+    if not calendar_id or not joined_user_id:
+        return
+    if member_row is None:
+        return
+    if not _calendar_name_by_id(admin, calendar_id).strip():
+        return
+    owner = _calendar_owner_id(admin, calendar_id)
+    if not owner or owner == joined_user_id:
+        return
+    if not _invitee_was_new_user_for_invite(
+        admin, owner, member_row, joined_user_id
+    ):
+        return
+    try:
+        from ego_api import db, wellness_journey
+
+        prof = db.load_profile(admin, owner) or {}
+        ui = db._parse_ui_state(prof)  # noqa: SLF001
+        credited = list(
+            ui.get(_SHARED_INVITE_CREDITED_UI_KEY)
+            or ui.get(_LEGACY_INVITE_CREDITED_UI_KEY)
+            or []
+        )
+        dedupe_key = f"{calendar_id}:{joined_user_id}"
+        if dedupe_key in credited:
+            return
+        tier = str(prof.get("plan_tier") or "essential")
+        wellness_journey.record_step(admin, owner, "invite", plan_tier=tier)
+        credited.append(dedupe_key)
+        ui[_SHARED_INVITE_CREDITED_UI_KEY] = credited[-40:]
+        ui.pop(_LEGACY_INVITE_CREDITED_UI_KEY, None)
+        db.update_profile_fields(admin, owner, {"ui_state": ui})
+        _clear_new_user_invite_target(
+            admin, owner, str(member_row.get("id") or "")
+        )
+    except Exception as exc:
+        print(f"[EGO] shared calendar invite mission error: {exc}", flush=True)
+
+
 def link_shared_memberships_for_user(
-    supabase: Client | None, user_id: str, email: str
+    supabase: Client | None, user_id: str, email: str, *, source: str = "login"
 ) -> int:
     """Associa convites gravados por e-mail ao user_id actual (login / bootstrap)."""
     email_norm, err = _normalize_invite_email(email)
@@ -827,6 +994,9 @@ def respond_member_invite(
             data = (refreshed.data or [row])[0]
             owner = _calendar_owner_id(admin, cid)
             if cid and owner:
+                _credit_inviter_shared_calendar_mission(
+                    admin, cid, user_id, member_row=data
+                )
                 push_after_member_invited(
                     cid, owner, {"user_id": user_id, "status": "active"}
                 )
@@ -1844,6 +2014,7 @@ def add_member_by_contact(
     else:
         ok, err, row = add_member_by_phone(supabase, actor_user_id, calendar_id, raw)
     if ok and row:
+        _maybe_register_new_user_invite(supabase, calendar_id, row)
         push_after_member_invited(calendar_id, actor_user_id, row)
     return ok, err, row
 

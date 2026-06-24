@@ -121,10 +121,10 @@ export function PersonalAgendaManual({
     try {
       let journey = await createReminder({ title, scheduled_at: iso, announce: title });
       journey = await ensureAgendaWellnessStep(journey, "reminder");
-      applyAgendaWellnessUpdate(journey, onWellnessUpdate);
       setShowPersonalForm(false);
       resetPersonalForm();
       await onRefresh();
+      applyAgendaWellnessUpdate(journey, onWellnessUpdate);
     } catch (e) {
       Alert.alert(
         "Erro",
@@ -151,12 +151,12 @@ export function PersonalAgendaManual({
     try {
       let journey = await createAgendaItem({ titulo, horario, dias_da_semana: dias });
       journey = await ensureAgendaWellnessStep(journey, "habit");
-      applyAgendaWellnessUpdate(journey, onWellnessUpdate);
       setShowHabitForm(false);
       setHabitTitle("Academia");
       setHabitTime(defaultTimeHm(8, 0));
       setHabitDays("seg,ter,qua,qui,sex");
       await onRefresh();
+      applyAgendaWellnessUpdate(journey, onWellnessUpdate);
     } catch (e) {
       Alert.alert(
         "Erro",
@@ -219,9 +219,9 @@ export function PersonalAgendaManual({
       const { wellness_journey } = await recordStreakActivity("habit");
       let journey = wellness_journey ?? null;
       journey = await ensureAgendaWellnessStep(journey, "habit");
-      applyAgendaWellnessUpdate(journey, onWellnessUpdate);
       Alert.alert("Hábito", "Marcado — monstrinhos e EGO de Bolso agradecem! 💜");
       await onRefresh();
+      applyAgendaWellnessUpdate(journey, onWellnessUpdate);
     } catch (e) {
       Alert.alert(
         "Erro",

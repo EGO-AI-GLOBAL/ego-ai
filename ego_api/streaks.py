@@ -120,6 +120,9 @@ def _touch_wellness_journey(
             "draft_confirm": "draft_confirm",
             "delegation_confirm": "draft_confirm",
             "checkin": "checkin",
+            "chat": "chat",
+            "voice": "voice",
+            "reminder": "reminder",
         }.get(str(source or "").strip())
         if alias:
             wellness_journey.record_step(supabase, user_id, alias)
