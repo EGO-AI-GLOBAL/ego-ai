@@ -1,13 +1,20 @@
-Play Console — 1.0.42 (versionCode 77)
+Play Console — 1.0.42 (versionCode 78+)
 
 O que há de novo
 ---------------
-• Missões diárias nos Monstrinhos do Humor (estilo Finch)
-• Sementes e recompensas ao completar cada missão
-• Decorações desbloqueáveis no jardim
-• Aventura do monstrinho após o check-in
+• EGO de Bolso (ex-Companheiro): nome novo + share viral + card no chat
+• Monstrinhos: missões diárias estilo Finch, sementes, aventura no jardim
+
+AAB recomendado (build Monstrinhos+Bolso):
+https://expo.dev/artifacts/eas/V_IMR9RVn9JnLJhyav4YxDX5zDX-wAvEsWl7JcBl4DQ.aab
+
+Build page Android 78:
+https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/59e32bdc-cabc-4572-8a69-dcbb6b84bb7c
+
+Upload: Play Console → teste fechado → nova versão → carregar .aab
 
 Testar
 ------
-Menu Monstrinhos → check-in → missão Respirar → missão Buscar monstrinho
-Ver contador de sementes e decorações no jardim
+• Menu EGO de Bolso → níveis + postar
+• Chat → mini-card EGO de Bolso
+• Menu Monstrinhos → check-in → Respirar → Buscar monstrinho

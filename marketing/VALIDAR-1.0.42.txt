@@ -1,18 +1,34 @@
-VALIDAR 1.0.42 — Monstrinhos Finch
-==================================
+VALIDAR 1.0.42 — sincronizado (2 agentes)
+==========================================
 
-[ ] API /health → api_build contém 1.0.42-finch-mood-goals
-[ ] Login OK
-[ ] Monstrinhos: check-in humor → +5 sementes
-[ ] Missão Respirar (contagem 3-2-1) → +2 sementes
-[ ] Barra aventura sobe para 66%
-[ ] Missão Buscar monstrinho → +3 sementes, barra 100%
-[ ] Decorações aparecem conforme dias de sequência
-[ ] Companheiro de Bolso igual à 1.0.41 (sem regressão)
-[ ] Chat texto + voz OK
-[ ] Share WA/Stories nos Monstrinhos
+EGO de Bolso (Fase 1)
+---------------------
+[ ] Menu mostra "EGO de Bolso" (não Companheiro)
+[ ] Chat: mini-card com nível + postar
+[ ] Share: WA + IG Stories/Post/Reels + TikTok
+
+Monstrinhos Finch
+-----------------
+[ ] API /health → api_build 1.0.42-fin-ego-bolso
+[ ] Check-in humor → +5 sementes
+[ ] Missão Respirar 3x → +2 sementes
+[ ] Missão Buscar monstrinho → +3 sementes
+[ ] Decorações no jardim por sequência
+
+Estável (não regredir)
+----------------------
+[ ] Login + refresh token
+[ ] Chat texto + voz
+[ ] Agenda manual
 
 Links
 -----
-Play teste: https://play.google.com/apps/testing/com.egoai.app
+iOS IPA (build 28): https://expo.dev/artifacts/eas/VJzHBdpoZK96oG3kXkI4uS3d1f_k4_WxoYMIhWsT2DU.ipa
+Android AAB (code 78): https://expo.dev/artifacts/eas/V_IMR9RVn9JnLJhyav4YxDX5zDX-wAvEsWl7JcBl4DQ.aab
 TestFlight: https://testflight.apple.com/join/eNDKdFWF
+Play teste: https://play.google.com/apps/testing/com.egoai.app
+
+Railway (banner atualizar)
+--------------------------
+EGO_LATEST_APP_VERSION=1.0.42
+EGO_LATEST_ANDROID_VERSION_CODE=78

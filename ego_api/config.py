@@ -255,7 +255,7 @@ def play_store_update_url() -> str:
 def app_update_message() -> str:
     return read_env(
         "EGO_APP_UPDATE_MESSAGE",
-        "1.0.42: Monstrinhos com missões diárias, sementes e aventura no jardim. Toque em Atualizar agora.",
+        "1.0.42: EGO de Bolso no menu + missões Finch nos Monstrinhos. Toque em Atualizar agora.",
     )
 
 
@@ -279,7 +279,7 @@ def maintenance_message() -> str:
 
 def latest_android_version_code() -> int:
     """Version code Play (EAS autoIncrement) — Android usa para aviso de atualização."""
-    raw = read_env("EGO_LATEST_ANDROID_VERSION_CODE", "77").strip()
+    raw = read_env("EGO_LATEST_ANDROID_VERSION_CODE", "78").strip()
     try:
         return max(0, int(raw))
     except ValueError:

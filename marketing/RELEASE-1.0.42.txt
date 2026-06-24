@@ -1,17 +1,35 @@
-EGO-AI 1.0.42 — notas de release
-==================================
+EGO-AI 1.0.42 — notas de release (sincronizado)
+================================================
 
-NOVIDADES (Monstrinhos — estilo Finch)
---------------------------------------
-• 3 missões diárias: humor → respirar 3x → buscar monstrinho na aventura
-• Sementes 🌰 por missão (+5 / +2 / +3)
-• Decorações no jardim por sequência (flores, borboleta, fonte…)
-• Barra de aventura com progresso
-• Monstrinho com animação idle no jardim
+Esta versão junta DOIS trabalhos em paralelo (mesmo app, mesma release):
+
+A) EGO de Bolso — Fase 1 (agente branding/share)
+-------------------------------------------------
+• Menu: Companheiro de Bolso → **EGO de Bolso** 🥚
+• Share viral: WhatsApp + Instagram Stories/Post/Reels + TikTok
+• Mini-card **EGO de Bolso** no chat (nível + postar)
+• Copy de trial e share atualizada
+
+B) Monstrinhos do Humor — Finch (agente gamificação)
+----------------------------------------------------
+• 3 missões diárias: humor → respirar 3x → buscar monstrinho
+• Sementes 🌰 (+5 / +2 / +3)
+• Decorações no jardim por sequência
+• Barra de aventura + animação idle do monstrinho
+• API: POST /daily-care/goal
+
+ZONAS INTACTAS (ambos agentes)
+------------------------------
+• Auth, voz, chat core, Stripe, Companheiro visual 1.0.41
+• Monstrinhos: só evolução Finch; nome do menu igual
 
 VERSÃO
 ------
-App: 1.0.42 | iOS 28 | Android 77
-API: 2026-06-24-1.0.42-finch-mood-goals
+App: 1.0.42 | iOS build 28–29 | Android versionCode 78–79
+API: 2026-06-24-1.0.42-fin-ego-bolso
 
-Companheiro de Bolso: sem alterações nesta release.
+COMMITS NO MAIN (ordem)
+-----------------------
+1. 76c0ef0 — EGO de Bolso Fase 1
+2. 0338acd — Monstrinhos Finch missões/sementes
+3. 58aa354 — sync rota daily-care/goal na API

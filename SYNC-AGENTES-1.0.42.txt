@@ -1,0 +1,29 @@
+SINCRONIZAÇÃO 1.0.42 — dois agentes em paralelo
+===============================================
+
+SIM — dá para sincronizar via Git (main único).
+
+Quem fez o quê
+--------------
+| Agente | Foco | Commit |
+|--------|------|--------|
+| Outro | EGO de Bolso F1, cadastro duplicado, builds/submit | 76c0ef0, 58aa354 |
+| Este chat | Monstrinhos Finch (missões, sementes, jardim) | 0338acd |
+
+O que já está alinhado no main
+------------------------------
+✓ EGO de Bolso (rename + share + chat card)
+✓ Monstrinhos (missões + API daily_care.py)
+✓ Rota POST /daily-care/goal (commit 58aa354 — faltava no flask)
+✓ api_build: 2026-06-24-1.0.42-fin-ego-bolso
+
+Regra para não pisar um no outro
+--------------------------------
+• Agente A: wellness-journey, chat card, SocialShare, AppDrawer, signup
+• Agente B: daily-care, moodMonsters/, ego_api/daily_care.py
+• Nunca os dois no mesmo ficheiro sem avisar
+
+Próximo passo único
+-------------------
+1 commit de docs/config (este sync) → push → Railway
+TestFlight build 28 já tem as duas features se foi gerado após 0338acd.
