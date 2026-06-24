@@ -1,23 +1,30 @@
 import { router } from "expo-router";
 import React from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import type { AccessInfo } from "@/api/types";
+import type { AccessInfo, WellnessJourney } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { isTrialUrgent, parseTrialDaysRemaining } from "@/utils/trialAccess";
 
 type Props = {
   colors: AppColors;
   access?: AccessInfo | null;
+  journey?: WellnessJourney | null;
 };
 
 /** Contador de dias grátis — urgência nos últimos 5 dias. */
-export function TrialBanner({ colors, access }: Props) {
+export function TrialBanner({ colors, access, journey }: Props) {
   const days = parseTrialDaysRemaining(access);
   if (days === null) return null;
 
   const urgent = isTrialUrgent(days);
   const border = urgent ? colors.warning : colors.primary;
   const bg = urgent ? `${colors.warning}18` : colors.primaryTint;
+  const bolsoLine =
+    urgent && journey && (journey.level ?? 0) > 0
+      ? `EGO de Bolso nível ${journey.level} — não perca seu bichinho.`
+      : urgent
+        ? "Não perca seus monstrinhos e seu EGO de Bolso — assine Conexão e continue."
+        : "Teste completo por 20 dias. Depois, escolha um plano para seguir.";
 
   return (
     <Pressable
@@ -27,11 +34,7 @@ export function TrialBanner({ colors, access }: Props) {
       <Text style={[styles.title, { color: urgent ? colors.warning : colors.primary }]}>
         {urgent ? "⏳" : "🎁"} {days === 0 ? "Último dia grátis" : `${days} dias grátis restantes`}
       </Text>
-      <Text style={[styles.sub, { color: colors.textMuted }]}>
-        {urgent
-          ? "Não perca seus monstrinhos e seu EGO de Bolso — assine Conexão e continue."
-          : "Teste completo por 20 dias. Depois, escolha um plano para seguir."}
-      </Text>
+      <Text style={[styles.sub, { color: colors.textMuted }]}>{bolsoLine}</Text>
       <Text style={[styles.cta, { color: colors.primary }]}>Ver planos →</Text>
     </Pressable>
   );

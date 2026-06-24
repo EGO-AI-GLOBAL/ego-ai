@@ -1,0 +1,22 @@
+EGO-AI 1.0.43 — notas (Monstrinhos Fase 3 + EGO de Bolso F2)
+=============================================================
+
+MONSTRINHOS — Fase 3 Economia
+-----------------------------
+• Loja do jardim — gastar sementes em decorações (cogumelo, lanterna, banco…)
+• Decorações compradas aparecem no jardim
+• Histórico de sementes (ganhos e gastos)
+• Bónus +3 sementes ao completar as 3 missões do dia
+• Celebração visual “Dia perfeito no jardim!”
+
+API: POST /daily-care/shop · api_build 1.0.43-ego-bolso-f2-seed-shop
+
+VERSÃO
+------
+App: 1.0.43 | iOS 30 | Android 80 (EAS remote)
+
+BUILD CONJUNTO
+--------------
+1. Outro agente termina EGO de Bolso F2 → push
+2. GERAR-E-SUBMETER-JUNTO.bat
+3. AGUARDAR-E-SUBMETER.bat

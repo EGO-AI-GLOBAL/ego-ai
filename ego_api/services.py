@@ -347,7 +347,9 @@ def _access_expired_message(supabase: Client | None, user_id: str) -> str:
         j = wellness_journey.get_journey(supabase, user_id, plan_tier=tier)
         lv = int(j.get("level") or 0)
         if lv > 1:
-            parts.append(f"EGO de Bolso: nível {lv}/{j.get('max_level', 20)}.")
+            parts.append(
+                f"🥚 Seu EGO de Bolso está no nível {lv}/{j.get('max_level', 500)} — não perca seu bichinho."
+            )
     except Exception:
         pass
     parts.append("Assine um plano para continuar.")

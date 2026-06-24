@@ -49,6 +49,18 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["EGO DE BOLSO", "PocketCompanionShareModal", "Cuidar agora"],
     ),
     (
+        "app/src/utils/egoDeBolsoCareRoute.ts",
+        ["resolveEgoDeBolsoCareRoute", "/(main)/agenda"],
+    ),
+    (
+        "app/src/utils/egoDeBolsoNotifications.ts",
+        ["syncEgoDeBolsoCareNotification", "ego-de-bolso-care-18h"],
+    ),
+    (
+        "app/src/components/EgoDeBolsoTrialNudge.tsx",
+        ["EGO de Bolso", "Ver planos"],
+    ),
+    (
         "app/src/components/SocialShareModal.tsx",
         ["Instagram Stories", "Instagram Post", "Instagram Reels", "WhatsApp"],
     ),
@@ -101,6 +113,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "shopping_list_get",
             '@app.post("/api/v1/daily-care/checkin")',
             '@app.post("/api/v1/daily-care/goal")',
+            '@app.post("/api/v1/daily-care/shop")',
             '@app.post("/api/v1/wellness-journey/step")',
             '@app.get("/go")',
         ],
@@ -111,7 +124,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/daily_care.py",
-        ["get_daily_care", "record_checkin", "record_goal", "CARE_MILESTONES"],
+        ["get_daily_care", "record_checkin", "record_goal", "purchase_shop_item", "CARE_MILESTONES"],
     ),
     (
         "ego_api/wellness_journey.py",

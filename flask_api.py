@@ -364,7 +364,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-24-1.0.42-agenda-mission",
+        "api_build": "2026-06-24-1.0.43-ego-bolso-f2-seed-shop",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1420,6 +1420,20 @@ def daily_care_goal():
     if not goal:
         return _json_error("Informe a missão (goal).")
     care = daily_care.record_goal(g.supabase, g.user_id, goal)
+    return _json_ok({"daily_care": care})
+
+
+@app.post("/api/v1/daily-care/shop")
+@require_auth
+@rate_limit(20, 60, scope="user")
+def daily_care_shop():
+    from ego_api import daily_care
+
+    data = request.get_json(silent=True) or {}
+    item = str(data.get("item") or data.get("item_id") or "").strip()[:24]
+    if not item:
+        return _json_error("Informe o item da loja (item).")
+    care = daily_care.purchase_shop_item(g.supabase, g.user_id, item)
     return _json_ok({"daily_care": care})
 
 

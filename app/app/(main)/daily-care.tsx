@@ -41,7 +41,7 @@ export default function DailyCareScreen() {
         ) : null}
         {!loading || refreshing ? (
           <>
-            <TrialBanner colors={colors} access={data.access} />
+            <TrialBanner colors={colors} access={data.access} journey={data.wellness_journey} />
             <Text style={[styles.lead, { color: colors.textMuted }]}>
               Seu monstrinho vive no jardim — toque no humor de hoje e veja ele reagir.
             </Text>

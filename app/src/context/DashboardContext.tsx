@@ -26,6 +26,7 @@ import {
   syncSharedCalendarLocalNotifications,
 } from "@/utils/sharedCalendarNotifications";
 import { syncDailyCheckInNotification } from "@/utils/dailyCheckInNotification";
+import { syncEgoDeBolsoCareNotification } from "@/utils/egoDeBolsoNotifications";
 import { saveStreakCache } from "@/storage/streakCache";
 import {
   getLocalPersonaChoice,
@@ -206,6 +207,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         void notifyNewSharedEventsFromOthers(shared, uid).catch(() => {});
         void syncSharedCalendarLocalNotifications(shared).catch(() => {});
         void syncDailyCheckInNotification().catch(() => {});
+        void syncEgoDeBolsoCareNotification(dashboard.wellness_journey).catch(() => {});
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar dados.";
@@ -294,6 +296,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   const mergeWellnessJourney = useCallback((journey: WellnessJourney) => {
     setData((prev) => ({ ...prev, wellness_journey: journey }));
+    void syncEgoDeBolsoCareNotification(journey).catch(() => {});
   }, []);
 
   const mergeDailyCare = useCallback((care: DailyCareInfo, journey?: WellnessJourney) => {

@@ -1,19 +1,21 @@
 import { router } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View, type DimensionValue } from "react-native";
-import type { WellnessJourney } from "@/api/types";
+import type { AccessInfo, WellnessJourney } from "@/api/types";
 import { dismissWellnessLevelUp } from "@/api/client";
 import type { AppColors } from "@/theme/colors";
 import { CompanionPocketScene } from "@/components/companion/CompanionPocketScene";
+import { EgoDeBolsoTrialNudge } from "@/components/EgoDeBolsoTrialNudge";
 import { PocketCompanionShareModal } from "./PocketCompanionShareModal";
 
 type Props = {
   colors: AppColors;
   journey?: WellnessJourney;
   onJourneyUpdate?: (j: WellnessJourney) => void;
+  access?: AccessInfo | null;
 };
 
-export function WellnessJourneyCard({ colors, journey, onJourneyUpdate }: Props) {
+export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }: Props) {
   const levelUpShown = useRef(false);
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -64,6 +66,8 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate }: Props)
           { backgroundColor: colors.primaryTint, borderColor: colors.primary },
         ]}
       >
+        <EgoDeBolsoTrialNudge colors={colors} access={access} journey={journey} />
+
         <View style={styles.headRow}>
           <Text style={styles.emoji}>{journey.emoji}</Text>
           <View style={{ flex: 1 }}>

@@ -39,8 +39,12 @@ export function buildTrialExpiredMessage(
     parts.push(`Monstrinhos do Humor: ${careDays} ${careDays === 1 ? "dia" : "dias"}.`);
   }
   if (journeyLevel > 1) {
-    parts.push(`EGO de Bolso: nível ${journeyLevel}/${journey?.max_level ?? 20}.`);
+    const stage = journey?.companion_stage_label ?? "EGO de Bolso";
+    const emoji = journey?.companion_sprite_emoji ?? journey?.emoji ?? "🥚";
+    parts.push(
+      `${emoji} Seu ${stage} chegou ao nível ${journeyLevel}/${journey?.max_level ?? 500} — não deixe ele parar no ovo.`
+    );
   }
-  parts.push("Assine para continuar — não perca seu progresso.");
+  parts.push("Assine Conexão e continue cuidando do seu progresso.");
   return parts.join(" ");
 }

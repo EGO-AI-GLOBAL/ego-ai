@@ -4,6 +4,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View, type DimensionValue } from "react-native";
 import type { WellnessJourney } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import { companionMoodLine } from "@/utils/egoDeBolsoCompanionMood";
 import { resolveEgoDeBolsoCareRoute } from "@/utils/egoDeBolsoCareRoute";
 import { CompanionSprite } from "./CompanionSprite";
 
@@ -18,6 +19,7 @@ export function CompanionPocketScene({ colors, journey }: Props) {
   const fillWidth = `${Math.max(care, care > 0 ? 8 : 0)}%` as DimensionValue;
   const pending = journey.steps?.filter((s) => !s.done) ?? [];
   const needsCare = pending.length > 0 || !journey.level_complete;
+  const moodLine = companionMoodLine(journey);
 
   return (
     <View style={styles.wrap}>
@@ -36,6 +38,11 @@ export function CompanionPocketScene({ colors, journey }: Props) {
           <View style={[styles.careFill, { width: fillWidth, backgroundColor: "#FFE566" }]} />
         </View>
         <Text style={styles.pocketHint}>Estilo anos 90 — no bolso, com a Luna 💜</Text>
+        {moodLine ? (
+          <Text style={[styles.moodLine, needsCare ? styles.moodLonely : styles.moodHappy]}>
+            {moodLine}
+          </Text>
+        ) : null}
       </LinearGradient>
       {needsCare ? (
         <Pressable
@@ -69,6 +76,16 @@ const styles = StyleSheet.create({
   },
   careFill: { height: "100%", borderRadius: 5 },
   pocketHint: { marginTop: 8, fontSize: 11, color: "rgba(255,255,255,0.75)", fontWeight: "600" },
+  moodLine: {
+    marginTop: 10,
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+    lineHeight: 17,
+    paddingHorizontal: 8,
+  },
+  moodLonely: { color: "#FFE566" },
+  moodHappy: { color: "rgba(255,255,255,0.9)" },
   careBtn: {
     marginHorizontal: 14,
     marginBottom: 12,

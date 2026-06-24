@@ -46,6 +46,7 @@ export default function WellnessJourneyScreen() {
             <WellnessJourneyCard
               colors={colors}
               journey={data.wellness_journey}
+              access={data.access}
               onJourneyUpdate={mergeWellnessJourney}
             />
           </>
