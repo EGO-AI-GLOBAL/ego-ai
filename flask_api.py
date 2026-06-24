@@ -160,6 +160,31 @@ def _json_ok(data: dict | None = None, status: int = 200):
     return jsonify(body), status
 
 
+def _journey_after_agenda_step(step: str) -> dict[str, Any] | None:
+    """EGO de Bolso: compromisso ou hábito marcado manualmente na agenda."""
+    try:
+        from ego_api import wellness_journey
+
+        prof = db.load_profile(g.supabase, g.user_id) or {}
+        tier, _ = db.user_plan_limits(prof)
+        wellness_journey.record_step(g.supabase, g.user_id, step, plan_tier=tier)
+        return wellness_journey.sync_streak_levels(g.supabase, g.user_id, plan_tier=tier)
+    except Exception:
+        return None
+
+
+def _journey_snapshot() -> dict[str, Any] | None:
+    """Estado actual da jornada (sem incrementar passo)."""
+    try:
+        from ego_api import wellness_journey
+
+        prof = db.load_profile(g.supabase, g.user_id) or {}
+        tier, _ = db.user_plan_limits(prof)
+        return wellness_journey.get_journey(g.supabase, g.user_id, plan_tier=tier)
+    except Exception:
+        return None
+
+
 def _request_client_body() -> dict:
     """JSON ou campos de formulário (voz multipart) com timezone do aparelho."""
     if request.is_json:
@@ -339,7 +364,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-24-1.0.42-fin-ego-bolso",
+        "api_build": "2026-06-24-1.0.42-agenda-mission",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1332,7 +1357,12 @@ def streaks_record_activity():
     data = request.get_json(silent=True) or {}
     source = str(data.get("source") or "habit").strip()[:32]
     streak = streaks.record_streak_activity(g.supabase, g.user_id, source=source)
-    return _json_ok({"streak": streak})
+    payload: dict[str, Any] = {"streak": streak}
+    if str(source).strip() == "habit":
+        journey = _journey_snapshot()
+        if journey:
+            payload["wellness_journey"] = journey
+    return _json_ok(payload)
 
 
 @app.post("/api/v1/wellness-journey/step")
@@ -1421,16 +1451,13 @@ def reminders_create():
                 or "Não foi possível criar o lembrete."
             )
         try:
-            from ego_api import wellness_journey
-
-            prof = db.load_profile(g.supabase, g.user_id) or {}
-            tier, _ = db.user_plan_limits(prof)
-            wellness_journey.record_step(
-                g.supabase, g.user_id, "reminder", plan_tier=tier
-            )
+            journey = _journey_after_agenda_step("reminder")
         except Exception:
-            pass
-        return _json_ok({"reminder": row}, 201)
+            journey = None
+        payload: dict[str, Any] = {"reminder": row}
+        if journey:
+            payload["wellness_journey"] = journey
+        return _json_ok(payload, 201)
     except Exception as exc:  # noqa: BLE001
         log_api_exception(exc, route="/api/v1/reminders")
         return _json_error(friendly_api_error(exc, context="reminder"), 500)
@@ -1639,7 +1666,11 @@ def shared_calendars_events_create(calendar_id: str):
     )
     if not ok:
         return _json_error(err or "Não foi possível marcar a reunião.")
-    return _json_ok({"event": row}, 201)
+    journey = _journey_after_agenda_step("reminder")
+    payload: dict[str, Any] = {"event": row}
+    if journey:
+        payload["wellness_journey"] = journey
+    return _json_ok(payload, 201)
 
 
 @app.post("/api/v1/shared-calendars/<calendar_id>/events/<event_id>/dismiss")
@@ -1667,7 +1698,12 @@ def shared_calendars_events_respond(calendar_id: str, event_id: str):
     )
     if not ok:
         return _json_error(err or "Não foi possível registar a resposta.", 400)
-    return _json_ok({"event": row, "accepted": accept})
+    payload: dict[str, Any] = {"event": row, "accepted": accept}
+    if accept:
+        journey = _journey_after_agenda_step("reminder")
+        if journey:
+            payload["wellness_journey"] = journey
+    return _json_ok(payload)
 
 
 @app.post("/api/v1/auth/logout")

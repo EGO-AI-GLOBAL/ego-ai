@@ -17,7 +17,7 @@ import {
   dismissSharedCalendarEvent,
   localDateTimeToIso,
 } from "@/api/client";
-import type { SharedCalendar } from "@/api/types";
+import type { SharedCalendar, WellnessJourney } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import {
   memberDisplayName,
@@ -36,12 +36,14 @@ import { SharedEventRow } from "./SharedEventRow";
 import { SharedCalendarSocialInvite } from "./SharedCalendarSocialInvite";
 import { promptLeaveSharedCalendar } from "@/utils/sharedCalendarLeave";
 import { shareSharedCalendarInviteWhatsApp } from "@/utils/whatsappShare";
+import { applyAgendaWellnessUpdate } from "@/utils/agendaWellnessSync";
 
 type Props = {
   colors: AppColors;
   sharedCalendars: SharedCalendar[];
   currentUserId?: string;
   onRefresh: () => Promise<void>;
+  onWellnessUpdate?: (journey: WellnessJourney) => void;
 };
 
 /** Agenda compartilhada clássica (Família, Trabalho…) — várias pessoas, como antes. */
@@ -50,6 +52,7 @@ export function ClassicSharedAgendaSection({
   sharedCalendars,
   currentUserId,
   onRefresh,
+  onWellnessUpdate,
 }: Props) {
   const router = useRouter();
   const initialSlot = defaultScheduleSlot();
@@ -132,11 +135,12 @@ export function ClassicSharedAgendaSection({
     }
     setSavingSharedEvent(true);
     try {
-      await createSharedCalendarEvent(String(selectedCalendar.id), {
+      const journey = await createSharedCalendarEvent(String(selectedCalendar.id), {
         title,
         scheduled_at: iso,
         announce: title,
       });
+      applyAgendaWellnessUpdate(journey, onWellnessUpdate);
       setShowSharedEventForm(false);
       setSharedEventTitle("");
       const slot = defaultScheduleSlot();

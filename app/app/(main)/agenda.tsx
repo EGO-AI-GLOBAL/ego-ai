@@ -19,7 +19,7 @@ import { useColors } from "@/theme/ThemeContext";
 export default function AgendaScreen() {
   const colors = useColors();
   const { session } = useAuth();
-  const { data, loading, refreshing, error, refresh } = useDashboard();
+  const { data, loading, refreshing, error, refresh, mergeWellnessJourney } = useDashboard();
   const [tab, setTab] = useState<AgendaTab>("personal");
 
   useEffect(() => {
@@ -75,6 +75,7 @@ export default function AgendaScreen() {
               agendaDrafts={data.agenda_drafts ?? []}
               shoppingOrphans={data.shopping_orphans ?? []}
               onRefresh={onRefresh}
+              onWellnessUpdate={mergeWellnessJourney}
               nightDumpNights={data.streak?.night_dump?.current ?? 0}
             />
           ) : (
@@ -85,6 +86,7 @@ export default function AgendaScreen() {
               agendaDrafts={data.agenda_drafts ?? []}
               currentUserId={session?.user?.id}
               onRefresh={onRefresh}
+              onWellnessUpdate={mergeWellnessJourney}
             />
           )
         ) : null}

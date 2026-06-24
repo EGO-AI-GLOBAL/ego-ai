@@ -17,7 +17,7 @@ import {
   localDateTimeToIso,
   respondEntreNosEvent,
 } from "@/api/client";
-import type { SharedCalendar } from "@/api/types";
+import type { SharedCalendar, WellnessJourney } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { shareEntreNosEventWhatsApp, shareEntreNosInviteWhatsApp } from "@/utils/whatsappShare";
 import { promptLeaveSharedCalendar } from "@/utils/sharedCalendarLeave";
@@ -43,12 +43,14 @@ import {
 } from "./agendaUtils";
 import { SharedEventRow } from "./SharedEventRow";
 import { SharedCalendarSocialInvite } from "./SharedCalendarSocialInvite";
+import { applyAgendaWellnessUpdate } from "@/utils/agendaWellnessSync";
 
 type Props = {
   colors: AppColors;
   sharedCalendars: SharedCalendar[];
   currentUserId?: string;
   onRefresh: () => Promise<void>;
+  onWellnessUpdate?: (journey: WellnessJourney) => void;
 };
 
 /** Entre Nós — você + 1 pessoa · confirmar / recusar convites e tarefas. */
@@ -57,6 +59,7 @@ export function EntreNosAgendaSection({
   sharedCalendars,
   currentUserId,
   onRefresh,
+  onWellnessUpdate,
 }: Props) {
   const router = useRouter();
   const initialSlot = defaultScheduleSlot();
@@ -161,11 +164,12 @@ export function EntreNosAgendaSection({
     }
     setSavingSharedEvent(true);
     try {
-      await createSharedCalendarEvent(String(selectedCalendar.id), {
+      const journey = await createSharedCalendarEvent(String(selectedCalendar.id), {
         title,
         scheduled_at: iso,
         announce: title,
       });
+      applyAgendaWellnessUpdate(journey, onWellnessUpdate);
       setShowSharedEventForm(false);
       setSharedEventTitle("");
       await onRefresh();
@@ -447,7 +451,12 @@ export function EntreNosAgendaSection({
                     onRespond={async (id, accept) => {
                       setActionBusy(eid);
                       try {
-                        await respondEntreNosEvent(String(selectedCalendar.id), id, accept);
+                        const { wellness_journey } = await respondEntreNosEvent(
+                          String(selectedCalendar.id),
+                          id,
+                          accept
+                        );
+                        applyAgendaWellnessUpdate(wellness_journey, onWellnessUpdate);
                         await onRefresh();
                       } finally {
                         setActionBusy(null);

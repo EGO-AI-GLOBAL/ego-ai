@@ -20,6 +20,7 @@ import type {
   AgendaItem,
   Reminder,
   ShoppingListItem,
+  WellnessJourney,
 } from "@/api/types";
 import { AgendaItemRow } from "@/components/AgendaItem";
 import { ReminderItem } from "@/components/ReminderItem";
@@ -35,6 +36,7 @@ import {
   defaultTimeHm,
   filterVisibleReminders,
 } from "./agendaUtils";
+import { applyAgendaWellnessUpdate } from "@/utils/agendaWellnessSync";
 
 type Props = {
   colors: AppColors;
@@ -43,6 +45,7 @@ type Props = {
   agendaDrafts: AgendaDraft[];
   shoppingOrphans: ShoppingListItem[];
   onRefresh: () => Promise<void>;
+  onWellnessUpdate?: (journey: WellnessJourney) => void;
   nightDumpNights?: number;
 };
 
@@ -57,6 +60,7 @@ export function PersonalAgendaManual({
   agendaDrafts,
   shoppingOrphans,
   onRefresh,
+  onWellnessUpdate,
   nightDumpNights = 0,
 }: Props) {
   const initialSlot = defaultScheduleSlot();
@@ -112,7 +116,8 @@ export function PersonalAgendaManual({
     }
     setSavingPersonal(true);
     try {
-      await createReminder({ title, scheduled_at: iso, announce: title });
+      const journey = await createReminder({ title, scheduled_at: iso, announce: title });
+      applyAgendaWellnessUpdate(journey, onWellnessUpdate);
       setShowPersonalForm(false);
       resetPersonalForm();
       await onRefresh();
@@ -205,7 +210,8 @@ export function PersonalAgendaManual({
   const onHabitDoneToday = async (agendaId: string) => {
     setHabitDoneBusy(agendaId);
     try {
-      await recordStreakActivity("habit");
+      const { wellness_journey } = await recordStreakActivity("habit");
+      applyAgendaWellnessUpdate(wellness_journey, onWellnessUpdate);
       Alert.alert("Hábito", "Marcado — monstrinhos e EGO de Bolso agradecem! 💜");
       await onRefresh();
     } catch (e) {

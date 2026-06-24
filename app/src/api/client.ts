@@ -480,8 +480,10 @@ export async function createReminder(payload: {
   title: string;
   scheduled_at: string;
   announce?: string;
-}): Promise<void> {
-  await api.post("reminders", payload);
+}): Promise<WellnessJourney | null> {
+  const { data } = await api.post("reminders", payload);
+  const body = unwrap<{ wellness_journey?: WellnessJourney }>(data);
+  return body.wellness_journey ?? null;
 }
 
 export async function submitNightDumpText(text: string): Promise<NightDumpResult> {
@@ -592,10 +594,13 @@ export async function dismissDelegationRequest(requestId: string): Promise<void>
 
 export async function recordStreakActivity(
   source: "habit" | "night_dump" | "draft_confirm" | "delegation_confirm" = "habit"
-): Promise<StreakInfo> {
+): Promise<{ streak: StreakInfo; wellness_journey?: WellnessJourney }> {
   const { data } = await api.post("streaks/activity", { source });
-  const body = unwrap<{ streak: StreakInfo }>(data);
-  return body.streak ?? { current: 0, longest: 0 };
+  const body = unwrap<{ streak: StreakInfo; wellness_journey?: WellnessJourney }>(data);
+  return {
+    streak: body.streak ?? { current: 0, longest: 0 },
+    wellness_journey: body.wellness_journey,
+  };
 }
 
 export async function completeWellnessJourneyStep(
@@ -1022,8 +1027,10 @@ export async function removeSharedCalendarMember(
 export async function createSharedCalendarEvent(
   calendarId: string,
   event: { title: string; scheduled_at: string; announce?: string }
-): Promise<void> {
-  await api.post(`shared-calendars/${calendarId}/events`, event);
+): Promise<WellnessJourney | null> {
+  const { data } = await api.post(`shared-calendars/${calendarId}/events`, event);
+  const body = unwrap<{ wellness_journey?: WellnessJourney }>(data);
+  return body.wellness_journey ?? null;
 }
 
 export async function dismissSharedCalendarEvent(
@@ -1037,13 +1044,13 @@ export async function respondEntreNosEvent(
   calendarId: string,
   eventId: string,
   accept: boolean
-): Promise<SharedCalendarEvent> {
+): Promise<{ event: SharedCalendarEvent; wellness_journey?: WellnessJourney }> {
   const { data } = await api.post(`shared-calendars/${calendarId}/events/${eventId}/respond`, {
     accept,
   });
-  const body = unwrap<{ event: SharedCalendarEvent }>(data);
+  const body = unwrap<{ event: SharedCalendarEvent; wellness_journey?: WellnessJourney }>(data);
   if (!body.event) throw new Error("Resposta não devolvida pelo servidor.");
-  return body.event;
+  return { event: body.event, wellness_journey: body.wellness_journey };
 }
 
 export async function deleteSharedCalendar(calendarId: string): Promise<void> {

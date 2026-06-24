@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import type { PendingCalendarInvite, SharedCalendar } from "@/api/types";
+import type { PendingCalendarInvite, SharedCalendar, WellnessJourney } from "@/api/types";
 import type { AgendaDraft } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { isEntreNosCalendarName } from "@/utils/entreNos";
@@ -15,6 +15,7 @@ type Props = {
   agendaDrafts?: AgendaDraft[];
   currentUserId?: string;
   onRefresh: () => Promise<void>;
+  onWellnessUpdate?: (journey: WellnessJourney) => void;
 };
 
 /**
@@ -27,6 +28,7 @@ export function SharedAgendaManual({
   agendaDrafts = [],
   currentUserId,
   onRefresh,
+  onWellnessUpdate,
 }: Props) {
   const classicCalendars = useMemo(
     () => sharedCalendars.filter((c) => !isEntreNosCalendarName(String(c.name || ""))),
@@ -56,12 +58,14 @@ export function SharedAgendaManual({
         sharedCalendars={classicCalendars}
         currentUserId={currentUserId}
         onRefresh={onRefresh}
+        onWellnessUpdate={onWellnessUpdate}
       />
       <EntreNosAgendaSection
         colors={colors}
         sharedCalendars={entreNosCalendars}
         currentUserId={currentUserId}
         onRefresh={onRefresh}
+        onWellnessUpdate={onWellnessUpdate}
       />
     </>
   );
