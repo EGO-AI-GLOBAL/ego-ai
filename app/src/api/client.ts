@@ -4,6 +4,7 @@ import { Platform } from "react-native";
 import { API_V1 } from "@/constants/config";
 import { normalizeAccessInfo } from "@/constants/planLimits";
 import { resolveSpeechVoiceId } from "@/constants/personas";
+import { getPlayIntegrityToken } from "@/security/playIntegrity";
 import type {
   AccessInfo,
   ApiErr,
@@ -112,17 +113,37 @@ const TIMEOUT_DEFAULT_MS = 60_000;
 const TIMEOUT_CHAT_MS = 120_000;
 const TIMEOUT_BOOTSTRAP_MS = 90_000;
 
+const INTEGRITY_ROUTES = [
+  "chat/messages",
+  "tts",
+  "night-dump",
+  "voice/realtime",
+] as const;
+
+function routeNeedsIntegrity(url: string | undefined, method: string | undefined): boolean {
+  if (!url || (method || "get").toLowerCase() !== "post") return false;
+  const path = url.split("?")[0] || "";
+  return INTEGRITY_ROUTES.some((segment) => path.includes(segment));
+}
+
 export const api: AxiosInstance = axios.create({
   baseURL: apiBase,
   timeout: TIMEOUT_DEFAULT_MS,
   headers: { "Content-Type": "application/json" },
 });
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   applyAuthHeaders(config.headers);
+  const h = config.headers as Record<string, string>;
+  h["X-EGO-Platform"] = Platform.OS;
+  if (routeNeedsIntegrity(config.url, config.method)) {
+    const token = await getPlayIntegrityToken();
+    if (token) {
+      h["X-Play-Integrity"] = token;
+    }
+  }
   // FormData precisa do boundary automático do browser (não application/json).
   if (typeof FormData !== "undefined" && config.data instanceof FormData) {
-    const h = config.headers as Record<string, unknown>;
     delete h["Content-Type"];
     delete h["content-type"];
   }

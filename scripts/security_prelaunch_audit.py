@@ -51,12 +51,14 @@ def main() -> int:
             "Adicionar rate limit nas rotas críticas",
         )
     )
+    webhook_src = (ROOT / "ego_api" / "stripe_webhook_handler.py").read_text(encoding="utf-8")
     checks.append(
         (
             "Webhook exige service role key",
-            "SUPABASE_SERVICE_ROLE_KEY" in (ROOT / "stripe_webhook.py").read_text(encoding="utf-8")
-            and "SUPABASE_KEY" not in (ROOT / "stripe_webhook.py").read_text(encoding="utf-8"),
-            "Remover fallback para chave anon no webhook",
+            "SUPABASE_SERVICE_ROLE_KEY" in webhook_src
+            and "create_service_client" in webhook_src
+            and "SUPABASE_KEY" not in webhook_src.replace("SUPABASE_SERVICE_ROLE_KEY", ""),
+            "Webhook deve usar create_service_client (service role only)",
         )
     )
 

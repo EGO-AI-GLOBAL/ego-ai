@@ -21,10 +21,23 @@ function integrityConfigured(): boolean {
 }
 
 async function loadModule(): Promise<IntegrityModule | null> {
-  // Play Integrity nativo removido do build v1 (evita falha Gradle no EAS).
-  // Reativar quando EXPO_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER estiver configurado.
   if (!integrityConfigured()) return null;
-  return null;
+  try {
+    // Opcional: npm install react-native-google-play-integrity (dev build / EAS)
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const raw = require("react-native-google-play-integrity");
+    const mod = (raw?.default ?? raw) as IntegrityModule;
+    if (
+      typeof mod?.isPlayServicesAvailable !== "function" ||
+      typeof mod?.prepareIntegrityToken !== "function" ||
+      typeof mod?.requestIntegrityToken !== "function"
+    ) {
+      return null;
+    }
+    return mod;
+  } catch {
+    return null;
+  }
 }
 
 /** Prepara Play Integrity (Android). Chamar após login ou no arranque. */
@@ -81,4 +94,5 @@ export function playIntegrityAvailableOnDevice(): boolean {
 
 export function clearPlayIntegrityCache(): void {
   cachedToken = null;
+  prepared = false;
 }

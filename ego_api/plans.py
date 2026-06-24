@@ -216,6 +216,10 @@ def normalize_plan_tier(raw: str | None) -> str:
 
 def _test_total_emails() -> frozenset[str]:
     """E-mails com plano Total forçado (dev/teste). Env: EGO_TEST_TOTAL_EMAILS=a@x.com,b@y.com"""
+    from ego_api.config import is_production_env
+
+    if is_production_env():
+        return frozenset()
     raw = (os.getenv("EGO_TEST_TOTAL_EMAILS") or "").strip()
     if not raw:
         return frozenset()

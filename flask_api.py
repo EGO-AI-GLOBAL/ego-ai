@@ -31,6 +31,7 @@ from ego_api.config import (
     cors_origins,
     gemini_api_key,
     is_production_env,
+    production_bypass_warnings,
     read_env,
     supabase_anon_key,
     supabase_url,
@@ -73,6 +74,8 @@ print(
     f"client_ok={_sb_boot.get('client_ok')}",
     flush=True,
 )
+for _sec_warn in production_bypass_warnings():
+    print("EGO_SECURITY_WARN", _sec_warn, flush=True)
 CORS(
     app,
     resources={r"/api/*": {"origins": cors_origins()}},
@@ -82,6 +85,7 @@ CORS(
         "Authorization",
         "X-Refresh-Token",
         "X-Play-Integrity",
+        "X-EGO-Platform",
         "X-Admin-Key",
     ],
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -100,6 +104,9 @@ def _is_secure_request() -> bool:
 @app.before_request
 def _enforce_https_if_enabled():
     if request.method == "OPTIONS":
+        return None
+    path = (request.path or "").rstrip("/")
+    if path in ("/api/health", "/api/v1/health", "/stripe/webhook"):
         return None
     enforce_https = os.getenv("EGO_ENFORCE_HTTPS", "").lower() in ("1", "true", "yes")
     if not enforce_https:
@@ -378,6 +385,12 @@ def health():
         payload["signup_emails"] = signup_emails_status()
     except Exception:
         pass
+    try:
+        from ego_api.play_integrity import status_payload
+
+        payload["play_integrity"] = status_payload()
+    except Exception:
+        pass
     include_details = os.getenv("EGO_HEALTH_DETAILS", "").lower() in ("1", "true", "yes")
     if include_details:
         payload["checks"].update(
@@ -392,6 +405,13 @@ def health():
         if err:
             payload["checks"]["supabase_client_error"] = str(err)
     return _json_ok(payload)
+
+
+@app.get("/api/v1/integrity/status")
+def integrity_status():
+    from ego_api.play_integrity import status_payload
+
+    return _json_ok(status_payload())
 
 
 @app.post("/api/v1/auth/login")
@@ -763,6 +783,14 @@ def chat_list():
 @require_auth
 @rate_limit(30, 60, scope="user")
 def chat_send():
+    from ego_api.integrity_guard import evaluate_request_integrity
+
+    allow, reason, blocked = evaluate_request_integrity()
+    if blocked:
+        return _json_error(
+            "App não verificado. Instale pela Play Store oficial e actualize.",
+            403,
+        )
     message = ""
     audio_b64 = None
     audio_bytes: bytes | None = None
@@ -842,6 +870,14 @@ def chat_send():
 @rate_limit(20, 60, scope="user")
 def tts_speak():
     """Converte texto em áudio MP3 (Edge TTS) para o app reproduzir."""
+    from ego_api.integrity_guard import evaluate_request_integrity
+
+    allow, reason, blocked = evaluate_request_integrity()
+    if blocked:
+        return _json_error(
+            "App não verificado. Instale pela Play Store oficial e actualize.",
+            403,
+        )
     import base64
 
     from ego_api import tts
@@ -1104,6 +1140,14 @@ def _audio_from_request():
 @require_auth
 @rate_limit(12, 60, scope="user")
 def night_dump_submit():
+    from ego_api.integrity_guard import evaluate_request_integrity
+
+    allow, reason, blocked = evaluate_request_integrity()
+    if blocked:
+        return _json_error(
+            "App não verificado. Instale pela Play Store oficial e actualize.",
+            403,
+        )
     from ego_api import night_dump
     from ego_api.api_errors import friendly_api_error
     from ego_api.monitoring import log_api_exception

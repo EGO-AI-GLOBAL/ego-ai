@@ -151,6 +151,9 @@ def supabase_anon_key() -> str:
 def cors_origins() -> list[str]:
     """Origens permitidas no browser (Expo web usa :8081). Não use '*' com credentials."""
     raw = read_env("EGO_CORS_ORIGINS", "")
+    if is_production_env() and (not raw or raw == "*"):
+        # App mobile não usa CORS; browser só com allowlist explícita.
+        return []
     if raw and raw != "*":
         return [o.strip() for o in raw.split(",") if o.strip()]
     local_defaults = [
@@ -231,9 +234,27 @@ def chat_agenda_actions_enabled() -> bool:
 
 
 def beta_unlimited() -> bool:
+    if is_production_env():
+        return False
     if read_env("EGO_BETA_SEM_LIMITE", "").lower() in ("1", "true", "yes", "sim"):
         return True
     return False
+
+
+def production_bypass_warnings() -> list[str]:
+    """Variáveis perigosas activas em produção (para logs de arranque)."""
+    if not is_production_env():
+        return []
+    warnings: list[str] = []
+    if read_env("EGO_TEST_TOTAL_EMAILS"):
+        warnings.append("EGO_TEST_TOTAL_EMAILS definido (ignorado em produção)")
+    if read_env("EGO_BETA_SEM_LIMITE", "").lower() in ("1", "true", "yes", "sim"):
+        warnings.append("EGO_BETA_SEM_LIMITE definido (ignorado em produção)")
+    if read_env("EGO_MAINTENANCE", "").lower() in ("1", "true", "yes", "sim"):
+        warnings.append("EGO_MAINTENANCE=1 — app em manutenção")
+    if read_env("EGO_ENFORCE_HTTPS", "").lower() not in ("1", "true", "yes", "sim"):
+        warnings.append("EGO_ENFORCE_HTTPS desligado em produção")
+    return warnings
 
 
 def latest_app_version() -> str:
