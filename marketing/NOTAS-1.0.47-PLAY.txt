@@ -2,14 +2,15 @@ Play Console — 1.0.47 (versionCode 85)
 
 O que há de novo
 ---------------
-• EGO de Bolso: até 5 missões por dia
+• EGO de Bolso: até 5 missões por dia + lembrete 18h
 • Contador de missões diárias no app
 • Convite a cada 10 níveis (crescimento orgânico)
-• Companheiro digital com visual novo
+• Entre Nós na Agenda com visual igual à agenda compartilhada
 • Monstrinhos: jardim animado estilo Finch (pet + decorações vivas)
 
 Testar
 ------
 Complete 2–3 missões no mesmo dia → contador sobe (ex. 2/5)
 Nível 10 → convite na Agenda → amigo aceita
-Monstrinhos → ver pet a flutuar, nuvens no jardim, comprar decoração na loja
+Agenda → Entre Nós → criar, convidar, confirmar compromisso
+Monstrinhos → ver pet a flutuar, nuvens no jardim

@@ -5,7 +5,7 @@ title Gerar 1.0.47 — iOS 34 + Android 85
 
 echo.
 echo ============================================================
-echo   EGO-AI 1.0.47 — EGO de Bolso + Monstrinhos F5 visual
+echo   EGO-AI 1.0.47 — EGO de Bolso + Entre Nós + Monstrinhos F5
 echo ============================================================
 echo.
 

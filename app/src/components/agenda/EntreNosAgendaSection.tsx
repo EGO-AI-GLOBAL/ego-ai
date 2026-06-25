@@ -13,6 +13,7 @@ import {
   addSharedCalendarMember,
   createSharedCalendar,
   createSharedCalendarEvent,
+  deleteSharedCalendar,
   dismissSharedCalendarEvent,
   localDateTimeToIso,
   respondEntreNosEvent,
@@ -146,7 +147,6 @@ export function EntreNosAgendaSection({
       setShowCreateCalendarForm(false);
       setSelectedSharedId(String(cal.id));
       await onRefresh();
-      Alert.alert("Grupo criado", `«${name}» — convide 1 pessoa abaixo.`);
     } catch (e) {
       Alert.alert("Erro", e instanceof Error ? e.message : "Não foi possível criar.");
     } finally {
@@ -173,6 +173,9 @@ export function EntreNosAgendaSection({
       applyAgendaWellnessUpdate(journey, onWellnessUpdate);
       setShowSharedEventForm(false);
       setSharedEventTitle("");
+      const slot = defaultScheduleSlot();
+      setSharedEventDate(slot.date);
+      setSharedEventTime(slot.time);
       await onRefresh();
       const whenLabel = formatScheduledLocal(iso);
       const groupName = (selectedCalendar.name || "Entre Nós").trim();
@@ -248,20 +251,74 @@ export function EntreNosAgendaSection({
     }
   };
 
-  return (
-    <View style={[styles.wrap, { borderTopColor: colors.border }]}>
-      <Text style={[s.section, { color: colors.textMuted, marginTop: 20 }]}>Entre Nós</Text>
-      <Text style={[s.muted, { color: colors.textMuted, marginBottom: 8, fontSize: 12 }]}>
-        Você + 1 pessoa · os dois criam tarefas · confirmar ou recusar convites.
-      </Text>
+  const onDismissSharedEvent = (eventId: string) => {
+    if (!selectedCalendar?.id) return;
+    const item = selectedEvents.find((ev) => String(ev.id) === eventId);
+    const title = (item?.title || "Compromisso").trim();
+    Alert.alert("Apagar", `Apagar «${title}» desta agenda?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Apagar",
+        style: "destructive",
+        onPress: async () => {
+          setActionBusy(eventId);
+          try {
+            await dismissSharedCalendarEvent(String(selectedCalendar.id), eventId);
+            await onRefresh();
+          } catch (e) {
+            Alert.alert(
+              "Erro",
+              e instanceof Error ? e.message : "Não foi possível apagar o compromisso."
+            );
+          } finally {
+            setActionBusy(null);
+          }
+        },
+      },
+    ]);
+  };
 
+  const onDeleteSelectedCalendar = () => {
+    if (!selectedCalendar?.id) return;
+    const name = (selectedCalendar.name || "Entre Nós").trim();
+    Alert.alert("Apagar agenda", `Apagar «${name}» para todos?`, [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Apagar",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteSharedCalendar(String(selectedCalendar.id));
+            await onRefresh();
+            setSelectedSharedId(null);
+          } catch (e) {
+            Alert.alert(
+              "Erro",
+              e instanceof Error ? e.message : "Não foi possível apagar a agenda."
+            );
+          }
+        },
+      },
+    ]);
+  };
+
+  const displayCalendarName = (name?: string) => {
+    const raw = (name || "Entre Nós").trim();
+    return raw.replace(/^Entre Nós\s*·\s*/i, "").trim() || raw;
+  };
+
+  return (
+    <>
+      <Text style={[s.section, { color: colors.textMuted, marginTop: 20 }]}>Entre Nós</Text>
       {sharedCalendars.length === 0 ? (
         <View style={[s.formBox, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
-          <Text style={[s.formLabel, { color: colors.textMuted }]}>1. Nome do grupo</Text>
+          <Text style={[s.formLabel, { color: colors.textMuted }]}>
+            Crie um Entre Nós (você + 1 pessoa)
+          </Text>
           <TextInput
             value={newCalendarName}
             onChangeText={setNewCalendarName}
-            placeholder="Ex.: Maria, João…"
+            placeholder="Nome (ex.: Maria)"
             placeholderTextColor={colors.textMuted}
             style={inputStyle}
           />
@@ -273,15 +330,18 @@ export function EntreNosAgendaSection({
             {creatingCalendar ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={s.inviteBtnText}>Criar Entre Nós</Text>
+              <Text style={s.inviteBtnText}>Criar agenda</Text>
             )}
           </Pressable>
-          <Text style={[s.muted, { color: colors.textMuted, marginTop: 8 }]}>
-            2. Depois convide <Text style={{ fontWeight: "700" }}>1 pessoa</Text>.
+          <Text style={[s.muted, { color: colors.textMuted, marginTop: 4 }]}>
+            Uma pessoa · convide por WhatsApp, Instagram ou telefone/e-mail.
           </Text>
         </View>
       ) : (
         <>
+          <Text style={[s.muted, { color: colors.textMuted, marginBottom: 8, fontSize: 12 }]}>
+            Suas agendas ({sharedCalendars.length})
+          </Text>
           {mayCreate ? (
             <Pressable
               onPress={() => setShowCreateCalendarForm((v) => !v)}
@@ -289,14 +349,14 @@ export function EntreNosAgendaSection({
                 s.addBtn,
                 {
                   borderColor: colors.primary,
-                  backgroundColor: showCreateCalendarForm ? colors.primaryTint : colors.bgCard,
+                  backgroundColor: showCreateCalendarForm ? colors.primaryLight : colors.bgCard,
                   opacity: pressed ? 0.88 : 1,
                   marginBottom: 10,
                 },
               ]}
             >
               <Text style={[s.addBtnText, { color: colors.primary }]}>
-                {showCreateCalendarForm ? "Fechar" : "+ Outro Entre Nós"}
+                {showCreateCalendarForm ? "Fechar formulário" : "+ Nova agenda compartilhada"}
               </Text>
             </Pressable>
           ) : null}
@@ -310,7 +370,7 @@ export function EntreNosAgendaSection({
               <TextInput
                 value={newCalendarName}
                 onChangeText={setNewCalendarName}
-                placeholder="Nome do grupo"
+                placeholder="Nome (ex.: Maria, João)"
                 placeholderTextColor={colors.textMuted}
                 style={inputStyle}
               />
@@ -322,16 +382,17 @@ export function EntreNosAgendaSection({
                 {creatingCalendar ? (
                   <ActivityIndicator color="#fff" />
                 ) : (
-                  <Text style={s.inviteBtnText}>Criar grupo</Text>
+                  <Text style={s.inviteBtnText}>Criar agenda</Text>
                 )}
               </Pressable>
             </View>
           ) : null}
-
           {sharedCalendars.map((cal) => {
             const cid = String(cal.id || "");
             const active = selectedSharedId === cid;
             const nmem = cal.member_count ?? cal.members?.length ?? 0;
+            const peopleLine = membersCardLine(cal.members, nmem, currentUserId);
+            const evCount = filterVisibleSharedEvents(cal.events ?? []).length;
             return (
               <Pressable
                 key={cid}
@@ -347,47 +408,62 @@ export function EntreNosAgendaSection({
                 ]}
               >
                 <Text style={[styles.calPickTitle, { color: colors.text }]}>
-                  {(cal.name || "Entre Nós").trim()}
+                  {displayCalendarName(cal.name)}
                 </Text>
-                <Text style={[styles.calPickMembers, { color: colors.text }]}>
-                  {membersCardLine(cal.members, nmem, currentUserId) || "Só você — convide 1 pessoa"}
+                {peopleLine ? (
+                  <>
+                    <Text style={[styles.calPickPeopleLabel, { color: colors.textMuted }]}>
+                      Pessoas no grupo
+                    </Text>
+                    <Text style={[styles.calPickMembers, { color: colors.text }]}>{peopleLine}</Text>
+                  </>
+                ) : null}
+                <Text style={[styles.calPickMeta, { color: colors.textMuted }]}>
+                  {nmem} membro{nmem === 1 ? "" : "s"}
+                  {cal.is_owner ? " · você criou" : ""} · {evCount} compromisso
+                  {evCount === 1 ? "" : "s"}
                 </Text>
               </Pressable>
             );
           })}
-
           {selectedCalendar ? (
             <View
               style={[styles.calDetail, { borderColor: colors.border, backgroundColor: colors.bgCard }]}
             >
               <Text style={[styles.calDetailTitle, { color: colors.text }]}>
-                {(selectedCalendar.name || "Entre Nós").trim()}
+                {displayCalendarName(selectedCalendar.name)}
               </Text>
               <Text style={[styles.calDetailMembers, { color: colors.textMuted }]}>
                 {membersGroupLine(selectedCalendar.members, currentUserId)}
               </Text>
+              <Text style={[s.sectionInner, { color: colors.textMuted }]}>Compromissos marcados</Text>
               <Pressable
                 onPress={() => setShowSharedEventForm((v) => !v)}
                 style={({ pressed }) => [
                   s.addBtn,
                   {
                     borderColor: colors.primary,
-                    backgroundColor: showSharedEventForm ? colors.primaryTint : colors.bgCard,
+                    backgroundColor: showSharedEventForm ? colors.primaryLight : colors.bgCard,
                     opacity: pressed ? 0.88 : 1,
                     marginBottom: 8,
                   },
                 ]}
               >
                 <Text style={[s.addBtnText, { color: colors.primary }]}>
-                  {showSharedEventForm ? "Fechar" : "+ Enviar convite / tarefa"}
+                  {showSharedEventForm ? "Fechar formulário" : "+ Novo compromisso"}
                 </Text>
               </Pressable>
               {showSharedEventForm ? (
-                <View style={[s.formBox, { borderColor: colors.border, backgroundColor: colors.bg }]}>
+                <View
+                  style={[
+                    s.formBox,
+                    { borderColor: colors.border, backgroundColor: colors.bg, marginBottom: 10 },
+                  ]}
+                >
                   <TextInput
                     value={sharedEventTitle}
                     onChangeText={setSharedEventTitle}
-                    placeholder="O que é?"
+                    placeholder="O que é? (ex.: reunião, festa)"
                     placeholderTextColor={colors.textMuted}
                     style={[
                       s.inviteInput,
@@ -416,73 +492,63 @@ export function EntreNosAgendaSection({
                     {savingSharedEvent ? (
                       <ActivityIndicator color="#fff" />
                     ) : (
-                      <Text style={s.inviteBtnText}>Enviar</Text>
+                      <Text style={s.inviteBtnText}>Salvar compromisso</Text>
                     )}
                   </Pressable>
                 </View>
               ) : null}
-              {selectedEvents.map((ev) => {
-                const eid = String(ev.id);
-                return (
-                  <SharedEventRow
-                    key={eid}
-                    event={ev}
-                    colors={colors}
-                    currentUserId={currentUserId}
-                    creatorLabel={memberLabelFor(ev.created_by_user_id)}
-                    responderLabel={memberLabelFor(ev.responded_by_user_id)}
-                    onDismiss={(id) => {
-                      Alert.alert("Apagar", "Apagar este item?", [
-                        { text: "Cancelar", style: "cancel" },
-                        {
-                          text: "Apagar",
-                          style: "destructive",
-                          onPress: async () => {
-                            setActionBusy(eid);
-                            try {
-                              await dismissSharedCalendarEvent(String(selectedCalendar.id), id);
-                              await onRefresh();
-                            } finally {
-                              setActionBusy(null);
-                            }
-                          },
-                        },
-                      ]);
-                    }}
-                    onRespond={async (id, accept) => {
-                      setActionBusy(eid);
-                      try {
-                        const { wellness_journey } = await respondEntreNosEvent(
-                          String(selectedCalendar.id),
-                          id,
-                          accept
-                        );
-                        applyAgendaWellnessUpdate(wellness_journey, onWellnessUpdate);
-                        await onRefresh();
-                      } finally {
-                        setActionBusy(null);
-                      }
-                    }}
-                    onShareWhatsApp={() => {
-                      void shareEntreNosEventWhatsApp({
-                        groupName: (selectedCalendar.name || "Entre Nós").trim(),
-                        title: String(ev.title || "Compromisso"),
-                        whenLabel: formatScheduledLocal(ev.scheduled_at),
-                      });
-                    }}
-                    busy={actionBusy === eid}
-                  />
-                );
-              })}
+              {selectedEvents.length === 0 ? (
+                <Text style={[s.muted, { color: colors.textMuted }]}>
+                  Nenhum compromisso. Toque em «+ Novo compromisso».
+                </Text>
+              ) : (
+                selectedEvents.map((ev) => {
+                  const eid = String(ev.id);
+                  return (
+                    <SharedEventRow
+                      key={eid}
+                      event={ev}
+                      colors={colors}
+                      currentUserId={currentUserId}
+                      creatorLabel={memberLabelFor(ev.created_by_user_id)}
+                      responderLabel={memberLabelFor(ev.responded_by_user_id)}
+                      onDismiss={onDismissSharedEvent}
+                      onRespond={async (id, accept) => {
+                        setActionBusy(eid);
+                        try {
+                          const { wellness_journey } = await respondEntreNosEvent(
+                            String(selectedCalendar.id),
+                            id,
+                            accept
+                          );
+                          applyAgendaWellnessUpdate(wellness_journey, onWellnessUpdate);
+                          await onRefresh();
+                        } finally {
+                          setActionBusy(null);
+                        }
+                      }}
+                      onShareWhatsApp={() => {
+                        void shareEntreNosEventWhatsApp({
+                          groupName: displayCalendarName(selectedCalendar.name),
+                          title: String(ev.title || "Compromisso"),
+                          whenLabel: formatScheduledLocal(ev.scheduled_at),
+                        });
+                      }}
+                      busy={actionBusy === eid}
+                    />
+                  );
+                })
+              )}
+              <Text style={[s.sectionInner, { color: colors.textMuted, marginTop: 14 }]}>
+                Convidar pessoa
+              </Text>
               {partnerSlotFull ? (
-                <Text style={[s.muted, { color: colors.textMuted, marginTop: 12 }]}>
-                  Parceiro(a) já neste grupo. Use «+ Outro Entre Nós» para outra pessoa.
+                <Text style={[s.muted, { color: colors.textMuted }]}>
+                  Este grupo já tem 1 parceiro(a). Use «+ Nova agenda compartilhada» para outra
+                  pessoa.
                 </Text>
               ) : (
                 <>
-                  <Text style={[s.sectionInner, { color: colors.textMuted, marginTop: 14 }]}>
-                    Convidar 1 pessoa
-                  </Text>
                   <TextInput
                     value={inviteContact}
                     onChangeText={setInviteContact}
@@ -491,9 +557,6 @@ export function EntreNosAgendaSection({
                     autoCapitalize="none"
                     style={inputStyle}
                   />
-                  <Text style={[s.muted, { color: colors.textMuted, marginTop: 6, fontSize: 12 }]}>
-                    Prefira o telefone (WhatsApp) — ou use o e-mail se a pessoa não tiver número.
-                  </Text>
                   <Pressable
                     onPress={onInvitePartner}
                     disabled={inviting}
@@ -502,28 +565,38 @@ export function EntreNosAgendaSection({
                     {inviting ? (
                       <ActivityIndicator color="#fff" />
                     ) : (
-                      <Text style={s.inviteBtnText}>Convidar parceiro(a)</Text>
+                      <Text style={s.inviteBtnText}>Convidar</Text>
                     )}
                   </Pressable>
                   <SharedCalendarSocialInvite
                     colors={colors}
-                    calendarName={(selectedCalendar?.name || "Entre Nós").trim()}
+                    calendarName={displayCalendarName(selectedCalendar?.name)}
                     kind="entre_nos"
                     inviteContact={inviteContact.trim() || registeredInviteContact}
                   />
                 </>
               )}
               {selectedCalendar.is_owner ? (
-                <Pressable
-                  onPress={() =>
-                    router.push(`/(main)/shared-calendar/${String(selectedCalendar.id)}` as Href)
-                  }
-                  style={[styles.manageBtn, { borderColor: colors.primary }]}
-                >
-                  <Text style={{ color: colors.primary, fontWeight: "600" }}>
-                    Gerir grupo · apagar Entre Nós
-                  </Text>
-                </Pressable>
+                <>
+                  <Pressable
+                    onPress={() =>
+                      router.push(`/(main)/shared-calendar/${String(selectedCalendar.id)}` as Href)
+                    }
+                    style={[styles.manageBtn, { borderColor: colors.primary }]}
+                  >
+                    <Text style={{ color: colors.primary, fontWeight: "600" }}>
+                      Gerir agenda (membros)
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={onDeleteSelectedCalendar}
+                    style={[styles.deleteBtn, { borderColor: colors.danger }]}
+                  >
+                    <Text style={{ color: colors.danger, fontWeight: "600" }}>
+                      Apagar esta agenda
+                    </Text>
+                  </Pressable>
+                </>
               ) : (
                 <Pressable
                   onPress={() =>
@@ -538,27 +611,42 @@ export function EntreNosAgendaSection({
                   }
                   style={[styles.manageBtn, { borderColor: colors.danger, marginTop: 16 }]}
                 >
-                  <Text style={{ color: colors.danger, fontWeight: "600" }}>Sair deste Entre Nós</Text>
+                  <Text style={{ color: colors.danger, fontWeight: "600" }}>Sair do grupo</Text>
                 </Pressable>
               )}
             </View>
           ) : null}
         </>
       )}
-    </View>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { borderTopWidth: 1, marginTop: 8, paddingTop: 4 },
   calPick: { borderWidth: 1.5, borderRadius: 12, padding: 14, marginBottom: 8 },
   calPickTitle: { fontSize: 16, fontWeight: "700" },
-  calPickMembers: { fontSize: 14, marginTop: 6, lineHeight: 20 },
+  calPickPeopleLabel: {
+    fontSize: 11,
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  calPickMembers: { fontSize: 14, lineHeight: 21, fontWeight: "600" },
+  calPickMeta: { fontSize: 12, marginTop: 4 },
   calDetail: { borderWidth: 1, borderRadius: 12, padding: 14, marginTop: 12 },
   calDetailTitle: { fontSize: 17, fontWeight: "800", marginBottom: 6 },
   calDetailMembers: { fontSize: 14, lineHeight: 20, marginBottom: 12 },
   manageBtn: {
     marginTop: 16,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+  },
+  deleteBtn: {
+    marginTop: 10,
     borderWidth: 1,
     borderRadius: 12,
     paddingVertical: 12,
