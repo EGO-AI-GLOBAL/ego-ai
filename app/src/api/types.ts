@@ -327,6 +327,8 @@ export type WellnessJourney = {
   progress: number;
   level_complete: boolean;
   mission_done_today?: boolean;
+  missions_today?: number;
+  missions_per_day?: number;
   steps: WellnessJourneyStep[];
   show_level_up: boolean;
   share_challenge: string;

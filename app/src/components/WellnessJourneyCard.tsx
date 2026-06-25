@@ -79,6 +79,9 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }
             <Text style={[styles.badge, { color: colors.primary }]}>EGO DE BOLSO 🥚</Text>
             <Text style={[styles.level, { color: colors.text }]}>
               Nível {journey.level}/{journey.max_level} · {journey.title}
+              {journey.missions_per_day && !dayComplete
+                ? ` · ${journey.missions_today ?? 0}/${journey.missions_per_day} hoje`
+                : ""}
             </Text>
             <Text style={[styles.sub, { color: colors.textMuted }]}>{journey.subtitle}</Text>
           </View>

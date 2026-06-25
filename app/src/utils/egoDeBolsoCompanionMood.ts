@@ -3,18 +3,15 @@ import { resolveEgoDeBolsoCareRoute } from "./egoDeBolsoCareRoute";
 
 export type CompanionMood = "happy" | "waiting" | "lonely";
 
-/** Todas as missões do nível actual estão feitas (ou descanso de hoje). */
+/** Fechou o dia (5/5 missões) ou terminou a jornada. */
 export function egoDeBolsoMissionsComplete(journey: WellnessJourney): boolean {
   if (journey.mission_done_today) return true;
-  if (journey.level_complete) return true;
-  if (journey.show_level_up) return true;
-  const steps = journey.steps ?? [];
-  if (steps.length === 0) return false;
-  return steps.every((s) => s.done);
+  if (journey.journey_finished) return true;
+  return false;
 }
 
 export const EGO_BOLSO_DAY_COMPLETE_MSG =
-  "Todas as missões de hoje concluídas! Volte amanhã 💜";
+  "5 missões de hoje concluídas! Volte amanhã 💜";
 
 export function companionNeedsCare(journey: WellnessJourney): boolean {
   if (egoDeBolsoMissionsComplete(journey)) return false;

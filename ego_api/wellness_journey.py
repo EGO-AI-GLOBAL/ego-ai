@@ -288,6 +288,9 @@ JOURNEY_LEVELS: list[dict[str, Any]] = [
 
 HANDCRAFTED_MAX = len(JOURNEY_LEVELS)
 
+# Missões completas por dia (níveis) antes de «volte amanhã».
+MISSIONS_PER_DAY = 5
+
 _STEP_ALIASES = {
     "habit": "habit",
     "night_dump": "night_dump",
@@ -430,6 +433,8 @@ def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
         "levels_completed": list(raw.get("levels_completed") or []),
         "show_level_up": bool(raw.get("show_level_up")),
         "mission_done_date": str(raw.get("mission_done_date") or "").strip()[:10],
+        "missions_today_date": str(raw.get("missions_today_date") or "").strip()[:10],
+        "missions_today_count": max(0, int(raw.get("missions_today_count") or 0)),
     }
 
 
@@ -446,6 +451,8 @@ def _save_state(
         "levels_completed": state.get("levels_completed") or [],
         "show_level_up": bool(state.get("show_level_up")),
         "mission_done_date": str(state.get("mission_done_date") or "").strip()[:10],
+        "missions_today_date": str(state.get("missions_today_date") or "").strip()[:10],
+        "missions_today_count": max(0, int(state.get("missions_today_count") or 0)),
     }
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})
 
@@ -768,47 +775,86 @@ def _plan_nudge(level_def: dict[str, Any], plan_tier: str) -> str | None:
 
 
 def _mission_done_today(state: dict[str, Any]) -> bool:
-    return str(state.get("mission_done_date") or "").strip() == _local_date_str()
+    return int(state.get("missions_today_count") or 0) >= MISSIONS_PER_DAY
 
 
-def _maybe_advance_next_day(
+def _sync_daily_missions(
     state: dict[str, Any],
     supabase: Client | None,
     user_id: str,
     streak_data: dict[str, Any],
     cap: int,
 ) -> dict[str, Any]:
-    """No dia seguinte, avança nível que ficou completo ontem."""
+    """Novo dia: zera contador; legado 1 missão/dia avança nível pendente."""
     today = _local_date_str()
+    if str(state.get("missions_today_date") or "") == today:
+        return state
     done_date = str(state.get("mission_done_date") or "").strip()
-    if not done_date or done_date == today:
-        return state
-    level_def = _level_def(int(state["level"]), cap)
-    if not _level_complete(level_def, state["step_counts"], streak_data):
-        state["mission_done_date"] = ""
-        return state
-    cur = int(state["level"])
-    if cur < cap:
-        state["level"] = cur + 1
-        state["step_counts"] = {}
-        state["show_level_up"] = True
-        try:
-            progression.maybe_expand_cap(supabase, "wellness_journey", state["level"])
-        except Exception as exc:
-            print(f"[EGO] journey advance next day error: {exc}", flush=True)
+    if done_date and done_date < today:
+        level_def = _level_def(int(state["level"]), cap)
+        if _level_complete(level_def, state["step_counts"], streak_data):
+            cur = int(state["level"])
+            if cur < cap:
+                state["level"] = cur + 1
+                state["step_counts"] = {}
+                state["show_level_up"] = True
+                try:
+                    progression.maybe_expand_cap(
+                        supabase, "wellness_journey", state["level"]
+                    )
+                except Exception as exc:
+                    print(f"[EGO] journey legacy advance error: {exc}", flush=True)
+    legacy_one_today = done_date == today
+    state["missions_today_date"] = today
+    state["missions_today_count"] = 1 if legacy_one_today else 0
     state["mission_done_date"] = ""
+    if legacy_one_today:
+        level_def = _level_def(int(state["level"]), cap)
+        if _level_complete(level_def, state["step_counts"], streak_data):
+            cur = int(state["level"])
+            if cur < cap:
+                state["level"] = cur + 1
+                state["step_counts"] = {}
+                try:
+                    progression.maybe_expand_cap(
+                        supabase, "wellness_journey", state["level"]
+                    )
+                except Exception as exc:
+                    print(f"[EGO] journey legacy same-day advance: {exc}", flush=True)
     return state
 
 
-def _mark_level_complete_today(state: dict[str, Any]) -> None:
-    """Completa o nível hoje — «Volte amanhã» sem subir de nível no mesmo dia."""
-    completed = list(state.get("levels_completed") or [])
+def _on_level_complete(
+    state: dict[str, Any],
+    supabase: Client | None,
+    cap: int,
+) -> None:
+    """Até MISSIONS_PER_DAY níveis no mesmo dia; convite no meio pausa até aceitar."""
+    today = _local_date_str()
+    if str(state.get("missions_today_date") or "") != today:
+        state["missions_today_date"] = today
+        state["missions_today_count"] = 0
+
+    count = int(state.get("missions_today_count") or 0) + 1
+    state["missions_today_count"] = count
+
     cur = int(state["level"])
+    completed = list(state.get("levels_completed") or [])
     if cur not in completed:
         completed.append(cur)
     state["levels_completed"] = completed
     state["show_level_up"] = True
-    state["mission_done_date"] = _local_date_str()
+
+    if cur < cap:
+        state["level"] = cur + 1
+        state["step_counts"] = {}
+        try:
+            progression.maybe_expand_cap(supabase, "wellness_journey", state["level"])
+        except Exception as exc:
+            print(f"[EGO] journey level advance error: {exc}", flush=True)
+
+    if count >= MISSIONS_PER_DAY:
+        state["mission_done_date"] = today
 
 
 def build_journey_payload(
@@ -823,15 +869,16 @@ def build_journey_payload(
     streak_data = streak if streak is not None else get_streak(supabase, user_id)
     cap = _journey_cap(supabase)
     before_level = int(state["level"])
-    before_done = str(state.get("mission_done_date") or "")
-    state = _maybe_advance_next_day(state, supabase, user_id, streak_data, cap)
-    if int(state["level"]) != before_level or str(state.get("mission_done_date") or "") != before_done:
+    before_count = int(state.get("missions_today_count") or 0)
+    state = _sync_daily_missions(state, supabase, user_id, streak_data, cap)
+    if int(state["level"]) != before_level or int(state.get("missions_today_count") or 0) != before_count:
         _save_state(supabase, user_id, state)
     level = int(state["level"])
     level_def = _level_def(level, cap)
     counts = dict(state["step_counts"])
     complete = _level_complete(level_def, counts, streak_data)
-    mission_done_today = _mission_done_today(state) and complete
+    missions_today = int(state.get("missions_today_count") or 0)
+    mission_done_today = _mission_done_today(state)
     show_level_up = bool(state.get("show_level_up"))
 
     if clear_level_up and show_level_up:
@@ -849,9 +896,13 @@ def build_journey_payload(
     if mission_done_today:
         steps = [{**s, "done": True} for s in steps]
         complete = True
-        today_task = "Todas as missões de hoje concluídas — volte amanhã"
+        today_task = (
+            f"Fez {MISSIONS_PER_DAY}/{MISSIONS_PER_DAY} missões hoje — volte amanhã"
+        )
     else:
         today_task = _format_today_task(level_def, counts, streak_data)
+        if missions_today > 0 and today_task:
+            today_task = f"Missão {missions_today + 1}/{MISSIONS_PER_DAY}: {today_task}"
     return {
         "level": level,
         "max_level": cap,
@@ -863,6 +914,8 @@ def build_journey_payload(
         "progress": progress,
         "level_complete": complete,
         "mission_done_today": mission_done_today,
+        "missions_today": missions_today,
+        "missions_per_day": MISSIONS_PER_DAY,
         "steps": steps,
         "show_level_up": show_level_up,
         "share_challenge": level_def["share_challenge"],
@@ -898,15 +951,13 @@ def record_step(
     state = _load_state(supabase, user_id)
     streak_data = get_streak(supabase, user_id)
     cap = _journey_cap(supabase)
-    state = _maybe_advance_next_day(state, supabase, user_id, streak_data, cap)
+    state = _sync_daily_missions(state, supabase, user_id, streak_data, cap)
 
     if _mission_done_today(state):
-        level_def = _level_def(int(state["level"]), cap)
-        if _level_complete(level_def, state["step_counts"], streak_data):
-            _save_state(supabase, user_id, state)
-            return build_journey_payload(
-                supabase, user_id, streak=streak_data, plan_tier=plan_tier
-            )
+        _save_state(supabase, user_id, state)
+        return build_journey_payload(
+            supabase, user_id, streak=streak_data, plan_tier=plan_tier
+        )
 
     counts = dict(state["step_counts"])
     counts[key] = counts.get(key, 0) + 1
@@ -915,7 +966,7 @@ def record_step(
     level_def = _level_def(int(state["level"]), cap)
 
     if _level_complete(level_def, counts, streak_data):
-        _mark_level_complete_today(state)
+        _on_level_complete(state, supabase, cap)
 
     _save_state(supabase, user_id, state)
     return build_journey_payload(
@@ -932,16 +983,16 @@ def sync_streak_levels(
     state = _load_state(supabase, user_id)
     streak_data = get_streak(supabase, user_id)
     cap = _journey_cap(supabase)
-    state = _maybe_advance_next_day(state, supabase, user_id, streak_data, cap)
+    state = _sync_daily_missions(state, supabase, user_id, streak_data, cap)
     changed = False
 
     if not _mission_done_today(state):
         level_def = _level_def(int(state["level"]), cap)
         if _level_complete(level_def, state["step_counts"], streak_data):
-            _mark_level_complete_today(state)
+            _on_level_complete(state, supabase, cap)
             changed = True
 
-    if changed or state.get("mission_done_date"):
+    if changed:
         _save_state(supabase, user_id, state)
     return build_journey_payload(
         supabase, user_id, streak=streak_data, plan_tier=plan_tier
