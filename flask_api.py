@@ -585,6 +585,32 @@ def admin_cron_signup_reminders():
     return _json_ok({"ok": True, "stats": stats})
 
 
+@app.post("/api/v1/admin/cron/daily-stats")
+@require_admin
+def admin_cron_daily_stats():
+    """Relatório diário de cadastros por e-mail (cron Railway)."""
+    from ego_api.daily_stats_report import process_daily_stats_report
+
+    data = request.get_json(silent=True) or {}
+    try:
+        history_days = int(data.get("history_days") or request.args.get("history_days") or 14)
+    except (TypeError, ValueError):
+        return _json_error("history_days deve ser número.", 400)
+    dry_run = str(data.get("dry_run") or request.args.get("dry_run") or "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    result = process_daily_stats_report(
+        history_days=max(7, min(30, history_days)),
+        dry_run=dry_run,
+    )
+    if result.get("error") and not result.get("ok"):
+        code = 503 if "configurado" in str(result.get("error") or "").lower() else 500
+        return _json_error(str(result["error"]), code)
+    return _json_ok(result)
+
+
 @app.post("/api/v1/admin/cron/ego-de-bolso-care")
 @require_admin
 def admin_cron_ego_de_bolso_care():

@@ -287,8 +287,15 @@ def _smtp_timeout() -> int:
         return 60
 
 
-def send_smtp_email(*, to_email: str, subject: str, text_body: str, html_body: str) -> None:
-    if not signup_emails_enabled():
+def send_smtp_email(
+    *,
+    to_email: str,
+    subject: str,
+    text_body: str,
+    html_body: str,
+    require_signup_enabled: bool = True,
+) -> None:
+    if require_signup_enabled and not signup_emails_enabled():
         return
     cfg = _smtp_settings()
     if not cfg["password"]:
@@ -412,6 +419,36 @@ def send_brevo_api_email(
     if resp.status_code >= 400:
         detail = resp.text[:400] if resp.text else resp.reason
         raise RuntimeError(f"Brevo API HTTP {resp.status_code}: {detail}")
+
+
+def send_ops_email(*, to_email: str, subject: str, text_body: str, html_body: str) -> None:
+    """E-mail operacional (relatórios admin) — não depende de EGO_SIGNUP_EMAIL_ENABLED."""
+    if not email_configured():
+        raise RuntimeError("E-mail não configurado: BREVO_API_KEY, RESEND_API_KEY ou EGO_SMTP_PASSWORD.")
+    provider = email_provider()
+    if provider == "brevo":
+        send_brevo_api_email(
+            to_email=to_email,
+            subject=subject,
+            text_body=text_body,
+            html_body=html_body,
+        )
+        return
+    if provider == "resend":
+        send_resend_email(
+            to_email=to_email,
+            subject=subject,
+            text_body=text_body,
+            html_body=html_body,
+        )
+        return
+    send_smtp_email(
+        to_email=to_email,
+        subject=subject,
+        text_body=text_body,
+        html_body=html_body,
+        require_signup_enabled=False,
+    )
 
 
 def send_signup_email(*, to_email: str, subject: str, text_body: str, html_body: str) -> None:
