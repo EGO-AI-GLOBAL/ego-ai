@@ -19,6 +19,7 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "https://ego-ai-production-a2c2.up.railway.app",
         "EXPO_PUBLIC_ALLOW_HTTP": "0",
+        "EXPO_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER": "206751400391",
         "APP_ENV": "production",
         "EAS_BUILD_NO_EXPO_GO_WARNING": "true"
       }
@@ -35,6 +36,7 @@
       "env": {
         "EXPO_PUBLIC_API_URL": "https://ego-ai-production-a2c2.up.railway.app",
         "EXPO_PUBLIC_ALLOW_HTTP": "0",
+        "EXPO_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER": "206751400391",
         "EXPO_PUBLIC_PRIVACY_POLICY_URL": "https://egoai.com.br/privacidade/",
         "EXPO_PUBLIC_ACCOUNT_DELETION_URL": "https://egoai.com.br/exclusao-conta/",
         "EXPO_PUBLIC_WEBSITE_URL": "https://egoai.com.br",
