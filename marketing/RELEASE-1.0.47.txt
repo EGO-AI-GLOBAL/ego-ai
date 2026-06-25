@@ -5,10 +5,11 @@ NOVIDADES
 ---------
 • Até 5 missões EGO de Bolso por dia (antes era 1)
 • Barra Cuidado: 20% por missão (1/5=20% … 5/5=100%)
+• Missões com dica «como fazer» (ex.: Monstrinhos → emoji)
 • Push às 18h pelo servidor (missão pendente)
 • Convite obrigatório nos níveis 10, 20, 30…
 • Companheiro digital visual renovado
-• Entre Nós na Agenda = mesmo visual da agenda compartilhada
+• Entre Nós na Agenda — visual compartilhada + botão «+ Novo Entre Nós»
 • Missões validadas até nível 1000
 • Monstrinhos Fase 5: jardim animado (nuvens, sol, colinas), pet com piscar e orelhas
 

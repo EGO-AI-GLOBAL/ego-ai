@@ -2,7 +2,7 @@ CHECKLIST 1.0.47 — pronto para SUBIR-BUILD-1.0.47.bat
 ========================================================
 
 API (já no ar)
-[ ] /health → api_build com ego-bolso-server-push
+[ ] /health → api_build com bolso-missao-como (ou mais recente)
 [ ] Completar 2 missões no mesmo dia (contador sobe)
 [ ] Nível 10 = só convite na Agenda
 
@@ -14,7 +14,8 @@ SUBIR BUILD (quando pedir)
 TESTAR NO APP 1.0.47
 [ ] EGO de Bolso: barra Cuidado 20% por missão (1/5=20% … 3/5=60%)
 [ ] EGO de Bolso: X/5 no chat e jornada
-[ ] Agenda → Entre Nós = visual igual compartilhada (cards, Convidar, Gerir)
+[ ] EGO de Bolso: Falta: … com dica (Monstrinhos → emoji, etc.)
+[ ] Agenda Entre Nós: botão «+ Novo Entre Nós» (não confundir com compartilhada)
 [ ] Convite Entre Nós → amigo aceita → missão bolso (nível 10+)
 [ ] Monstrinhos Fase 5: jardim animado, pet
 

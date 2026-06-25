@@ -110,7 +110,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/components/agenda/EntreNosAgendaSection.tsx",
-        ["createSharedCalendar", "createSharedCalendarEvent", "respondEntreNosEvent", "Convidar pessoa"],
+        ["createSharedCalendar", "createSharedCalendarEvent", "respondEntreNosEvent", "Convidar pessoa", "+ Novo Entre Nós"],
     ),
     (
         "app/src/components/agenda/SharedAgendaManual.tsx",

@@ -356,7 +356,7 @@ export function EntreNosAgendaSection({
               ]}
             >
               <Text style={[s.addBtnText, { color: colors.primary }]}>
-                {showCreateCalendarForm ? "Fechar formulário" : "+ Nova agenda compartilhada"}
+                {showCreateCalendarForm ? "Fechar formulário" : "+ Novo Entre Nós"}
               </Text>
             </Pressable>
           ) : null}
@@ -544,7 +544,7 @@ export function EntreNosAgendaSection({
               </Text>
               {partnerSlotFull ? (
                 <Text style={[s.muted, { color: colors.textMuted }]}>
-                  Este grupo já tem 1 parceiro(a). Use «+ Nova agenda compartilhada» para outra
+                  Este grupo já tem 1 parceiro(a). Use «+ Novo Entre Nós» para outra
                   pessoa.
                 </Text>
               ) : (
