@@ -6,8 +6,10 @@ O que há de novo
 • Contador de missões diárias no app
 • Convite a cada 10 níveis (crescimento orgânico)
 • Companheiro digital com visual novo
+• Monstrinhos: jardim animado estilo Finch (pet + decorações vivas)
 
 Testar
 ------
 Complete 2–3 missões no mesmo dia → contador sobe (ex. 2/5)
 Nível 10 → convite na Agenda → amigo aceita
+Monstrinhos → ver pet a flutuar, nuvens no jardim, comprar decoração na loja

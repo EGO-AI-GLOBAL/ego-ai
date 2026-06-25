@@ -1,0 +1,12 @@
+MONSTRINHOS — PRONTO (nada mais deste agente até 1.0.48)
+=========================================================
+
+Tu não precisas fazer nada de Monstrinhos no build.
+Só espera os outros agentes e corre GERAR-1.0.47.bat UMA vez.
+
+Já validado por ti:
+  ✓ Loja de sementes
+  ✓ Lista de compras na Agenda
+
+No 1.0.47 novo, confere só (30 s):
+  → Monstrinhos → pet a flutuar, nuvens, decorações a mexer

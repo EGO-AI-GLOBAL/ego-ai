@@ -45,6 +45,14 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["MONSTRINHOS DO HUMOR", "MoodMonsterScene", "RankingLadder"],
     ),
     (
+        "app/src/components/moodMonsters/MoodGardenAmbient.tsx",
+        ["MoodGardenAmbient", "cloud"],
+    ),
+    (
+        "app/src/components/moodMonsters/MoodDecorSprite.tsx",
+        ["MoodDecorSprite"],
+    ),
+    (
         "app/src/components/EgoDeBolsoChatCard.tsx",
         ["EGO DE BOLSO", "PocketCompanionShareModal", "Cuidar agora"],
     ),

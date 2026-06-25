@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import { Animated, StyleSheet, View } from "react-native";
-import { MOOD_PALETTES, moodKeyOrDefault, type MoodKey } from "@/constants/moodMonsters";
+import { Animated, StyleSheet, Text, View } from "react-native";
+import { MOOD_PALETTES, moodKeyOrDefault } from "@/constants/moodMonsters";
 
 type Props = {
   moodKey?: string;
@@ -13,6 +13,8 @@ export function MoodMonsterIllustration({ moodKey, size = 112, celebrate = false
   const p = MOOD_PALETTES[key];
   const scale = useRef(new Animated.Value(1)).current;
   const bounce = useRef(new Animated.Value(0)).current;
+  const blink = useRef(new Animated.Value(1)).current;
+  const wiggle = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!celebrate) return;
@@ -20,11 +22,11 @@ export function MoodMonsterIllustration({ moodKey, size = 112, celebrate = false
     bounce.setValue(0);
     Animated.parallel([
       Animated.sequence([
-        Animated.spring(scale, { toValue: 1.12, friction: 4, useNativeDriver: true }),
+        Animated.spring(scale, { toValue: 1.14, friction: 4, useNativeDriver: true }),
         Animated.spring(scale, { toValue: 1, friction: 5, useNativeDriver: true }),
       ]),
       Animated.sequence([
-        Animated.timing(bounce, { toValue: -10, duration: 180, useNativeDriver: true }),
+        Animated.timing(bounce, { toValue: -14, duration: 180, useNativeDriver: true }),
         Animated.spring(bounce, { toValue: 0, friction: 4, useNativeDriver: true }),
       ]),
     ]).start();
@@ -32,29 +34,67 @@ export function MoodMonsterIllustration({ moodKey, size = 112, celebrate = false
 
   useEffect(() => {
     if (celebrate) return;
-    const loop = Animated.loop(
+    const idle = Animated.loop(
       Animated.sequence([
-        Animated.timing(bounce, { toValue: -4, duration: 900, useNativeDriver: true }),
-        Animated.timing(bounce, { toValue: 0, duration: 900, useNativeDriver: true }),
+        Animated.timing(bounce, { toValue: -5, duration: 1100, useNativeDriver: true }),
+        Animated.timing(bounce, { toValue: 0, duration: 1100, useNativeDriver: true }),
       ])
     );
-    loop.start();
-    return () => loop.stop();
-  }, [celebrate, bounce]);
+    const sway = Animated.loop(
+      Animated.sequence([
+        Animated.timing(wiggle, { toValue: 1, duration: 1600, useNativeDriver: true }),
+        Animated.timing(wiggle, { toValue: -1, duration: 1600, useNativeDriver: true }),
+      ])
+    );
+    idle.start();
+    sway.start();
+    return () => {
+      idle.stop();
+      sway.stop();
+    };
+  }, [celebrate, bounce, wiggle]);
+
+  useEffect(() => {
+    const blinkLoop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(2800),
+        Animated.timing(blink, { toValue: 0.12, duration: 90, useNativeDriver: true }),
+        Animated.timing(blink, { toValue: 1, duration: 120, useNativeDriver: true }),
+      ])
+    );
+    blinkLoop.start();
+    return () => blinkLoop.stop();
+  }, [blink]);
 
   const eyeY = key === "heavy" ? 2 : 0;
   const mouthWide = key === "good" || key === "calm";
   const mouthSad = key === "heavy" || key === "anxious";
+  const rotate = wiggle.interpolate({ inputRange: [-1, 1], outputRange: ["-2deg", "2deg"] });
+  const earTilt = key === "heavy" ? "12deg" : key === "anxious" ? "-8deg" : "0deg";
 
   return (
     <Animated.View
       style={[
         styles.wrap,
         {
-          transform: [{ scale }, { translateY: bounce }],
+          transform: [{ scale }, { translateY: bounce }, { rotate }],
         },
       ]}
     >
+      <View style={styles.earRow}>
+        <View
+          style={[
+            styles.ear,
+            { backgroundColor: p.bodyDark, transform: [{ rotate: `-${earTilt}` }] },
+          ]}
+        />
+        <View
+          style={[
+            styles.ear,
+            { backgroundColor: p.bodyDark, transform: [{ rotate: earTilt }] },
+          ]}
+        />
+      </View>
       <View
         style={[
           styles.shadow,
@@ -81,8 +121,9 @@ export function MoodMonsterIllustration({ moodKey, size = 112, celebrate = false
         <View style={[styles.cheek, { left: size * 0.12, backgroundColor: p.cheek }]} />
         <View style={[styles.cheek, { right: size * 0.12, backgroundColor: p.cheek }]} />
         <View style={[styles.eyes, { marginTop: size * 0.28 + eyeY }]}>
-          <View style={[styles.eye, { backgroundColor: p.eye }]} />
-          <View style={[styles.eye, { backgroundColor: p.eye }]} />
+          <Animated.View style={[styles.eye, { backgroundColor: p.eye, transform: [{ scaleY: blink }] }]} />
+          <Animated.View style={[styles.eye, { backgroundColor: p.eye, transform: [{ scaleY: blink }] }]} />
+          {key === "good" ? <Text style={styles.eyeSpark}>✦</Text> : null}
         </View>
         <View
           style={[
@@ -93,9 +134,8 @@ export function MoodMonsterIllustration({ moodKey, size = 112, celebrate = false
         {key === "anxious" ? (
           <View style={[styles.sweat, { backgroundColor: p.accent, right: size * 0.18, top: size * 0.22 }]} />
         ) : null}
-        {key === "good" ? (
-          <View style={[styles.spark, { backgroundColor: p.accent, top: -6, right: 8 }]} />
-        ) : null}
+        {key === "good" ? <Text style={styles.sparkEmoji}>✨</Text> : null}
+        {key === "calm" ? <Text style={styles.calmAura}>💫</Text> : null}
       </View>
       <View style={styles.feet}>
         <View style={[styles.foot, { backgroundColor: p.bodyDark }]} />
@@ -107,6 +147,21 @@ export function MoodMonsterIllustration({ moodKey, size = 112, celebrate = false
 
 const styles = StyleSheet.create({
   wrap: { alignItems: "center" },
+  earRow: {
+    position: "absolute",
+    top: 2,
+    width: "80%",
+    alignSelf: "center",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    zIndex: 5,
+  },
+  ear: {
+    width: 16,
+    height: 22,
+    borderRadius: 10,
+    marginTop: -8,
+  },
   shadow: { backgroundColor: "rgba(0,0,0,0.12)", alignSelf: "center" },
   body: {
     borderWidth: 3,
@@ -121,8 +176,9 @@ const styles = StyleSheet.create({
     top: "52%",
     opacity: 0.55,
   },
-  eyes: { flexDirection: "row", gap: 18 },
+  eyes: { flexDirection: "row", gap: 18, alignItems: "center" },
   eye: { width: 14, height: 14, borderRadius: 7 },
+  eyeSpark: { position: "absolute", right: -8, top: -10, fontSize: 10, color: "#FFD54F" },
   mouthHappy: {
     width: 28,
     height: 14,
@@ -148,7 +204,8 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   sweat: { position: "absolute", width: 8, height: 12, borderRadius: 4 },
-  spark: { position: "absolute", width: 12, height: 12, borderRadius: 6 },
+  sparkEmoji: { position: "absolute", top: -10, right: 2, fontSize: 16 },
+  calmAura: { position: "absolute", top: -8, left: 6, fontSize: 14, opacity: 0.85 },
   feet: { flexDirection: "row", gap: 20, marginTop: -4 },
   foot: { width: 22, height: 12, borderRadius: 8 },
 });
