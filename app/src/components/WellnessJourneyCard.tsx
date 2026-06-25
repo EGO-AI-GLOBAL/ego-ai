@@ -7,6 +7,7 @@ import type { AppColors } from "@/theme/colors";
 import { CompanionPocketScene } from "@/components/companion/CompanionPocketScene";
 import { EgoDeBolsoTrialNudge } from "@/components/EgoDeBolsoTrialNudge";
 import { egoDeBolsoDailyCarePercent } from "@/utils/egoDeBolsoDailyCare";
+import { formatWellnessPendingLine } from "@/utils/egoDeBolsoStepHints";
 import {
   egoDeBolsoDayCompleteMessage,
   egoDeBolsoMissionsComplete,
@@ -103,7 +104,7 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }
 
         {!dayComplete && pending.length > 0 ? (
           <Text style={[styles.pending, { color: colors.textMuted }]}>
-            Falta: {pending.map((s) => s.label).join(" · ")}
+            Falta: {formatWellnessPendingLine(pending)}
           </Text>
         ) : null}
 

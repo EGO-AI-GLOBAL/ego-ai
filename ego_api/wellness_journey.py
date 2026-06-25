@@ -513,7 +513,7 @@ def _steps_status(
             out.append(
                 {
                     "key": key,
-                    "label": _step_label(key, need),
+                    "label": _label_with_how(key, need),
                     "done": have >= need,
                     "have": have,
                     "need": need,
@@ -531,7 +531,7 @@ def _steps_status(
                         any_done = True
                 else:
                     have = counts.get(str(key), 0)
-                    labels.append(_step_label(str(key), int(need)))
+                    labels.append(_label_with_how(str(key), int(need)))
                     if have >= int(need):
                         any_done = True
             out.append(
@@ -737,6 +737,29 @@ def validate_journey_expansion_caps(
             if _is_invite_growth_level(n) and not _is_invite_only_level(ld):
                 errors.append(f"cap {cap}: nível {n} perdeu missão só de convite")
     return errors
+
+
+def _step_how(key: str) -> str:
+    """Onde tocar no app — aparece entre parênteses em «Falta: …»."""
+    hints = {
+        "checkin": "Monstrinhos → toque no emoji de humor",
+        "chat": "Chat → escreva 1 mensagem",
+        "voice": "Chat → botão do microfone",
+        "habit": "Agenda → marque 1 hábito",
+        "reminder": "Agenda → + Novo compromisso",
+        "night_dump": "Chat → Desabafo agora",
+        "draft_confirm": "Agenda → confirme item do desabafo",
+        "invite": "Agenda → Entre Nós → Convidar pessoa",
+    }
+    return hints.get(key, "")
+
+
+def _label_with_how(key: str, need: int) -> str:
+    base = _step_label(key, need)
+    how = _step_how(key)
+    if how:
+        return f"{base} ({how})"
+    return base
 
 
 def _step_label(key: str, need: int) -> str:

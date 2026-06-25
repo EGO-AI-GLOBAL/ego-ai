@@ -69,6 +69,10 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["egoDeBolsoDailyCarePercent", "missions_per_day"],
     ),
     (
+        "app/src/utils/egoDeBolsoStepHints.ts",
+        ["formatWellnessPendingLine", "Monstrinhos"],
+    ),
+    (
         "app/src/utils/moodMonsterNotifications.ts",
         ["syncMoodMonsterNotifications", "mood-monster-streak-risk-20h", "mood-monster-goals-16h"],
     ),
@@ -145,7 +149,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/wellness_journey.py",
-        ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "validate_journey_expansion_caps", "_format_today_task", "_daily_care_fraction"],
+        ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "validate_journey_expansion_caps", "_format_today_task", "_daily_care_fraction", "_label_with_how"],
     ),
     (
         "ego_api/ego_de_bolso_push.py",
