@@ -8,7 +8,10 @@ echo ============================================================
 echo   AMANHÃ: BUILD 1.0.47 (API já no ar — sem build hoje)
 echo ============================================================
 echo.
-echo   [OK] API: missões 5/dia + convite 10/20/30 + validação 1000
+echo   [OK] API: missões 5/dia + convite 20/40/60 + validação 1000
+echo.
+echo   ANTES DA BUILD (se ainda não fez):
+echo   DEPLOY-API-1.0.47.bat
 echo.
 echo   SUBIR BUILD 1.0.47 (quando quiser):
 echo   1) eas login se precisar (5-eas-login.bat)

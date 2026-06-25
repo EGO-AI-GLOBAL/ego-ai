@@ -1,10 +1,11 @@
 CHECKLIST 1.0.47 — pronto para SUBIR-BUILD-1.0.47.bat
 ========================================================
 
-API (já no ar)
-[ ] /health → api_build com bolso-missao-como (ou mais recente)
+API (deploy antes ou com a build)
+[ ] DEPLOY-API-1.0.47.bat → /health api_build bolso-invite-20
 [ ] Completar 2 missões no mesmo dia (contador sobe)
-[ ] Nível 10 = só convite na Agenda
+[ ] Nível 10 = missão de uso (NÃO convite)
+[ ] Nível 20 = convite obrigatório na Agenda
 
 SUBIR BUILD (quando pedir)
 [ ] eas login se precisar (5-eas-login.bat)
@@ -16,7 +17,7 @@ TESTAR NO APP 1.0.47
 [ ] EGO de Bolso: X/5 no chat e jornada
 [ ] EGO de Bolso: Falta: … com dica (Monstrinhos → emoji, etc.)
 [ ] Agenda Entre Nós: botão «+ Novo Entre Nós» (não confundir com compartilhada)
-[ ] Convite Entre Nós → amigo aceita → missão bolso (nível 10+)
+[ ] Convite Entre Nós → amigo aceita → missão bolso (nível 20, 40…)
 [ ] Monstrinhos Fase 5: jardim animado, pet
 
 DEPOIS DE PUBLICAR 1.0.47

@@ -9,7 +9,7 @@ echo   EGO-AI 1.0.47 — pronto para enfileirar build EAS
 echo ============================================================
 echo.
 echo   Inclui:
-echo   • EGO de Bolso — 5 missões/dia + push 18h (API)
+echo   • EGO de Bolso — 5 missões/dia + convite a cada 20 níveis (API)
 echo   • Entre Nós = visual igual agenda compartilhada
 echo   • Monstrinhos Fase 5 visual
 echo.

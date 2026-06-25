@@ -16,7 +16,7 @@ except ImportError:
 
 
 # Missões EGO de Bolso — USO do app (chat, voz, Monstrinhos, Agenda, desabafo)
-# + CRESCIMENTO: níveis 10, 20, 30… = só convite (amigo novo aceita na Agenda).
+# + CRESCIMENTO: níveis 20, 40, 60… = só convite (amigo novo aceita na Agenda).
 JOURNEY_LEVELS: list[dict[str, Any]] = [
     {
         "level": 1,
@@ -140,13 +140,23 @@ JOURNEY_LEVELS: list[dict[str, Any]] = [
     },
     {
         "level": 10,
-        "title": "Trazer alguém",
-        "subtitle": "Amigo novo — Entre Nós ou grupo",
-        "emoji": "🤝",
-        "today_task": "Convide pelo telefone (WhatsApp) alguém sem conta — cumpre quando aceitar",
-        "why": "Missão de crescimento: traga 1 amigo novo na Agenda. Sem propaganda — só convite.",
-        "requirements": [{"type": "step", "key": "invite", "min": 1}],
-        "share_challenge": "Convidei alguém para o EGO-AI 🤝 Quem você traz?",
+        "title": "Primeira dezena",
+        "subtitle": "Monstrinhos, chat ou Agenda",
+        "emoji": "🎯",
+        "today_task": "Check-in nos Monstrinhos OU 3 mensagens no chat OU marque na Agenda",
+        "why": "Dez níveis de cuidado — explore o app antes do marco de convite no 20.",
+        "requirements": [
+            {
+                "type": "or_steps",
+                "options": [
+                    ("checkin", 1),
+                    ("chat", 3),
+                    ("habit", 1),
+                    ("reminder", 1),
+                ],
+            }
+        ],
+        "share_challenge": "Nível 10 🎯 EGO de Bolso a todo vapor",
         "plan_nudge": None,
     },
     {
@@ -279,7 +289,7 @@ JOURNEY_LEVELS: list[dict[str, Any]] = [
         "subtitle": "Mais um amigo novo",
         "emoji": "🌟",
         "today_task": "Convide outro amigo pelo telefone (sem conta) — cumpre quando aceitar",
-        "why": "A cada 10 níveis você traz alguém novo — assim o app cresce de graça, 1 vira 2, 2 vira 4…",
+        "why": "A cada 20 níveis você traz alguém novo — assim o app cresce de graça, 1 vira 2, 2 vira 4…",
         "requirements": [{"type": "step", "key": "invite", "min": 1}],
         "share_challenge": "Nível 20/20 no EGO-AI 🌟 Embaixador do app",
         "plan_nudge": None,
@@ -311,8 +321,8 @@ def _journey_cap(supabase: Client | None) -> int:
 
 
 def _is_invite_growth_level(n: int) -> bool:
-    """Níveis 10, 20, 30… — só convite (crescimento viral)."""
-    return n > 0 and n % 10 == 0
+    """Níveis 20, 40, 60… — só convite (crescimento viral)."""
+    return n > 0 and n % 20 == 0
 
 
 def _is_invite_only_level(level_def: dict[str, Any]) -> bool:
@@ -335,7 +345,7 @@ def _invite_growth_level(n: int) -> dict[str, Any]:
         "emoji": "🤝" if n % 20 else "🌟",
         "today_task": "Convide pelo telefone alguém sem conta — missão fecha quando aceitar",
         "why": (
-            "Missão de crescimento a cada 10 níveis: 1 amigo novo no app, "
+            "Missão de crescimento a cada 20 níveis: 1 amigo novo no app, "
             "sem propaganda — só convite na Agenda."
         ),
         "requirements": [{"type": "step", "key": "invite", "min": 1}],
@@ -682,9 +692,9 @@ def _validate_one_level(level_def: dict[str, Any], *, procedural: bool) -> list[
     keys = _iter_requirement_keys(level_def)
     if _is_invite_growth_level(n):
         if not _is_invite_only_level(level_def):
-            errors.append(f"{tag}: múltiplo de 10 deve ser missão só de convite")
+            errors.append(f"{tag}: múltiplo de 20 deve ser missão só de convite")
     elif "invite" in keys:
-        errors.append(f"{tag}: convite só nos níveis 10, 20, 30…")
+        errors.append(f"{tag}: convite só nos níveis 20, 40, 60…")
     if not _level_has_draft_confirm_escape(level_def):
         errors.append(
             f"{tag}: confirmar desabafo sem alternativa nem desabafo no mesmo dia"
@@ -729,11 +739,14 @@ def validate_journey_expansion_caps(
             if key not in seen:
                 seen.add(key)
                 errors.append(f"cap {cap}: {err}")
-        # Amostra: convite a cada 10 mantém-se após expandir o teto.
-        for n in (cap - 10, cap):
-            if n < 10 or n > HANDCRAFTED_MAX:
+        # Amostra: convite a cada 20 mantém-se após expandir o teto.
+        invite_samples = [20]
+        if cap >= 40:
+            invite_samples.append((cap // 20) * 20)
+        for n in invite_samples:
+            if n < 20 or n > cap:
                 continue
-            ld = _procedural_level(n)
+            ld = _level_def(n, cap)
             if _is_invite_growth_level(n) and not _is_invite_only_level(ld):
                 errors.append(f"cap {cap}: nível {n} perdeu missão só de convite")
     return errors

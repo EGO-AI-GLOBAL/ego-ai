@@ -215,6 +215,29 @@ def _parse_bearer() -> tuple[str, str]:
     return access, refresh
 
 
+def _optional_authenticated_profile() -> dict | None:
+    """Perfil do utilizador logado (opcional) — para /plans personalizado."""
+    access, refresh = _parse_bearer()
+    if not access:
+        return None
+    client = create_anon_client()
+    if not client:
+        return None
+    try:
+        if refresh:
+            client.auth.set_session(access, refresh)
+        else:
+            client.postgrest.auth(access)
+        user_resp = client.auth.get_user(access)
+        user = getattr(user_resp, "user", None)
+        uid = str(getattr(user, "id", "") or "") if user else ""
+        if not uid:
+            return None
+        return db.load_profile(client, uid)
+    except Exception:  # noqa: BLE001
+        return None
+
+
 def require_auth(f: Callable) -> Callable:
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -365,7 +388,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-26-1.0.47-bolso-missao-como",
+        "api_build": "2026-06-23-1.0.47-bolso-invite-20",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1086,6 +1109,8 @@ def plans_catalog():
         build_launch_offer_payload,
         plan_limits,
     )
+    from ego_api.referrals import build_referral_offer_payload, should_hide_launch_offer
+    from ego_api.supabase_client import create_service_client
 
     items = []
     for tier in PLAN_TIERS:
@@ -1107,8 +1132,16 @@ def plans_catalog():
             }
         )
     items.sort(key=lambda row: float(row.get("price_brl") or 0))
-    launch_offer = build_launch_offer_payload()
-    return _json_ok({"plans": items, "launch_offer": launch_offer})
+    prof = _optional_authenticated_profile()
+    launch_offer = None if should_hide_launch_offer(prof) else build_launch_offer_payload()
+    referral_offer = build_referral_offer_payload(create_service_client(), prof)
+    return _json_ok(
+        {
+            "plans": items,
+            "launch_offer": launch_offer,
+            "referral_offer": referral_offer,
+        }
+    )
 
 
 @app.get("/api/v1/persona/options")

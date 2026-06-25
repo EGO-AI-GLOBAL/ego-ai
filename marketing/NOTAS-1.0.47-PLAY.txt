@@ -4,13 +4,13 @@ O que há de novo
 ---------------
 • EGO de Bolso: até 5 missões por dia + lembrete 18h
 • Contador de missões diárias no app
-• Convite a cada 10 níveis (crescimento orgânico)
+• Convite obrigatório a cada 20 níveis (1.º convite no nível 20)
 • Entre Nós na Agenda com visual igual à agenda compartilhada
 • Monstrinhos: jardim animado estilo Finch (pet + decorações vivas)
 
 Testar
 ------
 Complete 2–3 missões no mesmo dia → contador sobe (ex. 2/5)
-Nível 10 → convite na Agenda → amigo aceita
+Nível 20 → convite na Agenda → amigo aceita (nível 10 é só uso do app)
 Agenda → Entre Nós → criar, convidar, confirmar compromisso
 Monstrinhos → ver pet a flutuar, nuvens no jardim

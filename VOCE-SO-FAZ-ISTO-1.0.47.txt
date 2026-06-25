@@ -3,6 +3,11 @@ EGO-AI 1.0.47 — SÓ TU FAZES (build)
 
 Tudo o resto ja foi preparado (testes OK, Monstrinhos pronto).
 
+PASSO 0 — API no Railway (1 min — duplo clique)
+-----------------------------------------------
+DEPLOY-API-1.0.47.bat
+(Convite agora e 20/40/60, nao 10/20/30)
+
 PASSO 1 — Build iOS + Android (~30-60 min)
 ------------------------------------------
 Duplo clique: GERAR-1.0.47.bat
@@ -27,7 +32,7 @@ Links testadores:
   iOS: https://testflight.apple.com/join/eNDKdFWF
 
 O que entra nesta versao:
-  • EGO de Bolso — 5 missoes/dia + push servidor 18h
+  • EGO de Bolso — 5 missoes/dia + convite obrigatorio 20/40/60
   • Monstrinhos Fase 5 — jardim animado + pet
   • Lista de compras persistente na Agenda
   • Entre Nos visual alinhado

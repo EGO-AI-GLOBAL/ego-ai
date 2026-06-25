@@ -276,7 +276,7 @@ def play_store_update_url() -> str:
 def app_update_message() -> str:
     return read_env(
         "EGO_APP_UPDATE_MESSAGE",
-        "1.0.47: EGO de Bolso — 5 missões/dia, convite a cada 10 níveis. Toque em Atualizar agora.",
+        "1.0.47: EGO de Bolso — 5 missões/dia, convite obrigatório a cada 20 níveis. Toque em Atualizar agora.",
     )
 
 
