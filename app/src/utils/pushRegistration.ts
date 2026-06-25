@@ -2,6 +2,7 @@ import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import { api } from "@/api/client";
+import { isDailyCheckInEnabled } from "@/storage/chatHints";
 
 let lastRegisteredToken = "";
 
@@ -32,7 +33,10 @@ export async function registerExpoPushToken(): Promise<void> {
     if (!trimmed || trimmed === lastRegisteredToken) return;
     lastRegisteredToken = trimmed;
     await api.patch("profile", {
-      ui_state: { expo_push_token: trimmed },
+      ui_state: {
+        expo_push_token: trimmed,
+        ego_daily_checkin_enabled: await isDailyCheckInEnabled(),
+      },
     });
   } catch {
     /* token indisponível (simulador, Expo Go limitado, etc.) */

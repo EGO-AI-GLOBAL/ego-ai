@@ -54,7 +54,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/utils/egoDeBolsoNotifications.ts",
-        ["syncEgoDeBolsoCareNotification", "ego-de-bolso-care-18h"],
+        ["syncEgoDeBolsoCareNotification", "ego-de-bolso-care-18h", "ego_daily_checkin_enabled"],
     ),
     (
         "app/src/utils/moodMonsterNotifications.ts",
@@ -119,6 +119,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             '@app.post("/api/v1/daily-care/goal")',
             '@app.post("/api/v1/daily-care/shop")',
             '@app.post("/api/v1/wellness-journey/step")',
+            "admin_cron_ego_de_bolso_care",
             '@app.get("/go")',
         ],
     ),
@@ -133,6 +134,10 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     (
         "ego_api/wellness_journey.py",
         ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "validate_journey_expansion_caps", "_format_today_task"],
+    ),
+    (
+        "ego_api/ego_de_bolso_push.py",
+        ["process_ego_de_bolso_care_pushes", "send_expo_push", "companion_needs_care", "CARE_HOUR"],
     ),
     (
         "ego_api/download_go.py",

@@ -365,7 +365,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-25-1.0.47-prep-no-build",
+        "api_build": "2026-06-25-1.0.47-ego-bolso-server-push",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -409,6 +409,12 @@ def health():
         from ego_api.signup_emails import signup_emails_status
 
         payload["signup_emails"] = signup_emails_status()
+    except Exception:
+        pass
+    try:
+        from ego_api.ego_de_bolso_push import ego_de_bolso_push_status
+
+        payload["ego_de_bolso_push"] = ego_de_bolso_push_status()
     except Exception:
         pass
     try:
@@ -576,6 +582,26 @@ def admin_cron_signup_reminders():
         max_days=max(1, max_days),
         limit=min(200, max(1, limit)),
     )
+    return _json_ok({"ok": True, "stats": stats})
+
+
+@app.post("/api/v1/admin/cron/ego-de-bolso-care")
+@require_admin
+def admin_cron_ego_de_bolso_care():
+    """Push 18h (fuso do aparelho): EGO de Bolso com missão pendente."""
+    from ego_api.ego_de_bolso_push import process_ego_de_bolso_care_pushes
+
+    data = request.get_json(silent=True) or {}
+    try:
+        limit = int(data.get("limit") or request.args.get("limit") or 200)
+    except (TypeError, ValueError):
+        return _json_error("limit deve ser número.", 400)
+    force = str(data.get("force") or request.args.get("force") or "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    stats = process_ego_de_bolso_care_pushes(limit=min(500, max(1, limit)), force=force)
     return _json_ok({"ok": True, "stats": stats})
 
 
@@ -1749,9 +1775,11 @@ def auth_logout():
     return _json_ok({"logged_out": True})
 
 
-from ego_api.signup_emails import start_background_jobs
+from ego_api.signup_emails import start_background_jobs as start_signup_background_jobs
+from ego_api.ego_de_bolso_push import start_background_jobs as start_ego_bolso_push_jobs
 
-start_background_jobs()
+start_signup_background_jobs()
+start_ego_bolso_push_jobs()
 
 
 if __name__ == "__main__":
