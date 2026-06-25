@@ -6,7 +6,7 @@ import type { AppColors } from "@/theme/colors";
 import { resolveEgoDeBolsoCareRoute } from "@/utils/egoDeBolsoCareRoute";
 import {
   companionNeedsCare,
-  EGO_BOLSO_DAY_COMPLETE_MSG,
+  egoDeBolsoDayCompleteMessage,
   egoDeBolsoMissionsComplete,
 } from "@/utils/egoDeBolsoCompanionMood";
 import { CompanionSprite } from "./companion/CompanionSprite";
@@ -47,6 +47,9 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
             <Text style={[styles.badge, { color: colors.primary }]}>EGO DE BOLSO 🥚</Text>
             <Text style={[styles.level, { color: colors.text }]} numberOfLines={1}>
               Nível {journey.level}/{journey.max_level} · {journey.title}
+              {journey.missions_per_day && !dayComplete
+                ? ` · ${journey.missions_today ?? 0}/${journey.missions_per_day}`
+                : ""}
             </Text>
             <View style={[styles.track, { backgroundColor: colors.border }]}>
               <View
@@ -60,7 +63,7 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
               ]}
               numberOfLines={3}
             >
-              {dayComplete ? EGO_BOLSO_DAY_COMPLETE_MSG : `Hoje: ${journey.today_task}`}
+              {dayComplete ? egoDeBolsoDayCompleteMessage(journey) : `Hoje: ${journey.today_task}`}
             </Text>
           </View>
         </Pressable>

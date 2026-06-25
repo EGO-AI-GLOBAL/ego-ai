@@ -7,7 +7,7 @@ import type { AppColors } from "@/theme/colors";
 import { CompanionPocketScene } from "@/components/companion/CompanionPocketScene";
 import { EgoDeBolsoTrialNudge } from "@/components/EgoDeBolsoTrialNudge";
 import {
-  EGO_BOLSO_DAY_COMPLETE_MSG,
+  egoDeBolsoDayCompleteMessage,
   egoDeBolsoMissionsComplete,
 } from "@/utils/egoDeBolsoCompanionMood";
 import { PocketCompanionShareModal } from "./PocketCompanionShareModal";
@@ -94,7 +94,7 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }
         </View>
 
         <Text style={[styles.task, { color: dayComplete ? colors.primary : colors.text }]}>
-          {dayComplete ? EGO_BOLSO_DAY_COMPLETE_MSG : `Hoje: ${journey.today_task}`}
+          {dayComplete ? egoDeBolsoDayCompleteMessage(journey) : `Hoje: ${journey.today_task}`}
         </Text>
         {!dayComplete ? (
           <Text style={[styles.why, { color: colors.textMuted }]}>{journey.why}</Text>

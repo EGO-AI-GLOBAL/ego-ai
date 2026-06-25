@@ -3,15 +3,23 @@ import { resolveEgoDeBolsoCareRoute } from "./egoDeBolsoCareRoute";
 
 export type CompanionMood = "happy" | "waiting" | "lonely";
 
-/** Fechou o dia (5/5 missões) ou terminou a jornada. */
+/** Fechou o dia (X/X missões) ou terminou a jornada. */
 export function egoDeBolsoMissionsComplete(journey: WellnessJourney): boolean {
   if (journey.mission_done_today) return true;
   if (journey.journey_finished) return true;
   return false;
 }
 
+export function egoDeBolsoDayCompleteMessage(journey: WellnessJourney): string {
+  const task = (journey.today_task || "").trim();
+  if (journey.mission_done_today && task) return task;
+  const n = journey.missions_per_day ?? 5;
+  return `${n} missões de hoje concluídas! Volte amanhã 💜`;
+}
+
+/** @deprecated use egoDeBolsoDayCompleteMessage(journey) */
 export const EGO_BOLSO_DAY_COMPLETE_MSG =
-  "5 missões de hoje concluídas! Volte amanhã 💜";
+  "Missões de hoje concluídas! Volte amanhã 💜";
 
 export function companionNeedsCare(journey: WellnessJourney): boolean {
   if (egoDeBolsoMissionsComplete(journey)) return false;
@@ -29,7 +37,7 @@ export function companionMood(journey: WellnessJourney): CompanionMood {
 /** Frase emocional do bichinho (Fase 2 — vínculo). */
 export function companionMoodLine(journey: WellnessJourney): string | null {
   if (egoDeBolsoMissionsComplete(journey)) {
-    return EGO_BOLSO_DAY_COMPLETE_MSG;
+    return egoDeBolsoDayCompleteMessage(journey);
   }
   const mood = companionMood(journey);
   const task = (journey.today_task || "").trim();
