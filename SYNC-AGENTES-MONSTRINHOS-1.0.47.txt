@@ -1,7 +1,7 @@
 AGENTE MONSTRINHOS — PRONTO PARA BUILD 1.0.47
 ==============================================
 
-Estado: ✅ CÓDIGO COMPLETO (aguardar outros 2 agentes + sync-check)
+Estado: ✅ PRONTO PARA BUILD (corre PREPARAR-1.0.47.bat ou GERAR quando quiser)
 
 O QUE ESTÁ INCLUÍDO (zona Monstrinhos)
 --------------------------------------
@@ -42,12 +42,11 @@ NÃO TOCAR (outros agentes)
 --------------------------
 wellness-journey, EgoDeBolso*, companion/, Play Integrity, relatório cadastros
 
-QUANDO OS 3 ESTIVEREM PRONTOS
------------------------------
-1. git pull origin main
-2. python scripts/wait_and_submit_eas.py sync-check
-3. GERAR-1.0.47.bat
-4. AGUARDAR-E-SUBMETER-1.0.47.bat
+QUANDO QUISER SUBIR
+-------------------
+0. PREPARAR-1.0.47.bat (opcional — regression + smoke + sync)
+1. GERAR-1.0.47.bat
+2. AGUARDAR-E-SUBMETER-1.0.47.bat
 
 Railway DEPOIS de publicar:
   EGO_LATEST_APP_VERSION=1.0.47

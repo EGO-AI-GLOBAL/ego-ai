@@ -202,7 +202,11 @@ def sync_check() -> None:
         capture_output=True,
         check=False,
     )
-    lines = [ln for ln in (dirty.stdout or "").splitlines() if ln.strip()]
+    lines = [
+        ln
+        for ln in (dirty.stdout or "").splitlines()
+        if ln.strip() and not ln.startswith("??")
+    ]
     if lines:
         print("AVISO: alterações locais não commitadas em app/API:")
         for ln in lines[:12]:

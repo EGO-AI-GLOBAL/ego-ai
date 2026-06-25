@@ -1,8 +1,10 @@
 MONSTRINHOS — PRONTO (nada mais deste agente até 1.0.48)
 =========================================================
 
-Tu não precisas fazer nada de Monstrinhos no build.
-Só espera os outros agentes e corre GERAR-1.0.47.bat UMA vez.
+Testes automaticos: PREPARAR-1.0.47.bat (ja pode passar).
+
+Tu so fazes o build quando quiseres:
+  → VOCE-SO-FAZ-ISTO-1.0.47.txt
 
 Já validado por ti:
   ✓ Loja de sementes
