@@ -6,6 +6,7 @@ import { dismissWellnessLevelUp } from "@/api/client";
 import type { AppColors } from "@/theme/colors";
 import { CompanionPocketScene } from "@/components/companion/CompanionPocketScene";
 import { EgoDeBolsoTrialNudge } from "@/components/EgoDeBolsoTrialNudge";
+import { egoDeBolsoDailyCarePercent } from "@/utils/egoDeBolsoDailyCare";
 import {
   egoDeBolsoDayCompleteMessage,
   egoDeBolsoMissionsComplete,
@@ -58,7 +59,7 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }
 
   if (!journey) return null;
 
-  const pct = Math.round(Math.min(1, Math.max(0, journey.progress)) * 100);
+  const pct = egoDeBolsoDailyCarePercent(journey);
   const fillWidth = `${Math.max(pct, pct > 0 ? 6 : 0)}%` as DimensionValue;
   const pending = journey.steps?.filter((s) => !s.done) ?? [];
   const dayComplete = egoDeBolsoMissionsComplete(journey);

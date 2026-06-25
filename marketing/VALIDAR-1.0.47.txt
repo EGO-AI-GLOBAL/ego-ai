@@ -12,6 +12,7 @@ SUBIR BUILD (quando pedir)
 [ ] AGUARDAR-E-SUBMETER-1.0.47.bat
 
 TESTAR NO APP 1.0.47
+[ ] EGO de Bolso: barra Cuidado 20% por missão (1/5=20% … 3/5=60%)
 [ ] EGO de Bolso: X/5 no chat e jornada
 [ ] Agenda → Entre Nós = visual igual compartilhada (cards, Convidar, Gerir)
 [ ] Convite Entre Nós → amigo aceita → missão bolso (nível 10+)

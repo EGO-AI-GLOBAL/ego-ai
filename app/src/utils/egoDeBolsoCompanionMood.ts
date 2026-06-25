@@ -1,4 +1,5 @@
 import type { WellnessJourney } from "@/api/types";
+import { egoDeBolsoDailyCarePercent } from "./egoDeBolsoDailyCare";
 import { resolveEgoDeBolsoCareRoute } from "./egoDeBolsoCareRoute";
 
 export type CompanionMood = "happy" | "waiting" | "lonely";
@@ -29,7 +30,7 @@ export function companionNeedsCare(journey: WellnessJourney): boolean {
 
 export function companionMood(journey: WellnessJourney): CompanionMood {
   if (journey.level_complete) return "happy";
-  const care = journey.care_percent ?? Math.round((journey.progress ?? 0) * 100);
+  const care = egoDeBolsoDailyCarePercent(journey);
   if (care >= 50) return "waiting";
   return "lonely";
 }

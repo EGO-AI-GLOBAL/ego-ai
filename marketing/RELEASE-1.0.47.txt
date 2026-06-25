@@ -4,7 +4,7 @@ EGO-AI 1.0.47 — 5 missões/dia + EGO de Bolso + Agenda
 NOVIDADES
 ---------
 • Até 5 missões EGO de Bolso por dia (antes era 1)
-• Contador X/5 no chat e na jornada
+• Barra Cuidado: 20% por missão (1/5=20% … 5/5=100%)
 • Push às 18h pelo servidor (missão pendente)
 • Convite obrigatório nos níveis 10, 20, 30…
 • Companheiro digital visual renovado

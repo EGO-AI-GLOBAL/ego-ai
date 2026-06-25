@@ -4,6 +4,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View, type DimensionValue } from "react-native";
 import type { WellnessJourney } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import { egoDeBolsoDailyCarePercent } from "@/utils/egoDeBolsoDailyCare";
 import {
   companionMoodLine,
   companionNeedsCare,
@@ -18,7 +19,7 @@ type Props = {
 
 export function CompanionPocketScene({ colors, journey }: Props) {
   const stage = journey.companion_stage ?? "egg";
-  const care = journey.care_percent ?? Math.round((journey.progress ?? 0) * 100);
+  const care = egoDeBolsoDailyCarePercent(journey);
   const fillWidth = `${Math.max(care, care > 0 ? 8 : 0)}%` as DimensionValue;
   const needsCare = companionNeedsCare(journey);
   const moodLine = companionMoodLine(journey);

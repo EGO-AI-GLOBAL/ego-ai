@@ -365,7 +365,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-25-1.0.47-ego-bolso-server-push",
+        "api_build": "2026-06-26-1.0.47-bolso-barra-dia",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -567,7 +567,7 @@ def admin_test_signup_email():
 @app.post("/api/v1/admin/cron/signup-reminders")
 @require_admin
 def admin_cron_signup_reminders():
-    """Lembrete 24h: quem criou conta, recebeu boas-vindas e nunca fez login."""
+    """Lembretes: 24h + semanal até login (máx. 4) para quem não fez login."""
     from ego_api.signup_emails import process_signup_reminders
 
     data = request.get_json(silent=True) or {}

@@ -778,6 +778,13 @@ def _mission_done_today(state: dict[str, Any]) -> bool:
     return int(state.get("missions_today_count") or 0) >= MISSIONS_PER_DAY
 
 
+def _daily_care_fraction(missions_today: int, mission_done_today: bool) -> float:
+    """Barra «Cuidado»: 1 missão = 20%, 2 = 40% … 5 = 100%."""
+    if mission_done_today:
+        return 1.0
+    return min(1.0, max(0.0, int(missions_today) / MISSIONS_PER_DAY))
+
+
 def _sync_daily_missions(
     state: dict[str, Any],
     supabase: Client | None,
@@ -888,10 +895,9 @@ def build_journey_payload(
 
     at_max = level >= cap and complete
     companion = _companion_stage(level)
-    progress = 1.0 if (at_max or mission_done_today) else _progress_for_level(
-        level_def, counts, streak_data
-    )
-    care_pct = int(round(min(100, max(0, progress * 100))))
+    daily_fraction = _daily_care_fraction(missions_today, mission_done_today)
+    progress = daily_fraction
+    care_pct = int(round(min(100, max(0, daily_fraction * 100))))
     steps = _steps_status(level_def, counts, streak_data)
     if mission_done_today:
         steps = [{**s, "done": True} for s in steps]

@@ -4,8 +4,8 @@ import { Pressable, StyleSheet, Text, View, type DimensionValue } from "react-na
 import type { WellnessJourney } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { resolveEgoDeBolsoCareRoute } from "@/utils/egoDeBolsoCareRoute";
+import { egoDeBolsoDailyCarePercent } from "@/utils/egoDeBolsoDailyCare";
 import {
-  companionNeedsCare,
   egoDeBolsoDayCompleteMessage,
   egoDeBolsoMissionsComplete,
 } from "@/utils/egoDeBolsoCompanionMood";
@@ -25,7 +25,7 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
   if (!journey) return null;
 
   const dayComplete = egoDeBolsoMissionsComplete(journey);
-  const care = journey.care_percent ?? Math.round((journey.progress ?? 0) * 100);
+  const care = egoDeBolsoDailyCarePercent(journey);
   const fillWidth = `${Math.max(care, care > 0 ? 8 : 0)}%` as DimensionValue;
   const stage = journey.companion_stage ?? "egg";
 
