@@ -32,10 +32,9 @@ Links testadores:
   iOS: https://testflight.apple.com/join/eNDKdFWF
 
 O que entra nesta versao:
-  • EGO de Bolso — 5 missoes/dia + convite obrigatorio 20/40/60
+  • EGO de Bolso — habitat animado + 5 missoes/dia + convite 20/40/60
   • Monstrinhos Fase 5 — jardim animado + pet
-  • Lista de compras persistente na Agenda
-  • Entre Nos visual alinhado
+  • Entre Nos visual alinhado + lista compras Agenda
 
 Verificar antes do build (opcional):
   PREPARAR-1.0.47.bat

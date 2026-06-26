@@ -10,6 +10,7 @@ import {
   companionNeedsCare,
 } from "@/utils/egoDeBolsoCompanionMood";
 import { resolveEgoDeBolsoCareRoute } from "@/utils/egoDeBolsoCareRoute";
+import { CompanionPocketAmbient } from "./CompanionPocketAmbient";
 import { CompanionSprite } from "./CompanionSprite";
 
 type Props = {
@@ -27,11 +28,13 @@ export function CompanionPocketScene({ colors, journey }: Props) {
   return (
     <View style={styles.wrap}>
       <LinearGradient
-        colors={["#2D1B4E", "#4A3080", "#6B4FCF"]}
+        colors={["#12082A", "#2D1B4E", "#5B3FA8", "#7C5CE0"]}
         style={styles.bg}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        start={{ x: 0.2, y: 0 }}
+        end={{ x: 0.8, y: 1 }}
       >
+        <CompanionPocketAmbient stage={stage} needsCare={needsCare} />
+        <View style={styles.foreground}>
         <Text style={styles.stageBadge}>
           {journey.companion_sprite_emoji ?? "🥚"} {journey.companion_stage_label ?? "Ovo"}
         </Text>
@@ -46,6 +49,7 @@ export function CompanionPocketScene({ colors, journey }: Props) {
             {moodLine}
           </Text>
         ) : null}
+        </View>
       </LinearGradient>
       {needsCare ? (
         <Pressable
@@ -61,7 +65,14 @@ export function CompanionPocketScene({ colors, journey }: Props) {
 
 const styles = StyleSheet.create({
   wrap: { marginBottom: 12, borderRadius: 16, overflow: "hidden" },
-  bg: { alignItems: "center", paddingVertical: 16, paddingHorizontal: 14 },
+  bg: {
+    alignItems: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    minHeight: 220,
+    overflow: "hidden",
+  },
+  foreground: { alignItems: "center", width: "100%", zIndex: 2 },
   stageBadge: {
     fontSize: 12,
     fontWeight: "900",

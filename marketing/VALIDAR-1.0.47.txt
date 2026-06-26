@@ -18,6 +18,7 @@ TESTAR NO APP 1.0.47
 [ ] EGO de Bolso: Falta: … com dica (Monstrinhos → emoji, etc.)
 [ ] Agenda Entre Nós: botão «+ Novo Entre Nós» (não confundir com compartilhada)
 [ ] Convite Entre Nós → amigo aceita → missão bolso (nível 20, 40…)
+[ ] EGO de Bolso: habitat animado — nuvens, brilho e partículas no bolso
 [ ] Monstrinhos Fase 5: jardim animado, pet
 
 DEPOIS DE PUBLICAR 1.0.47
