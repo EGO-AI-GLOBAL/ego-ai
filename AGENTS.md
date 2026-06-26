@@ -17,21 +17,34 @@ O app é **Expo/React Native**: quase todo o UI (`app/src/`, `app/app/`) corre *
 2. Caso contrário → tratar **sempre os dois** no mesmo commit/release.
 3. Nunca corrigir ícone/banner/texto numa plataforma e deixar a outra para “depois”.
 
-## Três agentes em paralelo — uma subida só
+## Quatro agentes em paralelo — tudo fechado sempre
 
-Quando **vários chats/agentes** trabalham ao mesmo tempo (actualmente **3**):
+Quando **vários chats/agentes** trabalham ao mesmo tempo (actualmente **4**):
 
-1. **Esperar** — todos fazem `commit + push` para `main`; `git pull` até não haver diff em `app/` nem `ego_api/`.
-2. **Gerar juntos** — `GERAR-E-SUBMETER-JUNTO.bat` (enfileira iOS + Android; grava `builds-VERSAO.ids.json`).
-3. **Submeter juntos** — `AGUARDAR-E-SUBMETER.bat` (espera FINISHED nos dois; TestFlight + Play **uma vez**).
+### Regra de ouro — **nunca deixar trabalho só no PC**
 
-**Estado actual:** versão **1.0.43 já submetida** — não gerar novo build; só `git pull origin main`. Próximo build quando os 3 agentes tiverem push + `sync-check`.
+Ao terminar **qualquer** tarefa, o agente **obrigatoriamente**:
 
-**Proibido** em release normal: `SUBMIT-IOS-*.bat` ou `PUBLICAR-*-PLAY.bat` separados; `GERAR-1.0.*.bat` / `BUILD-*.bat` só uma plataforma; `eas submit --latest` (pode subir build antigo de outro agente).
+1. `python scripts/regression_guard.py` + `python scripts/smoke_test_api.py` — se falhar, corrigir ou reverter
+2. **`git add`** só ficheiros da feature (não secrets, não lixo local)
+3. **`git commit`** + **`git push origin main`** — PowerShell: `git commit -m "mensagem simples"` (sem heredoc)
+4. Se mudou **API**: bump `api_build` em `flask_api.py` (Railway redeploy automático)
+5. Se mudou **Supabase**: ficheiro em `supabase/migrations/` ou `COLE-*.sql` **no commit**
+6. Actualizar `marketing/VALIDAR-1.0.XX.txt` (ou criar) com o que testar
+7. Avisar: **"fechado no main — pronto para sync build"** + hash do commit
 
-**Quando terminar código:** avisar o utilizador — *"pronto para sync build"* — e **esperar os outros agentes** antes de `GERAR-E-SUBMETER-JUNTO.bat`.
+**Proibido** terminar turno com diff pendente em `app/`, `ego_api/` ou `flask_api.py` da própria feature.
 
-Regra Cursor (sempre activa): `.cursor/rules/sync-build-dois-agentes.mdc`
+### Build (um só, depois de todos)
+
+1. **Esperar** — todos com push; `git pull` até `sync-check` OK
+2. `python scripts/wait_and_submit_eas.py sync-check`
+3. `GERAR-E-SUBMETER-JUNTO.bat` ou `SUBIR-BUILD-1.0.XX.bat` (iOS + Android juntos)
+4. `AGUARDAR-E-SUBMETER-1.0.XX.bat`
+
+**Proibido** em release normal: submit iOS/Android separados; `eas submit --latest`.
+
+Regra Cursor: `.cursor/rules/sync-build-dois-agentes.mdc`
 
 | Zona | Agente típico |
 |------|----------------|
