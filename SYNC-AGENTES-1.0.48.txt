@@ -1,23 +1,26 @@
-SYNC BUILD 1.0.48 — TODOS OS AGENTES
-====================================
+SYNC BUILD 1.0.48 — 4 AGENTES
+==============================
 
 Objetivo: UMA build iOS 35 + Android 86 com tudo do dia.
 
-REGRA: Ninguém corre GERAR-1.0.48.bat até TODAS as linhas abaixo estarem ✅.
+REGRA: Só o agente MONSTRINHOS corre GERAR / SUBMIT.
+       Os outros 3: commit+push + ✅ no ficheiro sync deles.
 
-| Agente        | Ficheiro sync                      | Estado   |
-|---------------|------------------------------------|----------|
-| Monstrinhos   | SYNC-AGENTES-MONSTRINHOS-1.0.48.txt | ✅ PRONTO |
-| EGO de Bolso  | (criar SYNC-AGENTES-BOLSO-1.0.48)  | ⏳       |
-| Segurança/API | (criar SYNC-AGENTES-API-1.0.48)    | ⏳       |
+| Agente        | Ficheiro sync                         | Estado      |
+|---------------|---------------------------------------|-------------|
+| Monstrinhos   | SYNC-AGENTES-MONSTRINHOS-1.0.48.txt   | ✅ PRONTO   |
+| EGO de Bolso  | SYNC-AGENTES-BOLSO-1.0.48.txt         | ✅ PRONTO   |
+| Marketing     | SYNC-AGENTES-MARKETING-1.0.48.txt     | ✅ PRONTO   |
+| Segurança/API | SYNC-AGENTES-API-1.0.48.txt           | ⏳          |
 
-Sequência para ti (utilizador)
-------------------------------
-0. Se 1.0.47 ainda não submetida: AGUARDAR-E-SUBMETER-1.0.47.bat (builds já FINISHED)
-1. Esperar agentes marcarem PRONTO
+Instruções completas: REGRA-4-AGENTES-BUILD.txt · AGENTS.md
+
+Antes de GERAR: `python scripts/wait_and_submit_eas.py sync-check` (app/ + ego_api/ limpos)
+---------------------------
+1. Esperar 4x ✅ PRONTO acima
 2. PREPARAR-1.0.48.bat
-3. GERAR-1.0.48.bat
+3. GERAR-1.0.48.bat  (confirma IDs em builds-1.0.48.ids.json)
 4. AGUARDAR-E-SUBMETER-1.0.48.bat
-5. Railway após loja: 1.0.48 / versionCode 86
+5. Railway após loja: EGO_LATEST_APP_VERSION=1.0.48 · versionCode=86
 
-Versão app.config.ts: 1.0.48 | iOS 35 | Android 86
+Versão: 1.0.48 | iOS 35 | Android 86

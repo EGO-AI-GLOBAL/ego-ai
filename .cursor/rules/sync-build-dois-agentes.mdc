@@ -1,37 +1,32 @@
 ---
-description: 4 agentes em paralelo — commit+push sempre; um build iOS+Android por release
+description: 4 agentes — só Monstrinhos faz GERAR/EAS; cada um SYNC-AGENTES-[NOME] PRONTO
 alwaysApply: true
 ---
 
 # Sync build — EGO-AI (4 agentes)
 
-## Tudo fechado sempre
+## Cada agente (Bolso, API, Marketing)
 
-Nenhum agente termina sem **commit + push** do que alterou.
+1. **Só a tua zona** — não mexer em ficheiros de outro agente
+2. Testes: `regression_guard.py` + `smoke_test_api.py`
+3. `commit` + `push origin main`
+4. **`SYNC-AGENTES-[TEU-NOME]-1.0.XX.txt`** → **✅ PRONTO**
+5. **`git status` limpo** em `app/` e `ego_api/` antes de dizer pronto
+6. **Não correr** GERAR / SUBIR-BUILD / `eas build` / `eas submit`
 
-| Passo | Obrigatório |
-|-------|-------------|
-| Testes | `regression_guard.py` + `smoke_test_api.py` |
-| Git | `add` → `commit` → `push origin main` |
-| API | Se `ego_api/` ou `flask_api.py`: bump `api_build` |
-| Docs | `marketing/VALIDAR-*.txt` se feature de release |
-| Fim | Dizer: **"fechado no main — pronto para sync build"** + hash |
+## Só agente Monstrinhos
 
-**Nunca** deixar ficheiros da feature só no disco local.
+- Esperar **todos** os SYNC com ✅ PRONTO
+- `PREPARAR-1.0.XX.bat` → `GERAR-1.0.XX.bat` → `AGUARDAR-E-SUBMETER-1.0.XX.bat`
+- Índice: `SYNC-AGENTES-1.0.XX.txt`
 
-## Subida à loja (depois de todos fecharem)
+## Nomes sync
 
-| Fazer | Não fazer |
-|-------|-----------|
-| `sync-check` → um `SUBIR-BUILD` / `GERAR-E-SUBMETER-JUNTO` | Build só Android ou só iOS |
-| `AGUARDAR-E-SUBMETER` com IDs fixos | `eas submit --latest` |
-| Esperar os **4 agentes** com push | Gerar build com diff pendente em `app/` ou `ego_api/` |
+| Nome ficheiro | Zona |
+|---------------|------|
+| SYNC-AGENTES-MONSTRINHOS-* | Monstrinhos + **build/lojas** |
+| SYNC-AGENTES-BOLSO-* | EGO de Bolso |
+| SYNC-AGENTES-API-* | Segurança/API |
+| SYNC-AGENTES-MARKETING-* | Parceiros, signup, site |
 
-## Fluxo
-
-1. `git pull origin main` → código → testes → **commit + push**
-2. Avisar utilizador; esperar outros agentes
-3. `python scripts/wait_and_submit_eas.py sync-check`
-4. Build + submit (um bat por versão)
-
-Detalhe: `AGENTS.md` · `SYNC-AGENTES-RELEASE.txt`
+Detalhe: `AGENTS.md`

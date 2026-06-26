@@ -21,37 +21,31 @@ O app é **Expo/React Native**: quase todo o UI (`app/src/`, `app/app/`) corre *
 
 Quando **vários chats/agentes** trabalham ao mesmo tempo (actualmente **4**):
 
-### Regra de ouro — **nunca deixar trabalho só no PC**
+### Fechar tarefa (cada agente — só a sua zona)
 
-Ao terminar **qualquer** tarefa, o agente **obrigatoriamente**:
+1. Trabalhar **só na zona** (tabela abaixo) — não mexer nas outras
+2. `regression_guard` + `smoke_test_api`
+3. `git commit` + `git push origin main`
+4. Criar/actualizar **`SYNC-AGENTES-[NOME]-1.0.XX.txt`** com **✅ PRONTO**
+5. Confirmar **`git status` limpo** em `app/` e `ego_api/` (só da tua feature)
+6. Avisar utilizador — **não correr GERAR/EAS**
 
-1. `python scripts/regression_guard.py` + `python scripts/smoke_test_api.py` — se falhar, corrigir ou reverter
-2. **`git add`** só ficheiros da feature (não secrets, não lixo local)
-3. **`git commit`** + **`git push origin main`** — PowerShell: `git commit -m "mensagem simples"` (sem heredoc)
-4. Se mudou **API**: bump `api_build` em `flask_api.py` (Railway redeploy automático)
-5. Se mudou **Supabase**: ficheiro em `supabase/migrations/` ou `COLE-*.sql` **no commit**
-6. Actualizar `marketing/VALIDAR-1.0.XX.txt` (ou criar) com o que testar
-7. Avisar: **"fechado no main — pronto para sync build"** + hash do commit
+**Proibido** (agentes Bolso, API, Marketing): `GERAR-*.bat`, `SUBIR-BUILD-*.bat`, `eas build`, `eas submit`.
 
-**Proibido** terminar turno com diff pendente em `app/`, `ego_api/` ou `flask_api.py` da própria feature.
+### Build e lojas — **só agente Monstrinhos**
 
-### Build (um só, depois de todos)
-
-1. **Esperar** — todos com push; `git pull` até `sync-check` OK
-2. `python scripts/wait_and_submit_eas.py sync-check`
-3. `GERAR-E-SUBMETER-JUNTO.bat` ou `SUBIR-BUILD-1.0.XX.bat` (iOS + Android juntos)
-4. `AGUARDAR-E-SUBMETER-1.0.XX.bat`
-
-**Proibido** em release normal: submit iOS/Android separados; `eas submit --latest`.
+1. Esperar **todos** os `SYNC-AGENTES-*-1.0.XX.txt` com ✅ PRONTO
+2. `PREPARAR-1.0.XX.bat` (regression + smoke + sync-check)
+3. `GERAR-1.0.XX.bat` → `AGUARDAR-E-SUBMETER-1.0.XX.bat`
 
 Regra Cursor: `.cursor/rules/sync-build-dois-agentes.mdc`
 
-| Zona | Agente típico |
-|------|----------------|
-| EGO de Bolso | `wellness-journey`, `EgoDeBolsoChatCard`, `SocialShare` |
-| Monstrinhos | `daily-care`, `moodMonsters/`, `ego_api/daily_care.py` |
-| Segurança/API | Play Integrity, RLS, Railway (só se pedido) |
-| Estável | auth, voz, chat core, Stripe — **ninguém** sem pedido |
+| Zona | Nome sync | Ficheiro |
+|------|-----------|----------|
+| **Monstrinhos** (único que faz build) | MONSTRINHOS | `moodMonsters/`, `daily_care.py`, GERAR/EAS |
+| EGO de Bolso | BOLSO | `wellness_journey`, `companion/`, `EgoDeBolso*` |
+| Segurança/API | API | Play Integrity, RLS, Railway |
+| Marketing/Parceiros | MARKETING | `referrals`, signup, landing |
 
 ## Zonas ESTÁVEIS — não alterar sem pedido explícito + teste
 
