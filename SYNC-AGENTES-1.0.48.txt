@@ -10,8 +10,8 @@ REGRA: Só o agente MONSTRINHOS corre GERAR / SUBMIT.
 |---------------|---------------------------------------|-------------|
 | Monstrinhos   | SYNC-AGENTES-MONSTRINHOS-1.0.48.txt   | ✅ PRONTO   |
 | EGO de Bolso  | SYNC-AGENTES-BOLSO-1.0.48.txt         | ✅ PRONTO   |
-| Marketing     | SYNC-AGENTES-MARKETING-1.0.48.txt     | ✅ PRONTO   |
 | Segurança/API | SYNC-AGENTES-API-1.0.48.txt           | ✅ PRONTO   |
+| Agenda/UX     | SYNC-AGENTES-AGENDA-1.0.48.txt        | ✅ PRONTO   |
 
 Instruções completas: REGRA-4-AGENTES-BUILD.txt · AGENTS.md
 
