@@ -3,32 +3,35 @@ AGENTE SEGURANÇA / API — BUILD 1.0.48
 
 Estado: ✅ PRONTO — 2026-06-27
 
-REGRA EQUIPA (4 agentes)
-------------------------
-• Só o agente MONSTRINHOS corre GERAR / AGUARDAR-E-SUBMETER / EAS.
-• Tu: código na tua zona → commit + push → marca ✅ aqui.
-• Antes de ✅: git status limpo em app/ e ego_api/ (bloqueia build se ficar M local).
+REGRA: REGRA-4-AGENTES-BUILD.txt
+• NÃO corri GERAR / AGUARDAR-E-SUBMETER / eas build / eas submit
+• NÃO alterei app.config.ts (version / buildNumber / versionCode)
 
-FECHADO NESTA BUILD (zona API)
-------------------------------
-[x] Programa parceiros / referrals (referrals.py) — 42662cc, 627dd13
-[x] Signup + e-mails semanais (signup_emails.py, services.py signup) — 42662cc
-[x] types.ts alinhado com API
-[x] db.py — alterações Supabase relacionadas
-[x] plans.tsx checkout/parceiro no app
-[x] SQL Supabase: COLE-SUPABASE-DEPLOY-AMANHA.sql (utilizador correu)
-[x] Play Integrity / RLS — 1de2607 (produção monitor)
-[x] Relatório diário cadastros (daily_stats_report.py) — ddf294c
-[x] flask_api.py — rotas admin cron + referrals
+COMMIT DOS 7 FICHEIROS (já no origin/main)
+------------------------------------------
+Commit: 42662cc — feat: programa parceiros + lembrete e-mail semanal
+
+| Ficheiro | Push |
+|----------|------|
+| app/app/signup.tsx | ✅ |
+| app/app/(main)/plans.tsx | ✅ |
+| app/src/api/types.ts | ✅ |
+| ego_api/db.py | ✅ |
+| ego_api/referrals.py | ✅ |
+| ego_api/services.py | ✅ |
+| ego_api/signup_emails.py | ✅ |
+
+Complemento parceiros: 627dd13 · relatório cadastros: ddf294c · sync doc: cb465d4
+
+CHECK git status (app/ ego_api/ flask_api.py)
+---------------------------------------------
+2026-06-27 — vazio (sem M) — não bloqueia GERAR-1.0.48
 
 VALIDAÇÃO
 ---------
 [x] regression_guard.py OK
 [x] smoke_test_api.py OK
-[x] git status limpo em app/ ego_api/ flask_api.py
+[x] SQL Supabase COLE-SUPABASE-DEPLOY-AMANHA.sql — utilizador correu
 
-Commit principal: 627dd13 (parceiros) · 42662cc (signup semanal) · ddf294c (relatório diário)
-SQL corrido no Supabase: [x] sim
-Ficheiros: referrals.py, signup_emails.py, services.py, db.py, flask_api.py, daily_stats_report.py, signup.tsx, plans.tsx, types.ts
-
-NÃO CORRI: GERAR / EAS / eas submit
+Resposta padrão (REGRA-4-AGENTES):
+✅ API PRONTO — commit 42662cc — ficheiros: signup.tsx, plans.tsx, types.ts, db.py, referrals.py, services.py, signup_emails.py
