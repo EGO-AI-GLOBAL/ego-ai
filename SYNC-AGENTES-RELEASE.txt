@@ -1,83 +1,34 @@
-REGRA — TRÊS AGENTES, UMA SUBIDA (OBRIGATÓRIO)
-=================================================
+REGRA — QUATRO AGENTES, UMA SUBIDA (ÍNDICE)
+=============================================
 
-Sempre que QUALQUER agente ou o utilizador pedir build/loja/TestFlight/Play:
+Detalhe completo: REGRA-4-AGENTES-BUILD.txt
+Estado da release actual: SYNC-AGENTES-1.0.49.txt (ou 1.0.48 se ainda a submeter)
 
-  NÃO subir sozinho. Esperar TODOS os agentes. Um build só para todos.
+REGRA DE OURO (utilizador pediu)
+--------------------------------
+Tudo o que cada agente faz TERMINA FECHADO e PRONTO PARA BUILD:
+  commit + push + ✅ no ficheiro SYNC-AGENTES-[ZONA]-1.0.XX.txt
+  regression_guard + smoke_test (se API)
+  git status limpo em app/ e ego_api/
 
-FLUXO (copiar para os 3 chats)
-------------------------------
+QUEM SOBE LOJA
+--------------
+Só agente MONSTRINHOS: PREPARAR → GERAR → AGUARDAR-E-SUBMETER
+Os outros 3: NUNCA eas build / GERAR-*.bat
 
-1. ESPERAR — código fundido no Git
-   git pull origin main
-   (cada agente: commit + push do que fez)
-   python scripts/wait_and_submit_eas.py sync-check
-   → Só continuar se passar (sem diff pendente em app/ + ego_api/)
+FICHEIROS SYNC POR AGENTE
+-------------------------
+| Agente        | Ficheiro |
+| Monstrinhos   | SYNC-AGENTES-MONSTRINHOS-1.0.XX.txt |
+| EGO de Bolso  | SYNC-AGENTES-BOLSO-1.0.XX.txt |
+| API/Segurança | SYNC-AGENTES-API-1.0.XX.txt |
+| Marketing     | SYNC-AGENTES-MARKETING-1.0.XX.txt |
 
-2. GERAR uma vez (iOS + Android JUNTOS)
-   GERAR-E-SUBMETER-JUNTO.bat
-   → Grava builds-VERSAO.ids.json
-
-3. SUBMETER uma vez (depois FINISHED nos dois)
-   AGUARDAR-E-SUBMETER.bat
-   → TestFlight + Play no mesmo fluxo
-
-PROIBIDO (vários agentes em paralelo)
--------------------------------------
-- GERAR-1.0.*.bat / BUILD-*.bat sozinhos (só iOS ou só Android)
-- SUBMIT-IOS-*.bat sozinho
-- PUBLICAR-*-PLAY.bat sozinho
-- eas build --platform android (ou ios) sem o par
-- eas submit --latest (pode pegar build antigo de outro agente)
-
-MENSAGEM PARA O UTILIZADOR (quando terminar código)
----------------------------------------------------
-"Diz aos outros agentes: pronto para sync build. Quando os TRÊS tiverem push,
-correr GERAR-E-SUBMETER-JUNTO.bat uma vez só."
-
-Zonas por agente (evitar conflito no código)
---------------------------------------------
-• Agente A — EGO de Bolso: wellness-journey, EgoDeBolsoChatCard, SocialShare
-• Agente B — Monstrinhos: daily_care, moodMonsters/, habits
-• Agente C — Segurança/API: Play Integrity, RLS, Railway, stripe (só se pedido)
-• Partilhado só com sync: flask_api.py, app.config.ts, ego_api/config.py
-
-CHECKLIST PRÉ-BUILD
--------------------
+ANTES DO BUILD (Monstrinhos ou utilizador)
+------------------------------------------
+python scripts/wait_and_submit_eas.py sync-check
 python scripts/regression_guard.py
 python scripts/smoke_test_api.py
-python scripts/wait_and_submit_eas.py sync-check
-VERIFICAR-SEGURANCA.bat (se mexeu em segurança/API)
+4x ✅ PRONTO nos SYNC individuais
 
-EAS — variável segurança Android (se Play Integrity no Railway)
----------------------------------------------------------------
-EXPO_PUBLIC_GOOGLE_CLOUD_PROJECT_NUMBER = mesmo número do Railway
-
-Comandos úteis
---------------
-python scripts/wait_and_submit_eas.py sync-check
-python scripts/wait_and_submit_eas.py queue
-python scripts/wait_and_submit_eas.py wait-submit
-
-ESTADO ACTUAL — 1.0.43 (NA LOJA DE TESTE)
-------------------------------------------
-• Versão: 1.0.43 (app.config.ts)
-• Android: **teste fechado** (Play Console)
-• iOS: **TestFlight teste externo**
-• Builds: builds-1.0.43.ids.json
-  iOS:     8dc8e777-eb54-4f9e-9bde-78416e51405b
-  Android: 80651c7c-78b8-4342-bef2-1bf7326eb937
-• Segurança API: main (Play Integrity backend)
-• Próximo build: 1.0.44 — só quando os 3 agentes push + sync-check → GERAR-E-SUBMETER-JUNTO.bat
-
-TESTAR AGORA (utilizador / testadores)
---------------------------------------
-Android: link opt-in Play teste fechado (com.egoai.app)
-iOS: link TestFlight externo (join/eNDKdFWF ou convite Apple)
-Fluxo: login → chat → voz → Monstrinhos → EGO de Bolso
-
-O QUE CADA AGENTE FAZ AGORA
----------------------------
-1. git pull origin main
-2. NÃO gerar novo build — 1.0.43 já está nos testes
-3. Bugs → hotfix 1.0.43.x ou acumular para 1.0.44 com sync dos 3
+Cursor rule: .cursor/rules/sync-build-dois-agentes.mdc

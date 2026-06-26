@@ -1,32 +1,42 @@
 ---
-description: 4 agentes — só Monstrinhos faz GERAR/EAS; cada um SYNC-AGENTES-[NOME] PRONTO
+description: 4 agentes — fechar pronto para build; só Monstrinhos faz EAS
 alwaysApply: true
 ---
 
 # Sync build — EGO-AI (4 agentes)
 
-## Cada agente (Bolso, API, Marketing)
+## Regra do utilizador
 
-1. **Só a tua zona** — não mexer em ficheiros de outro agente
-2. Testes: `regression_guard.py` + `smoke_test_api.py`
-3. `commit` + `push origin main`
-4. **`SYNC-AGENTES-[TEU-NOME]-1.0.XX.txt`** → **✅ PRONTO**
-5. **`git status` limpo** em `app/` e `ego_api/` antes de dizer pronto
-6. **Não correr** GERAR / SUBIR-BUILD / `eas build` / `eas submit`
+**Tudo o que fizeres fecha pronto para build** — sem WIP, sem ficheiros `M` locais em `app/` ou `ego_api/`.
 
-## Só agente Monstrinhos
+## Os 4 agentes — uma subida só
 
-- Esperar **todos** os SYNC com ✅ PRONTO
-- `PREPARAR-1.0.XX.bat` → `GERAR-1.0.XX.bat` → `AGUARDAR-E-SUBMETER-1.0.XX.bat`
-- Índice: `SYNC-AGENTES-1.0.XX.txt`
+| Agente | Sync file | Corre EAS? |
+|--------|-----------|------------|
+| Monstrinhos | `SYNC-AGENTES-MONSTRINHOS-1.0.XX.txt` | **SIM** (único) |
+| EGO de Bolso | `SYNC-AGENTES-BOLSO-1.0.XX.txt` | NÃO |
+| API/Segurança | `SYNC-AGENTES-API-1.0.XX.txt` | NÃO |
+| Marketing | `SYNC-AGENTES-MARKETING-1.0.XX.txt` | NÃO |
 
-## Nomes sync
+Mestre: `SYNC-AGENTES-1.0.XX.txt` · Detalhe: `REGRA-4-AGENTES-BUILD.txt`
 
-| Nome ficheiro | Zona |
-|---------------|------|
-| SYNC-AGENTES-MONSTRINHOS-* | Monstrinhos + **build/lojas** |
-| SYNC-AGENTES-BOLSO-* | EGO de Bolso |
-| SYNC-AGENTES-API-* | Segurança/API |
-| SYNC-AGENTES-MARKETING-* | Parceiros, signup, site |
+## Fechar tarefa (agentes 2, 3, 4 — e Monstrinhos no código)
 
-Detalhe: `AGENTS.md`
+1. Só a **tua zona** (`AGENTS.md`)
+2. `python scripts/regression_guard.py` + `smoke_test_api.py` (se API)
+3. `git pull` → `commit` → `push origin main`
+4. Marcar teu `SYNC-AGENTES-*-1.0.XX.txt` → **✅ PRONTO** + hash commit
+5. Resposta: `✅ [ZONA] PRONTO — commit abc — ficheiros: …`
+6. **Nunca** `GERAR-*.bat`, `eas build`, `eas submit`, nem mudar `app.config.ts` (excepto Monstrinhos no dia do build)
+
+## Build (só Monstrinhos)
+
+1. 4x ✅ no mestre `SYNC-AGENTES-1.0.XX.txt`
+2. `PREPARAR-1.0.XX.bat` → `sync-check` OK
+3. `GERAR-1.0.XX.bat` → `AGUARDAR-E-SUBMETER-1.0.XX.bat`
+
+## Proibido
+
+- Terminar sem push
+- Build/submit fora do agente Monstrinhos
+- `eas submit --latest`
