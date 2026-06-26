@@ -1,31 +1,29 @@
-AGENTE EGO DE BOLSO — 1.0.48
-==============================
+AGENTE EGO DE BOLSO — BUILD 1.0.48
+====================================
 
-Estado: ✅ PRONTO
+Estado: ✅ PRONTO — commit ae7ad3a (sync) · features 63ed844, 86c8f52, 438ef5f
 
-git status app/ ego_api/: limpo (sem diff local)
-Últimos commits zona Bolso no main:
-  • 63ed844 — habitat animado Dia 1 (CompanionPocketAmbient)
-  • 86c8f52 — convite obrigatório 20/40/60
-  • 438ef5f — Entre Nós + Novo Entre Nós + checklist
-  • b6d4c46 / 821132e — barra 20%/missão + dicas Falta
+ZONA DESTE AGENTE (só Bolso — ver AGENTS.md)
+--------------------------------------------
+wellness_journey · ego_de_bolso_push · companion/ · EgoDeBolso* · Entre Nós (bolso)
 
-O QUE ESTÁ INCLUÍDO (zona EGO de Bolso)
----------------------------------------
-• 5 missões/dia — ego_api/wellness_journey.py MISSIONS_PER_DAY=5
-• Convite obrigatório níveis 20, 40, 60… (nível 10 = uso)
-• Push 18h servidor — ego_api/ego_de_bolso_push.py
-• Barra Cuidado 20% por missão — app + API _daily_care_fraction
-• Dicas «Falta:» com como fazer — egoDeBolsoStepHints.ts
-• Habitat animado — CompanionPocketScene + CompanionPocketAmbient
-• EgoDeBolsoChatCard, WellnessJourneyCard, PocketCompanionShareModal
-• Entre Nós visual agenda + botão «+ Novo Entre Nós»
+FECHADO (já no main — commit + push)
+------------------------------------
+[x] 5 missões/dia — ego_api/wellness_journey.py MISSIONS_PER_DAY=5
+[x] Convite obrigatório 20/40/60 (nível 10 = uso)
+[x] Push 18h servidor — ego_api/ego_de_bolso_push.py
+[x] Barra Cuidado 20% por missão — _daily_care_fraction + egoDeBolsoDailyCare.ts
+[x] Dicas «Falta:» — egoDeBolsoStepHints.ts + _label_with_how
+[x] Habitat animado Dia 1 — CompanionPocketAmbient.tsx + CompanionPocketScene.tsx
+[x] EgoDeBolsoChatCard · WellnessJourneyCard · PocketCompanionShareModal
+[x] Entre Nós — EntreNosAgendaSection («+ Novo Entre Nós»)
+[x] Crédito convite missão — ego_api/shared_calendars.py
 
 FICHEIROS DESTA ZONA (não mexer sem sync)
 -----------------------------------------
 ego_api/wellness_journey.py
 ego_api/ego_de_bolso_push.py
-ego_api/shared_calendars.py (crédito convite missão)
+ego_api/shared_calendars.py
 app/src/components/companion/**
 app/src/components/EgoDeBolso*.tsx
 app/src/components/WellnessJourneyCard.tsx
@@ -35,13 +33,26 @@ app/src/components/agenda/EntreNosAgendaSection.tsx
 
 NÃO TOCAR (outros agentes)
 --------------------------
-moodMonsters/, daily_care.py (Monstrinhos)
-referrals, signup_emails, parceiros (Marketing/API)
-Play Integrity, relatório cadastros
+moodMonsters/ · ego_api/daily_care.py (Monstrinhos)
+referrals · signup_emails · parceiros (Marketing)
+Play Integrity · relatório cadastros · app.config.ts
 
-ESTE AGENTE NÃO CORRE
----------------------
-GERAR-*.bat · SUBIR-BUILD-*.bat · eas build · eas submit
-→ Só o agente Monstrinhos sobe builds e submete lojas.
+GIT — check antes de PRONTO
+---------------------------
+git status --porcelain app/ ego_api/ flask_api.py
+→ vazio ✅ (sem M na zona Bolso)
 
-Testar: marketing/VALIDAR-1.0.48.txt (secção EGO de Bolso)
+TESTES (última corrida OK)
+--------------------------
+[x] python scripts/regression_guard.py
+[x] python scripts/smoke_test_api.py
+[x] API: bolso-invite-20 / referral-signup-weekly no Railway
+
+BUILD / EAS
+-----------
+[x] Este agente NÃO corre GERAR / SUBIR-BUILD / AGUARDAR / eas
+→ Só Monstrinhos: REGRA-4-AGENTES-BUILD.txt
+
+TESTAR NO APP (após build Monstrinhos)
+--------------------------------------
+marketing/VALIDAR-1.0.47.txt (secção EGO de Bolso) + jornada na Agenda
