@@ -1,0 +1,15 @@
+VALIDAR 1.0.48 — Monstrinhos Fase 6
+====================================
+
+[ ] Chat: cartão "Jardim dos Monstrinhos" visível
+[ ] Toque no cartão → ecrã Monstrinhos
+[ ] Check-in → missões 1/5 … 5/5
+[ ] Regar jardim (💧) → +2 sementes
+[ ] Agradecer (🙏) → +2 sementes
+[ ] Respirar + Aventura ainda funcionam
+[ ] 5/5 → burst "+3 sementes bónus"
+[ ] Sequência em risco → cartão com aviso laranja
+
+Fases anteriores (smoke rápido)
+[ ] Loja sementes compra decoração
+[ ] Lista compras agenda não some

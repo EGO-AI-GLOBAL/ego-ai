@@ -6,11 +6,18 @@ type Props = {
   colors: AppColors;
   visible: boolean;
   bonus?: number;
+  totalGoals?: number;
   onDone?: () => void;
 };
 
-/** Burst visual quando as 3 missões do dia ficam completas. */
-export function MoodGoalsCompleteBurst({ colors, visible, bonus = 3, onDone }: Props) {
+/** Burst visual quando todas as missões do dia ficam completas. */
+export function MoodGoalsCompleteBurst({
+  colors,
+  visible,
+  bonus = 3,
+  totalGoals = 5,
+  onDone,
+}: Props) {
   const scale = useRef(new Animated.Value(0.6)).current;
   const opacity = useRef(new Animated.Value(0)).current;
 
@@ -48,7 +55,7 @@ export function MoodGoalsCompleteBurst({ colors, visible, bonus = 3, onDone }: P
         <Text style={styles.emoji}>🎉✨🌰</Text>
         <Text style={[styles.title, { color: colors.text }]}>Dia perfeito no jardim!</Text>
         <Text style={[styles.sub, { color: colors.primary }]}>
-          3/3 missões · +{bonus} sementes bónus
+          {totalGoals}/{totalGoals} missões · +{bonus} sementes bónus
         </Text>
       </Animated.View>
     </View>

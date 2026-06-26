@@ -1,0 +1,10 @@
+Play Console — 1.0.48 (versionCode 86)
+========================================
+
+• Monstrinhos: 5 missões diárias (regar + gratidão novas)
+• Widget no Chat — cartão Jardim dos Monstrinhos
+• Jardim animado estilo Finch (Fase 5)
+• EGO de Bolso + Entre Nós + lista compras (releases anteriores)
+
+Texto curto (pt-BR):
+"Monstrinhos com 5 missões por dia e atalho no chat. Melhorias no EGO de Bolso e na agenda."

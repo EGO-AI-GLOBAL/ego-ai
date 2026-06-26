@@ -96,8 +96,12 @@ export function MoodDailyGoals({ colors, care, onUpdate, onGoalsBonus }: Props) 
     try {
       if (goal.key === "breathe") {
         await runBreathe();
+      } else if (goal.key === "water" || goal.key === "gratitude") {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
       }
-      const res = await submitDailyCareGoal(goal.key as "breathe" | "adventure");
+      const res = await submitDailyCareGoal(
+        goal.key as "breathe" | "adventure" | "water" | "gratitude"
+      );
       if (!res?.daily_care) return;
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       onUpdate(res.daily_care);

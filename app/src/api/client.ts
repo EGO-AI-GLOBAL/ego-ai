@@ -15,6 +15,7 @@ import type {
   MeData,
   LaunchPlanOffer,
   PlanCatalogItem,
+  ReferralPlanOffer,
   AgendaDraft,
   ChatHistoryPayload,
   NightDumpResult,
@@ -450,15 +451,18 @@ export type LegalDoc = "terms" | "privacy" | "refund";
 export async function fetchPlansCatalog(): Promise<{
   plans: PlanCatalogItem[];
   launchOffer: LaunchPlanOffer | null;
+  referralOffer: ReferralPlanOffer | null;
 }> {
-  const { data } = await axios.get(`${apiBase}plans`, { timeout: 15000 });
+  const { data } = await api.get("plans", { timeout: 15000 });
   const body = unwrap<{
     plans: PlanCatalogItem[];
     launch_offer?: LaunchPlanOffer | null;
+    referral_offer?: ReferralPlanOffer | null;
   }>(data);
   return {
     plans: body.plans ?? [],
     launchOffer: body.launch_offer ?? null,
+    referralOffer: body.referral_offer ?? null,
   };
 }
 
@@ -640,7 +644,7 @@ export async function submitDailyCareCheckin(moodKey: string): Promise<{
 }
 
 export async function submitDailyCareGoal(
-  goalKey: "breathe" | "adventure"
+  goalKey: "breathe" | "adventure" | "water" | "gratitude"
 ): Promise<{ daily_care: DailyCareInfo } | null> {
   try {
     const { data } = await api.post("daily-care/goal", { goal: goalKey });

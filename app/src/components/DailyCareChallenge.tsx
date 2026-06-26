@@ -120,6 +120,7 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
           colors={colors}
           visible={goalsBurst}
           bonus={care.all_goals_bonus ?? 3}
+          totalGoals={care.daily_goals?.length ?? 5}
           onDone={() => setGoalsBurst(false)}
         />
         <View style={styles.head}>

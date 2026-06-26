@@ -62,6 +62,8 @@ DEFAULT_MONSTER_LINE = "Escolha o monstrinho do seu humor hoje."
 
 SEEDS_CHECKIN = 5
 SEEDS_BREATHE = 2
+SEEDS_WATER = 2
+SEEDS_GRATITUDE = 2
 SEEDS_ADVENTURE = 3
 SEEDS_ALL_GOALS_BONUS = 3
 SEED_HISTORY_MAX = 10
@@ -143,6 +145,8 @@ def _decor_unlocked(current: int) -> list[dict[str, str | int]]:
 
 def _daily_goals(raw: dict, today: str, checked_today: bool) -> list[dict]:
     breathe_done = str(raw.get("breathe_date") or "") == today
+    water_done = str(raw.get("water_date") or "") == today
+    gratitude_done = str(raw.get("gratitude_date") or "") == today
     adv_collected = checked_today and bool(raw.get("adventure_collected"))
     return [
         {
@@ -159,6 +163,22 @@ def _daily_goals(raw: dict, today: str, checked_today: bool) -> list[dict]:
             "emoji": "🌬️",
             "done": breathe_done,
             "seeds_reward": SEEDS_BREATHE,
+            "locked": not checked_today,
+        },
+        {
+            "key": "water",
+            "label": "Regar o jardim",
+            "emoji": "💧",
+            "done": water_done,
+            "seeds_reward": SEEDS_WATER,
+            "locked": not checked_today,
+        },
+        {
+            "key": "gratitude",
+            "label": "Agradecer algo bom hoje",
+            "emoji": "🙏",
+            "done": gratitude_done,
+            "seeds_reward": SEEDS_GRATITUDE,
             "locked": not checked_today,
         },
         {
@@ -580,7 +600,7 @@ def record_goal(
     if not supabase or not user_id:
         return get_daily_care(supabase, user_id)
     key = (goal_key or "").strip().lower()
-    if key not in ("breathe", "adventure"):
+    if key not in ("breathe", "adventure", "water", "gratitude"):
         return get_daily_care(supabase, user_id)
 
     today = _local_date_str()
@@ -607,6 +627,18 @@ def record_goal(
         raw["adventure_collected"] = True
         raw["seeds"] = seeds + SEEDS_ADVENTURE
         _append_seed_history(raw, "earn", SEEDS_ADVENTURE, "Aventura")
+    elif key == "water":
+        if str(raw.get("water_date") or "") == today:
+            return get_daily_care(supabase, user_id)
+        raw["water_date"] = today
+        raw["seeds"] = seeds + SEEDS_WATER
+        _append_seed_history(raw, "earn", SEEDS_WATER, "Regar jardim")
+    elif key == "gratitude":
+        if str(raw.get("gratitude_date") or "") == today:
+            return get_daily_care(supabase, user_id)
+        raw["gratitude_date"] = today
+        raw["seeds"] = seeds + SEEDS_GRATITUDE
+        _append_seed_history(raw, "earn", SEEDS_GRATITUDE, "Gratidão")
     bonus_granted = _maybe_all_goals_bonus(raw, today)
 
     ui["daily_care"] = raw

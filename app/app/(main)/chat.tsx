@@ -29,6 +29,7 @@ import {
 } from "@/components/ChatScheduleBanner";
 import { ChatDayStrip } from "@/components/ChatDayStrip";
 import { EgoDeBolsoChatCard } from "@/components/EgoDeBolsoChatCard";
+import { MoodGardenWidgetCard } from "@/components/moodMonsters/MoodGardenWidgetCard";
 import { ScreenShell } from "@/components/ScreenShell";
 import { PersonaPicker } from "@/components/PersonaPicker";
 import { TrialExpiredBanner } from "@/components/TrialExpiredBanner";
@@ -1108,6 +1109,10 @@ export default function ChatScreen() {
                 }
               }}
             />
+          ) : null}
+
+          {!loading || refreshing ? (
+            <MoodGardenWidgetCard colors={colors} care={data.daily_care} />
           ) : null}
 
           {!loading || refreshing ? (

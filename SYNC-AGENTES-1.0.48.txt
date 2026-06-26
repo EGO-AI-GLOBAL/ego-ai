@@ -1,0 +1,23 @@
+SYNC BUILD 1.0.48 — TODOS OS AGENTES
+====================================
+
+Objetivo: UMA build iOS 35 + Android 86 com tudo do dia.
+
+REGRA: Ninguém corre GERAR-1.0.48.bat até TODAS as linhas abaixo estarem ✅.
+
+| Agente        | Ficheiro sync                      | Estado   |
+|---------------|------------------------------------|----------|
+| Monstrinhos   | SYNC-AGENTES-MONSTRINHOS-1.0.48.txt | ✅ PRONTO |
+| EGO de Bolso  | (criar SYNC-AGENTES-BOLSO-1.0.48)  | ⏳       |
+| Segurança/API | (criar SYNC-AGENTES-API-1.0.48)    | ⏳       |
+
+Sequência para ti (utilizador)
+------------------------------
+0. Se 1.0.47 ainda não submetida: AGUARDAR-E-SUBMETER-1.0.47.bat (builds já FINISHED)
+1. Esperar agentes marcarem PRONTO
+2. PREPARAR-1.0.48.bat
+3. GERAR-1.0.48.bat
+4. AGUARDAR-E-SUBMETER-1.0.48.bat
+5. Railway após loja: 1.0.48 / versionCode 86
+
+Versão app.config.ts: 1.0.48 | iOS 35 | Android 86
