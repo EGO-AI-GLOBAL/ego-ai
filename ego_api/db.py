@@ -615,6 +615,10 @@ def build_plan_access_payload(
     from ego_api.plans import is_test_total_email
 
     email = str(prof.get("email") or "").strip().lower()
+    from ego_api.referrals import build_referral_offer_payload, referral_benefit_for_access
+
+    referral_benefit = referral_benefit_for_access(prof)
+    referral_offer = build_referral_offer_payload(supabase, prof)
     return {
         "access_allowed": ok_access,
         "access_status": status,
@@ -650,6 +654,8 @@ def build_plan_access_payload(
         "chat_local_history": chat_local_history_enabled(),
         "team_seats": _team_seats_from_profile(prof),
         "plan_type": _plan_type_from_profile(prof),
+        "referral_benefit": referral_benefit,
+        "referral_offer": referral_offer,
     }
 
 

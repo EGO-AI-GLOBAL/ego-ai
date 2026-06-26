@@ -80,6 +80,23 @@ export type LaunchPlanOffer = {
   limits: PlanLimitsInfo;
 };
 
+/** Cupom parceiro / influenciadora (esconde Lançamento + 10% na 1ª compra). */
+export type ReferralPlanOffer = {
+  active: boolean;
+  label?: string;
+  partner_code?: string;
+  partner_name?: string;
+  discount_percent?: number;
+  hide_launch_offer?: boolean;
+  tagline?: string;
+};
+
+export type ReferralBenefitInfo = {
+  active?: boolean;
+  hide_launch_offer?: boolean;
+  discount_percent?: number;
+};
+
 export type MeData = {
   user_id: string;
   email: string | null;
@@ -128,6 +145,8 @@ export type AccessInfo = {
   is_test_total?: boolean;
   team_seats?: number | null;
   plan_type?: string;
+  referral_benefit?: ReferralBenefitInfo | null;
+  referral_offer?: ReferralPlanOffer | null;
 };
 
 export type AccessResponse = ApiOk<AccessInfo>;

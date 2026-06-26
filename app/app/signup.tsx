@@ -41,7 +41,6 @@ export default function SignupScreen() {
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [referralCode, setReferralCode] = useState("");
-  const [referralOpen, setReferralOpen] = useState(false);
   const [referralHint, setReferralHint] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,7 +51,6 @@ export default function SignupScreen() {
     const fromLink = (Array.isArray(raw) ? raw[0] : raw) || "";
     if (fromLink.trim()) {
       setReferralCode(fromLink.trim().toUpperCase());
-      setReferralOpen(true);
     }
   }, [params.ref]);
 
@@ -74,11 +72,11 @@ export default function SignupScreen() {
       void validateReferralCode(code)
         .then((r) => {
           if (r.valid && r.display_name) {
-            setReferralHint(`Código válido — parceiro: ${r.display_name}. 10% na 1ª compra.`);
+            setReferralHint(`Cupom válido — ${r.display_name}. 10% de desconto na 1ª compra.`);
           } else if (r.valid) {
-            setReferralHint("Código válido. Você ganha 10% de desconto na primeira compra.");
+            setReferralHint("Cupom válido. Você ganha 10% de desconto na primeira compra.");
           } else {
-            setReferralHint("Código não encontrado.");
+            setReferralHint("Cupom não encontrado. Confira o nome e tente de novo.");
           }
         })
         .catch(() => setReferralHint(null));
@@ -221,62 +219,37 @@ export default function SignupScreen() {
               placeholder="Repita a senha"
               kind="new"
             />
-            {referralOpen ? (
-              <View style={styles.referralBlock}>
-                <View style={styles.referralHeader}>
-                  <Text style={[styles.label, { color: colors.textMuted, marginTop: 0 }]}>
-                    Código de indicação
-                  </Text>
-                  <Pressable
-                    onPress={() => {
-                      setReferralOpen(false);
-                      setReferralCode("");
-                      setReferralHint(null);
-                    }}
-                    hitSlop={8}
-                  >
-                    <Text style={[styles.referralClose, { color: colors.textMuted }]}>
-                      Fechar
-                    </Text>
-                  </Pressable>
-                </View>
-                <AuthTextInput
-                  value={referralCode}
-                  onChangeText={(t) => setReferralCode(t.toUpperCase())}
-                  placeholder="Ex.: MARIA10"
-                  autoCapitalize="characters"
-                  editable={!busy}
-                />
-                {referralHint ? (
-                  <Text
-                    style={[
-                      styles.referralHint,
-                      {
-                        color: referralHint.includes("não encontrado")
-                          ? colors.danger
-                          : colors.success,
-                      },
-                    ]}
-                  >
-                    {referralHint}
-                  </Text>
-                ) : (
-                  <Text style={[styles.referralHint, { color: colors.textMuted }]}>
-                    10% de desconto na primeira compra, se o código for válido.
-                  </Text>
-                )}
-              </View>
-            ) : (
-              <Pressable
-                style={styles.referralToggle}
-                onPress={() => setReferralOpen(true)}
-                hitSlop={8}
-              >
-                <Text style={[styles.referralToggleText, { color: colors.primaryLight }]}>
-                  Tem código de indicação?
+            <View style={styles.couponBlock}>
+              <AuthTextInput
+                label="Tem cupom? Escreva o nome aqui"
+                value={referralCode}
+                onChangeText={(t) => setReferralCode(t.toUpperCase())}
+                placeholder="Ex.: MARIA10"
+                autoCapitalize="characters"
+                editable={!busy}
+              />
+              {referralHint ? (
+                <Text
+                  style={[
+                    styles.referralHint,
+                    {
+                      color: referralHint.includes("não encontrado")
+                        ? colors.danger
+                        : referralCode.trim().length >= 3
+                          ? colors.success
+                          : colors.textMuted,
+                    },
+                  ]}
+                >
+                  {referralHint}
                 </Text>
-              </Pressable>
-            )}
+              ) : (
+                <Text style={[styles.referralHint, { color: colors.textMuted }]}>
+                  Opcional. Quem veio de parceira ou influenciadora ganha 10% na primeira
+                  assinatura.
+                </Text>
+              )}
+            </View>
 
             <Pressable
               style={styles.termsRow}
@@ -352,7 +325,7 @@ const styles = StyleSheet.create({
   logoImage: { alignSelf: "center", marginBottom: 8 },
   logoSub: { fontSize: 16, fontWeight: "600", textAlign: "center", marginBottom: 16 },
   form: { borderRadius: 20, padding: 20, borderWidth: 1 },
-  label: { fontSize: 12, marginBottom: 6, marginTop: 8 },
+  couponBlock: { marginTop: 4 },
   termsRow: { flexDirection: "row", alignItems: "flex-start", marginTop: 14, gap: 10 },
   checkbox: {
     width: 22,
@@ -366,16 +339,6 @@ const styles = StyleSheet.create({
   checkMark: { color: "#fff", fontWeight: "800", fontSize: 14 },
   termsText: { flex: 1, fontSize: 13, lineHeight: 18 },
   error: { marginTop: 12, fontSize: 14 },
-  referralToggle: { marginTop: 12, alignSelf: "flex-start" },
-  referralToggleText: { fontSize: 14, fontWeight: "600" },
-  referralBlock: { marginTop: 12 },
-  referralHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 6,
-  },
-  referralClose: { fontSize: 13, fontWeight: "600" },
   referralHint: { marginTop: 6, fontSize: 12, lineHeight: 16 },
   info: { marginTop: 12, fontSize: 14, lineHeight: 20 },
   btn: { marginTop: 20, borderRadius: 14, paddingVertical: 14, alignItems: "center" },

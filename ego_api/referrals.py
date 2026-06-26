@@ -62,6 +62,76 @@ def lookup_partner(supabase: Client, code: str) -> dict | None:
     return data[0] if data else None
 
 
+def lookup_partner_by_id(supabase: Client, partner_id: str) -> dict | None:
+    pid = (partner_id or "").strip()
+    if not pid:
+        return None
+    row = (
+        supabase.table("referral_partners")
+        .select("id, code, display_name, active")
+        .eq("id", pid)
+        .eq("active", True)
+        .limit(1)
+        .execute()
+    )
+    data = row.data or []
+    return data[0] if data else None
+
+
+def profile_has_active_referral_benefit(profile: dict | None) -> bool:
+    if not profile:
+        return False
+    if profile.get("referral_first_paid_at"):
+        return False
+    return bool(profile.get("referred_by_partner_id"))
+
+
+def should_hide_launch_offer(profile: dict | None) -> bool:
+    """Cupom de parceiro: esconde EGO Lançamento até a 1ª assinatura."""
+    return profile_has_active_referral_benefit(profile)
+
+
+def build_referral_offer_payload(
+    supabase: Client | None, profile: dict | None
+) -> dict | None:
+    if not profile_has_active_referral_benefit(profile):
+        return None
+    partner_id = str(profile.get("referred_by_partner_id") or "")
+    partner: dict | None = None
+    if supabase and partner_id:
+        partner = lookup_partner_by_id(supabase, partner_id)
+    code = (partner or {}).get("code") or ""
+    name = (partner or {}).get("display_name") or code or "parceiro"
+    discount = max(1, min(50, int(os.getenv("EGO_REFERRAL_DISCOUNT_PERCENT", "10") or "10")))
+    return {
+        "active": True,
+        "label": "Cupom parceiro",
+        "partner_code": code,
+        "partner_name": name,
+        "discount_percent": discount,
+        "hide_launch_offer": True,
+        "tagline": (
+            f"Você entrou com o cupom {code}. {discount}% de desconto na primeira assinatura "
+            f"(Conexão, Premium ou Total). O plano EGO Lançamento não se aplica."
+            if code
+            else f"{discount}% de desconto na primeira assinatura."
+        ),
+    }
+
+
+def referral_benefit_for_access(profile: dict | None) -> dict | None:
+    """Payload leve para bootstrap/access (sem lookup se partner já embutido)."""
+    if not profile_has_active_referral_benefit(profile):
+        return None
+    return {
+        "active": True,
+        "hide_launch_offer": True,
+        "discount_percent": max(
+            1, min(50, int(os.getenv("EGO_REFERRAL_DISCOUNT_PERCENT", "10") or "10"))
+        ),
+    }
+
+
 def validate_referral_code(code: str) -> tuple[dict | None, str | None]:
     client = get_admin_client()
     if not client:
@@ -116,11 +186,7 @@ def attach_referral_to_profile(
 
 
 def user_eligible_for_referral_discount(profile: dict | None) -> bool:
-    if not profile:
-        return False
-    if profile.get("referral_first_paid_at"):
-        return False
-    if not profile.get("referred_by_partner_id"):
+    if not profile_has_active_referral_benefit(profile):
         return False
     promo = referral_promo_code()
     return bool(promo)

@@ -120,17 +120,43 @@ def _play_url() -> str:
     return play_store_update_url()
 
 
-def _welcome_bodies(name: str, play_url: str) -> tuple[str, str, str]:
+def _site_url() -> str:
+    raw = read_env("EGO_APP_SIGNUP_URL", "https://egoai.com.br").strip()
+    return (raw or "https://egoai.com.br").rstrip("/")
+
+
+def _signup_reminder_max() -> int:
+    raw = read_env("EGO_SIGNUP_REMINDER_MAX", "4")
+    try:
+        return max(1, min(8, int(raw)))
+    except ValueError:
+        return 4
+
+
+def _signup_reminder_interval_days() -> int:
+    raw = read_env("EGO_SIGNUP_REMINDER_INTERVAL_DAYS", "7")
+    try:
+        return max(1, min(30, int(raw)))
+    except ValueError:
+        return 7
+
+
+def _signup_reminder_first_hours() -> int:
+    raw = read_env("EGO_SIGNUP_REMINDER_FIRST_HOURS", "24")
+    try:
+        return max(1, min(168, int(raw)))
+    except ValueError:
+        return 24
+
+
+def _welcome_bodies(name: str, site_url: str) -> tuple[str, str, str]:
     subject = "Bem-vindo ao Ego-IA — instale e comece em 2 minutos"
     text = f"""Oi, {name}!
 
 Obrigado por criar sua conta no Ego-IA — seu assistente com rosto e voz no celular.
 
-INSTALAR (Android — use o mesmo e-mail do cadastro):
-{play_url}
-1) Tornar-se testador → Aceitar
-2) Play Store → Ego-IA → Instalar
-3) Abrir o app → Entrar
+BAIXAR (Android ou iPhone — mesmo e-mail do cadastro):
+{site_url}
 
 O QUE O APP FAZ:
 • Chat — converse por texto ou microfone; o avatar fala com você
@@ -155,7 +181,7 @@ Equipe Ego-IA
 {SUPPORT_EMAIL}
 """
     safe_name = html.escape(name)
-    safe_url = html.escape(play_url)
+    safe_url = html.escape(site_url)
     html_body = f"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -167,13 +193,9 @@ Equipe Ego-IA
   <p>Oi, <strong>{safe_name}</strong>!</p>
   <p>Obrigado por criar sua conta no <strong>Ego-IA</strong> — seu assistente com <strong>rosto e voz</strong> no celular.</p>
 
-  <p><strong>Instalar no Android</strong> (mesmo e-mail do cadastro):</p>
-  <p><a href="{safe_url}" style="display:inline-block;padding:12px 18px;background:#0A122A;color:#ffffff;text-decoration:none;border-radius:8px;">Abrir teste na Play Store</a></p>
-  <ol style="padding-left:1.2em;">
-    <li>Tornar-se testador → Aceitar</li>
-    <li>Play Store → Ego-IA → Instalar</li>
-    <li>Abrir o app → Entrar</li>
-  </ol>
+  <p><strong>Baixar grátis</strong> (mesmo e-mail do cadastro):</p>
+  <p><a href="{safe_url}" style="display:inline-block;padding:12px 18px;background:#0A122A;color:#ffffff;text-decoration:none;border-radius:8px;">Abrir egoai.com.br</a></p>
+  <p>Android ou iPhone — botões na página.</p>
 
   <p><strong>O que o app faz</strong></p>
   <ul style="padding-left:1.2em;">
@@ -201,28 +223,42 @@ Equipe Ego-IA
     return subject, text, html_body
 
 
-def _reminder_bodies(name: str, play_url: str) -> tuple[str, str, str]:
-    subject = "Ego-IA — falta só instalar e dizer Oi"
+def _reminder_bodies(name: str, site_url: str, reminder_number: int) -> tuple[str, str, str]:
+    n = max(1, min(4, int(reminder_number)))
+    subjects = {
+        1: "Ego-IA — falta só instalar e dizer Oi",
+        2: "Sua Luna está esperando — 2 min no Ego-IA",
+        3: "Você cadastrou mas ainda não testou a agenda?",
+        4: "Último lembrete: teste grátis Ego-IA",
+    }
+    hooks = {
+        1: "Você criou conta no Ego-IA mas ainda não entrou no app.",
+        2: "Passando para lembrar: sua conta Ego-IA está pronta — falta só abrir.",
+        3: "Muita gente usa o desabafo de noite e vira agenda de manhã. Quer testar?",
+        4: "Este é o último lembrete automático. Depois paramos de escrever.",
+    }
+    subject = subjects.get(n, subjects[1])
+    hook = hooks.get(n, hooks[1])
     text = f"""Oi, {name}!
 
-Você criou conta no Ego-IA mas ainda não entrou no app.
+{hook}
 
-Instale no Android (mesmo e-mail do cadastro):
-{play_url}
+Baixar grátis (mesmo e-mail do cadastro):
+{site_url}
 
 Depois:
 1) Entrar no app
 2) Escolher assistente (Luna ou Leo)
 3) Digitar Oi no chat — ele responde com voz
 
-O app ajuda com chat, agenda, lembretes e lista de compras.
+20 dias grátis · chat, agenda, lembretes e lista de compras.
 
 Ajuda: {SUPPORT_EMAIL}
 
 Equipe Ego-IA
 """
     safe_name = html.escape(name)
-    safe_url = html.escape(play_url)
+    safe_url = html.escape(site_url)
     html_body = f"""<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -232,15 +268,15 @@ Equipe Ego-IA
 <body style="font-family:Segoe UI,Arial,sans-serif;line-height:1.55;color:#111111;margin:0;padding:16px;">
   <div style="max-width:560px;">
   <p>Oi, <strong>{safe_name}</strong>!</p>
-  <p>Você criou conta no <strong>Ego-IA</strong>, mas ainda não entrou no app.</p>
-  <p><a href="{safe_url}" style="display:inline-block;padding:12px 18px;background:#0A122A;color:#ffffff;text-decoration:none;border-radius:8px;">Instalar teste Android</a></p>
+  <p>{html.escape(hook)}</p>
+  <p><a href="{safe_url}" style="display:inline-block;padding:12px 18px;background:#0A122A;color:#ffffff;text-decoration:none;border-radius:8px;">Baixar grátis — egoai.com.br</a></p>
   <p><strong>Depois:</strong></p>
   <ol style="padding-left:1.2em;">
     <li>Entrar com o <strong>mesmo e-mail</strong></li>
     <li>Escolher assistente (Luna ou Leo)</li>
     <li>Digitar <strong>Oi</strong> no chat — resposta com voz</li>
   </ol>
-  <p>Chat, agenda, lembretes e lista de compras — tudo no bolso.</p>
+  <p>20 dias grátis · chat, agenda, lembretes e lista de compras.</p>
   <p>Ajuda: <a href="mailto:{SUPPORT_EMAIL}">{SUPPORT_EMAIL}</a></p>
   </div>
 </body>
@@ -510,6 +546,62 @@ def _welcome_already_sent(user_id: str) -> bool:
         return False
 
 
+def _mark_reminder_sent(user_id: str, reminder_count: int) -> None:
+    from ego_api.supabase_client import create_service_client
+
+    svc = create_service_client()
+    if not svc or not user_id:
+        return
+    ts = datetime.datetime.now(datetime.timezone.utc).isoformat()
+    payload: dict[str, Any] = {
+        "signup_reminder_sent_at": ts,
+        "signup_reminder_count": max(1, int(reminder_count)),
+    }
+    try:
+        svc.table("profiles").update(payload).eq("id", user_id).execute()
+    except Exception as exc:
+        logger.warning("signup_reminder mark failed: %s", exc)
+        try:
+            svc.table("profiles").update({"signup_reminder_sent_at": ts}).eq("id", user_id).execute()
+        except Exception as exc2:
+            logger.warning("signup_reminder mark fallback failed: %s", exc2)
+
+
+def _parse_profile_ts(raw: str | None) -> datetime.datetime | None:
+    if not raw:
+        return None
+    try:
+        dt = datetime.datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+        if dt.tzinfo is None:
+            dt = dt.replace(tzinfo=datetime.timezone.utc)
+        return dt.astimezone(datetime.timezone.utc)
+    except ValueError:
+        return None
+
+
+def _reminder_due(row: dict[str, Any], now: datetime.datetime) -> bool:
+    max_count = _signup_reminder_max()
+    count = int(row.get("signup_reminder_count") or 0)
+    if count >= max_count:
+        return False
+
+    created = _parse_profile_ts(row.get("created_at"))
+    if not created:
+        return False
+
+    first_hours = _signup_reminder_first_hours()
+    interval_days = _signup_reminder_interval_days()
+
+    if count == 0:
+        return now >= created + datetime.timedelta(hours=first_hours)
+
+    last_sent = _parse_profile_ts(row.get("signup_reminder_sent_at"))
+    if not last_sent:
+        return now >= created + datetime.timedelta(hours=first_hours)
+
+    return now >= last_sent + datetime.timedelta(days=interval_days)
+
+
 def _mark_profile_email_flag(user_id: str, column: str) -> None:
     from ego_api.supabase_client import create_service_client
 
@@ -533,8 +625,8 @@ def send_welcome_email(user_id: str, email: str, full_name: str = "") -> bool:
             logger.info("welcome_email skip (já enviado): %s", email)
             return False
         name = _first_name(full_name, email)
-        play_url = _play_url()
-        subject, text_body, html_body = _welcome_bodies(name, play_url)
+        site_url = _site_url()
+        subject, text_body, html_body = _welcome_bodies(name, site_url)
         for attempt in range(3):
             try:
                 send_signup_email(
@@ -554,12 +646,19 @@ def send_welcome_email(user_id: str, email: str, full_name: str = "") -> bool:
         return False
 
 
-def send_reminder_email(user_id: str, email: str, full_name: str = "") -> bool:
+def send_reminder_email(
+    user_id: str,
+    email: str,
+    full_name: str = "",
+    *,
+    reminder_number: int = 1,
+) -> bool:
     if not signup_emails_enabled() or not email_configured():
         return False
     name = _first_name(full_name, email)
-    play_url = _play_url()
-    subject, text_body, html_body = _reminder_bodies(name, play_url)
+    site_url = _site_url()
+    n = max(1, min(_signup_reminder_max(), int(reminder_number)))
+    subject, text_body, html_body = _reminder_bodies(name, site_url, n)
     try:
         send_signup_email(
             to_email=email,
@@ -567,8 +666,8 @@ def send_reminder_email(user_id: str, email: str, full_name: str = "") -> bool:
             text_body=text_body,
             html_body=html_body,
         )
-        _mark_profile_email_flag(user_id, "signup_reminder_sent_at")
-        logger.info("signup_reminder sent to %s", email)
+        _mark_reminder_sent(user_id, n)
+        logger.info("signup_reminder #%s sent to %s", n, email)
         return True
     except Exception as exc:
         logger.warning("signup_reminder failed for %s: %s", email, exc)
@@ -683,19 +782,22 @@ def start_background_jobs() -> None:
         daemon=True,
         name="signup-email-background",
     ).start()
-    logger.info("signup_emails: jobs automáticos iniciados (boas-vindas + lembrete 24h)")
+    logger.info(
+        "signup_emails: jobs automáticos (boas-vindas + lembrete semanal até login, máx %s)",
+        _signup_reminder_max(),
+    )
 
 
 def process_signup_reminders(
     *,
-    min_hours: int = 24,
-    max_days: int = 7,
+    min_hours: int | None = None,
+    max_days: int = 45,
     limit: int = 50,
 ) -> dict[str, int]:
-    """Envia lembrete a quem criou conta, recebeu boas-vindas e nunca fez login."""
+    """Lembretes automáticos: 1º após 24h, depois 1/semana até login (máx. 4)."""
     from ego_api.supabase_client import create_service_client
 
-    stats = {"candidates": 0, "sent": 0, "failed": 0, "skipped": 0}
+    stats = {"candidates": 0, "sent": 0, "failed": 0, "skipped": 0, "not_due": 0}
     if not signup_emails_enabled() or not email_configured():
         stats["skipped"] = 1
         return stats
@@ -705,37 +807,81 @@ def process_signup_reminders(
         stats["skipped"] = 1
         return stats
 
+    if min_hours is not None:
+        first_hours = max(1, int(min_hours))
+    else:
+        first_hours = _signup_reminder_first_hours()
+
     now = datetime.datetime.now(datetime.timezone.utc)
-    min_created = now - datetime.timedelta(days=max_days)
-    max_created = now - datetime.timedelta(hours=min_hours)
+    min_created = now - datetime.timedelta(days=max(7, max_days))
+    max_count = _signup_reminder_max()
 
     try:
         res = (
             svc.table("profiles")
-            .select("id,email,full_name,welcome_email_sent_at,signup_reminder_sent_at,last_login_at,created_at")
+            .select(
+                "id,email,full_name,welcome_email_sent_at,signup_reminder_sent_at,"
+                "signup_reminder_count,last_login_at,created_at"
+            )
             .not_.is_("welcome_email_sent_at", "null")
-            .is_("signup_reminder_sent_at", "null")
             .is_("last_login_at", "null")
-            .lte("created_at", max_created.isoformat())
             .gte("created_at", min_created.isoformat())
-            .limit(limit)
+            .order("created_at", desc=False)
+            .limit(min(200, max(1, limit * 3)))
             .execute()
         )
     except Exception as exc:
         logger.warning("signup_reminder query failed: %s", exc)
-        stats["failed"] = 1
-        return stats
+        try:
+            res = (
+                svc.table("profiles")
+                .select(
+                    "id,email,full_name,welcome_email_sent_at,signup_reminder_sent_at,"
+                    "last_login_at,created_at"
+                )
+                .not_.is_("welcome_email_sent_at", "null")
+                .is_("signup_reminder_sent_at", "null")
+                .is_("last_login_at", "null")
+                .lte(
+                    "created_at",
+                    (now - datetime.timedelta(hours=first_hours)).isoformat(),
+                )
+                .gte("created_at", min_created.isoformat())
+                .limit(limit)
+                .execute()
+            )
+        except Exception as exc2:
+            logger.warning("signup_reminder fallback query failed: %s", exc2)
+            stats["failed"] = 1
+            return stats
 
     rows = res.data or []
-    stats["candidates"] = len(rows)
+    sent = 0
     for row in rows:
+        if sent >= limit:
+            break
+        count = int(row.get("signup_reminder_count") or 0)
+        if count >= max_count:
+            stats["skipped"] += 1
+            continue
+        if not _reminder_due(row, now):
+            stats["not_due"] += 1
+            continue
+        stats["candidates"] += 1
         uid = str(row.get("id") or "")
         email = str(row.get("email") or "").strip()
         if not uid or not email:
             stats["skipped"] += 1
             continue
-        if send_reminder_email(uid, email, str(row.get("full_name") or "")):
+        reminder_number = count + 1
+        if send_reminder_email(
+            uid,
+            email,
+            str(row.get("full_name") or ""),
+            reminder_number=reminder_number,
+        ):
             stats["sent"] += 1
+            sent += 1
         else:
             stats["failed"] += 1
     return stats

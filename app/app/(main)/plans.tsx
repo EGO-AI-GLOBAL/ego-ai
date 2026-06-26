@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 import { fetchPlansCatalog } from "@/api/client";
-import type { LaunchPlanOffer, PlanCatalogItem, PlanTier } from "@/api/types";
+import type { LaunchPlanOffer, PlanCatalogItem, PlanTier, ReferralPlanOffer } from "@/api/types";
 import { PlanCard } from "@/components/PlanCard";
 import { ScreenShell } from "@/components/ScreenShell";
 import {
@@ -48,6 +48,7 @@ export default function PlansScreen() {
   const { data, loading, refreshing, error, refresh } = useDashboard();
   const [catalog, setCatalog] = useState<PlanCatalogItem[]>([]);
   const [launchOffer, setLaunchOffer] = useState<LaunchPlanOffer | null>(null);
+  const [referralOffer, setReferralOffer] = useState<ReferralPlanOffer | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [openingKey, setOpeningKey] = useState<string | null>(null);
 
@@ -58,9 +59,10 @@ export default function PlansScreen() {
   const loadCatalog = useCallback(async () => {
     setCatalogLoading(true);
     try {
-      const { plans, launchOffer: launch } = await fetchPlansCatalog();
+      const { plans, launchOffer: launch, referralOffer: referral } = await fetchPlansCatalog();
       setCatalog(plans);
       setLaunchOffer(launch);
+      setReferralOffer(referral);
     } catch {
       setCatalog([]);
     } finally {
@@ -126,8 +128,20 @@ export default function PlansScreen() {
   const busy = loading || catalogLoading;
   const showErrorBanner = Boolean(error);
 
-  /** Visível para todos os planos (Total, Premium, etc.) enquanto a campanha estiver ativa. */
-  const showLaunchCard = launchOffer != null || isLaunchCampaignActive();
+  const referralActive =
+    referralOffer?.active === true ||
+    data.access?.referral_offer?.active === true ||
+    data.access?.referral_benefit?.active === true;
+
+  /** Cupom parceiro: esconde EGO Lançamento e mostra benefício 10% na 1ª compra. */
+  const showLaunchCard =
+    !referralActive &&
+    (launchOffer != null || isLaunchCampaignActive()) &&
+    Boolean(
+      launchCheckoutUrl(checkout) ||
+        launchOffer?.checkout_url?.trim() ||
+        (!referralActive && LAUNCH_CHECKOUT_FALLBACK)
+    );
   const launchUrl = showLaunchCard
     ? launchCheckoutUrl(checkout) ||
       launchOffer?.checkout_url?.trim() ||
@@ -137,6 +151,18 @@ export default function PlansScreen() {
     launchOffer?.intro_months ?? LAUNCH_OFFER_INTRO_MONTHS;
   const launchPriceNum = launchOffer?.price_brl ?? LAUNCH_PLAN_OFFER_BR.priceNum;
   const launchTier = (launchOffer?.tier || LAUNCH_PLAN_OFFER_BR.tier) as PlanTier;
+
+  const activeReferralOffer =
+    referralOffer?.active === true
+      ? referralOffer
+      : data.access?.referral_offer?.active === true
+        ? data.access.referral_offer
+        : null;
+
+  const referralDiscount =
+    activeReferralOffer?.discount_percent ??
+    data.access?.referral_benefit?.discount_percent ??
+    10;
 
   const brIndividualSorted = useMemo(
     () =>
@@ -185,6 +211,38 @@ export default function PlansScreen() {
             : undefined
         }
       />
+    );
+  };
+
+  const renderReferralOffer = () => {
+    if (!referralActive) return null;
+    const tagline =
+      activeReferralOffer?.tagline?.trim() ||
+      (activeReferralOffer?.partner_code
+        ? `Cupom ${activeReferralOffer.partner_code}${
+            activeReferralOffer.partner_name
+              ? ` · ${activeReferralOffer.partner_name}`
+              : ""
+          }`
+        : "Cupom parceiro ativo");
+    return (
+      <View
+        style={[
+          styles.referralBox,
+          { backgroundColor: colors.primaryTint, borderColor: colors.primary },
+        ]}
+      >
+        <Text style={[styles.referralTitle, { color: colors.primary }]}>
+          🎁 Plano parceiro · {referralDiscount}% na 1ª assinatura
+        </Text>
+        <Text style={[styles.sectionHint, { color: colors.textMuted, marginBottom: 0 }]}>
+          {tagline}
+        </Text>
+        <Text style={[styles.referralFoot, { color: colors.textMuted }]}>
+          Escolha Conexão, Premium ou Total abaixo. O desconto aplica uma vez no checkout.
+          Plano EGO Lançamento não aparece para cupom de parceiro.
+        </Text>
+      </View>
     );
   };
 
@@ -327,6 +385,8 @@ export default function PlansScreen() {
               </Text>
             </View>
 
+            {renderReferralOffer()}
+
             {showLaunchCard && launchUrl ? (
               <>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -397,6 +457,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginTop: -4,
   },
+  referralBox: {
+    borderRadius: 16,
+    borderWidth: 1.5,
+    padding: 14,
+    marginBottom: 16,
+  },
+  referralTitle: { fontSize: 15, fontWeight: "800", marginBottom: 6 },
+  referralFoot: { fontSize: 12, lineHeight: 17, marginTop: 8 },
   errorBanner: { marginBottom: 16 },
   error: { fontSize: 14 },
   link: { fontSize: 14, marginTop: 8, fontWeight: "600" },

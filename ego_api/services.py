@@ -1599,7 +1599,7 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
 
 
 def _stripe_checkout_payload(user_id: str) -> dict:
-    from ego_api.referrals import append_referral_promo_to_url
+    from ego_api.referrals import append_referral_promo_to_url, should_hide_launch_offer
     from ego_api.supabase_client import create_service_client
     from ego_api.team_stripe_checkout import team_checkout_nested
 
@@ -1622,7 +1622,8 @@ def _stripe_checkout_payload(user_id: str) -> dict:
     legacy_a = checkout_link(STRIPE_ANUAL_URL)
     connection = checkout_link(urls.get(PLAN_CONNECTION) or "") or legacy_m
     int_connection = checkout_link(urls.get("int_connection") or "")
-    launch = checkout_link(urls.get("launch") or "")
+    launch_raw = urls.get("launch") or ""
+    launch = None if should_hide_launch_offer(prof) else checkout_link(launch_raw)
     team: dict[str, dict[str, dict[str, str | None]]] = {"br": {}, "int": {}}
     try:
         team_raw = team_checkout_nested()

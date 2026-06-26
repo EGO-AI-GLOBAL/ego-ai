@@ -2,7 +2,8 @@ CHECKLIST 1.0.47 — pronto para SUBIR-BUILD-1.0.47.bat
 ========================================================
 
 API (deploy antes ou com a build)
-[ ] DEPLOY-API-1.0.47.bat → /health api_build bolso-invite-20
+[x] Supabase: COLE-SUPABASE-DEPLOY-AMANHA.sql (parceiros + e-mail semanal)
+[ ] DEPLOY-API-1.0.47.bat → /health api_build referral-signup-weekly
 [ ] Completar 2 missões no mesmo dia (contador sobe)
 [ ] Nível 10 = missão de uso (NÃO convite)
 [ ] Nível 20 = convite obrigatório na Agenda
