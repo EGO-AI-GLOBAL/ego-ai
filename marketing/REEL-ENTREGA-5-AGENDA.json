@@ -1,0 +1,48 @@
+{
+  "version": "1.0.47",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-1.0.34",
+  "output": "marketing/videos/app-real/ego-ai-agenda-reel5-reels.mp4",
+  "post_file": "marketing/POST-REEL-5.txt",
+  "voice_rate": "+32%",
+  "audio_pad": 0.02,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.82,
+  "top_bar_h": 300,
+  "bottom_reserve": 260,
+  "badge_text": "NOVO",
+  "post": {
+    "title": "POV: você desabafa à noite e acorda com agenda pronta 🌙",
+    "description": "POV: são 23h, a cabeça não para — consulta, escola, conta, aniversário…\n\nVocê desabafa 2 minutos. De manhã já virou lembrete na agenda.\n\nSem virar secretária de todo mundo no Zap.\n\nTeste grátis 👇\n\nhttps://egoai.com.br\n\n#egoai #mulher #mãe #organização #rotina",
+    "hashtags": ["#egoai", "#mulher", "#mãe", "#organização", "#rotina"],
+    "pinned_comment": "📲 Baixe grátis — Android ou iPhone 👇\n\nhttps://egoai.com.br",
+    "metric_target": "Cliques no site · https://egoai.com.br · turbinar VISITANTES DO SITE · retenção 3s > 25%"
+  },
+  "scenes": [
+    {
+      "photo": "04-desabafo-gravando.png",
+      "lines": [["POV:", 68, true], ["são 23h 🌙", 56, true]],
+      "darken": 0.1, "center": true, "badge": true, "accent": 1,
+      "voice": "Ponto de vista: onze da noite."
+    },
+    {
+      "photo": "03-chat-voz.png",
+      "lines": [["você desabafa", 54, true], ["2 minutos", 50, false]],
+      "accent": 1,
+      "voice": "Você desabafa por dois minutos."
+    },
+    {
+      "photo": "05-desabafo-agenda-agendar.png",
+      "lines": [["de manhã", 58, true], ["já na agenda ✓", 52, false]],
+      "voice": "De manhã já está na agenda."
+    },
+    {
+      "photo": "01-capa-luna.png",
+      "lines": [["GRÁTIS", 62, true], ["egoai.com.br 👆", 48, false]],
+      "darken": 0.08, "center": true, "accent": 0,
+      "voice": "Grátis. egoai ponto com ponto br."
+    }
+  ]
+}

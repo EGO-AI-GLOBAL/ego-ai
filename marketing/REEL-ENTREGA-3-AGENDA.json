@@ -1,0 +1,47 @@
+{
+  "version": "1.0.44",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-1.0.34",
+  "output": "marketing/videos/app-real/ego-ai-agenda-reel3-reels.mp4",
+  "post_file": "marketing/POST-REEL-3.txt",
+  "voice_rate": "+24%",
+  "audio_pad": 0.04,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.84,
+  "top_bar_h": 300,
+  "bottom_reserve": 220,
+  "badge_text": "EGO-AI",
+  "post": {
+    "title": "Se você lembra de tudo da casa… isso não é normal 😤",
+    "description": "Se você lembra de consulta, escola, aniversário e ainda responde \"viu?\" no Zap…\n\nVocê não é desorganizada. Virou a agenda de todo mundo.\n\nNo EGO-AI: desabafo de noite → agenda de manhã. Família no mesmo app.\n\nTeste grátis 👇 link na bio e no botão\n\n#egoai #mulher #casamento #organização #whatsapp",
+    "hashtags": ["#egoai", "#mulher", "#casamento", "#organização", "#whatsapp"],
+    "pinned_comment": "📲 Baixe grátis — Android ou iPhone 👇\n\nhttps://egoai.com.br"
+  },
+  "scenes": [
+    {
+      "photo": "06-agenda-pessoal.png",
+      "lines": [["SE VOCÊ", 64, true], ["lembra de TUDO", 58, true]],
+      "darken": 0.1, "center": true, "badge": true, "accent": 1,
+      "voice": "Se você lembra de tudo da casa..."
+    },
+    {
+      "photo": "06-agenda-pessoal.png",
+      "lines": [["não é bagunça", 52, true], ["é a agenda DELE 😤", 56, true]],
+      "darken": 0.14, "center": true, "accent": 1,
+      "voice": "Não é bagunça. É a agenda dele."
+    },
+    {
+      "photo": "05-desabafo-agenda-agendar.png",
+      "lines": [["1 áudio de noite", 54, true], ["vira agenda ✓", 48, false]],
+      "voice": "Um áudio de noite. Vira agenda de manhã."
+    },
+    {
+      "photo": "06-agenda-pessoal.png",
+      "lines": [["TESTE GRÁTIS", 56, true], ["link na bio 👆", 44, false]],
+      "darken": 0.1, "center": true, "accent": 0,
+      "voice": "Teste grátis. Link na bio."
+    }
+  ]
+}

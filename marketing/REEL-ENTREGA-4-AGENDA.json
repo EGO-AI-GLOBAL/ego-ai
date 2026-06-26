@@ -1,0 +1,48 @@
+{
+  "version": "1.0.47",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-1.0.34",
+  "output": "marketing/videos/app-real/ego-ai-agenda-reel4-reels.mp4",
+  "post_file": "marketing/POST-REEL-4.txt",
+  "voice_rate": "+28%",
+  "audio_pad": 0.03,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.82,
+  "top_bar_h": 300,
+  "bottom_reserve": 260,
+  "badge_text": "EGO-AI",
+  "post": {
+    "title": "Chega de \"viu?\" no Zap… isso não é normal 😤",
+    "description": "Quantas vezes você respondeu \"viu?\" hoje?\n\nVocê não é desorganizada. Virou a agenda de todo mundo.\n\nNo EGO-AI: desabafo de noite → agenda de manhã. Família no mesmo app.\n\nTeste grátis 👇\n\nhttps://egoai.com.br\n\n#egoai #mulher #casamento #organização #whatsapp",
+    "hashtags": ["#egoai", "#mulher", "#casamento", "#organização", "#whatsapp"],
+    "pinned_comment": "📲 Baixe grátis — Android ou iPhone 👇\n\nhttps://egoai.com.br",
+    "metric_target": "Cliques no site · https://egoai.com.br · turbinar VISITANTES DO SITE · retenção 3s"
+  },
+  "scenes": [
+    {
+      "photo": "07-familia-compartilhada.png",
+      "lines": [["CHEGA DE", 66, true], ["\"VIU?\" 😤", 62, true]],
+      "darken": 0.1, "center": true, "badge": true, "accent": 1,
+      "voice": "Chega de viu no WhatsApp."
+    },
+    {
+      "photo": "06-agenda-pessoal.png",
+      "lines": [["você virou", 52, true], ["a agenda DELE", 60, true]],
+      "darken": 0.12, "center": true, "accent": 1,
+      "voice": "Você não é desorganizada. Virou a agenda dele."
+    },
+    {
+      "photo": "05-desabafo-agenda-agendar.png",
+      "lines": [["1 desabafo", 56, true], ["vira agenda ✓", 50, false]],
+      "voice": "Um desabafo de noite. Vira agenda de manhã."
+    },
+    {
+      "photo": "01-capa-luna.png",
+      "lines": [["TESTE GRÁTIS", 58, true], ["egoai.com.br 👆", 46, false]],
+      "darken": 0.08, "center": true, "accent": 0,
+      "voice": "Teste grátis. egoai ponto com ponto br."
+    }
+  ]
+}
