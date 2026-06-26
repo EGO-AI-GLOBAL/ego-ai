@@ -3,8 +3,11 @@
 ## Como funciona
 
 1. Você cadastra o influenciador com um **código** (ex.: `MARIA10`).
-2. O influenciador divulga o link: `https://egoai.com.br/signup?ref=MARIA10` (ou o usuário digita o código no cadastro).
-3. Quem se cadastra com o código ganha **10% de desconto na primeira compra** (cupom Stripe aplicado automaticamente no checkout do app).
+2. O influenciador divulga o link: `https://egoai.com.br/signup?ref=MARIA10` (ou o usuário digita o cupom no cadastro — campo sempre visível).
+3. Quem se cadastra com o código:
+   - **não vê** o plano **EGO Lançamento** (R$ 10,94);
+   - vê o card **Plano parceiro · 10% na 1ª assinatura**;
+   - ganha **10% de desconto na primeira compra** (cupom Stripe no checkout).
 4. No **primeiro pagamento** desse usuário, o sistema:
    - registra **R$ 10,00** de comissão para o parceiro (`pending`);
    - lança **despesa automática** na planilha (`COMISSAO_INDICACAO` em `registro-diario.csv`).

@@ -3,233 +3,396 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Baixe o EGO-AI grátis — teste fechado Android e iPhone. Luna e Leo: chat, voz, agenda e Entre Nós." />
-  <title>EGO-AI — Baixe grátis (teste)</title>
+  <meta name="description" content="EGO-AI — assistente com rosto e voz. Chat, desabafo, agenda, Monstrinhos do Humor e EGO de Bolso. Teste grátis Android e iPhone." />
+  <title>EGO-AI — Baixe grátis</title>
   <link rel="icon" href="img/icon.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,600;9..40,700;9..40,800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #09090b;
-      --card: #141416;
-      --border: #27272a;
-      --primary: #a78bfa;
-      --primary-dim: #7c3aed;
-      --cta-android: #22c55e;
-      --cta-ios: #3b82f6;
-      --text: #fafafa;
-      --muted: #a1a1aa;
+      --bg: #0a122a;
+      --card: #141c32;
+      --border: #2a3a52;
+      --primary: #6b2cbf;
+      --primary-light: #a78bfa;
+      --android: #22c55e;
+      --ios: #3b82f6;
+      --text: #ffffff;
+      --muted: #c4b5fd;
+      --muted-dim: #94a3b8;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
     body {
       font-family: "DM Sans", system-ui, sans-serif;
       background: var(--bg);
       color: var(--text);
+      line-height: 1.55;
       min-height: 100vh;
-      line-height: 1.5;
     }
+    a { color: var(--primary-light); text-decoration: none; }
+    a:hover { text-decoration: underline; }
     .glow {
       position: fixed;
       inset: 0;
-      background: radial-gradient(ellipse 90% 60% at 50% 0%, rgba(124, 58, 237, 0.28), transparent);
+      background: radial-gradient(ellipse 100% 50% at 50% -10%, rgba(107, 44, 191, 0.35), transparent 60%);
       pointer-events: none;
       z-index: 0;
     }
     .wrap {
       position: relative;
       z-index: 1;
-      max-width: 440px;
+      max-width: 520px;
       margin: 0 auto;
-      padding: 28px 20px 48px;
+      padding: 0 18px 48px;
+    }
+    header {
+      padding: 20px 0 8px;
       text-align: center;
     }
     .logo-row {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      margin-bottom: 20px;
+      gap: 12px;
+      margin-bottom: 8px;
     }
     .logo-row img {
-      width: 48px;
-      height: 48px;
+      width: 52px;
+      height: 52px;
       border-radius: 14px;
     }
     .logo {
       font-weight: 800;
-      font-size: 1.45rem;
+      font-size: 1.5rem;
       letter-spacing: -0.02em;
     }
-    .logo span { color: var(--primary); }
+    .logo span { color: var(--primary-light); }
     .badge {
       display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 700;
+      font-size: 0.7rem;
+      font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: var(--primary);
+      letter-spacing: 0.1em;
+      color: #fde047;
+      background: rgba(107, 44, 191, 0.35);
       border: 1px solid var(--border);
       padding: 6px 14px;
       border-radius: 999px;
-      margin-bottom: 18px;
-      background: var(--card);
+      margin-top: 10px;
+    }
+    .hero {
+      text-align: center;
+      padding: 20px 0 28px;
     }
     .duo {
       display: flex;
       justify-content: center;
       gap: 14px;
-      margin-bottom: 20px;
+      margin: 18px 0;
     }
     .duo img {
-      width: 96px;
-      height: 96px;
+      width: 88px;
+      height: 88px;
       object-fit: cover;
       border-radius: 18px;
       border: 2px solid var(--border);
     }
     h1 {
-      font-size: clamp(1.55rem, 5.5vw, 2.05rem);
+      font-size: clamp(1.65rem, 5.5vw, 2.1rem);
       font-weight: 800;
       letter-spacing: -0.03em;
       line-height: 1.12;
       margin-bottom: 10px;
     }
     .sub {
-      color: var(--muted);
+      color: var(--muted-dim);
       font-size: 1rem;
-      margin-bottom: 24px;
-    }
-    .features {
-      text-align: left;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px 18px;
-      margin-bottom: 24px;
-      font-size: 0.92rem;
-    }
-    .features li {
-      list-style: none;
-      padding: 6px 0;
-      color: var(--muted);
-    }
-    .features li strong { color: var(--text); }
-    .features li::before {
-      content: "✓ ";
-      color: var(--primary);
-      font-weight: 800;
+      margin-bottom: 22px;
     }
     .cta-stack {
       display: flex;
       flex-direction: column;
       gap: 12px;
-      margin-bottom: 16px;
+      margin-bottom: 12px;
     }
     .btn-store {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      padding: 16px 20px;
+      padding: 17px 20px;
       border-radius: 14px;
       font-size: 1.05rem;
       font-weight: 800;
-      text-decoration: none;
+      text-decoration: none !important;
       color: #fff;
-      transition: transform 0.15s, opacity 0.15s;
+      transition: transform 0.15s;
     }
-    .btn-store:hover { transform: translateY(-2px); opacity: 0.95; }
-    .btn-android { background: linear-gradient(135deg, #16a34a, #22c55e); }
-    .btn-ios { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+    .btn-store:hover { transform: translateY(-2px); }
+    .btn-android { background: linear-gradient(135deg, #16a34a, var(--android)); }
+    .btn-ios { background: linear-gradient(135deg, #2563eb, var(--ios)); }
     .btn-store small {
       display: block;
       font-size: 0.72rem;
       font-weight: 600;
-      opacity: 0.9;
+      opacity: 0.92;
+      margin-top: 2px;
     }
     .hint {
       font-size: 0.78rem;
-      color: var(--muted);
-      margin-bottom: 28px;
+      color: var(--muted-dim);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .version {
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--primary-light);
+      font-weight: 700;
+      margin-bottom: 32px;
+    }
+    section h2 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .section-sub {
+      text-align: center;
+      font-size: 0.85rem;
+      color: var(--muted-dim);
+      margin-bottom: 18px;
+    }
+    .grid {
+      display: grid;
+      gap: 12px;
+      margin-bottom: 32px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+    }
+    .card h3 {
+      font-size: 0.95rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: var(--primary-light);
+    }
+    .card p {
+      font-size: 0.86rem;
+      color: var(--muted-dim);
+      line-height: 1.5;
+    }
+    .card .emoji {
+      font-size: 1.35rem;
+      margin-bottom: 6px;
+    }
+    .plans-mini {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin-bottom: 32px;
+      font-size: 0.86rem;
+      color: var(--muted-dim);
+    }
+    .plans-mini strong { color: var(--text); }
+    .plans-mini ul {
+      list-style: none;
+      margin-top: 10px;
+    }
+    .plans-mini li {
+      padding: 4px 0;
+    }
+    .plans-mini li::before {
+      content: "· ";
+      color: var(--primary-light);
+      font-weight: 800;
+    }
+    .download-bottom {
+      text-align: center;
+      padding: 28px 0 16px;
+      border-top: 1px solid var(--border);
+    }
+    .legal {
+      font-size: 0.72rem;
+      color: var(--muted-dim);
+      text-align: center;
+      line-height: 1.65;
+      margin-top: 20px;
     }
     footer {
-      font-size: 0.75rem;
-      color: var(--muted);
-      line-height: 1.7;
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted-dim);
+      padding-top: 16px;
+      line-height: 1.8;
     }
-    footer a { color: var(--primary); text-decoration: none; }
-    .version { color: var(--primary); font-weight: 700; }
   </style>
 </head>
 <body>
   <div class="glow" aria-hidden="true"></div>
   <div class="wrap">
-    <div class="logo-row">
-      <img src="img/icon.png" alt="EGO-AI" width="48" height="48" id="brand-logo" />
-      <div class="logo">EGO<span>-AI</span></div>
-    </div>
-    <span class="badge">Teste fechado · grátis</span>
-    <div class="duo">
-      <img src="img/avatar-f1.png" alt="Luna" width="96" height="96" id="avatar-luna" />
-      <img src="img/avatar-m1.png" alt="Leo" width="96" height="96" id="avatar-leo" />
-    </div>
-    <h1>O amigo que organiza sua vida.</h1>
-    <p class="sub" id="tagline">Chat com voz · Desabafo · Agenda · Família · Entre Nós</p>
-    <ul class="features">
-      <li><strong>Luna e Leo</strong> — fale ou digite, com rosto e voz</li>
-      <li><strong>Desabafo da noite</strong> → sua agenda pessoal</li>
-      <li><strong>Agenda compartilhada</strong> — Família e grupos</li>
-      <li><strong>Entre Nós</strong> — você + 1 pessoa, confirmar ou recusar</li>
-    </ul>
-    <div class="cta-stack">
-      <a class="btn-store btn-android" id="btn-android" href="#" target="_blank" rel="noopener noreferrer">
-        <span>📲 Baixar no Android<small>Google Play · teste fechado</small></span>
-      </a>
-      <a class="btn-store btn-ios" id="btn-ios" href="#" target="_blank" rel="noopener noreferrer">
-        <span>🍎 Baixar no iPhone<small>TestFlight · teste externo</small></span>
-      </a>
-    </div>
-    <p class="hint" id="download-hint">Toque no botão do seu celular. Android: aceite «Tornar-se testador». iPhone: instale o TestFlight primeiro.</p>
-    <p class="hint version" id="app-version">Versão 1.0.35</p>
+    <header>
+      <div class="logo-row">
+        <img src="img/icon.png" alt="EGO-AI" width="52" height="52" id="brand-logo" />
+        <div class="logo">EGO<span>-AI</span></div>
+      </div>
+      <span class="badge">Teste grátis · Android + iPhone</span>
+    </header>
+
+    <section class="hero" id="baixar">
+      <div class="duo">
+        <img src="img/avatar-f1.png" alt="Luna" width="88" height="88" />
+        <img src="img/avatar-m1.png" alt="Leo" width="88" height="88" />
+      </div>
+      <h1>O amigo no bolso que organiza sua vida.</h1>
+      <p class="sub" id="tagline">Chat com voz · Desabafo · Agenda · Família · Monstrinhos · EGO de Bolso</p>
+
+      <div class="cta-stack">
+        <a class="btn-store btn-android" id="btn-android" href="https://play.google.com/apps/testing/com.egoai.app" target="_blank" rel="noopener noreferrer">
+          <span>📲 Baixar no Android<small>Google Play · teste fechado</small></span>
+        </a>
+        <a class="btn-store btn-ios" id="btn-ios" href="https://testflight.apple.com/join/eNDKdFWF" target="_blank" rel="noopener noreferrer">
+          <span>🍎 Baixar no iPhone<small>TestFlight · grátis</small></span>
+        </a>
+      </div>
+      <p class="hint" id="download-hint">Toque no botão do seu celular. Android: aceite «Tornar-se testador». iPhone: instale o TestFlight se pedir.</p>
+      <p class="version" id="app-version">Versão 1.0.44</p>
+    </section>
+
+    <section id="funcoes">
+      <h2>Tudo no mesmo app</h2>
+      <p class="section-sub">Funções reais — sem prometer cura ou terapia</p>
+      <div class="grid">
+        <article class="card">
+          <div class="emoji">💬</div>
+          <h3>Chat e voz</h3>
+          <p>Converse com Luna ou Leo por texto ou microfone. Respostas com rosto e voz — 12 avatares nos planos pagos.</p>
+        </article>
+        <article class="card">
+          <div class="emoji">🌙</div>
+          <h3>Desabafo da noite</h3>
+          <p>Fale o que está na cabeça. A Luna organiza sugestões na sua agenda — você confirma cada item.</p>
+        </article>
+        <article class="card">
+          <div class="emoji">📅</div>
+          <h3>Agenda pessoal</h3>
+          <p>Consulta, escola, mercado, lembretes. Marque por voz ou texto e revise na agenda.</p>
+        </article>
+        <article class="card">
+          <div class="emoji">👨‍👩‍👧</div>
+          <h3>Agenda da família</h3>
+          <p>Compartilhe com quem já tem conta EGO-AI. Sem ficar cobrando «viu?» no WhatsApp.</p>
+        </article>
+        <article class="card">
+          <div class="emoji">💜</div>
+          <h3>Monstrinhos do Humor</h3>
+          <p>3 missões por dia: humor, respirar 3x e aventura no jardim. Sementes, ranking e streak.</p>
+        </article>
+        <article class="card">
+          <div class="emoji">🥚</div>
+          <h3>EGO de Bolso</h3>
+          <p>Estilo anos 90 no bolso — evolua níveis cuidando da rotina, agenda e hábitos.</p>
+        </article>
+        <article class="card">
+          <div class="emoji">🛒</div>
+          <h3>Lista de compras</h3>
+          <p>Fale leite, sabão, remédio no desabafo — vira lista na agenda para marcar o que comprou.</p>
+        </article>
+        <article class="card">
+          <div class="emoji">🤝</div>
+          <h3>Entre Nós</h3>
+          <p>Você + 1 pessoa: convites e confirmações direto no app.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="planos">
+      <h2>Planos</h2>
+      <p class="section-sub">Comece grátis — assine depois se quiser mais</p>
+      <div class="plans-mini">
+        <p><strong>Essencial — Grátis</strong> · Luna e Leo · limites diários · sem cartão</p>
+        <ul>
+          <li><strong>Conexão</strong> — mais avatares e mensagens</li>
+          <li><strong>Premium</strong> — uso ampliado + agenda</li>
+          <li><strong>Total</strong> — 12 avatares e máximo de recursos</li>
+        </ul>
+        <p style="margin-top:12px;font-size:0.8rem">Pagamento seguro no app via Stripe.</p>
+      </div>
+    </section>
+
+    <section class="download-bottom">
+      <h2>Pronto para testar?</h2>
+      <p class="section-sub">Escolha o botão do seu celular</p>
+      <div class="cta-stack">
+        <a class="btn-store btn-android btn-android-2" href="https://play.google.com/apps/testing/com.egoai.app" target="_blank" rel="noopener noreferrer">
+          <span>📲 Android</span>
+        </a>
+        <a class="btn-store btn-ios btn-ios-2" href="https://testflight.apple.com/join/eNDKdFWF" target="_blank" rel="noopener noreferrer">
+          <span>🍎 iPhone</span>
+        </a>
+      </div>
+    </section>
+
+    <p class="legal">
+      <strong style="color:var(--text)">Aviso:</strong> O EGO-AI usa inteligência artificial.
+      Não substitui médico, psicólogo, advogado ou emergência. Em crise, CVV 188.
+      <a href="privacidade/">Privacidade</a> ·
+      <a href="termos/">Termos</a> ·
+      <a href="exclusao-conta/">Exclusão de conta</a>
+    </p>
+
     <footer>
       © EGO-AI · <span id="footer-domain">egoai.com.br</span><br />
-      <a href="privacidade/">Privacidade</a> · <a href="termos/">Termos</a> ·
       <a href="mailto:contato@egoai.com.br" id="footer-email">contato@egoai.com.br</a><br />
-      <span style="margin-top:8px;display:inline-block;font-size:0.7rem;">Companheiro digital — não substitui médico ou emergência.</span>
+      <a id="footer-instagram" href="https://instagram.com/egoai__seu_amigo_no_bolso" target="_blank" rel="noopener">Instagram</a>
     </footer>
   </div>
   <script>
     (function () {
       const DEFAULT_PLAY = "https://play.google.com/apps/testing/com.egoai.app";
       const DEFAULT_IOS = "https://testflight.apple.com/join/eNDKdFWF";
-      const UTM = "utm_source=site&utm_medium=landing&utm_campaign=testadores_1.0.35";
+      const UTM = "utm_source=site&utm_medium=landing&utm_campaign=egoai_1.0.44";
 
       function withUtm(url) {
         if (!url || url === "#") return url;
         return url + (url.includes("?") ? "&" : "?") + UTM;
       }
 
+      function setLinks(play, ios) {
+        document.querySelectorAll(".btn-android, .btn-android-2").forEach(function (el) {
+          el.href = withUtm(play);
+        });
+        document.querySelectorAll(".btn-ios, .btn-ios-2").forEach(function (el) {
+          el.href = withUtm(ios);
+        });
+      }
+
       function apply(cfg) {
         const play = (cfg.playStoreUrl || DEFAULT_PLAY).trim();
         const ios = (cfg.appStoreUrl || DEFAULT_IOS).trim();
-        document.getElementById("btn-android").href = withUtm(play);
-        document.getElementById("btn-ios").href = withUtm(ios);
+        setLinks(play, ios);
         if (cfg.tagline) document.getElementById("tagline").textContent = cfg.tagline;
         if (cfg.supportEmail) {
-          const em = document.getElementById("footer-email");
+          var em = document.getElementById("footer-email");
           em.href = "mailto:" + cfg.supportEmail;
           em.textContent = cfg.supportEmail;
         }
         if (cfg.domain) document.getElementById("footer-domain").textContent = cfg.domain;
+        if (cfg.instagram) {
+          var ig = cfg.instagram.replace(/^@/, "");
+          document.getElementById("footer-instagram").href = "https://instagram.com/" + ig;
+        }
       }
 
       fetch("brand/config.json")
         .then(function (r) { return r.ok ? r.json() : null; })
         .then(function (cfg) { apply(cfg || {}); })
-        .catch(function () {
-          apply({ playStoreUrl: DEFAULT_PLAY, appStoreUrl: DEFAULT_IOS });
-        });
+        .catch(function () { apply({}); });
     })();
   </script>
 </body>
