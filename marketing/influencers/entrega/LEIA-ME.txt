@@ -1,0 +1,20 @@
+# Entrega influencer — pasta por cupom
+
+Quando fechar parceria, criar:
+
+```
+marketing/influencers/entrega/[CODIGO]/
+  01-reel-dia01.mp4   ← copiar do TOP-10-REELS.csv rank 1
+  02-reel-dia02.mp4   ← rank 2
+  ...
+  10-reel-dia10.mp4   ← rank 10 ou rotacionar
+  ROTEIRO-STORY.txt
+  LEGENDA-REEL.txt
+  LINK.txt
+  CUPOM.txt
+  LEIA-ME.txt
+```
+
+Modelo: influencer faz **Story** · EGO fornece **Reels prontos**.
+
+Ver `PROPOSTA-DM-PADRAO.txt` e `TOP-10-REELS.csv`.

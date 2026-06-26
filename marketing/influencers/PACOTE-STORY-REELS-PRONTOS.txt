@@ -1,0 +1,43 @@
+EGO-AI — PACOTE OFICIAL INFLUENCER
+==================================
+
+MODELO (usar em TODAS as propostas)
+-----------------------------------
+
+  INFLUENCER → Story (rosto dela · 2 frases · link + cupom)
+  EGO-AI     → Reels prontos (MP4 + legenda · ela só publica #publi)
+
+  10 dias = 1 Story/dia + 1 Reel pronto/dia para publicar
+
+Por quê: Story com rosto dela converte melhor. Reel pronto evita gravar 10 vídeos.
+
+ARQUIVOS
+--------
+  Propostas DM (Fabrícia, Rebecca, Érica, genérico):
+    marketing/influencers/PROPOSTA-DM-PADRAO.txt
+
+  TOP 10 vídeos (entrega influencer):
+    marketing/influencers/TOP-10-REELS.csv
+
+  TODOS os vídeos por resultado (12 feitos):
+    marketing/influencers/TODOS-REELS-POR-RESULTADO.csv
+    ABRIR-REELS-POR-RESULTADO.bat
+
+  Banco + métricas:
+    marketing/influencers/BANCO-REELS-VIRAIS.md
+
+  Pasta ao fechar:
+    marketing/influencers/entrega/[CODIGO]/
+
+  Previsão downloads/assinaturas:
+    marketing/PREVISAO-INFLUENCERS-10-DIAS.csv
+
+QUANDO FECHAR
+-------------
+1. Cadastrar cupom (SQL ou CRIAR-PARCEIRO.bat)
+2. Copiar 10 MP4s do TOP-10 para entrega/[CODIGO]/
+3. Mandar ROTEIRO-STORY + LEGENDA-REEL + LINK
+
+FOLLOW-UP (já mandou proposta antiga)
+--------------------------------------
+  "Os Reels vêm prontos nossos — você só faz Story + publica com #publi. Quanto cobra?"

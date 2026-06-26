@@ -1,0 +1,52 @@
+{
+  "version": "1.0.39",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-1.0.34",
+  "output": "marketing/videos/app-real/ego-ai-agenda-retencao-reels.mp4",
+  "post_file": "marketing/POST-REEL-AGENDA.txt",
+  "voice_rate": "+22%",
+  "audio_pad": 0.06,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.84,
+  "top_bar_h": 300,
+  "bottom_reserve": 220,
+  "badge_text": "EGO-AI",
+  "post": {
+    "title": "Se você lembra de tudo da casa… isso não é normal 😤",
+    "description": "Se você lembra de consulta, escola, aniversário e ainda responde \"viu?\" no Zap…\n\nVocê não é desorganizada. Virou a agenda de todo mundo.\n\nNo EGO-AI:\n🎙️ Desabafa de noite → vira agenda de manhã\n📅 Família no mesmo app — sem cobrança no WhatsApp\n\nTeste GRÁTIS 👇\n\n🤖 https://play.google.com/apps/testing/com.egoai.app\n🍎 https://testflight.apple.com/join/eNDKdFWF",
+    "hashtags": ["#egoai", "#mulher", "#casamento", "#organização", "#whatsapp"],
+    "pinned_comment": "📲 Baixe grátis:\n\n🤖 https://play.google.com/apps/testing/com.egoai.app\n🍎 https://testflight.apple.com/join/eNDKdFWF"
+  },
+  "scenes": [
+    {
+      "photo": "06-agenda-pessoal.png",
+      "lines": [["SE VOCÊ", 64, true], ["lembra de TUDO", 58, true]],
+      "darken": 0.1, "center": true, "badge": true, "accent": 1,
+      "voice": "Se você lembra de tudo..."
+    },
+    {
+      "photo": "06-agenda-pessoal.png",
+      "lines": [["não é bagunça", 50, true], ["é a agenda DELE 😤", 56, true]],
+      "darken": 0.14, "center": true, "accent": 1,
+      "voice": "não é bagunça. É a agenda dele."
+    },
+    {
+      "photo": "05-desabafo-agenda-agendar.png",
+      "lines": [["1 áudio de noite", 54, true], ["vira agenda ✓", 48, false]],
+      "voice": "Um áudio de noite. Vira agenda de manhã."
+    },
+    {
+      "photo": "07-familia-compartilhada.png",
+      "lines": [["Chega de \"viu?\"", 58, true], ["no WhatsApp", 40, false]],
+      "voice": "Chega de viu no Zap."
+    },
+    {
+      "photo": "06-agenda-pessoal.png",
+      "lines": [["Você lembra de TUDO?", 52, true], ["TESTE GRÁTIS · bio 👆", 40, false]],
+      "darken": 0.1, "center": true, "accent": 0,
+      "voice": "Teste grátis. Link na bio."
+    }
+  ]
+}

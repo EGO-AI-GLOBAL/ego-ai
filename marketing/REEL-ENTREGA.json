@@ -1,0 +1,90 @@
+{
+  "version": "1.0.42",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-ENTREGA",
+  "output": "marketing/videos/app-real/ego-ai-1.0.42-retencao-reels.mp4",
+  "post_file": "marketing/POST-REEL-ENTREGA.txt",
+  "voice_rate": "+22%",
+  "audio_pad": 0.06,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.84,
+  "top_bar_h": 300,
+  "bottom_reserve": 220,
+  "badge_text": "NOVO 1.0.42",
+  "post": {
+    "title": "Baixei um app só pro meu humor… e viciei 🥚",
+    "description": "Tipo Finch, mas em português e com a Luna no bolso 💜\n\n3 missões por dia:\n😌 humor → 🌬️ respirar 3x → 🥚 aventura no jardim\n\nSementes, flores, ranking — e ainda tem agenda + família sem \"viu?\" no Zap.\n\nTeste GRÁTIS 👇\n\n🤖 Android:\nhttps://play.google.com/apps/testing/com.egoai.app\n\n🍎 iPhone:\nhttps://testflight.apple.com/join/eNDKdFWF",
+    "hashtags": ["#egoai", "#finch", "#ansiedade", "#rotina", "#appbrasileiro"],
+    "pinned_comment": "📲 Baixe grátis — escolha o seu celular:\n\n🤖 Android:\nhttps://play.google.com/apps/testing/com.egoai.app\n\n🍎 iPhone:\nhttps://testflight.apple.com/join/eNDKdFWF"
+  },
+  "scenes": [
+    {
+      "photo": "01-monstrinho-jardim.png",
+      "lines": [
+        ["SE VOCÊ", 64, true],
+        ["quer um bichinho", 52, true]
+      ],
+      "darken": 0.1,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Se você quer um bichinho que te ajuda a cuidar de você..."
+    },
+    {
+      "photo": "01-monstrinho-jardim.png",
+      "lines": [
+        ["mas em português", 54, true],
+        ["🇧🇷 no bolso", 48, false]
+      ],
+      "darken": 0.14,
+      "center": true,
+      "accent": 1,
+      "voice": "mas em português, no bolso."
+    },
+    {
+      "photo": "02-missao-humor.png",
+      "lines": [
+        ["Missão 1", 58, true],
+        ["como você tá? 😌", 44, false]
+      ],
+      "voice": "Missão um: como você tá hoje?"
+    },
+    {
+      "photo": "03-respirar-3x.png",
+      "lines": [
+        ["Missão 2", 58, true],
+        ["respira 3x 🌬️", 44, false]
+      ],
+      "voice": "Missão dois: respira três vezes."
+    },
+    {
+      "photo": "04-aventura-monstrinho.png",
+      "lines": [
+        ["Missão 3", 58, true],
+        ["busca o monstrinho 🥚", 40, false]
+      ],
+      "voice": "Missão três: busca o monstrinho na aventura."
+    },
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [
+        ["+ Luna no chat", 54, true],
+        ["agenda e família", 42, false]
+      ],
+      "voice": "E a Luna no chat: agenda e família no mesmo app."
+    },
+    {
+      "photo": "01-monstrinho-jardim.png",
+      "lines": [
+        ["Quer um bichinho?", 52, true],
+        ["TESTE GRÁTIS · bio 👆", 40, false]
+      ],
+      "darken": 0.1,
+      "center": true,
+      "accent": 0,
+      "voice": "Teste grátis. Link na bio."
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+COMPARATIVO REELS — Perfil vs Site (2026-06-26)
+===============================================
+
+Dois anúncios ATIVOS com o MESMO hook agenda, metas DIFERENTES:
+
+| | REEL 2 (antigo) | REEL 3 (novo) |
+|---|-----------------|---------------|
+| Arquivo | ego-ai-agenda-retencao-reels.mp4 | ego-ai-agenda-reel3-reels.mp4 |
+| Hook | Se você lembra de tudo da... | Se você lembra de tudo da... |
+| Duração | 11s | 10s |
+| Meta ads | **Visitas ao PERFIL** Instagram | **Cliques no SITE** egoai.com.br |
+| Gasto | **R$ 45,73** (24–26/jun) | **R$ 14,72** (parcial · 25–26/jun) |
+| Visualizações | **2.132** | 1.538 |
+| Cliques link | **51** (CTR **2,4%**) | 24 (CTR 1,6%) |
+| Resultado meta | **45 visitas perfil** | cliques site (não visitas perfil) |
+| Custo resultado | **R$ 1,02 / visita perfil** | **R$ 0,61 / clique link** |
+| Retenção | 21,4% | **24,8%** |
+| Atenção inicial | 13,9% | 15,1% |
+| Tempo médio | 2s | 2s |
+| ThruPlays | 59 | 54 |
+| Engajamentos | 339 | 240 |
+
+⚠️ NÃO comparar visita perfil com clique site — são metas diferentes.
+
+---
+
+REEL 2 — ANTIGO (meta PERFIL) — dados finais parciais
+-----------------------------------------------------
+Arquivo: marketing/videos/app-real/ego-ai-agenda-retencao-reels.mp4
+Criado: 24/jun · R$45,73 gastos · ainda ativo contínuo
+
+  Visitas perfil Instagram    45
+  Custo/visita perfil         R$1,02
+  Visualizações               2.132
+  Cliques link                51 (CTR 2,4%)
+  Reproduções reel            1.980
+  Reproduções 3s              276
+  ThruPlays                   59
+  Engajamentos                339
+  Seguidores novos            1
+
+PÚBLICO
+  Mulheres 60,6% · 25–34: 21% · 35–44: 43,7% · 45–54: 26%
+  SP 366 · BA 275 · PE 262 · MG 220 · CE 202 · RJ 157
+
+ONDE RODOU
+  Instagram Reels     801
+  Instagram Feed      685
+  Instagram Stories   463
+  Facebook            ~5 (quase zero)
+
+TENDÊNCIA: queda forte 26/jun no gráfico visitas — considerar pausar ou trocar criativo
+
+---
+
+REEL 3 — NOVO (meta SITE) — dados parciais
+------------------------------------------
+Arquivo: marketing/videos/app-real/ego-ai-agenda-reel3-reels.mp4
+Ver: marketing/INSIGHTS-REEL-3.txt
+
+  Cliques link site           24
+  Custo/clique                R$0,61
+  Visualizações               1.538
+  CTR                         1,6%
+  Retenção                    24,8%
+
+PÚBLICO
+  Mulheres 65% · 35–44: 42,5%
+  SP 396 · MG 177 · RS 139 · BA 138
+
+ONDE RODOU
+  Instagram Stories   527
+  Facebook Feed       511
+  Instagram Reels     324
+
+---
+
+DECISÃO
+-------
+✅ REEL 3 (site) → manter até R$25 · objetivo = egoai.com.br
+⏸️ REEL 2 (perfil) → considerar PAUSAR (já gastou R$45 · visita perfil cara · caindo 26/jun)
+✅ Influencers → enviar MP4 do **Reel 3** (rank 1)
+✅ Site + Stories influencer > visitas perfil pagas
+
+Resumo: perfil = awareness · site = conversão. Foco agora no **site**.

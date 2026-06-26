@@ -1,0 +1,53 @@
+INSIGHTS REELS 1 vs 2 — 2026-06-25
+===================================
+
+REEL 1 — Monstrinhos ("Baixei um app só pro meu...")
+Gasto R$24,09 · 19s · meta visitas perfil
+
+  Visualizações      2.780
+  Visitas perfil     13      (R$1,85/visita)
+  Cliques link       14      (CTR 0,5%)
+  Reproduções 3s     139
+  ThruPlays          18
+  Tempo médio        1s
+  Atenção inicial    5,3%
+  Retenção           12,9%
+  Engajamentos       156
+  Reels placement    1,9k
+
+REEL 2 — Agenda ("Se você lembra de tudo da...") — ANTIGO · meta PERFIL
+Gasto R$45,73 · 11s · visitas perfil Instagram · 24–26/jun
+
+  Visualizações      2.132
+  Visitas perfil     45      (R$1,02/visita)
+  Cliques link       51      (CTR 2,4%)
+  Reproduções reel   1.980
+  Reproduções 3s     276
+  ThruPlays          59
+  Tempo médio        2s
+  Atenção inicial    13,9%
+  Retenção           21,4%
+  Engajamentos       339
+  Seguidores         +1
+  Placement top      IG Reels 801 · Feed 685 · Stories 463
+
+  Ver comparativo: marketing/INSIGHTS-REEL-2-vs-3.txt
+  ⚠️ Queda 26/jun — considerar pausar
+
+PÚBLICO (os dois)
+  Mulheres 64–69% · 35–54 anos ~80%
+  SP, BA, PE, MG, CE lideram
+
+DECISÃO
+-------
+✅ Reel 3 = ângulo AGENDA (hook "lembra de tudo")
+✅ Vídeo curto ~10s (não 19s)
+✅ Turbinar com meta VISITAS AO SITE → https://egoai.com.br
+✅ Não renovar patrocínio Reel 1
+✅ R$25 só no Reel 3 (depois de postar orgânico)
+✅ Comentário fixado: https://egoai.com.br
+
+REEL 3 CANDIDATO → PUBLICADO 26/06
+----------------------------------
+Arquivo: ego-ai-agenda-reel3-reels.mp4
+Ver métricas: marketing/INSIGHTS-REEL-3.txt

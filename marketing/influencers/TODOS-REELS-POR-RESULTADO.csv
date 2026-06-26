@@ -1,0 +1,18 @@
+ORDEM;MELHOR PRIMEIRO — rank 1 = melhor resultado · rank 12 = pior · score 0–100
+;;;;;
+rank;score;arquivo;hook;angulo;duracao_s;versao_app;visualizacoes;ctr_pct;visitas_perfil;cliques_link;retencao_pct;gasto_ads_brl;orgânico_ads;post_legenda;gerar_bat;apto_influencer;notas;data_ref
+1;100;marketing/videos/app-real/ego-ai-agenda-reel3-reels.mp4;Se você lembra de tudo da casa...;Agenda;10;1.0.44;1538;1,6;;24;24,8;14,72;ads site;POST-REEL-3.txt;GERAR-REEL-3.bat;SIM;🥇 Reel 3 · R$0,61/clique · ret 24,8% · parcial 26/06;2026-06-26
+2;92;marketing/videos/app-real/ego-ai-agenda-retencao-reels.mp4;Se você lembra de tudo da casa...;Agenda;11;1.0.39;2132;2,4;45;51;21,4;45,73;ads perfil;POST-REEL-AGENDA.txt;GERAR-REEL-AGENDA-TESTE.bat;SIM;🥈 Reel 2 antigo · R$1,02/visita perfil · pausar?;2026-06-26
+3;85;marketing/videos/app-real/ego-ai-1.0.39-retencao-reels.mp4;Se você lembra de tudo da casa...;Agenda;~14;1.0.39;;;;;;;orgânico;VIDEO-RETENCAO-1.0.39.txt;GERAR-VIDEO-RETENCAO-1.0.39.bat;SIM;🥉 Retenção 14s;2026-06-25
+4;75;marketing/videos/app-real/ego-ai-1.0.39-viral-reels.mp4;Opinião impopular: agenda dele;Agenda;~16;1.0.39;;;;;;;orgânico;VIDEO-VIRAL-1.0.39.txt;GERAR-VIDEO-VIRAL-1.0.39.bat;TESTAR;4º melhor;2026-06-25
+5;70;marketing/videos/app-real/ego-ai-1.0.39-reels.mp4;Virou a agenda de TODO MUNDO?;Agenda;~22;1.0.39;;;;;;;orgânico;VIDEO-LEGENDAS-1.0.39.txt;GERAR-VIDEO-1.0.39.bat;TESTAR;5º · versão 22s;2026-06-25
+6;65;marketing/videos/app-real/ego-ai-1.0.39-claro-reels.mp4;Eu cansei de ser a agenda dele;Agenda;~15;1.0.39;;;;;;;orgânico;VIDEO-CLARO-1.0.39.txt;GERAR-VIDEO-CLARO-1.0.39.bat;TESTAR;6º;2026-06-25
+7;35;marketing/videos/app-real/ego-ai-1.0.42-retencao-reels.mp4;Baixei um app só pro meu humor…;Monstrinhos;~19;1.0.42;2780;0,5;13;14;12,9;24,09;ads;POST-REEL-ENTREGA.txt;GERAR-REEL-ENTREGA.bat;NAO;7º · views altas CTR baixo · NÃO usar;2026-06-25
+8;30;marketing/videos/app-real/ego-ai-hoje-reels.mp4;Descarrego / rotina;Descarrego;~35;1.0.34;;;;;;;orgânico;VIDEO-CAPCUT-HOJE.txt;GERAR-VIDEO-HOJE.bat;SECUNDÁRIO;8º;2026-06-25
+9;25;marketing/videos/app-real/ego-ai-1.0.35-reels.mp4;Ofensiva WhatsApp casal;Features;~?;1.0.35;;;;;;;orgânico;POST-VIDEO-AMANHA-1.0.35.txt;GERAR-VIDEO-AMANHA-1.0.35.bat;RESERVA;9º;2026-06-25
+10;22;marketing/videos/app-real/ego-ai-1.0.34-reels.mp4;EGO-AI capa Luna;Apresentação;~70;1.0.34;;;;;;;orgânico;VIDEO-CAPCUT-1.0.34.txt;GERAR-VIDEO-1.0.34.bat;NAO;10º · 70s longo;2026-06-25
+11;20;marketing/videos/app-real/ego-ai-app-real-reels.mp4;5 fotos app real;Apresentação;~50;app-real;;;;;;;orgânico;POST-VIDEO-5-FOTOS-APP-REAL.txt;GERAR-VIDEO-APP-REAL.bat;NAO;11º;2026-06-25
+12;15;marketing/videos/luna/05-descarrego-completo.mp4;Descarrego Luna;Descarrego;~?;1.0.29;;;;;;;orgânico;POST-VIDEO-DESCARREGO-1.0.29.txt;;NAO;12º · pior · legado;2026-06-25
+
+REGRA;Sempre melhor em primeiro (rank 1) · pior por último (rank 12)
+NOVO VÍDEO;Adicionar linha → recalcular score → reordenar TODA a lista

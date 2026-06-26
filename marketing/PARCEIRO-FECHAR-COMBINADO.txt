@@ -1,0 +1,79 @@
+EGO-AI — FECHAR COM INFLUENCIADOR (1 por vez)
+==============================================
+
+Você fecha a boca → me manda os dados → eu cadastro o código.
+
+O QUE JÁ ESTÁ NO APP (após build + deploy amanhã)
+-------------------------------------------------
+• Campo cupom no cadastro: "Tem cupom? Escreva o nome aqui"
+• Link parceiro: https://ego-ai-production-a2c2.up.railway.app/go?ref=CODIGO&next=signup
+• Com cupom: NÃO vê plano EGO Lançamento (R$ 10,94)
+• Com cupom: vê "Plano parceiro · 10% na 1ª assinatura"
+• 1ª assinatura paga → parceiro ganha R$ 10 (automático)
+• Depois da 1ª compra → sem desconto, sem comissão nova
+
+MODELO OFICIAL DE ENTREGA (10 dias)
+-----------------------------------
+| Quem        | O quê |
+| INFLUENCER  | 1 Story/dia — rosto dela, 2 frases, link + cupom |
+| EGO-AI      | Reels prontos (MP4 + legenda) — ela só publica #publi |
+
+Textos DM: marketing/influencers/PROPOSTA-DM-PADRAO.txt
+TOP 10 vídeos: marketing/influencers/TOP-10-REELS.csv
+
+PERGUNTAS PARA ELA (na conversa)
+--------------------------------
+1. Qual nome quer no cupom? (ex.: LUNA20, ANABEM)
+   → 3–12 letras/números, sem espaço, fácil de falar
+2. E-mail e PIX para repasse da comissão?
+3. Confirma: Story dela + Reels prontos nossos? (padrão)
+4. Valor fixo pelo pacote 10 dias (além dos R$ 10 por assinante)?
+
+PADRÃO COMBINADO (piloto — pode mudar por pessoa)
+-------------------------------------------------
+| Item              | Padrão piloto      |
+|-------------------|--------------------|
+| Comissão          | R$ 10 / 1ª assinatura |
+| Desconto fã       | 10% na 1ª compra   |
+| Plano Lançamento  | NÃO (só com cupom) |
+| Fixo 10d Story+Reels prontos | negociar (menor que ela gravar) |
+
+FICHA — COPIE E PREENCHA QUANDO FECHAR
+--------------------------------------
+
+PARCEIRO #1
+  Nome exibição: _______________________
+  Código cupom:  _______________________  (ex.: MARIA10)
+  E-mail:        _______________________
+  PIX:           _______________________
+  Seguidores:    _______________________
+  Entrega:       [x] 10 Story dela  [x] 10 Reels prontos EGO  Fixo R$ _____
+  Link dela:     https://ego-ai-production-a2c2.up.railway.app/go?ref=________&next=signup
+  Pasta entrega: marketing/influencers/entrega/________/
+  Data combinado: ___/___/2026
+  Observações:   _______________________
+
+QUANDO ME MANDAR, DIGA ASSIM:
+------------------------------
+PARCEIRO FECHADO
+nome: Maria Silva
+codigo: MARIA10
+email: maria@email.com
+pix: maria@email.com
+fixo: R$ 200 + story e reel
+
+→ Eu cadastro na API + te devolvo o link pronto.
+
+DEPOIS DO CADASTRO (você)
+-------------------------
+• Ela posta com link na bio / sticker
+• Comentário fixado: https://egoai.com.br
+• No fim do mês: python scripts/referral_monthly_report.py --month 2026-06
+
+EXCEÇÕES POR PESSOA (só se combinar diferente)
+----------------------------------------------
+• Comissão R$ 15 em vez de R$ 10 → avisar antes (hoje é fixo R$ 10 no código)
+• Desconto 15% → precisa cupom Stripe separado (raro no piloto)
+• Mostrar Lançamento mesmo com cupom → NÃO recomendado
+
+Doc técnica: marketing/PROGRAMA-INDICACAO.md

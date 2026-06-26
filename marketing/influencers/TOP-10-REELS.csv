@@ -1,0 +1,16 @@
+ORDEM;MELHOR PRIMEIRO — dia 1 = melhor vídeo · dia 10 = 10º melhor (pula monstrinhos rank 7)
+;;;;;
+dia;rank_global;score;arquivo;hook;apto;post_legenda
+dia01;1;100;marketing/videos/app-real/ego-ai-agenda-reel3-reels.mp4;Se você lembra de tudo da...;SIM;POST-REEL-3.txt
+dia02;2;98;marketing/videos/app-real/ego-ai-agenda-retencao-reels.mp4;Se você lembra de tudo da...;SIM;POST-REEL-AGENDA.txt
+dia03;3;85;marketing/videos/app-real/ego-ai-1.0.39-retencao-reels.mp4;Se você lembra de tudo da...;SIM;VIDEO-RETENCAO-1.0.39.txt
+dia04;4;75;marketing/videos/app-real/ego-ai-1.0.39-viral-reels.mp4;Opinião impopular agenda;TESTAR;VIDEO-VIRAL-1.0.39.txt
+dia05;5;70;marketing/videos/app-real/ego-ai-1.0.39-reels.mp4;Virou agenda TODO MUNDO;TESTAR;VIDEO-LEGENDAS-1.0.39.txt
+dia06;6;65;marketing/videos/app-real/ego-ai-1.0.39-claro-reels.mp4;Cansei ser agenda dele;TESTAR;VIDEO-CLARO-1.0.39.txt
+dia07;8;30;marketing/videos/app-real/ego-ai-hoje-reels.mp4;Descarrego;SECUNDÁRIO;VIDEO-CAPCUT-HOJE.txt
+dia08;9;25;marketing/videos/app-real/ego-ai-1.0.35-reels.mp4;WhatsApp casal;RESERVA;POST-VIDEO-AMANHA-1.0.35.txt
+dia09;1;100;marketing/videos/app-real/ego-ai-agenda-reel3-reels.mp4;(repete 🥇 melhor);SIM;POST-REEL-3.txt
+dia10;2;98;marketing/videos/app-real/ego-ai-agenda-retencao-reels.mp4;(repete 🥈);SIM;POST-REEL-AGENDA.txt
+
+PULADO;rank 7 monstrinhos (CTR 0,5%) · ranks 10–12 muito longos/antigos
+LISTA COMPLETA;marketing/influencers/TODOS-REELS-POR-RESULTADO.csv

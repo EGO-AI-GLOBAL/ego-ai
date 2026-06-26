@@ -1,0 +1,74 @@
+EGO-AI — Previsão por influencer (10 dias);1 Story + 1 Reel por dia;;;
+Atualizado;2026-06-26;;;
+App;Teste fechado (Play opt-in + TestFlight);;;Loja pública ~1,5–2x downloads/assinaturas
+Pacote padrão;10 dias · 1 Story/dia (influencer) + 1 Reel/dia (EGO pronto);;;Influencer só faz Story · Reels MP4 nossos
+Comissão influencer;R$ 10 por assinatura (1ª vez);;;Desconto seguidor;10% na 1ª assinatura (cupom)
+;;;
+INFLUENCER;@fabricia_vianaaa;@rebeccafbarros;@ericalacerdafit;TOTAL (3 juntas)
+Nome;Fabrícia Viana;Dra. Rebecca Barros;Érica Lacerda;
+Seguidores;11.500;74.100;362.000;
+Alcance 30d (ref);~405k views;~400k views;Reels ~20–50k cada;
+Público principal;Interior MG · 25–44 anos;SP 52% · 18–34 anos;Fitness · autoestima · vida real;
+Prioridade piloto;1 (melhor custo);2 (médio);3 (caro · alto alcance);
+;;;
+CUSTO PACOTE (R$);;;; 
+Cenário mínimo;2000;8000;25000;
+Cenário provável;2750;11500;37500;
+Cenário máximo;3500;15000;50000;
+Aceitar até (sugestão);2500;6000;15000 (ou negociar 3–5 dias);
+;;;
+CLIQUES NO LINK;;;; 
+Pessimista;200;600;2000;2800
+Realista;450;1500;5000;6950
+Otimista;900;3000;10000;13900
+;;;
+DOWNLOADS;;;; 
+Pessimista;40;120;400;560
+Realista;100;350;1200;1650
+Otimista;200;700;2500;3400
+;;;
+CADASTROS;;;; 
+Pessimista;20;60;200;280
+Realista;55;180;650;885
+Otimista;120;400;1400;1920
+;;;
+ASSINATURAS PAGAS (1ª);;;; 
+Pessimista;1;3;8;12
+Realista (mín);3;8;25;36
+Realista (máx);5;12;40;57
+Otimista;10;25;80;115
+;;;
+COMISSÃO R$10 (realista);;;; 
+Mín (R$);30;80;250;360
+Máx (R$);50;120;400;570
+;;;
+RECEITA BRUTA 1º MÊS (R$);Ticket médio ~R$40–60 por assinatura;;; 
+Pessimista;40–60;120–180;320–480;480–720
+Realista mín;120–180;320–480;1000–1500;1440–2160
+Realista máx;200–300;480–720;1600–2400;2280–3420
+Otimista;400–600;1000–1500;3200–4800;4600–6900
+;;;
+ROI 1º MÊS (realista);;;; 
+Custo provável (R$);2750;11500;37500;51750
+Receita realista máx (R$);300;720;2400;3420
+Fecha conta no 1º mês?;Não;Não;Não;Não
+Objetivo da campanha;Cadastros + conteúdo + prova social;;;Não ROI imediato
+;;;
+DEPOIS LOJA PÚBLICA (realista x1,5);;;; 
+Downloads;150;525;1800;2475
+Cadastros;83;270;975;1328
+Assinaturas;5–8;12–18;38–60;55–86
+;;;
+PACOTE PROPOSTA (texto DM);;;; 
+Story;1 por dia · 10 dias;1 por dia · 10 dias;1 por dia · 10 dias;
+Reel;1 por dia · 10 dias;1 por dia · 10 dias;1 por dia · 10 dias;
+Link parceiro;/go?ref=CODIGO&next=signup;/go?ref=CODIGO&next=signup;/go?ref=CODIGO&next=signup;
+Insta app;instagram.com/egoai__seu_amigo_no_bolso;instagram.com/egoai__seu_amigo_no_bolso;instagram.com/egoai__seu_amigo_no_bolso;
+;;;
+NOTAS;;;; 
+1;Teste fechado reduz download (opt-in Play + TestFlight);;;;
+2;Priorizar Fabrícia para 1º piloto (menor risco);;;;
+3;Érica: previsão alta de cadastro; custo pacote provavelmente não se paga no 1º mês;;;;
+4;Rebecca: público jovem → mais cadastro grátis; menos assinatura;;;;
+5;Melhor timing influencer: após loja pública (build + aprovação Play/App Store);;;;
+6;Comissão automática R$10 + cupom 10% já configurados na API;;;;
