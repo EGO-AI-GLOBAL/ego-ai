@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO — BUILD 1.0.51
 ====================================
 
-Estado: ✅ PRONTO — commit (ver git log)
+Estado: ✅ PRONTO — commit d233b53
 
 Zona: Bolso Dia 4 — push 10h «Faltam X/5 missões» (máx. 2/dia com 18h)
 Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
@@ -29,4 +29,4 @@ Este agente NÃO corre GERAR/EAS — agente Monstrinhos sobe 1.0.51.
 
 MENSAGEM
 --------
-✅ BOLSO PRONTO — push 10h missões + 18h cuidado (2/dia máx.)
+✅ BOLSO PRONTO — d233b53 — push 10h missões + 18h cuidado (2/dia máx.)
