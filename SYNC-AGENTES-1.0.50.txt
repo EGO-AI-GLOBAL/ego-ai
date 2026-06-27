@@ -16,8 +16,8 @@ Versão: 1.0.50 | iOS build 38 | Android versionCode 89
 O que entra
 -----------
 • Recuperar senha: e-mail → página web → nova senha → entrar no app
+• Sessão persiste ao fechar e reabrir o app (iPhone + Android)
 • Avatares: só escuta clínica (sem agendar no chat)
-• Sessão persiste ao fechar e reabrir o app
 • Rituais 8h/14h/21h alinhados com agenda manual
 
 SEQUÊNCIA AMANHÃ
@@ -26,3 +26,5 @@ SEQUÊNCIA AMANHÃ
 2. Railway: redeploy API (push já feito)
 3. AMANHA-1.0.50.bat
 4. Railway após loja: 3 variáveis em NOTAS-1.0.50-PLAY.txt
+
+Commit: 82efa8c · 5/5 agentes ✅

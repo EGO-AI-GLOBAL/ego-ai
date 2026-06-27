@@ -12,4 +12,6 @@ Nesta build 1.0.50 entra só:
 
 TESTAR: Bolso + Monstrinhos sem regressão (VALIDAR-1.0.50.txt)
 
-GIT: commit release 1.0.50 no main
+GIT: 82efa8c
+
+✅ BOLSO PRONTO — 82efa8c — sem mudanças Bolso · validar regressão

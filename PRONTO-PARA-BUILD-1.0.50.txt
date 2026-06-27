@@ -1,8 +1,8 @@
 EGO-AI — PRONTO PARA BUILD 1.0.50
 ==================================
-Atualizado: amanhã · recuperar senha + avatares escuta
+Atualizado: pronto para build automática amanhã
 
-ESTADO: ✅ OK para GERAR (deploy API antes ou junto)
+ESTADO: ✅ OK — commit no main · regression + smoke OK
 
 Versão app.config.ts
 --------------------
@@ -11,31 +11,31 @@ Versão app.config.ts
 O que entra na build
 --------------------
 • CORREÇÃO: fluxo completo Esqueci a senha (e-mail → nova senha → login)
+• SESSÃO: ficar logado ao fechar e reabrir (iPhone + Android)
 • Avatares: só escuta clínica, sem agendar no chat (API + app)
 • Rituais 8h/14h/21h sem empurrar marcação
 
-Deploy API (Railway) — ANTES dos testadores
--------------------------------------------
-1. git push origin main (código API)
-2. Supabase → Authentication → URL Configuration → Redirect URLs:
-   https://ego-ai-production-a2c2.up.railway.app/auth/reset-password
-   egoai://reset-password
+Deploy API (Railway) — HOJE
+---------------------------
+1. git push origin main (código API) — redeploy automático
+2. ABRIR-SUPABASE-RESET-SENHA.bat → 2 Redirect URLs
 3. Confirmar EGO_CHAT_AGENDA_ACTIONS não está = 1
 
-Teste rápido recuperar senha (sem build)
-----------------------------------------
-1. Login → Esqueci a senha → e-mail de teste
-2. Abrir link no telemóvel → página «Nova senha» no browser
-3. Guardar senha → Entrar no app com nova senha
+Build app AMANHÃ (automático)
+-----------------------------
+Duplo clique: AMANHA-1.0.50.bat
 
-Build app
----------
+Ou manual em 3 passos:
 1. PREPARAR-1.0.50.bat
 2. GERAR-1.0.50.bat
 3. AGUARDAR-E-SUBMETER-1.0.50.bat
 
+Validar no telemóvel
+--------------------
+VALIDAR-1.0.50.bat → marketing/VALIDAR-1.0.50.txt
+
 Railway após loja
 -----------------
-EGO_LATEST_APP_VERSION=1.0.50
-EGO_LATEST_ANDROID_VERSION_CODE=89
-EGO_APP_UPDATE_MESSAGE=1.0.50: Recuperar senha corrigido. Avatares só escuta. Toque em Atualizar agora.
+Ver marketing/NOTAS-1.0.50-PLAY.txt
+
+Commit: 82efa8c (+ ficheiros build)

@@ -7,6 +7,8 @@ Zona: notas loja + validação testadores
 • marketing/VALIDAR-1.0.50.txt
 • VOCE-SO-FAZ-ISTO-1.0.50.txt
 
-Mensagem testadores: «Recuperar senha corrigido — peçam novo link se o antigo expirou»
+Mensagem testadores: «1.0.50: ficam logados ao reabrir + recuperar senha corrigido»
 
-GIT: commit na release 1.0.50
+GIT: 82efa8c
+
+✅ MARKETING PRONTO — 82efa8c

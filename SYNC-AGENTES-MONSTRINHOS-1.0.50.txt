@@ -8,5 +8,7 @@ Zona: app.config 1.0.50 + build EAS
 
 ÚNICO que corre: AMANHA-1.0.50.bat
 
-GIT: commit na release 1.0.50
+GIT: 82efa8c
 TESTES: regression_guard + sync-check OK
+
+✅ MONSTRINHOS PRONTO — 82efa8c — 1.0.50 · iOS 38 · Android 89
