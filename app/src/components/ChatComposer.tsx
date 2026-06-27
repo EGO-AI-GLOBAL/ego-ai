@@ -136,12 +136,20 @@ export function ChatComposer({
       style={[
         styles.outer,
         {
-          borderTopColor: colors.border,
-          backgroundColor: colors.bg,
-          paddingBottom: bottomPad + 10,
+          paddingBottom: bottomPad + 6,
         },
       ]}
     >
+      <View
+        style={[
+          styles.floatShell,
+          {
+            backgroundColor: colors.glassBg,
+            borderColor: colors.glassBorder,
+            shadowColor: colors.primary,
+          },
+        ]}
+      >
       <View style={styles.composerRow}>
         {onPdfPress ? (
           <Pressable
@@ -268,9 +276,19 @@ export function ChatComposer({
 const styles = StyleSheet.create({
   outer: {
     flexShrink: 0,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 16,
+    paddingHorizontal: 10,
+    paddingTop: 4,
+  },
+  floatShell: {
+    borderRadius: 28,
+    borderWidth: 1,
+    paddingHorizontal: 10,
     paddingTop: 10,
+    paddingBottom: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    elevation: 8,
   },
   composerRow: {
     flexDirection: "row",

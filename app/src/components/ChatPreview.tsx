@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Platform, StyleSheet, Text, View } from "react-native";
 import type { ChatMessage } from "@/api/types";
 import { useColors } from "@/theme/ThemeContext";
 
@@ -21,20 +21,18 @@ export function ChatPreview({ messages, assistantLabel = "Assistente" }: Props) 
             key={`${m.msg_id || i}-${m.role}-${i}`}
             style={[
               styles.bubble,
-              {
-                backgroundColor: isUser ? colors.userBubble : colors.assistantBubble,
-                borderColor: colors.border,
-              },
               isUser ? styles.user : styles.assistant,
+              {
+                backgroundColor: isUser ? colors.primaryTint : colors.glassBg,
+                borderColor: isUser ? colors.primarySoft : colors.glassBorder,
+                shadowColor: isUser ? colors.primary : colors.glowCyan,
+              },
             ]}
           >
             <Text style={[styles.role, { color: colors.textMuted }]}>
               {isUser ? "Você" : assistantLabel}
             </Text>
-            <Text
-              style={[styles.text, { color: colors.text }]}
-              selectable
-            >
+            <Text style={[styles.text, { color: colors.text }]} selectable>
               {m.content}
             </Text>
           </View>
@@ -45,22 +43,27 @@ export function ChatPreview({ messages, assistantLabel = "Assistente" }: Props) 
 }
 
 const styles = StyleSheet.create({
-  list: { gap: 12, paddingBottom: 4 },
+  list: { gap: 14, paddingBottom: 8, paddingHorizontal: 2 },
   bubble: {
-    borderRadius: 16,
+    borderRadius: 20,
     paddingVertical: 12,
-    paddingHorizontal: 14,
-    maxWidth: "96%",
-    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 16,
+    maxWidth: "92%",
+    borderWidth: 1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.14,
+    shadowRadius: 8,
+    elevation: 2,
+    ...(Platform.OS === "web" ? ({ backdropFilter: "blur(8px)" } as object) : {}),
   },
   user: { alignSelf: "flex-end" },
   assistant: { alignSelf: "flex-start" },
   role: {
-    fontSize: 11,
+    fontSize: 10,
     textTransform: "uppercase",
     marginBottom: 6,
-    letterSpacing: 0.4,
-    fontWeight: "600",
+    letterSpacing: 0.5,
+    fontWeight: "700",
   },
   text: {
     fontSize: 15,

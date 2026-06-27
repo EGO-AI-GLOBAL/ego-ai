@@ -57,6 +57,14 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["CompanionPocketScene", "CompanionPocketAmbient"],
     ),
     (
+        "app/src/components/companion/CompanionSprite.tsx",
+        ["CompanionSprite", "celebrate"],
+    ),
+    (
+        "app/src/components/AppGradientBackground.tsx",
+        ["AppGradientBackground"],
+    ),
+    (
         "app/src/components/moodMonsters/MoodDecorSprite.tsx",
         ["MoodDecorSprite"],
     ),

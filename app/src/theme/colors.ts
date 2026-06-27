@@ -19,6 +19,13 @@ export type AppColors = {
   tabInactive: string;
   drawerBg: string;
   drawerHover: string;
+  gradientStart: string;
+  gradientMid: string;
+  gradientEnd: string;
+  glowCyan: string;
+  glowPrimary: string;
+  glassBg: string;
+  glassBorder: string;
 };
 
 export const lightColors: AppColors = {
@@ -42,6 +49,13 @@ export const lightColors: AppColors = {
   tabInactive: "#A1A1AA",
   drawerBg: "#FFFFFF",
   drawerHover: "#F4F4F5",
+  gradientStart: "#EDE9FE",
+  gradientMid: "#F5F3FF",
+  gradientEnd: "#FAFAFA",
+  glowCyan: "#0891B2",
+  glowPrimary: "rgba(107, 33, 168, 0.35)",
+  glassBg: "rgba(255, 255, 255, 0.88)",
+  glassBorder: "rgba(124, 58, 237, 0.28)",
 };
 
 export const darkColors: AppColors = {
@@ -65,4 +79,11 @@ export const darkColors: AppColors = {
   tabInactive: "#71717A",
   drawerBg: "#111113",
   drawerHover: "#1C1C1F",
+  gradientStart: "#0A0618",
+  gradientMid: "#12082A",
+  gradientEnd: "#09090B",
+  glowCyan: "#22D3EE",
+  glowPrimary: "rgba(167, 139, 250, 0.45)",
+  glassBg: "rgba(20, 20, 28, 0.72)",
+  glassBorder: "rgba(34, 211, 238, 0.22)",
 };

@@ -1,4 +1,5 @@
 import { Link, Redirect, router, useLocalSearchParams } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppGradientBackground } from "@/components/AppGradientBackground";
 import { AuthTextInput } from "@/components/AuthTextInput";
 import { EgoLogo } from "@/components/EgoLogo";
 import { PasswordField } from "@/components/PasswordField";
@@ -139,8 +141,9 @@ export default function SignupScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.fill, { backgroundColor: colors.bg }]}>
-      <KeyboardAvoidingView
+    <AppGradientBackground variant="auth">
+      <SafeAreaView style={styles.fill}>
+        <KeyboardAvoidingView
         style={styles.fill}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
@@ -159,7 +162,10 @@ export default function SignupScreen() {
           <View
             style={[
               styles.form,
-              { backgroundColor: colors.bgCard, borderColor: colors.border },
+              {
+                backgroundColor: colors.glassBg,
+                borderColor: colors.glassBorder,
+              },
             ]}
           >
             <AuthTextInput
@@ -289,15 +295,22 @@ export default function SignupScreen() {
             {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
             {info ? <Text style={[styles.info, { color: colors.success }]}>{info}</Text> : null}
             <Pressable
-              style={[styles.btn, { backgroundColor: colors.primary }, busy && styles.btnDisabled]}
+              style={[styles.btnWrap, busy && styles.btnDisabled]}
               onPress={onSubmit}
               disabled={busy}
             >
-              {busy ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.btnText}>Criar conta</Text>
-              )}
+              <LinearGradient
+                colors={[colors.primary, colors.primaryLight]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.btn}
+              >
+                {busy ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.btnText}>Criar conta</Text>
+                )}
+              </LinearGradient>
             </Pressable>
           </View>
 
@@ -311,6 +324,7 @@ export default function SignupScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </AppGradientBackground>
   );
 }
 
@@ -323,8 +337,17 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   logoImage: { alignSelf: "center", marginBottom: 8 },
-  logoSub: { fontSize: 16, fontWeight: "600", textAlign: "center", marginBottom: 16 },
-  form: { borderRadius: 20, padding: 20, borderWidth: 1 },
+  logoSub: { fontSize: 16, fontWeight: "700", textAlign: "center", marginBottom: 16 },
+  form: {
+    borderRadius: 22,
+    padding: 20,
+    borderWidth: 1,
+    shadowColor: "#7C3AED",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 6,
+  },
   couponBlock: { marginTop: 4 },
   termsRow: { flexDirection: "row", alignItems: "flex-start", marginTop: 14, gap: 10 },
   checkbox: {
@@ -341,7 +364,17 @@ const styles = StyleSheet.create({
   error: { marginTop: 12, fontSize: 14 },
   referralHint: { marginTop: 6, fontSize: 12, lineHeight: 16 },
   info: { marginTop: 12, fontSize: 14, lineHeight: 20 },
-  btn: { marginTop: 20, borderRadius: 14, paddingVertical: 14, alignItems: "center" },
+  btnWrap: {
+    marginTop: 20,
+    borderRadius: 14,
+    overflow: "hidden",
+    shadowColor: "#7C3AED",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  btn: { paddingVertical: 14, alignItems: "center" },
   btnDisabled: { opacity: 0.7 },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
   linkWrap: { marginTop: 20, alignItems: "center" },

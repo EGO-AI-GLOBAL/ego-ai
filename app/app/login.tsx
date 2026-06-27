@@ -1,4 +1,5 @@
 import { Link, Redirect, router } from "expo-router";
+import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,6 +12,7 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { AppGradientBackground } from "@/components/AppGradientBackground";
 import { AuthTextInput } from "@/components/AuthTextInput";
 import { EgoLogo } from "@/components/EgoLogo";
 import { PasswordField } from "@/components/PasswordField";
@@ -59,8 +61,9 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={[styles.fill, { backgroundColor: colors.bg }]}>
-      <KeyboardAvoidingView
+    <AppGradientBackground variant="auth">
+      <SafeAreaView style={styles.fill}>
+        <KeyboardAvoidingView
         style={styles.fill}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 8 : 0}
@@ -74,11 +77,18 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <EgoLogo width={280} style={styles.logoImage} />
+          <Text style={[styles.heroTitle, { color: colors.text }]}>EGO-AI</Text>
+          <Text style={[styles.heroSub, { color: colors.textMuted }]}>
+            Seu companheiro com voz e rosto
+          </Text>
 
           <View
             style={[
               styles.form,
-              { backgroundColor: colors.bgCard, borderColor: colors.border },
+              {
+                backgroundColor: colors.glassBg,
+                borderColor: colors.glassBorder,
+              },
             ]}
           >
             <AuthTextInput
@@ -117,19 +127,22 @@ export default function LoginScreen() {
               <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
             ) : null}
             <Pressable
-              style={[
-                styles.btn,
-                { backgroundColor: colors.primary },
-                busy && styles.btnDisabled,
-              ]}
+              style={[styles.btnWrap, busy && styles.btnDisabled]}
               onPress={onSubmit}
               disabled={busy}
             >
-              {busy ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.btnText}>Entrar</Text>
-              )}
+              <LinearGradient
+                colors={[colors.primary, colors.primaryLight]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.btn}
+              >
+                {busy ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={styles.btnText}>Entrar</Text>
+                )}
+              </LinearGradient>
             </Pressable>
           </View>
 
@@ -151,6 +164,7 @@ export default function LoginScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </AppGradientBackground>
   );
 }
 
@@ -164,15 +178,46 @@ const styles = StyleSheet.create({
   },
   logoImage: {
     alignSelf: "center",
-    marginBottom: 24,
+    marginBottom: 8,
   },
-  form: { borderRadius: 20, padding: 20, borderWidth: 1 },
+  heroTitle: {
+    fontSize: 26,
+    fontWeight: "900",
+    textAlign: "center",
+    letterSpacing: 0.5,
+  },
+  heroSub: {
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+  form: {
+    borderRadius: 22,
+    padding: 20,
+    borderWidth: 1,
+    shadowColor: "#7C3AED",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    elevation: 6,
+  },
   passwordWrap: { marginTop: 4 },
   sessionHint: { marginTop: 10, fontSize: 12, lineHeight: 17 },
   forgotWrap: { alignSelf: "flex-end", marginTop: 8 },
   forgot: { fontSize: 14, fontWeight: "600" },
   error: { marginTop: 12, fontSize: 14 },
-  btn: { marginTop: 20, borderRadius: 14, paddingVertical: 14, alignItems: "center" },
+  btnWrap: {
+    marginTop: 20,
+    borderRadius: 14,
+    overflow: "hidden",
+    shadowColor: "#7C3AED",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 4,
+  },
+  btn: { paddingVertical: 14, alignItems: "center" },
   btnDisabled: { opacity: 0.7 },
   btnText: { color: "#fff", fontSize: 16, fontWeight: "700" },
   linkWrap: { marginTop: 16, alignItems: "center" },

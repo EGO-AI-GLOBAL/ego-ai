@@ -212,6 +212,39 @@ export function SpeakingAvatar({
   const listening = Boolean(isListening);
   const thinking = Boolean(isThinking);
   const pulse = useRef(new Animated.Value(1)).current;
+  const speakRing = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (!speaking) {
+      speakRing.setValue(0);
+      return;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(speakRing, {
+          toValue: 1,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+        Animated.timing(speakRing, {
+          toValue: 0,
+          duration: 700,
+          useNativeDriver: true,
+        }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [speaking, speakRing]);
+
+  const ringOpacity = speakRing.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.35, 0.85],
+  });
+  const ringScale = speakRing.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.06],
+  });
 
   useEffect(() => {
     if (!listening && !thinking) {
@@ -276,6 +309,19 @@ export function SpeakingAvatar({
 
   return (
     <View style={[styles.wrap, compact && styles.wrapCompact]}>
+      {speaking ? (
+        <Animated.View
+          style={[
+            styles.speakRing,
+            compact && styles.speakRingCompact,
+            {
+              borderColor: colors.glowCyan,
+              opacity: ringOpacity,
+              transform: [{ scale: ringScale }],
+            },
+          ]}
+        />
+      ) : null}
       <Animated.View
         style={[
           styles.frame,
@@ -335,6 +381,20 @@ export function SpeakingAvatar({
 const styles = StyleSheet.create({
   wrap: { alignItems: "center", marginBottom: 20 },
   wrapCompact: { marginBottom: 8 },
+  speakRing: {
+    position: "absolute",
+    width: 236,
+    height: 296,
+    borderRadius: 28,
+    borderWidth: 3,
+    top: -8,
+  },
+  speakRingCompact: {
+    width: 164,
+    height: 202,
+    borderRadius: 22,
+    top: -6,
+  },
   frame: {
     width: 220,
     height: 280,

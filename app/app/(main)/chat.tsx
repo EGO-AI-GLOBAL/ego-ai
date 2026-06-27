@@ -22,6 +22,7 @@ import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNig
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { ChatComposer } from "@/components/ChatComposer";
 import { ChatPreview } from "@/components/ChatPreview";
+import { AppGradientBackground } from "@/components/AppGradientBackground";
 import { getComposerPlaceholder } from "@/constants/chatQuickActions";
 import {
   ChatScheduleBanner,
@@ -1012,7 +1013,11 @@ export default function ChatScreen() {
         <View
           style={[
             styles.avatarSection,
-            { paddingTop: 10, backgroundColor: colors.bg, borderBottomColor: colors.border },
+            {
+              paddingTop: 10,
+              backgroundColor: "transparent",
+              borderBottomColor: colors.glassBorder,
+            },
           ]}
         >
           <SpeakingAvatar
@@ -1360,9 +1365,10 @@ export default function ChatScreen() {
 
   return (
     <ScreenShell immersive>
+      <AppGradientBackground variant="chat" style={styles.body}>
       <KeyboardAvoidingView
         style={[
-          styles.body,
+          styles.bodyInner,
           keyboardBottomInset > 0 && { paddingBottom: keyboardBottomInset },
         ]}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -1371,12 +1377,14 @@ export default function ChatScreen() {
       >
         {chatBody}
       </KeyboardAvoidingView>
+      </AppGradientBackground>
     </ScreenShell>
   );
 }
 
 const styles = StyleSheet.create({
   body: { flex: 1 },
+  bodyInner: { flex: 1 },
   composerWrap: {
     flexShrink: 0,
     zIndex: 2,

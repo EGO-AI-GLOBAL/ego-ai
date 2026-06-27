@@ -8,6 +8,7 @@ type Props = {
   stage?: string;
   size?: number;
   happy?: boolean;
+  celebrate?: boolean;
 };
 
 const STAGE_PALETTE: Record<
@@ -44,10 +45,12 @@ function GlowRing({
   size,
   color,
   pulse,
+  celebratePulse,
 }: {
   size: number;
   color: string;
   pulse: Animated.Value;
+  celebratePulse: Animated.Value;
 }) {
   const scale = pulse.interpolate({
     inputRange: [0, 1],
@@ -56,6 +59,10 @@ function GlowRing({
   const opacity = pulse.interpolate({
     inputRange: [0, 1],
     outputRange: [0.35, 0.75],
+  });
+  const celebrateScale = celebratePulse.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 1.22],
   });
   return (
     <Animated.View
@@ -67,7 +74,7 @@ function GlowRing({
           borderRadius: size * 0.58,
           borderColor: color,
           opacity,
-          transform: [{ scale }],
+          transform: [{ scale }, { scale: celebrateScale }],
         },
       ]}
     />
@@ -95,11 +102,47 @@ function CircuitDots({ size, color }: { size: number; color: string }) {
   );
 }
 
-export function CompanionSprite({ stage = "egg", size = 100, happy = false }: Props) {
+function BlinkingEyes({
+  palette,
+  blink,
+}: {
+  palette: (typeof STAGE_PALETTE)[CompanionStage];
+  blink: Animated.Value;
+}) {
+  const eyeScaleY = blink.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, 0.12],
+  });
+  return (
+    <View style={styles.eyes}>
+      {[0, 1].map((i) => (
+        <View key={i} style={[styles.eyeGlow, { shadowColor: palette.accent }]}>
+          <Animated.View
+            style={[
+              styles.eye,
+              { backgroundColor: "#0F172A", transform: [{ scaleY: eyeScaleY }] },
+            ]}
+          />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+export function CompanionSprite({
+  stage = "egg",
+  size = 100,
+  happy = false,
+  celebrate = false,
+}: Props) {
   const s = (stage as CompanionStage) || "egg";
   const palette = STAGE_PALETTE[s] ?? STAGE_PALETTE.egg;
   const wobble = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(0)).current;
+  const floatY = useRef(new Animated.Value(0)).current;
+  const blink = useRef(new Animated.Value(0)).current;
+  const celebratePulse = useRef(new Animated.Value(0)).current;
+  const bodyScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -108,9 +151,39 @@ export function CompanionSprite({ stage = "egg", size = 100, happy = false }: Pr
         Animated.timing(pulse, { toValue: 0, duration: 1400, useNativeDriver: true }),
       ])
     );
+    const floatLoop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(floatY, { toValue: 1, duration: 2200, useNativeDriver: true }),
+        Animated.timing(floatY, { toValue: 0, duration: 2200, useNativeDriver: true }),
+      ])
+    );
     loop.start();
-    return () => loop.stop();
-  }, [pulse]);
+    floatLoop.start();
+    return () => {
+      loop.stop();
+      floatLoop.stop();
+    };
+  }, [floatY, pulse]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const runBlink = () => {
+      if (cancelled) return;
+      Animated.sequence([
+        Animated.timing(blink, { toValue: 1, duration: 80, useNativeDriver: true }),
+        Animated.timing(blink, { toValue: 0, duration: 120, useNativeDriver: true }),
+      ]).start(() => {
+        if (!cancelled) {
+          setTimeout(runBlink, 2800 + Math.random() * 2200);
+        }
+      });
+    };
+    const t = setTimeout(runBlink, 1200);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [blink]);
 
   useEffect(() => {
     if (!happy) return;
@@ -121,34 +194,71 @@ export function CompanionSprite({ stage = "egg", size = 100, happy = false }: Pr
     ]).start();
   }, [happy, wobble]);
 
+  useEffect(() => {
+    if (!celebrate) return;
+    celebratePulse.setValue(0);
+    Animated.parallel([
+      Animated.sequence([
+        Animated.timing(bodyScale, { toValue: 1.14, duration: 180, useNativeDriver: true }),
+        Animated.spring(bodyScale, { toValue: 1, friction: 4, useNativeDriver: true }),
+      ]),
+      Animated.sequence([
+        Animated.timing(celebratePulse, { toValue: 1, duration: 220, useNativeDriver: true }),
+        Animated.timing(celebratePulse, { toValue: 0, duration: 400, useNativeDriver: true }),
+      ]),
+    ]).start();
+  }, [celebrate, bodyScale, celebratePulse]);
+
   const rotate = wobble.interpolate({
     inputRange: [-1, 0, 1],
-    outputRange: ["-6deg", "0deg", "6deg"],
+    outputRange: ["-8deg", "0deg", "8deg"],
+  });
+  const translateY = floatY.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, -7],
   });
 
+  const bodyAnimStyle = {
+    transform: [{ translateY }, { rotate }, { scale: bodyScale }],
+  };
+
   if (s === "egg") {
+    const eggBlink = blink.interpolate({
+      inputRange: [0, 1],
+      outputRange: [1, 0.55],
+    });
     return (
-      <Animated.View style={[styles.center, { transform: [{ rotate }] }]}>
-        <GlowRing size={size} color={palette.ring} pulse={pulse} />
-        <LinearGradient
-          colors={palette.body}
-          start={{ x: 0.1, y: 0 }}
-          end={{ x: 0.9, y: 1 }}
-          style={[
-            styles.egg,
-            {
-              width: size * 0.72,
-              height: size,
-              borderRadius: size * 0.36,
-              borderColor: palette.ring,
-            },
-          ]}
-        >
-          <View style={[styles.eggCore, { backgroundColor: palette.glow }]} />
-          <View style={[styles.eggScan, { borderColor: palette.accent }]} />
-          <CircuitDots size={size} color={palette.accent} />
-          <View style={[styles.eggShine, { backgroundColor: "rgba(255,255,255,0.35)" }]} />
-        </LinearGradient>
+      <Animated.View style={[styles.center, bodyAnimStyle]}>
+        <GlowRing
+          size={size}
+          color={palette.ring}
+          pulse={pulse}
+          celebratePulse={celebratePulse}
+        />
+        <Animated.View style={{ opacity: eggBlink }}>
+          <LinearGradient
+            colors={palette.body}
+            start={{ x: 0.1, y: 0 }}
+            end={{ x: 0.9, y: 1 }}
+            style={[
+              styles.egg,
+              {
+                width: size * 0.72,
+                height: size,
+                borderRadius: size * 0.36,
+                borderColor: palette.ring,
+              },
+            ]}
+          >
+            <View style={[styles.eggCore, { backgroundColor: palette.glow }]} />
+            <View style={[styles.eggScan, { borderColor: palette.accent }]} />
+            <CircuitDots size={size} color={palette.accent} />
+            <View style={[styles.eggShine, { backgroundColor: "rgba(255,255,255,0.35)" }]} />
+          </LinearGradient>
+        </Animated.View>
+        {celebrate ? (
+          <Text style={[styles.sparkCelebrate, { top: -8 }]}>✨</Text>
+        ) : null}
       </Animated.View>
     );
   }
@@ -156,8 +266,13 @@ export function CompanionSprite({ stage = "egg", size = 100, happy = false }: Pr
   const bodyH = s === "adult" ? size * 0.88 : size * 0.78;
 
   return (
-    <Animated.View style={[styles.center, { transform: [{ rotate }] }]}>
-      <GlowRing size={size} color={palette.ring} pulse={pulse} />
+    <Animated.View style={[styles.center, bodyAnimStyle]}>
+      <GlowRing
+        size={size}
+        color={palette.ring}
+        pulse={pulse}
+        celebratePulse={celebratePulse}
+      />
       <LinearGradient
         colors={palette.body}
         start={{ x: 0, y: 0 }}
@@ -176,14 +291,7 @@ export function CompanionSprite({ stage = "egg", size = 100, happy = false }: Pr
           <View style={[styles.antenna, { backgroundColor: palette.accent }]} />
           <View style={[styles.antenna, { backgroundColor: palette.accent }]} />
         </View>
-        <View style={styles.eyes}>
-          <View style={[styles.eyeGlow, { shadowColor: palette.accent }]}>
-            <View style={[styles.eye, { backgroundColor: "#0F172A" }]} />
-          </View>
-          <View style={[styles.eyeGlow, { shadowColor: palette.accent }]}>
-            <View style={[styles.eye, { backgroundColor: "#0F172A" }]} />
-          </View>
-        </View>
+        <BlinkingEyes palette={palette} blink={blink} />
         <View style={[styles.mouthBar, { backgroundColor: palette.accent }]} />
         {s === "adult" ? (
           <Text style={[styles.crown, { color: palette.accent }]}>◆</Text>
@@ -198,6 +306,12 @@ export function CompanionSprite({ stage = "egg", size = 100, happy = false }: Pr
         <View style={[styles.foot, { backgroundColor: palette.ring }]} />
         <View style={[styles.foot, { backgroundColor: palette.ring }]} />
       </View>
+      {celebrate ? (
+        <>
+          <Text style={[styles.sparkCelebrate, { left: -size * 0.2 }]}>💫</Text>
+          <Text style={[styles.sparkCelebrate, { right: -size * 0.2 }]}>✨</Text>
+        </>
+      ) : null}
     </Animated.View>
   );
 }
@@ -313,5 +427,10 @@ const styles = StyleSheet.create({
     height: 6,
     borderRadius: 4,
     opacity: 0.85,
+  },
+  sparkCelebrate: {
+    position: "absolute",
+    top: 4,
+    fontSize: 18,
   },
 });
