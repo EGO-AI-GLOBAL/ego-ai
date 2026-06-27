@@ -1,0 +1,38 @@
+AGENTE API / PARCEIROS / SIGNUP — BUILD 1.0.49
+==============================================
+Estado: ✅ PRONTO — 2026-06-27
+
+FECHADO (commit + push + Railway live)
+--------------------------------------
+[x] ego_api/signup_emails.py — e-mail cadastro + lembrete semanal
+[x] ego_api/referrals.py — parceiros + comissão
+[x] ego_api/db.py, services.py, flask_api.py
+[x] app/signup.tsx, plans.tsx, types.ts — cupom parceiro no cadastro
+[x] supabase/COLE-SUPABASE-DEPLOY-AMANHA.sql (utilizador já correu)
+[x] supabase/migrations referral_partners + signup_reminder_weekly
+
+RAILWAY (confirmado /api/v1/health)
+-----------------------------------
+[x] EGO_SIGNUP_EMAIL_ENABLED=1
+[x] EGO_MAINTENANCE=0
+[x] Brevo configurado · automatic_on_signup: true
+[x] EGO_APP_SIGNUP_URL=https://egoai.com.br
+[x] STRIPE_REFERRAL_PROMO_CODE=EGOINDICA10
+
+VALIDAÇÃO
+---------
+[x] referrals/validate?code=IURY10 → valid: true
+[x] latest_version API: 1.0.48
+
+SEM DIFF LOCAL PENDENTE EM ego_api/ OU flask_api.py
+---------------------------------------------------
+
+PRÓXIMO BUILD (API)
+-------------------
+[ ] Só bump EGO_LATEST_APP_VERSION=1.0.49 no Railway DEPOIS de submeter loja 1.0.49
+[ ] Não alterar zonas estáveis (auth, voz, Stripe webhook) sem pedido
+
+Commit: cb465d4 (zona API fechada 1.0.48 — herdada em 1.0.49, sem diff novo)
+Features em main: 42662cc parceiros + signup · ddf294c relatório cadastros
+
+✅ API PRONTO — cb465d4 — signup/parceiros live · bump Railway após loja

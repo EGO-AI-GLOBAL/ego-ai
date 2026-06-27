@@ -4,18 +4,18 @@ Atualizado: Monstrinhos agente
 
 REGRA: Só Monstrinhos corre GERAR / AGUARDAR-E-SUBMETER / EAS.
 
-| # | Agente        | Ficheiro sync                         | Estado      |
-|---|---------------|---------------------------------------|-------------|
-| A | Monstrinhos   | SYNC-AGENTES-MONSTRINHOS-1.0.49.txt   | ✅ PRONTO   |
-| B | EGO de Bolso  | SYNC-AGENTES-BOLSO-1.0.49.txt         | ✅ PRONTO (236bcc2) |
-| C | API/Parceiros | SYNC-AGENTES-API-1.0.49.txt           | ✅ PRONTO   |
-| D | Marketing     | SYNC-AGENTES-MARKETING-1.0.49.txt     | ✅ PRONTO   |
-| — | Segurança     | SYNC-AGENTES-SEGURANCA-1.0.49.txt     | ✅ PRONTO   |
+| # | Agente        | Ficheiro sync                         | Estado / hash   |
+|---|---------------|---------------------------------------|-----------------|
+| A | Monstrinhos   | SYNC-AGENTES-MONSTRINHOS-1.0.49.txt   | ✅ b1f96ec      |
+| B | EGO de Bolso  | SYNC-AGENTES-BOLSO-1.0.49.txt         | ✅ 236bcc2+c4791fb |
+| C | API/Parceiros | SYNC-AGENTES-API-1.0.49.txt           | ✅ cb465d4      |
+| D | Marketing     | SYNC-AGENTES-MARKETING-1.0.49.txt     | ✅ b1f96ec      |
+| — | Segurança     | SYNC-AGENTES-SEGURANCA-1.0.49.txt     | ✅ bd6ff06      |
 
 Versão: 1.0.49 | iOS build 36 | Android versionCode 87
 
-BUILD: regression + smoke + sync-check OK — Segurança commitada (não stash)
-Falta: Monstrinhos → GERAR-1.0.49.bat (ou 1.0.50 se bump config)
+BUILD: regression + smoke + sync-check OK — 5/5 agentes com hash
+Próximo: Monstrinhos → PREPARAR-1.0.49.bat → GERAR-1.0.49.bat → AGUARDAR-E-SUBMETER
 SEQUÊNCIA (utilizador)
 ----------------------
 1. VERIFICAR-SYNC-4-AGENTES.bat
