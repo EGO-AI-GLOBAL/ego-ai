@@ -1,34 +1,35 @@
-SYNC BUILD 1.0.49 — 4 AGENTES (UMA SUBIDA SÓ)
-==============================================
-Atualizado: 2026-06-27
+SYNC BUILD 1.0.49 — 4 AGENTES (+ Segurança opcional)
+======================================================
+Atualizado: Monstrinhos agente
 
-REGRA: Ninguém corre GERAR-E-SUBMETER-JUNTO.bat até TODAS as linhas ✅ PRONTO.
+REGRA: Só Monstrinhos corre GERAR / AGUARDAR-E-SUBMETER / EAS.
 
 | # | Agente        | Ficheiro sync                         | Estado      |
 |---|---------------|---------------------------------------|-------------|
-| A | Monstrinhos   | SYNC-AGENTES-MONSTRINHOS-1.0.49.txt   | ⏳ aguardar |
+| A | Monstrinhos   | SYNC-AGENTES-MONSTRINHOS-1.0.49.txt   | ✅ PRONTO   |
 | B | EGO de Bolso  | SYNC-AGENTES-BOLSO-1.0.49.txt         | ✅ PRONTO (236bcc2) |
 | C | API/Parceiros | SYNC-AGENTES-API-1.0.49.txt           | ✅ PRONTO   |
 | D | Marketing     | SYNC-AGENTES-MARKETING-1.0.49.txt     | ✅ PRONTO   |
+| — | Segurança     | playIntegrity.ts + integrity_guard.py | PENDENTE — commit ou stash antes de GERAR |
 
-Versão alvo (quando os 4 OK): app.config.ts → 1.0.49 · iOS build+1 · Android versionCode+1
+Versão: 1.0.49 | iOS build 36 | Android versionCode 87
+
+BLOQUEIO sync-check
+-------------------
+Se Segurança não fechar:
+  git stash push -m "wip seguranca" -- app/src/security/playIntegrity.ts ego_api/integrity_guard.py
+Ou agente Segurança: commit + push + SYNC-AGENTES-SEGURANCA-1.0.49.txt ✅
 
 SEQUÊNCIA (utilizador)
 ----------------------
-1. Cada agente: commit + push + marcar seu SYNC-* como ✅ PRONTO
-2. VERIFICAR-SYNC-4-AGENTES.bat  (bloqueia se algum ⏳)
-3. python scripts/regression_guard.py && python scripts/smoke_test_api.py
-4. python scripts/wait_and_submit_eas.py sync-check
-5. GERAR-E-SUBMETER-JUNTO.bat
-6. AGUARDAR-E-SUBMETER.bat
-7. Railway: EGO_LATEST_APP_VERSION=1.0.49 após loja
+1. VERIFICAR-SYNC-4-AGENTES.bat
+2. PREPARAR-1.0.49.bat
+3. GERAR-1.0.49.bat  (ou GERAR-E-SUBMETER-JUNTO.bat)
+4. AGUARDAR-E-SUBMETER-1.0.49.bat
+5. Railway após loja: EGO_LATEST_APP_VERSION=1.0.49 · versionCode=87
 
-NOTA 1.0.48
------------
-• app.config.ts ainda em 1.0.48 — submeter 1.0.48 primeiro se builds FINISHED pendentes
-• Este ficheiro é para a PRÓXIMA versão após 1.0.48 estar nas lojas de teste
-
-MENSAGEM PARA OS 4 CHATS
-------------------------
-"Marquem o vosso SYNC-AGENTES-*-1.0.49.txt como ✅ PRONTO depois do push.
-Só subimos quando VERIFICAR-SYNC-4-AGENTES.bat passar."
+O que há de novo (resumo)
+-------------------------
+• Visual premium login + chat (gradiente, vidro, bolhas)
+• Bolso Dia 2: pet pisca, flutua, celebra ao completar missão
+• Monstrinhos F6 (herdado 1.0.48) — 5 missões + cartão no chat

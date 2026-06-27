@@ -1,0 +1,10 @@
+VALIDAR 1.0.49 — Visual + Bolso Dia 2
+======================================
+
+[ ] Login — gradiente + cartão vidro
+[ ] Cadastro — igual ao login
+[ ] Chat — bolhas + composer + fundo
+[ ] Avatar — glow ao falar / voz
+[ ] Bolso — completar 1 missão → pet celebra (piscar/flutuar)
+[ ] Monstrinhos — cartão no Chat + 5 missões (smoke rápido)
+[ ] Agenda + lista compras — sem regressão

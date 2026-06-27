@@ -1,0 +1,33 @@
+EGO-AI 1.0.49 — Notas da versão (versionCode 87 · iOS build 36)
+================================================================
+
+O que há de novo
+----------------
+
+VISUAL PREMIUM
+• Login e cadastro com fundo gradiente e cartão estilo vidro
+• Chat com bolhas refinadas, composer flutuante e fundo mais profundo
+• Avatar com brilho suave ao falar
+
+EGO DE BOLSO — DIA 2
+• Pet no bolso pisca, flutua e celebra ao completar missão
+• Barra de cuidado e habitat animado mantidos
+
+MONSTRINHOS (da 1.0.48)
+• 5 missões diárias + cartão no Chat
+• Jardim animado estilo Finch
+
+---
+
+TEXTO CURTO — Play / TestFlight (copiar)
+----------------------------------------
+Visual premium no login e chat. EGO de Bolso com pet mais vivo ao completar missões. Monstrinhos com 5 missões e atalho no chat.
+
+---
+
+TEXTO MÉDIO
+-----------
+• Novo visual premium no login, cadastro e chat
+• EGO de Bolso: pet animado ao completar missões do dia
+• Monstrinhos: 5 missões diárias e cartão no chat
+• Melhorias de acabamento sem mudar funções principais

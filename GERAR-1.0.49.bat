@@ -1,12 +1,11 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-title EGO-AI — GERAR builds juntos (iOS + Android)
+title Gerar 1.0.49 — iOS 36 + Android 87
 
 echo.
 echo ============================================================
-echo   REGRA DOIS AGENTES: esperar o outro no Git, depois build
-echo   NAO use SUBMIT-IOS nem PUBLICAR-PLAY separados
+echo   EGO-AI 1.0.49 — build conjunto (4 agentes)
 echo ============================================================
 echo.
 
@@ -14,7 +13,6 @@ python scripts\regression_guard.py
 if errorlevel 1 ( pause & exit /b 1 )
 python scripts\smoke_test_api.py
 if errorlevel 1 ( pause & exit /b 1 )
-
 python scripts\wait_and_submit_eas.py sync-check
 if errorlevel 1 ( pause & exit /b 1 )
 
@@ -22,6 +20,5 @@ python scripts\wait_and_submit_eas.py queue --ids-file builds-1.0.49.ids.json
 if errorlevel 1 ( pause & exit /b 1 )
 
 echo.
-echo Builds enfileirados. Quando quiser subir as LOJAS:
-echo   AGUARDAR-E-SUBMETER-1.0.49.bat
+echo Depois: AGUARDAR-E-SUBMETER-1.0.49.bat
 pause
