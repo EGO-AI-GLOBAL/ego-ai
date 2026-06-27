@@ -304,6 +304,12 @@ def check_health() -> int:
         if body.get("ok") is not True:
             print(f"  ERRO  ok != true: {body}")
             return 1
+        mon = body.get("monitoring") or {}
+        if mon.get("sentry_dsn_set") and not mon.get("sentry"):
+            print("  AVISO  Sentry DSN definido mas sentry=false (falta sentry-sdk no deploy?)")
+        pi = body.get("play_integrity") or {}
+        if not pi.get("enabled"):
+            print("  AVISO  EGO_PLAY_INTEGRITY=0 em produção")
         print(f"  OK    ok=true api_build={body.get('api_build', '?')}")
         return 0
     except urllib.error.HTTPError as e:
