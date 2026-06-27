@@ -28,6 +28,14 @@ Imports: alias `@/` → `app/src/` (ex.: `@/components/ChatComposer`).
 - Nativo só quando inevitável: `Platform.OS`, permissões em `app.config.ts`, Gradle/Xcode
 - Build: **EAS** (`eas build`) Android + iOS na mesma release
 
+## Auth e deep links (Expo — não Flutter)
+
+- Scheme: `egoai` em `app.config.ts` → `egoai://reset-password`, `egoai://login`, `egoai://signup`
+- Rotas auth: `app/app/login.tsx`, `forgot-password.tsx`, `reset-password.tsx`
+- Deep link handler: `app/src/hooks/useDeepLinkRouting.ts` + tokens em `passwordRecovery.ts`
+- Recuperar senha: app chama API `auth/forgot-password`; página web `/auth/reset-password` no Railway
+- **Supabase (painel, não SQL):** Authentication → URL Configuration → Redirect URLs — ver `ABRIR-SUPABASE-RESET-SENHA.bat`
+
 ## Pacotes e padrões
 
 - Preferir **Expo modules** (`expo-*`) antes de libs nativas soltas
