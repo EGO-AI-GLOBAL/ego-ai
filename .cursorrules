@@ -2,12 +2,15 @@
 
 Lê primeiro: **AGENTS.md** (zonas estáveis, 4 agentes, paridade Android+iOS).
 
-Regras modulares: **`.cursor/rules/*.mdc`**
-- `expo-router.mdc` — rotas em `app/app/`
-- `rn-platform.mdc` — View/Text, sem HTML/web APIs
-- `rn-expo-ego.mdc` — client, auth, voz, build sync
-- `ego-api.mdc` — `ego_api/`, Railway
-- `nao-regredir.mdc` + `sync-build-dois-agentes.mdc` — sempre activos
+Regras modulares: **`.cursor/rules/*.mdc`** (8 ficheiros)
+
+| Sempre activas | Por pasta |
+|----------------|-----------|
+| `expo-react-native.mdc` — Expo 52, **não Flutter** | `rn-expo-ego.mdc` — app client |
+| `nao-regredir.mdc` — diff mínimo | `rn-platform.mdc` — View/Text, sem web |
+| `sync-build-dois-agentes.mdc` — 4 agentes, EAS | `expo-router.mdc` — rotas `app/app/` |
+| | `agenda-modulo.mdc` — agenda manual |
+| | `ego-api.mdc` — Flask/Railway |
 
 Stack: **Expo 52 + React Native** (não Flutter). API: **Python Flask** no Railway.
 
