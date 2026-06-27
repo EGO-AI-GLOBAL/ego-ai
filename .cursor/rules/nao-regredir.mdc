@@ -1,0 +1,45 @@
+---
+description: Não quebrar o que já funciona — diff mínimo e módulos separados
+alwaysApply: true
+---
+
+# Não regredir — EGO-AI
+
+## Regra principal
+
+- **Só mexer no que está quebrado ou foi pedido explicitamente.**
+- **Não refatorar** arquivos estáveis “de passagem”.
+- **Preferir adicionar** (novo arquivo/função) em vez de **reescrever** fluxo que já funciona.
+
+## Antes de editar
+
+1. Ler `AGENTS.md` — zona **ESTÁVEL** vs **EXTENSÍVEL**.
+2. Se o pedido é só agenda manual, **não tocar** em voz, auth, Stripe, persona, chat core.
+3. Se o pedido é só API Railway, **não tocar** no app (ou só o client mínimo).
+
+## Como mudar com segurança
+
+| Situação | Fazer |
+|----------|--------|
+| Nova função na agenda | Novo helper em `app/src/components/agenda/` ou função nova em `client.ts` |
+| Bug em voz | Só `useVoiceChat.ts`, `client.ts` upload voz, `services.py` trecho de áudio |
+| Bug em login | Só `AuthContext.tsx`, `client.ts` auth, `services.py` login/refresh |
+| Agenda + chat | Duas rotas: manual **não** depende do LLM; chat **não** remove botões manuais |
+
+## Proibido sem pedido do utilizador
+
+- Alterar `normalizeSession`, interceptor 401, `sendChatVoiceFromUri` / `sendChatVoiceFileNative`
+- Mudar limites de plano, webhook Stripe, `check_token_allowance`
+- Trocar vozes TTS (`ego_api/tts.py` EDGE_TTS_VOICE_MAP) em massa
+- Deploy com `EGO_MAINTENANCE=1` deixado ligado
+
+## Depois de mudar
+
+Rodar antes de deploy/build:
+
+```powershell
+python scripts/regression_guard.py
+python scripts/smoke_test_api.py
+```
+
+Se falhar, **corrigir ou reverter** — não publicar “na esperança”.

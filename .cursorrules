@@ -1,0 +1,14 @@
+# EGO-AI — Cursor (Expo/React Native + Flask API)
+
+Lê primeiro: **AGENTS.md** (zonas estáveis, 4 agentes, paridade Android+iOS).
+
+Regras modulares: **`.cursor/rules/*.mdc`**
+- `expo-router.mdc` — rotas em `app/app/`
+- `rn-platform.mdc` — View/Text, sem HTML/web APIs
+- `rn-expo-ego.mdc` — client, auth, voz, build sync
+- `ego-api.mdc` — `ego_api/`, Railway
+- `nao-regredir.mdc` + `sync-build-dois-agentes.mdc` — sempre activos
+
+Stack: **Expo 52 + React Native** (não Flutter). API: **Python Flask** no Railway.
+
+Antes de build: `regression_guard.py` + `smoke_test_api.py`. Só Monstrinhos corre GERAR/EAS.

@@ -1,5 +1,16 @@
 # EGO-AI — guia para agentes (não quebrar produção)
 
+## Regras Cursor (100% — `.cursor/rules/`)
+
+| Ficheiro | Aplica | Conteúdo |
+|----------|--------|----------|
+| `expo-react-native.mdc` | **Sempre** | Expo SDK 52 + React Native — **não Flutter** |
+| `nao-regredir.mdc` | **Sempre** | Diff mínimo; zonas estáveis vs extensíveis |
+| `sync-build-dois-agentes.mdc` | **Sempre** | 4 agentes; só Monstrinhos faz EAS |
+| `agenda-modulo.mdc` | Ao editar agenda | Manual separado do chat/voz |
+
+Legado: `.cursorrules` na raiz aponta para isto. Fonte de verdade: **`AGENTS.md`** + rules acima.
+
 ## Paridade Android + iOS (obrigatório — não pedir ao utilizador)
 
 O app é **Expo/React Native**: quase todo o UI (`app/src/`, `app/app/`) corre **nos dois**.

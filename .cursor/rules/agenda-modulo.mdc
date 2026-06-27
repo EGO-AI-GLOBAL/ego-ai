@@ -1,0 +1,27 @@
+---
+description: Agenda manual separada do chat/avatar
+globs: app/app/(main)/agenda.tsx,app/src/components/agenda/**,app/src/api/client.ts
+alwaysApply: false
+---
+
+# Módulo Agenda (manual) — ficheiros separados
+
+| Ficheiro | Função |
+|----------|--------|
+| `agenda.tsx` | Só tabs + refresh (não meter lógica aqui) |
+| `PersonalAgendaManual.tsx` | Compromissos + hábitos pessoais |
+| `SharedAgendaManual.tsx` | Agendas em grupo |
+| `client.ts` | `createReminder`, `dismissReminder`, etc. |
+
+**Não importar** `useVoiceChat` nem chat dentro de `components/agenda/`.
+
+## API estável (só ligar UI)
+
+- `POST /reminders`, `POST .../dismiss`
+- `POST /agenda`, `DELETE /agenda/:id`
+- `POST /shared-calendars`, `POST .../events`, `POST .../dismiss`
+
+## Ao adicionar feature manual
+
+1. Editar `PersonalAgendaManual.tsx` ou `SharedAgendaManual.tsx` — **não** `useVoiceChat` / `sendChatMessage`.
+2. Nova função em `client.ts` se faltar endpoint — **não** alterar fluxo de voz.

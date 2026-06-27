@@ -1,0 +1,51 @@
+---
+description: Stack Expo/React Native — NÃO Flutter; convenções do app EGO-AI
+alwaysApply: true
+---
+
+# Expo / React Native — EGO-AI
+
+## Stack (fixo)
+
+- **Expo SDK ~52** + **React Native** + **expo-router** (file-based routing)
+- **NÃO é Flutter** — nunca sugerir Dart, `pubspec.yaml`, widgets Flutter, Provider/GetX
+- Backend: **Flask** (`ego_api/`, `flask_api.py`) + **Supabase** — separado do app
+
+## Onde vive o código mobile
+
+| Pasta | Uso |
+|-------|-----|
+| `app/app/` | Rotas expo-router (`login.tsx`, `(main)/chat.tsx`, …) |
+| `app/src/` | Componentes, hooks, API client, theme, utils |
+| `app/app.config.ts` | Versão, ícone, EAS — **só agente Monstrinhos** no dia do build |
+| `app/assets/` | Ícones, splash, avatares |
+
+Imports: alias `@/` → `app/src/` (ex.: `@/components/ChatComposer`).
+
+## Paridade Android + iOS
+
+- UI em `app/src/` e `app/app/` corre **nos dois** — um diff, duas plataformas
+- Nativo só quando inevitável: `Platform.OS`, permissões em `app.config.ts`, Gradle/Xcode
+- Build: **EAS** (`eas build`) Android + iOS na mesma release
+
+## Pacotes e padrões
+
+- Preferir **Expo modules** (`expo-*`) antes de libs nativas soltas
+- Navegação: `expo-router` (`router.push`, `useFocusEffect`) — não React Navigation manual
+- Estilo: `StyleSheet.create` + tokens em `app/src/theme/colors.ts`
+- Estado global: `AuthContext`, `DashboardContext` — não Redux/MobX novos sem pedido
+
+## Proibido sem pedido
+
+- Migrar para Flutter ou reescrever ecrãs em web-only
+- `npm install` de libs que exigem `expo prebuild` / config plugin sem validar EAS
+- Correr `eas build` / `eas submit` fora do agente **Monstrinhos**
+
+## Antes de deploy/build
+
+```powershell
+python scripts/regression_guard.py
+python scripts/smoke_test_api.py
+```
+
+Ver também `AGENTS.md` (zonas estáveis vs extensíveis).
