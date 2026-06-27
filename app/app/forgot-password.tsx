@@ -50,8 +50,8 @@ export default function ForgotPasswordScreen() {
         <View style={styles.inner}>
           <Text style={[styles.logo, { color: colors.text }]}>Recuperar senha</Text>
           <Text style={[styles.sub, { color: colors.textMuted }]}>
-            Enviaremos um link para o seu e-mail (Supabase). Configure o URL de
-            redirecionamento no painel Supabase → Authentication → URL Configuration.
+            Enviaremos um link para o seu e-mail. Abra o link no telemóvel, crie a nova senha e
+            entre no app.
           </Text>
 
           <View

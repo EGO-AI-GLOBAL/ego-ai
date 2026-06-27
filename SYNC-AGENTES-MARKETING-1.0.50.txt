@@ -1,0 +1,12 @@
+AGENTE MARKETING — BUILD 1.0.50
+================================
+Estado: ✅ PRONTO
+
+Zona: notas loja + validação testadores
+• marketing/NOTAS-1.0.50-PLAY.txt
+• marketing/VALIDAR-1.0.50.txt
+• VOCE-SO-FAZ-ISTO-1.0.50.txt
+
+Mensagem testadores: «Recuperar senha corrigido — peçam novo link se o antigo expirou»
+
+GIT: commit na release 1.0.50

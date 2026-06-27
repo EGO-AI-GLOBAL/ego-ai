@@ -1,0 +1,22 @@
+VALIDAR 1.0.50 — antes de avisar testadores
+============================================
+
+RECUPERAR SENHA (prioridade)
+[ ] Login → Esqueci a senha → e-mail recebido
+[ ] Abrir link no telemóvel → página «Nova senha»
+[ ] Guardar senha → entrar no app com nova senha
+[ ] Link expirado → mensagem clara + pedir novo e-mail
+
+SESSÃO
+[ ] Login → fechar app → reabrir → entra direto
+[ ] Chat «oi» + voz smoke
+
+AVATARES
+[ ] «Marca dentista amanhã» → NÃO oferece agendar; redireciona Agenda ou escuta
+[ ] Conversa normal → só acolhimento, sem «quer que eu agende?»
+
+REGRESSÃO
+[ ] Bolso + Monstrinhos sem quebra
+[ ] Agenda manual marca compromisso
+
+iOS build 38 · Android 89

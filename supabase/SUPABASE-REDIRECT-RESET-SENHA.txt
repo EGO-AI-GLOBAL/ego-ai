@@ -1,0 +1,8 @@
+-- Cole no Supabase → Authentication → URL Configuration → Redirect URLs
+-- (não é SQL — só referência; adicionar manualmente no painel)
+
+https://ego-ai-production-a2c2.up.railway.app/auth/reset-password
+egoai://reset-password
+
+-- Site URL pode ficar: https://ego-ai-production-a2c2.up.railway.app
+-- Sem isto o link «Esqueci a senha» não abre a página de nova senha.

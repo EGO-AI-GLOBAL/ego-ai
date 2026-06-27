@@ -1,0 +1,12 @@
+AGENTE MONSTRINHOS — BUILD 1.0.50
+==================================
+Estado: ✅ PRONTO
+
+Zona: app.config 1.0.50 + build EAS
+• version 1.0.50 · iOS build 38 · Android versionCode 89
+• reset-password.tsx + deep link + sessionRefresh
+
+ÚNICO que corre: AMANHA-1.0.50.bat
+
+GIT: commit na release 1.0.50
+TESTES: regression_guard + sync-check OK

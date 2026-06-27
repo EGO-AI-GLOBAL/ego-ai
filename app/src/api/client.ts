@@ -168,7 +168,22 @@ api.interceptors.response.use(
     ) {
       original._retry = true;
       try {
-        const next = await refreshSessionToken(session.refresh_token, session);
+        let next: AuthSession;
+        try {
+          next = await refreshSessionToken(session.refresh_token, session);
+        } catch (firstErr) {
+          const ax0 = firstErr as AxiosError;
+          const retryable =
+            !ax0.response ||
+            ax0.code === "ERR_NETWORK" ||
+            ax0.code === "ECONNABORTED" ||
+            ax0.code === "ETIMEDOUT" ||
+            (typeof ax0.response?.status === "number" &&
+              ax0.response.status >= 500);
+          if (!retryable) throw firstErr;
+          await new Promise((r) => setTimeout(r, 400));
+          next = await refreshSessionToken(session.refresh_token, session);
+        }
         setSession(next);
         if (onSessionPersist) {
           await onSessionPersist(next);
@@ -184,7 +199,11 @@ api.interceptors.response.use(
           ax.code === "ECONNABORTED" ||
           ax.code === "ETIMEDOUT" ||
           (typeof refreshStatus === "number" && refreshStatus >= 500);
-        if (!networkish) {
+        const refreshInvalid =
+          refreshStatus === 401 ||
+          refreshStatus === 403 ||
+          refreshStatus === 400;
+        if (refreshInvalid || (!networkish && refreshStatus)) {
           setSession(null);
           onAuthFailure?.();
         }
@@ -443,7 +462,26 @@ export async function requestPasswordReset(email: string): Promise<string> {
     { timeout: 20000, headers: { "Content-Type": "application/json" } }
   );
   const body = unwrap<{ message?: string }>(data);
-  return body.message || "Se o e-mail existir, receberá instruções por e-mail.";
+  return body.message || "Se o e-mail existir, receberá um link para criar nova senha.";
+}
+
+export async function completePasswordReset(
+  access_token: string,
+  refresh_token: string,
+  password: string
+): Promise<AuthSession> {
+  const { data } = await axios.post(
+    `${apiBase}auth/reset-password`,
+    { access_token, refresh_token, password },
+    { timeout: 20000, headers: { "Content-Type": "application/json" } }
+  );
+  const body = unwrap<{ session: AuthSession }>(data);
+  const session = normalizeSession(body.session ?? body);
+  if (!session.access_token) {
+    throw new Error("Não foi possível confirmar a nova senha.");
+  }
+  setSession(session);
+  return session;
 }
 
 export type LegalDoc = "terms" | "privacy" | "refund";

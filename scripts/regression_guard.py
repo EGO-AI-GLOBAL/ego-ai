@@ -38,6 +38,8 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "respondEntreNosEvent",
             "submitDailyCareCheckin",
             "completeWellnessJourneyStep",
+            "export async function requestPasswordReset",
+            "export async function completePasswordReset",
         ],
     ),
     (
@@ -118,7 +120,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/context/AuthContext.tsx",
-        ["refreshSessionToken", "saveSecureItem", "STORAGE_KEY"],
+        ["refreshSessionToken", "saveSecureItem", "STORAGE_KEY", "sessionNeedsRefresh"],
     ),
     (
         "app/src/hooks/useVoiceChat.ts",
@@ -145,6 +147,9 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         [
             '@app.post("/api/v1/auth/login")',
             '@app.post("/api/v1/auth/refresh")',
+            '@app.post("/api/v1/auth/forgot-password")',
+            '@app.post("/api/v1/auth/reset-password")',
+            '@app.get("/auth/reset-password")',
             '@app.post("/api/v1/reminders")',
             "reminders_dismiss",
             '@app.delete("/api/v1/agenda/<agenda_id>")',
@@ -189,6 +194,8 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "def login(",
             "def refresh_session(",
             "def signup(",
+            "def request_password_reset(",
+            "def complete_password_reset(",
             "Este e-mail já está cadastrado",
             "Este telefone já está cadastrado",
             "def process_chat_message",

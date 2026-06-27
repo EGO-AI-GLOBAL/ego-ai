@@ -710,9 +710,33 @@ def auth_forgot_password():
     return _json_ok(
         {
             "sent": ok,
-            "message": "Se o e-mail existir, receberá instruções para redefinir a senha.",
+            "message": "Se o e-mail existir, receberá um link para criar uma nova senha.",
         }
     )
+
+
+@app.post("/api/v1/auth/reset-password")
+@rate_limit(10, 60, scope="ip")
+def auth_reset_password():
+    data = request.get_json(silent=True) or {}
+    payload, err = services.complete_password_reset(
+        str(data.get("access_token") or ""),
+        str(data.get("refresh_token") or ""),
+        str(data.get("password") or ""),
+    )
+    if err:
+        return _json_error(err, 400)
+    return _json_ok({"session": payload, "message": "Senha alterada com sucesso."})
+
+
+@app.get("/auth/reset-password")
+def auth_reset_password_page():
+    from ego_api.auth_reset import render_reset_password_page
+    from ego_api.config import read_env
+
+    api_base = read_env("EGO_PUBLIC_API_URL", "").strip()
+    body, status, headers = render_reset_password_page(api_base=api_base)
+    return Response(body, status=status, headers=headers)
 
 
 @app.post("/api/v1/auth/refresh")

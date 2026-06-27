@@ -7,8 +7,9 @@ export async function saveSecureItem(key: string, value: string): Promise<void> 
     await AsyncStorage.setItem(key, value);
     return;
   }
+  // AFTER_FIRST_UNLOCK: sessão persiste ao reabrir o app (iOS Keychain).
   await SecureStore.setItemAsync(key, value, {
-    keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
+    keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK,
   });
 }
 

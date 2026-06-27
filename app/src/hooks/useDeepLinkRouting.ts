@@ -2,6 +2,8 @@ import * as Linking from "expo-linking";
 import { router, type Href } from "expo-router";
 import { useEffect } from "react";
 import { savePostLoginRoute } from "@/storage/postLoginRoute";
+import { savePasswordRecoveryTokens } from "@/storage/passwordRecovery";
+import { authTokensFromUrl } from "@/utils/authLinkParams";
 
 function queryFromUrl(url: string): Record<string, string> {
   try {
@@ -18,6 +20,17 @@ function queryFromUrl(url: string): Record<string, string> {
   }
 }
 
+async function maybeStoreRecoveryTokens(url: string): Promise<boolean> {
+  const tokens = authTokensFromUrl(url);
+  if (!tokens.access_token || !tokens.refresh_token) return false;
+  if (tokens.type && tokens.type !== "recovery") return false;
+  await savePasswordRecoveryTokens({
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+  });
+  return true;
+}
+
 function routeFromDeepLink(url: string): Href | null {
   const parsed = Linking.parse(url);
   const path = (parsed.path || "").replace(/^\/+/, "").toLowerCase();
@@ -25,6 +38,9 @@ function routeFromDeepLink(url: string): Href | null {
   const ref = q.ref || "";
   const next = (q.next || "").toLowerCase();
 
+  if (path === "reset-password" || path === "auth/reset-password") {
+    return "/reset-password" as Href;
+  }
   if (path === "signup" || path === "cadastro" || path === "register") {
     if (next === "agenda") void savePostLoginRoute("/(main)/agenda");
     const qs = ref ? `?ref=${encodeURIComponent(ref)}` : "";
@@ -41,14 +57,28 @@ function routeFromDeepLink(url: string): Href | null {
 }
 
 async function handleUrl(url: string | null) {
-  if (!url || !url.includes("egoai")) return;
+  if (!url) return;
+  const lower = url.toLowerCase();
+  const isEgo =
+    lower.includes("egoai://") ||
+    lower.includes("egoai/") ||
+    lower.includes("/auth/reset-password");
+  if (!isEgo && !lower.includes("access_token=")) return;
+
+  const recovered = await maybeStoreRecoveryTokens(url);
+  if (recovered) {
+    router.replace("/reset-password" as Href);
+    return;
+  }
+
+  if (!lower.includes("egoai")) return;
   const href = routeFromDeepLink(url);
   if (href) {
     router.replace(href);
   }
 }
 
-/** egoai://signup, egoai://cadastro?next=agenda — abre cadastro ou agenda após login. */
+/** egoai://signup, egoai://reset-password — cadastro, recuperação de senha. */
 export function useDeepLinkRouting() {
   useEffect(() => {
     void Linking.getInitialURL().then((url) => handleUrl(url));

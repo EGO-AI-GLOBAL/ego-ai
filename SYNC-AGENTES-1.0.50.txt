@@ -1,0 +1,28 @@
+SYNC BUILD 1.0.50 — 4 AGENTES
+================================
+Atualizado: pronto para build automática amanhã
+
+REGRA: Duplo clique AMANHA-1.0.50.bat (ou PREPARAR → GERAR → AGUARDAR)
+
+| # | Agente        | Ficheiro sync                         | Estado        |
+|---|---------------|---------------------------------------|---------------|
+| A | Monstrinhos   | SYNC-AGENTES-MONSTRINHOS-1.0.50.txt   | ✅ ver hash   |
+| B | EGO de Bolso  | SYNC-AGENTES-BOLSO-1.0.50.txt         | ✅ ver hash   |
+| C | API/Auth      | SYNC-AGENTES-API-1.0.50.txt           | ✅ ver hash   |
+| D | Marketing     | SYNC-AGENTES-MARKETING-1.0.50.txt     | ✅ ver hash   |
+
+Versão: 1.0.50 | iOS build 38 | Android versionCode 89
+
+O que entra
+-----------
+• Recuperar senha: e-mail → página web → nova senha → entrar no app
+• Avatares: só escuta clínica (sem agendar no chat)
+• Sessão persiste ao fechar e reabrir o app
+• Rituais 8h/14h/21h alinhados com agenda manual
+
+SEQUÊNCIA AMANHÃ
+----------------
+1. Supabase: 2 Redirect URLs (VOCE-SO-FAZ-ISTO-1.0.50.txt)
+2. Railway: redeploy API (push já feito)
+3. AMANHA-1.0.50.bat
+4. Railway após loja: 3 variáveis em NOTAS-1.0.50-PLAY.txt

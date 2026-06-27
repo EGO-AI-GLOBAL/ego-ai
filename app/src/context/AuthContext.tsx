@@ -4,8 +4,10 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
+import { AppState, type AppStateStatus } from "react-native";
 import {
   STORAGE_KEY,
   getSession,
@@ -29,6 +31,7 @@ import {
   saveAuthAppVersion,
   shouldClearSessionForAppUpdate,
 } from "@/storage/authAppVersion";
+import { sessionNeedsRefresh } from "@/storage/sessionRefresh";
 import { preparePlayIntegrity } from "@/security/playIntegrity";
 
 type AuthContextValue = {
@@ -42,6 +45,7 @@ type AuthContextValue = {
     phone?: string,
     referralCode?: string
   ) => Promise<{ needsEmailConfirm: boolean }>;
+  applySession: (session: AuthSession) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -50,6 +54,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [session, setLocalSession] = useState<AuthSession | null>(null);
   const [loading, setLoading] = useState(true);
+  const refreshInFlight = useRef(false);
 
   const persist = useCallback(async (s: AuthSession | null) => {
     setSession(s);
@@ -80,6 +85,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [persist]);
 
+  const refreshSessionIfNeeded = useCallback(
+    async (current: AuthSession, opts?: { force?: boolean }) => {
+      const refreshTok = current.refresh_token?.trim();
+      if (!refreshTok) return current;
+      if (!opts?.force && !sessionNeedsRefresh(current)) return current;
+      if (refreshInFlight.current) return current;
+      refreshInFlight.current = true;
+      try {
+        const next = await refreshSessionToken(refreshTok, current);
+        await persist(next);
+        return next;
+      } catch {
+        /* rede ou refresh inválido — mantém sessão; interceptor trata 401 */
+        return current;
+      } finally {
+        refreshInFlight.current = false;
+      }
+    },
+    [persist]
+  );
+
   useEffect(() => {
     (async () => {
       try {
@@ -89,28 +115,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await deleteSecureItem(STORAGE_KEY);
             await clearAuthAppVersion();
           } else {
-          const parsed = JSON.parse(raw) as AuthSession;
-          if (parsed?.access_token) {
-            const refreshTok = parsed.refresh_token?.trim();
-            const expiresAt = parsed.expires_at;
-            const needsRefresh =
-              Boolean(refreshTok) &&
-              (typeof expiresAt !== "number" ||
-                expiresAt <= 0 ||
-                expiresAt * 1000 < Date.now() + 300_000);
-            if (needsRefresh) {
-              try {
-                const next = await refreshSessionToken(refreshTok!, parsed);
-                await persist(next);
-                void preparePlayIntegrity();
-                return;
-              } catch {
-                /* mantém sessão — interceptor tenta de novo; evita logout por rede */
+            const parsed = JSON.parse(raw) as AuthSession;
+            if (parsed?.access_token) {
+              const next = await refreshSessionIfNeeded(parsed);
+              if (next === parsed) {
+                await persist(parsed);
               }
+              void preparePlayIntegrity();
             }
-            await persist(parsed);
-            void preparePlayIntegrity();
-          }
           }
         }
       } catch {
@@ -119,7 +131,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setLoading(false);
       }
     })();
-  }, [persist]);
+  }, [persist, refreshSessionIfNeeded]);
+
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state: AppStateStatus) => {
+      if (state !== "active") return;
+      const current = getSession();
+      if (!current?.access_token) return;
+      void refreshSessionIfNeeded(current);
+    });
+    return () => sub.remove();
+  }, [refreshSessionIfNeeded]);
 
   const signIn = useCallback(
     async (email: string, password: string) => {
@@ -160,9 +182,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await persist(null);
   }, [persist]);
 
+  const applySession = useCallback(
+    async (s: AuthSession) => {
+      if (!s?.access_token) {
+        throw new Error("Sessão inválida.");
+      }
+      await persist(s);
+      void preparePlayIntegrity();
+    },
+    [persist]
+  );
+
   const value = useMemo(
-    () => ({ session, loading, signIn, signUp, signOut }),
-    [session, loading, signIn, signUp, signOut]
+    () => ({ session, loading, signIn, signUp, applySession, signOut }),
+    [session, loading, signIn, signUp, applySession, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

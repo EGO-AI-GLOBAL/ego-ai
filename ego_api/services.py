@@ -39,6 +39,10 @@ def format_auth_error(exc: BaseException) -> str:
         return "Este e-mail já está cadastrado."
     if "invalid login" in low or "invalid credentials" in low:
         return "E-mail ou senha incorretos."
+    if "expired" in low or "invalid jwt" in low or "token is invalid" in low:
+        return "Link expirado ou inválido. Peça um novo e-mail em Esqueci a senha."
+    if "password should be at least" in low or "weak password" in low:
+        return "A senha deve ter pelo menos 6 caracteres."
     return msg or "Erro de autenticação."
 
 
@@ -223,6 +227,8 @@ def signup(
 
 def request_password_reset(email: str, redirect_to: str = "") -> tuple[bool, str | None]:
     """Envia e-mail de recuperação via Supabase Auth."""
+    from ego_api.auth_reset import password_reset_redirect_url
+
     client = create_anon_client()
     if not client:
         return False, "Supabase não configurado."
@@ -230,13 +236,55 @@ def request_password_reset(email: str, redirect_to: str = "") -> tuple[bool, str
     if err:
         return False, err
     try:
-        opts: dict[str, str] = {}
-        if (redirect_to or "").strip():
-            opts["redirect_to"] = redirect_to.strip()
-        client.auth.reset_password_for_email(email_norm, opts)
+        target = (redirect_to or "").strip() or password_reset_redirect_url()
+        client.auth.reset_password_for_email(email_norm, {"redirect_to": target})
         return True, None
     except Exception as e:  # noqa: BLE001
         return False, format_auth_error(e)
+
+
+def complete_password_reset(
+    access_token: str, refresh_token: str, password: str
+) -> tuple[dict | None, str | None]:
+    """Define nova senha com tokens do link de recuperação (Supabase)."""
+    client = create_anon_client()
+    if not client:
+        return None, "Supabase não configurado."
+    at = (access_token or "").strip()
+    rt = (refresh_token or "").strip()
+    if not at or not rt:
+        return None, "Link inválido ou incompleto. Peça um novo e-mail."
+    if not (password or "").strip():
+        return None, "Informe a senha."
+    if len(password.strip()) < 6:
+        return None, "A senha deve ter pelo menos 6 caracteres."
+    try:
+        client.auth.set_session(at, rt)
+        res = client.auth.update_user({"password": password.strip()})
+        session = getattr(res, "session", None)
+        user = getattr(res, "user", None) or getattr(session, "user", None)
+        if session and user:
+            payload = {
+                "access_token": str(getattr(session, "access_token", "") or at),
+                "refresh_token": str(getattr(session, "refresh_token", "") or rt),
+                "expires_at": getattr(session, "expires_at", None),
+                "user": {
+                    "id": str(getattr(user, "id", "") or ""),
+                    "email": str(getattr(user, "email", "") or ""),
+                },
+            }
+        else:
+            sess = client.auth.get_session()
+            session = getattr(sess, "session", None) if sess else None
+            user = getattr(sess, "user", None) if sess else None
+            payload = _session_payload(
+                type("_R", (), {"session": session, "user": user})()
+            )
+        if not payload.get("access_token"):
+            return None, "Não foi possível confirmar a nova senha."
+        return payload, None
+    except Exception as e:  # noqa: BLE001
+        return None, format_auth_error(e)
 
 
 def refresh_session(refresh_token: str) -> tuple[dict | None, str | None]:
@@ -738,6 +786,36 @@ def process_chat_message(
                 "access": db.build_plan_access_payload(supabase, user_id, prof),
             }, None
 
+    # Chat sem agenda: pedido de marcação → redireciona à aba Agenda (sem LLM).
+    if (
+        not chat_agenda
+        and not casual
+        and schedule_text
+        and cs.looks_like_schedule_intent(schedule_text)
+    ):
+        from ego_api.app_guide import manual_agenda_redirect_reply
+
+        reply_redirect = manual_agenda_redirect_reply()
+        mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
+        cs.save_chat_schedule(supabase, user_id, prof, None)
+        mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_redirect)
+        prof = db.load_profile(supabase, user_id) or prof
+        return {
+            "reply": reply_redirect,
+            "user_message_id": mid_u,
+            "assistant_message_id": mid_a,
+            "user_transcript": voice_transcript or None,
+            "language": lang,
+            "warnings": [],
+            "reminders_saved": [],
+            "agenda_saved": [],
+            "shared_calendars_saved": [],
+            "shared_events_saved": [],
+            "shared_members_saved": [],
+            "shared_calendars_deleted": [],
+            "access": db.build_plan_access_payload(supabase, user_id, prof),
+        }, None
+
     scope_hint = None
     if chat_agenda and not casual:
         scope_hint = cs.detect_scope_from_user_text(
@@ -752,17 +830,16 @@ def process_chat_message(
 
     if casual:
         agenda_ctx = ""
+    elif not chat_agenda:
+        from ego_api.app_guide import app_guide_context_block
+
+        agenda_ctx = app_guide_context_block()
     else:
         agenda_ctx = db.build_agenda_context_for_llm(supabase, user_id)
         agenda_ctx += cs.build_shared_calendars_context(supabase, user_id)
-        if chat_agenda:
-            agenda_ctx += cs.build_schedule_wizard_context(
-                schedule, user_display, supabase, user_id
-            )
-        else:
-            from ego_api.app_guide import app_guide_context_block
-
-            agenda_ctx += app_guide_context_block()
+        agenda_ctx += cs.build_schedule_wizard_context(
+            schedule, user_display, supabase, user_id
+        )
 
     lang, _conf = gemini.detect_language(user_display)
 

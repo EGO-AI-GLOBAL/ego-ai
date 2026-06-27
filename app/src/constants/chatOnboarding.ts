@@ -28,7 +28,7 @@ export function buildChatOnboardingMessage(
 
 
 
-Escreva ou toque no microfone. Posso ouvir, acolher e te ensinar o app — agenda, convites, avatares e mais. Ex.: «Como marco um compromisso?» ou «Como convido alguém?»`;
+Escreva ou toque no microfone. Estou aqui para ouvir, acolher e conversar — como o melhor apoio emocional no bolso. Ex.: «Estou ansioso hoje» ou «Preciso desabafar».`;
 
 }
 
@@ -44,7 +44,7 @@ export function buildChatOnboardingSpeech(
 
 ): string {
 
-  return `${greeting(userName, assistantName)} Escreva ou fale quando quiser — estou aqui para conversar e te mostrar como usar o EGO-AI.`;
+  return `${greeting(userName, assistantName)} Escreva ou fale quando quiser — estou aqui para ouvir e acolher.`;
 
 }
 

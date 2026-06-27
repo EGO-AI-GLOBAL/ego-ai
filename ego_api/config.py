@@ -224,7 +224,7 @@ def gemini_flash_only() -> bool:
 
 
 def chat_agenda_actions_enabled() -> bool:
-    """False = avatar só ensina a usar a agenda; não marca/apaga pelo chat."""
+    """False (padrão) = avatares só escutam; agenda 100% manual na aba Agenda."""
     return read_env("EGO_CHAT_AGENDA_ACTIONS", "0").lower() in (
         "1",
         "true",
@@ -259,7 +259,7 @@ def production_bypass_warnings() -> list[str]:
 
 def latest_app_version() -> str:
     """Versão mais recente na loja — app antigo mostra aviso de atualização."""
-    return read_env("EGO_LATEST_APP_VERSION", "1.0.49")
+    return read_env("EGO_LATEST_APP_VERSION", "1.0.50")
 
 
 def play_store_update_url() -> str:
@@ -276,7 +276,7 @@ def play_store_update_url() -> str:
 def app_update_message() -> str:
     return read_env(
         "EGO_APP_UPDATE_MESSAGE",
-        "1.0.49: Visual premium no login e chat. EGO de Bolso com pet mais vivo. Toque em Atualizar agora.",
+        "1.0.50: Sessão persistente — app fica logado ao reabrir. Toque em Atualizar agora.",
     )
 
 
@@ -300,7 +300,7 @@ def maintenance_message() -> str:
 
 def latest_android_version_code() -> int:
     """Version code Play (EAS autoIncrement) — Android usa para aviso de atualização."""
-    raw = read_env("EGO_LATEST_ANDROID_VERSION_CODE", "87").strip()
+    raw = read_env("EGO_LATEST_ANDROID_VERSION_CODE", "89").strip()
     try:
         return max(0, int(raw))
     except ValueError:

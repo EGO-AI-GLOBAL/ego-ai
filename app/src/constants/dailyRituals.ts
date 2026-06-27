@@ -21,34 +21,31 @@ export function ritualChatPrompt(ritual: DailyRitualId, assistantName: string): 
     case "reveal":
       return (
         `[Ritual 7h — amanhã revelado] Sou ${assistantName}. ` +
-        `Diga que itens do desabafo da noite estão na Agenda para confirmar (Agendar / Excluir). ` +
-        `Peça para ABRIR a Agenda AGORA e revisar cada item — leva menos de 1 minuto. ` +
-        `Tom acolhedor: «Bom dia! Vamos confirmar juntos o que você desabafou ontem?»`
+        `Bom dia acolhedor. Se houve desabafo ontem, lembre em UMA frase que os itens ficam na Agenda ` +
+        `para o utilizador confirmar manualmente — você NÃO marca nada. ` +
+        `Pergunte como dormiu e como está se sentindo agora.`
       );
     case "morning":
       return (
         `[Ritual 8h — briefing] Sou ${assistantName}. ` +
-        `Resuma em tópicos curtos o que tenho HOJE na agenda. ` +
-        `Depois pergunte o que falta marcar e peça para eu ABRIR a aba Agenda AGORA, ` +
-        `tocar «+ Novo compromisso» e marcar cada coisa que ainda não está lá. ` +
-        `Seja direto e acolhedor — quero sair deste chat e ir marcar. ` +
-        `Termine com: «Vai na Agenda agora — leva 10 segundos. Volta aqui quando terminar.»`
+        `Acolha o início do dia. Pergunte como está a energia e o humor. ` +
+        `Se mencionarem compromissos, escute — NÃO ofereça agendar; ` +
+        `se quiserem ver a agenda, diga que é no menu Agenda do app. ` +
+        `Foco: presença e escuta clínica, 3–5 frases.`
       );
     case "afternoon":
       return (
         `[Ritual 14h — checkpoint] Sou ${assistantName}. ` +
-        `Liste o que ainda tenho HOJE e pergunte o que já fiz. ` +
-        `Se faltar algo na agenda ou no dia, peça para eu ABRIR a Agenda AGORA e marcar ou apagar o que mudou. ` +
-        `Não deixe passar em branco — empurre para a ação: «Abre a Agenda e ajusta agora, antes que a tarde acabe.» ` +
-        `Tom parceiro, frases curtas.`
+        `Checkpoint emocional da tarde: como está o dia por dentro? ` +
+        `Valide cansaço ou ansiedade. NÃO empurre agenda nem marcar compromissos. ` +
+        `Tom parceiro, frases curtas, escuta profunda.`
       );
     case "evening":
       return (
         `[Ritual 21h — descarrego] Sou ${assistantName}. ` +
-        `Peça para eu SEGURAR o microfone e desabafar tudo que está na cabeça (compromissos de amanhã, mercado, remédios). ` +
-        `Explique que amanhã de manhã abro a Agenda e confirmo cada item — nada entra sozinho. ` +
-        `Tom calmo e acolhedor: «Solte agora, durma leve. Amanhã organizamos juntos na Agenda.» ` +
-        `Não peça para marcar manualmente hoje — o fluxo é gravar agora e confirmar de manhã.`
+        `Convide a desabafar com o microfone ou texto — só escuta e acolhimento. ` +
+        `NÃO peça para marcar nada hoje. Se mencionarem tarefas de amanhã, diga que amanhã ` +
+        `eles confirmam na Agenda manualmente. Tom calmo: «Solte agora, estou aqui.»`
       );
   }
 }
@@ -78,13 +75,13 @@ export function ritualNotificationCopy(
     }
     case "morning":
       return {
-        title: `${name}, seu dia começa agora ☀️`,
-        body: `${assistantName}: toque — veja a agenda de hoje e marque o que falta.`,
+        title: `${name}, como você está? ☀️`,
+        body: `${assistantName}: toque — um momento de escuta para começar o dia.`,
       };
     case "afternoon":
       return {
-        title: "Metade do dia — não deixe escapar",
-        body: `${assistantName}: abra agora, confira a tarde e atualize sua agenda.`,
+        title: "Como está a tarde por dentro?",
+        body: `${assistantName}: toque — checkpoint emocional, estou aqui.`,
       };
     case "evening": {
       const nights = nightDumpStreak ?? 0;
@@ -98,12 +95,12 @@ export function ritualNotificationCopy(
       if (streak >= 3) {
         return {
           title: `🔥 ${streak} dias seguidos!`,
-          body: `Ei, você já está com ${streak} dias de organização! Não vai deixar a peteca cair hoje, né? ${assistantName}: grave um áudio rápido.`,
+          body: `Ei, você já está com ${streak} dias! ${assistantName}: desabafe um pouco agora.`,
         };
       }
       return {
         title: "Desabafo da noite",
-        body: `${assistantName}: toque, grave o que está na cabeça. Amanhã confirma na Agenda.`,
+        body: `${assistantName}: toque e desabafe — estou aqui para ouvir.`,
       };
     }
   }

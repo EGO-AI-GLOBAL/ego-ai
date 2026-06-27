@@ -1,0 +1,14 @@
+AGENTE API — BUILD 1.0.50
+=========================
+Estado: ✅ PRONTO
+
+Zona: auth recuperar senha + avatares escuta (API)
+• ego_api/auth_reset.py — página /auth/reset-password
+• ego_api/services.py — request_password_reset + complete_password_reset
+• ego_api/gemini.py, wellness_coach.py, app_guide.py — prompts só escuta
+• flask_api.py — forgot-password + reset-password routes
+
+NÃO TOCADO: auth login/refresh core, voz, Stripe, limites plano
+
+GIT: commit na release 1.0.50
+TESTES: regression_guard + smoke OK
