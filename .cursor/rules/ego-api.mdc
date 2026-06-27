@@ -1,0 +1,46 @@
+---
+description: API Flask + ego_api — Railway, Supabase, zonas estáveis
+globs: ego_api/**/*.py,flask_api.py,scripts/smoke_test_api.py,scripts/regression_guard.py
+alwaysApply: false
+---
+
+# EGO-AI — API Python (Railway)
+
+Ler **`AGENTS.md`**. App mobile consome REST em `flask_api.py`.
+
+## Estrutura
+
+| Área | Ficheiros |
+|------|-----------|
+| Rotas HTTP | `flask_api.py` |
+| Lógica | `ego_api/services.py`, módulos por feature |
+| DB Supabase | `ego_api/db.py`, `supabase_client.py` |
+| Planos / limites | `ego_api/plans.py`, `check_token_allowance` |
+
+## Zonas estáveis — não alterar sem pedido + teste
+
+- `login`, `refresh_session`, `normalizeSession`
+- `process_chat_message`, upload voz, `EDGE_TTS_VOICE_MAP`
+- Stripe webhook, `check_token_allowance`
+- Play Integrity: `integrity_guard.py`, `play_integrity.py`
+
+## Extensível — preferir ficheiro/função nova
+
+- Agenda chat: `ego_api/chat_schedule.py`
+- Monstrinhos: `ego_api/daily_care.py`
+- Bolso: `ego_api/wellness_journey.py`
+- Cron admin: `@require_admin` + rotas `/api/v1/admin/cron/*`
+
+## Antes de deploy
+
+```powershell
+python scripts/regression_guard.py
+python scripts/smoke_test_api.py
+```
+
+- **Nunca** deixar `EGO_MAINTENANCE=1` em produção
+- Migrações SQL: `supabase/migrations/` ou `supabase/COLE-*.sql`
+
+## App client mínimo
+
+Se mudar contrato API → actualizar `app/src/api/types.ts` + `client.ts` no mesmo release (agente API ou sync explícito).

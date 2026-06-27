@@ -1,0 +1,35 @@
+---
+description: Expo Router — rotas e navegação EGO-AI
+globs: app/app/**/*.tsx,app/src/hooks/useDeepLinkRouting.ts
+alwaysApply: false
+---
+
+# Expo Router (EGO-AI)
+
+Stack: **Expo 52 + expo-router** em `app/app/`. Não é React Navigation standalone.
+
+## Rotas
+
+- Ficheiros em `app/app/` — `(main)/` = tabs autenticadas
+- Novo ecrã → novo ficheiro `.tsx`; lógica pesada em `app/src/components/` ou hooks
+- Deep links: `useDeepLinkRouting.ts` + esquema `egoai://`
+
+## Navegação
+
+```tsx
+import { useRouter, useLocalSearchParams, Link } from "expo-router";
+
+const router = useRouter();
+router.push("/(main)/agenda");
+router.replace("/login");
+```
+
+## Proibido
+
+- `@react-navigation/native` directo (só via expo-router)
+- `window.location`, `<a href>`, Next.js `useRouter`
+- Meter lógica de negócio longa dentro de `_layout.tsx` — só providers + Stack/Tabs
+
+## Paridade
+
+Um ecrã novo em `app/app/` serve **Android e iOS** (mesmo ficheiro).

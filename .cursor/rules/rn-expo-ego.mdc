@@ -1,0 +1,42 @@
+---
+description: EGO-AI app — Expo, API client, paridade lojas, zonas estáveis
+globs: app/**/*
+alwaysApply: false
+---
+
+# EGO-AI — convenções do app
+
+Ler **`AGENTS.md`** antes de editar. Regra **não regredir**: `.cursor/rules/nao-regredir.mdc`.
+
+## Stack
+
+- **Expo 52**, EAS build, `app.config.ts` na pasta `app/`
+- API: `app/src/api/client.ts` (axios) → Railway Flask
+- Auth: `AuthContext.tsx` + SecureStore / session storage
+
+## Sempre nos dois (Android + iOS)
+
+| Mudança | Onde |
+|---------|------|
+| UI, textos, chat, agenda | `app/src/`, `app/app/` |
+| Ícone | `app.config.ts` — `icon` **e** `android.adaptiveIcon` |
+| Banner update | `AppUpdateBanner` — Play **e** TestFlight |
+
+## Zonas estáveis — não alterar sem pedido
+
+- `AuthContext.tsx`, interceptor 401, `refreshSessionToken`
+- `useVoiceChat.ts`, `sendChatVoiceFromUri`, upload voz nativo
+- `sendChatMessage`, Play Integrity headers em rotas caras
+- Stripe / planos no client — só se pedido explícito
+
+## Expo nativo usado no projecto
+
+- Voz: `expo-av` (não MediaRecorder web no native)
+- Push: `expo-notifications`
+- Play Integrity Android: `app/src/security/playIntegrity.ts`
+- Timezone: `deviceTimezonePayload()` em **todo** POST chat/voz
+
+## Build / release
+
+- **Não** correr `GERAR-*.bat` / EAS — só agente Monstrinhos
+- Fechar: `regression_guard` → commit → push → SYNC ✅

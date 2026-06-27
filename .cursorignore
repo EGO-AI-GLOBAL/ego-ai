@@ -1,0 +1,39 @@
+﻿# Cursor — ignorar na indexação (mais rápido; ficheiros continuam no disco)
+
+# Backups e cópias antigas
+app_local_backup/
+
+# Assets pesados (vídeos, fotos marketing, Stripe)
+app/assets/incoming/
+app/assets/*.backup*
+marketing/videos/
+marketing/CAPCUT-FOTOS*/
+FOTOS-STRIPE/
+
+# Site estático gerado (fonte: marketing/ + scripts/build_site_publico.py)
+site-publico/
+site-publico-leve/
+site-envio-UOL/
+*.zip
+
+# Documentação / financeiro (não é código de runtime)
+custo/
+DOCUMENTACAO_COMPLETA*
+*.pdf
+
+# Dependências e caches
+**/node_modules/
+**/.expo/
+**/.expo-web-test/
+**/.venv/
+**/.venv-test/
+**/dist/
+**/android/
+**/ios/
+
+# Binários e media grandes
+*.mp4
+*.aab
+*.apk
+*.jks
+*.keystore

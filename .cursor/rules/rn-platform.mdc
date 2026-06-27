@@ -1,0 +1,30 @@
+---
+description: React Native — primitivos, Platform, sem APIs web
+globs: app/**/*.tsx,app/**/*.ts
+alwaysApply: false
+---
+
+# React Native — plataforma
+
+## Usar
+
+- `View`, `Text`, `Pressable`, `ScrollView`, `StyleSheet` de `react-native`
+- `Platform.OS` quando Android ≠ iOS (banner update, voz, ficheiros)
+- `react-native-safe-area-context` para insets
+- Cores: `useColors()` de `@/theme/ThemeContext` — não hex solto
+
+## Proibido
+
+- Tags HTML: `div`, `span`, `p`, `button`, `img`
+- APIs web: `window`, `document`, `localStorage`, `sessionStorage` (excepto ficheiros `*.web.ts`)
+- CSS / Tailwind / styled-components — o projecto usa **StyleSheet + theme**
+- `framer-motion` — animações nativas se necessário (`react-native-reanimated` já no stack)
+
+## Listas
+
+- Listas curtas: `ScrollView` + `map`
+- Listas longas no chat: padrão existente em `chat.tsx` — não trocar para FlatList sem pedido
+
+## Imports
+
+- Alias `@/` → `app/src/` (ex.: `@/components/`, `@/api/client`)

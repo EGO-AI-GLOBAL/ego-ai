@@ -4,12 +4,16 @@
 
 | Ficheiro | Aplica | Conteúdo |
 |----------|--------|----------|
-| `expo-react-native.mdc` | **Sempre** | Expo SDK 52 + React Native — **não Flutter** |
+| `expo-react-native.mdc` | **Sempre** | Expo SDK 52 + RN — **não Flutter** |
 | `nao-regredir.mdc` | **Sempre** | Diff mínimo; zonas estáveis vs extensíveis |
 | `sync-build-dois-agentes.mdc` | **Sempre** | 4 agentes; só Monstrinhos faz EAS |
-| `agenda-modulo.mdc` | Ao editar agenda | Manual separado do chat/voz |
+| `rn-expo-ego.mdc` | `app/**` | Convenções app, auth, voz, build |
+| `rn-platform.mdc` | `app/**/*.tsx` | View/Text/StyleSheet — sem HTML/CSS |
+| `expo-router.mdc` | `app/app/**` | Rotas expo-router, navegação |
+| `agenda-modulo.mdc` | `agenda/**` | Manual separado do chat/voz |
+| `ego-api.mdc` | `ego_api/**` | Flask, Railway, Supabase, cron |
 
-Legado: `.cursorrules` na raiz aponta para isto. Fonte de verdade: **`AGENTS.md`** + rules acima.
+Legado: `.cursorrules` na raiz. Fonte de verdade: **`AGENTS.md`** + rules acima.
 
 ## Paridade Android + iOS (obrigatório — não pedir ao utilizador)
 
