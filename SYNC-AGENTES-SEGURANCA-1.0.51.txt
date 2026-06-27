@@ -1,7 +1,9 @@
 AGENTE SEGURANÇA / API — BUILD 1.0.51+
 ========================================
 
-Estado: ✅ PRONTO (após push)
+Estado: ✅ PRONTO
+
+Commit: 5718422
 
 FECHADO NESTA RELEASE
 ---------------------
