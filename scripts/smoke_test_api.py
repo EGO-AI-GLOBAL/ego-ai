@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 BASE = "https://ego-ai-production-a2c2.up.railway.app/api/v1"
+PUBLIC_BASE = "https://ego-ai-production-a2c2.up.railway.app"
 
 
 def _urlopen(req: urllib.request.Request, timeout: int = 25):
@@ -46,6 +47,19 @@ def get(path: str) -> tuple[int | None, dict]:
     except urllib.error.URLError as exc:
         print(f"  AVISO  rede/API inacessivel: {exc}")
         return None, {}
+
+
+def get_public(path: str) -> tuple[int | None, str]:
+    """GET fora de /api/v1 (ex. página reset senha)."""
+    req = urllib.request.Request(f"{PUBLIC_BASE}{path}", method="GET")
+    try:
+        with _urlopen(req, timeout=25) as resp:
+            return resp.status, resp.read().decode("utf-8", errors="replace")[:8000]
+    except urllib.error.HTTPError as e:
+        return e.code, (e.read().decode("utf-8", errors="replace") if e.fp else "")[:8000]
+    except urllib.error.URLError as exc:
+        print(f"  AVISO  rede/API inacessivel: {exc}")
+        return None, ""
 
 
 def post(path: str) -> int | None:
@@ -97,6 +111,19 @@ def main() -> int:
                 failed += 1
             elif c == 404:
                 print("  AVISO  rota PDF ainda nao na API em producao — nao bloqueia deploy agenda/auth")
+
+        c_reset, html = get_public("/auth/reset-password")
+        if c_reset is None:
+            network_ok = False
+        else:
+            print(f"GET /auth/reset-password -> {c_reset}")
+            if c_reset != 200:
+                print("  AVISO  pagina reset senha ainda nao na API — faca deploy Railway antes da build")
+            elif "Nova senha" not in html:
+                print("  ERRO  pagina reset sem conteudo esperado")
+                failed += 1
+            else:
+                print("  OK    pagina recuperar senha em producao")
     else:
         print("  AVISO  testes HTTP ignorados (API nao alcancavel neste PC)")
 

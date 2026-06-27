@@ -1,39 +1,26 @@
 @echo off
 chcp 65001 >nul
 cd /d "%~dp0"
-title EGO-AI 1.0.50 — AUTOMÁTICO (amanhã)
+title EGO-AI 1.0.50 — 100%% AUTOMÁTICO
 
 echo.
 echo ============================================================
-echo   1.0.50 AUTOMÁTICO — testes + EAS + submeter lojas
+echo   1.0.50 — push + testes + EAS + submit (tudo incluido)
 echo ============================================================
 echo.
-echo Antes de correr: Supabase Redirect URLs (ver VOCE-SO-FAZ-ISTO-1.0.50.txt)
+echo Inclui: recuperar senha, avatares escuta, sessao persistente
 echo.
 
-python scripts\regression_guard.py
-if errorlevel 1 ( pause & exit /b 1 )
-
-python scripts\smoke_test_api.py
-if errorlevel 1 ( pause & exit /b 1 )
-
-python scripts\wait_and_submit_eas.py sync-check
-if errorlevel 1 ( pause & exit /b 1 )
-
-echo.
-echo --- Enfileirando iOS 38 + Android 89 ---
-python scripts\wait_and_submit_eas.py queue --ids-file builds-1.0.50.ids.json
-if errorlevel 1 ( pause & exit /b 1 )
+python scripts\release_auto.py --version 1.0.50
+if errorlevel 1 (
+  echo.
+  echo FALHOU — ver mensagem acima.
+  pause
+  exit /b 1
+)
 
 echo.
-echo --- Aguardando builds e submetendo TestFlight + Play ---
-python scripts\wait_and_submit_eas.py wait-submit --ids-file builds-1.0.50.ids.json
-if errorlevel 1 ( pause & exit /b 1 )
-
-echo.
-echo ============================================================
-echo   CONCLUÍDO — ver NOTAS-1.0.50-PLAY.txt para Railway
-echo ============================================================
-start "" notepad "%~dp0marketing\NOTAS-1.0.50-PLAY.txt"
-start "" notepad "%~dp0VOCE-SO-FAZ-ISTO-1.0.50.txt"
+start "" notepad "%~dp0RAILWAY-VARS-1.0.50.txt"
+start "" notepad "%~dp0RELEASE-1.0.50-DONE.txt"
+start "" notepad "%~dp0supabase\SUPABASE-REDIRECT-RESET-SENHA.txt"
 pause

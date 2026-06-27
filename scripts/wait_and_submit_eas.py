@@ -193,7 +193,10 @@ def sync_check() -> None:
         )
         n_ahead = int((ahead.stdout or "0").strip() or "0")
         if n_ahead > 0:
-            print(f"AVISO: você tem {n_ahead} commit(s) local não enviados — faça push antes do build.")
+            raise SystemExit(
+                f"main tem {n_ahead} commit(s) nao enviados. "
+                "Rode: python scripts/release_auto.py (faz push) ou git push origin main"
+            )
 
     dirty = subprocess.run(
         ["git", "status", "--porcelain", "app/", "ego_api/", "flask_api.py", "scripts/"],

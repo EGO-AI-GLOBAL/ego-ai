@@ -1,40 +1,30 @@
-EGO-AI 1.0.50 — AMANHÃ SÓ ISTO
-==============================
+EGO-AI 1.0.50 — AMANHÃ (100% AUTOMÁTICO)
+=========================================
 
-HOJE (1 vez, 5 min)
--------------------
-1. Duplo clique: ABRIR-SUPABASE-RESET-SENHA.bat
-   → Adicionar as 2 Redirect URLs no Supabase
-
-2. Push já no main → Railway redeploy automático da API
-
-AMANHÃ — BUILD AUTOMÁTICA (1 clique)
-------------------------------------
+UM CLIQUE
+---------
 Duplo clique: AMANHA-1.0.50.bat
 
-O script faz sozinho:
-  • regression_guard + smoke_test
-  • sync-check EAS
-  • enfileira iOS build 38 + Android 89
-  • espera builds prontos
-  • submete TestFlight + Play
+O script faz TUDO sozinho:
+  1. Confere pacote 1.0.50 completo (senha + avatares + sessão)
+  2. git push origin main
+  3. regression_guard + smoke_test
+  4. EAS iOS 38 + Android 89
+  5. Espera builds + submete TestFlight + Play
+  6. Grava RAILWAY-VARS-1.0.50.txt e RELEASE-1.0.50-DONE.txt
 
-DEPOIS DA LOJA (Railway)
-------------------------
-EGO_LATEST_APP_VERSION=1.0.50
-EGO_LATEST_ANDROID_VERSION_CODE=89
-EGO_APP_UPDATE_MESSAGE=1.0.50: Recuperar senha + ficar logado ao reabrir. Avatares só escuta. Toque em Atualizar agora.
-
-EGO_MAINTENANCE=0
-
-VALIDAR NO IPHONE (antes de avisar testadores)
+ÚNICO PASSO MANUAL (1x, antes ou no mesmo dia)
 ----------------------------------------------
-Duplo clique: VALIDAR-1.0.50.bat
+Supabase → Authentication → Redirect URLs:
+  https://ego-ai-production-a2c2.up.railway.app/auth/reset-password
+  egoai://reset-password
 
-Prioridade:
-  [ ] Login → fechar app → reabrir → entra direto (sessão)
-  [ ] Esqueci a senha → e-mail → nova senha → entrar
+Sem isto o e-mail «Esqueci a senha» não abre a página certa.
+
+DEPOIS DA LOJA
+--------------
+Colar variáveis de RAILWAY-VARS-1.0.50.txt no Railway.
 
 TESTADORES
 ----------
-«Atualizem para 1.0.50. Ficam logados ao reabrir o app. Esqueci a senha: peçam novo link se o antigo expirou.»
+«Atualizem 1.0.50. Esqueci a senha: peçam novo link no app.»
