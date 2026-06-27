@@ -19,7 +19,7 @@ VALIDAÇÃO
 [x] smoke_test_api.py OK
 [x] security_production_check.py OK
 
-Commit: (preencher após push)
+Commit: bd6ff06
 Ficheiros: app/src/security/playIntegrity.ts, ego_api/integrity_guard.py
 
-✅ SEGURANÇA PRONTO — commit ______ — playIntegrity timeout + integrity monitor skip
+✅ SEGURANÇA PRONTO — commit bd6ff06 — playIntegrity timeout + integrity monitor skip
