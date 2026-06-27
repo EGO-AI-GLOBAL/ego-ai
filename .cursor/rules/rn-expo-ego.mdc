@@ -35,6 +35,31 @@ Ler **`AGENTS.md`** antes de editar. Regra **não regredir**: `.cursor/rules/nao
 - Push: `expo-notifications`
 - Play Integrity Android: `app/src/security/playIntegrity.ts`
 - Timezone: `deviceTimezonePayload()` em **todo** POST chat/voz
+- Imagens anexo: `expo-image-picker` (chat)
+- `newArchEnabled: false` em `app.config.ts` — não ligar sem teste EAS
+
+## Storage local
+
+| Dado | Onde |
+|------|------|
+| access_token, refresh | `sessionStorage.ts` → SecureStore (nativo) |
+| recovery tokens | `passwordRecovery.ts` |
+| prefs UI (voz auto-play, banner) | `app/src/storage/*` → AsyncStorage |
+| telefone pós-signup | `saveLocalProfilePhone` |
+
+Nunca tokens em AsyncStorage; nunca `localStorage` em ecrãs nativos.
+
+## Componentes a reutilizar
+
+Antes de criar UI nova: `ScreenShell`, `AppGradientBackground`, `Card`, `SectionTitle`, `MenuButton`.
+
+## Checklist feature UI
+
+1. Rota em `app/app/` + lógica em `app/src/components/` ou hook
+2. `useColors()` + `StyleSheet.create` no fim do ficheiro
+3. `accessibilityLabel` em botões só com ícone
+4. API nova → export em `client.ts`
+5. Mesmo PR para Android **e** iOS
 
 ## Build / release
 

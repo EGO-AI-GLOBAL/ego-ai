@@ -10,20 +10,24 @@ alwaysApply: false
 
 - `View`, `Text`, `Pressable`, `ScrollView`, `StyleSheet` de `react-native`
 - `Platform.OS` quando Android ≠ iOS (banner update, voz, ficheiros)
-- `react-native-safe-area-context` para insets
-- Cores: `useColors()` de `@/theme/ThemeContext` — não hex solto
+- `SafeAreaView` e `useSafeAreaInsets` de **`react-native-safe-area-context`** (não o SafeAreaView de `react-native`)
+- Teclado: `KeyboardAvoidingView` com `behavior={Platform.OS === "ios" ? "padding" : undefined}`
+- Cores: `useColors()` de `@/theme/ThemeContext` — tokens em `theme/colors.ts`, não hex no JSX
+- Avatares/assets: `Image` / `Video` de `react-native` + ficheiros em `app/assets/`
 
 ## Proibido
 
 - Tags HTML: `div`, `span`, `p`, `button`, `img`
-- APIs web: `window`, `document`, `localStorage`, `sessionStorage` (excepto ficheiros `*.web.ts`)
-- CSS / Tailwind / styled-components — o projecto usa **StyleSheet + theme**
-- `framer-motion` — animações nativas se necessário (`react-native-reanimated` já no stack)
+- APIs web em ecrãs novos: `window`, `document`, `localStorage` (exceção: utils web existentes como `openaiRealtime*.ts`, `*.web.ts`)
+- CSS / Tailwind / NativeWind / styled-components — **StyleSheet + theme**
+- `framer-motion` — `Animated` / Reanimated só se o ecrã vizinho já usar
+- Instalar Zustand, Redux, React Query sem pedido explícito
 
 ## Listas
 
 - Listas curtas: `ScrollView` + `map`
-- Listas longas no chat: padrão existente em `chat.tsx` — não trocar para FlatList sem pedido
+- Listas longas no chat: padrão existente em `chat.tsx` — não trocar sem pedido
+- Lista nova com 50+ itens: considerar `@shopify/flash-list`; não refatorar listas estáveis
 
 ## Imports
 
