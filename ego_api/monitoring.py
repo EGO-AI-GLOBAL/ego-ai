@@ -12,6 +12,7 @@ from typing import Any
 
 _LOG = logging.getLogger("ego.monitoring")
 _sentry_ready = False
+_sentry_init_error = ""
 
 
 def sentry_enabled() -> bool:
@@ -19,9 +20,10 @@ def sentry_enabled() -> bool:
 
 
 def init_sentry() -> bool:
-    global _sentry_ready
-    dsn = (os.getenv("SENTRY_DSN") or "").strip()
+    global _sentry_ready, _sentry_init_error
+    dsn = (os.getenv("SENTRY_DSN") or "").strip().strip('"').strip("'")
     if not dsn:
+        _sentry_init_error = "SENTRY_DSN vazio"
         return False
     try:
         import sentry_sdk
@@ -44,8 +46,10 @@ def init_sentry() -> bool:
             send_default_pii=False,
         )
         _sentry_ready = True
+        _sentry_init_error = ""
         return True
     except Exception as exc:  # noqa: BLE001
+        _sentry_init_error = str(exc)[:200]
         _LOG.warning("Sentry não iniciou: %s", exc)
         return False
 
@@ -188,10 +192,14 @@ def log_api_exception(exc: BaseException, *, route: str = "") -> None:
 
 
 def monitoring_status() -> dict[str, Any]:
-    return {
+    dsn_set = sentry_enabled()
+    out: dict[str, Any] = {
         "sentry": _sentry_ready,
-        "sentry_dsn_set": sentry_enabled(),
+        "sentry_dsn_set": dsn_set,
         "alert_webhook_set": bool((os.getenv("ERROR_ALERT_WEBHOOK_URL") or "").strip()),
         "error_reports_table": "error_reports",
         "ts": datetime.now(timezone.utc).isoformat(),
     }
+    if dsn_set and not _sentry_ready and _sentry_init_error:
+        out["sentry_init_error"] = _sentry_init_error
+    return out

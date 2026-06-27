@@ -61,13 +61,14 @@ except ImportError:
 app = Flask(__name__)
 from ego_api.monitoring import init_sentry, register_flask_handlers  # noqa: E402
 
-init_sentry()
+_sentry_boot = init_sentry()
 register_flask_handlers(app)
 _sb_boot = supabase_env_status()
 print(
     "EGO_BOOT",
     f"service={os.getenv('RAILWAY_SERVICE_NAME', '?')}",
     f"env={os.getenv('RAILWAY_ENVIRONMENT', '?')}",
+    f"sentry={_sentry_boot}",
     f"url_set={_sb_boot.get('url_set')}",
     f"key_set={_sb_boot.get('key_set')}",
     f"key_len={_sb_boot.get('key_len')}",
