@@ -11,6 +11,10 @@ SESSÃO
 [ ] Login → fechar app → reabrir → entra direto
 [ ] Chat «oi» + voz smoke
 
+CADASTRO
+[ ] Criar conta nova com telefone → NÃO pede telefone de novo
+[ ] Conta antiga sem telefone → ainda pede em «Complete cadastro» (ok)
+
 AVATARES
 [ ] «Marca dentista amanhã» → NÃO oferece agendar; redireciona Agenda ou escuta
 [ ] Conversa normal → só acolhimento, sem «quer que eu agende?»

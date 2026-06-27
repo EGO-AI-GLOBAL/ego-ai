@@ -21,6 +21,7 @@ import {
   signup as apiSignup,
 } from "@/api/client";
 import type { AuthSession } from "@/api/types";
+import { saveLocalProfilePhone } from "@/storage/profilePhoneLocal";
 import {
   deleteSecureItem,
   getSecureItem,
@@ -167,6 +168,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const s = await apiSignup(email, password, fullName, phone, referralCode);
       if (s?.access_token) {
         await persist(s);
+        const uid = s.user?.id?.trim();
+        const ph = phone?.trim();
+        if (uid && ph) {
+          await saveLocalProfilePhone(uid, ph);
+        }
         void preparePlayIntegrity();
         return { needsEmailConfirm: false };
       }

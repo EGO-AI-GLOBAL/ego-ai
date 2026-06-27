@@ -32,6 +32,7 @@ REQUIRED_SNIPPETS: list[tuple[str, str]] = [
     ("flask_api.py", '/auth/reset-password'),
     ("ego_api/gemini.py", "melhor psicólogo"),
     ("app/app.config.ts", 'version: "1.0.50"'),
+    ("app/src/context/AuthContext.tsx", "saveLocalProfilePhone"),
 ]
 
 
@@ -122,6 +123,7 @@ Incluído 100%:
 • Recuperar senha (web + app + API)
 • Avatares só escuta (sem agendar no chat)
 • Sessão persistente ao reabrir app
+• Cadastro: telefone não repete para contas novas
 • Rituais 8h/14h/21h alinhados
 
 Próximo: Railway vars em RAILWAY-VARS-{version}.txt (após loja)

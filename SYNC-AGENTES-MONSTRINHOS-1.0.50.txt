@@ -4,7 +4,7 @@ Estado: ✅ PRONTO
 
 Zona: app.config 1.0.50 + build EAS
 • version 1.0.50 · iOS build 38 · Android versionCode 89
-• reset-password.tsx + deep link + sessionRefresh
+• reset-password.tsx + deep link + sessionRefresh + saveLocalProfilePhone no signup
 
 ÚNICO que corre: AMANHA-1.0.50.bat
 

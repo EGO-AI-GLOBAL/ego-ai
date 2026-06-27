@@ -17,6 +17,7 @@ O que entra
 -----------
 • Recuperar senha: e-mail → página web → nova senha → entrar no app
 • Sessão persiste ao fechar e reabrir o app (iPhone + Android)
+• Cadastro: telefone só uma vez (não repete para contas novas)
 • Avatares: só escuta clínica (sem agendar no chat)
 • Rituais 8h/14h/21h alinhados com agenda manual
 

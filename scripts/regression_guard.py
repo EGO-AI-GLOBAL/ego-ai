@@ -120,7 +120,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/context/AuthContext.tsx",
-        ["refreshSessionToken", "saveSecureItem", "STORAGE_KEY", "sessionNeedsRefresh"],
+        ["refreshSessionToken", "saveSecureItem", "STORAGE_KEY", "sessionNeedsRefresh", "saveLocalProfilePhone"],
     ),
     (
         "app/src/hooks/useVoiceChat.ts",

@@ -13,6 +13,9 @@ SESSÃO PERSISTENTE (iPhone + Android)
 • Fechar e reabrir o app mantém login (sem pedir senha de novo)
 • Refresh automático ao voltar ao app
 
+CADASTRO — TELEFONE
+• Quem cria conta com telefone não pede telefone de novo (só contas antigas)
+
 AVATARES — SÓ ESCUTA
 • Os 12 avatares deixam de pedir para agendar no chat
 • Foco em acolhimento e apoio emocional (agenda só manual)
@@ -32,6 +35,7 @@ TEXTO MÉDIO — «O que há de novo»
 --------------------------------
 • Esqueci a senha: link do e-mail → nova senha → entrar no app
 • Sessão: fechar e reabrir o app sem pedir login de novo
+• Cadastro: telefone pedido só uma vez (contas novas)
 • Chat: avatares não marcam mais compromissos (só escutam)
 • Rituais diários alinhados com agenda manual
 • Correções e estabilidade

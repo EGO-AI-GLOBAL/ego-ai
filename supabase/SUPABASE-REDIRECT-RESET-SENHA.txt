@@ -1,8 +1,24 @@
--- Cole no Supabase → Authentication → URL Configuration → Redirect URLs
--- (não é SQL — só referência; adicionar manualmente no painel)
+╔══════════════════════════════════════════════════════════════╗
+║  NÃO COLE ISTO NO SQL EDITOR — NÃO É SQL                    ║
+║  É configuração manual no painel do Supabase (cliques)        ║
+╚══════════════════════════════════════════════════════════════╝
 
-https://ego-ai-production-a2c2.up.railway.app/auth/reset-password
-egoai://reset-password
+PASSO A PASSO
+-------------
+1. Abra: https://supabase.com/dashboard
+2. Entre no projeto EGO-AI
+3. Menu esquerdo: Authentication
+4. Submenu: URL Configuration
+5. Secção: Redirect URLs
+6. Clique em "Add URL" (ou "+") e cole CADA linha abaixo (uma de cada vez):
 
--- Site URL pode ficar: https://ego-ai-production-a2c2.up.railway.app
--- Sem isto o link «Esqueci a senha» não abre a página de nova senha.
+   https://ego-ai-production-a2c2.up.railway.app/auth/reset-password
+
+   egoai://reset-password
+
+7. Clique Save
+
+Site URL (pode ficar como está ou usar):
+   https://ego-ai-production-a2c2.up.railway.app
+
+Sem isto o e-mail «Esqueci a senha» não abre a página certa.
