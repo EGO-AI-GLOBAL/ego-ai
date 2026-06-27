@@ -1,0 +1,38 @@
+EGO-AI — POST AMANHÃ (28/06) · REEL 7 · ORGÂNICO · SEM TURBINAR
+==================================================================
+
+VÍDEO (já gerado)
+-----------------
+marketing\videos\app-real\ego-ai-carga-mental-reels.mp4
+
+Regenerar: duplo clique GERAR-REEL-7.bat
+
+Hook: carga mental · "EU sou o lembrete de todo mundo" (dor NOVA — par com Reel 6)
+
+Guia completo: marketing/POST-REEL-7.txt
+
+---
+
+PASSO A PASSO (10 min)
+----------------------
+1. CapCut → Importar o MP4 acima
+2. Áudio → música calma → volume 12–15%
+3. Exportar 1080p · 9:16
+4. Instagram Reels → colar LEGENDA de POST-REEL-7.txt
+5. Comentário FIXADO (POST-REEL-7.txt)
+6. Story: "Você é o lembrete de todo mundo?" → Sim / Não + link egoai.com.br
+7. NÃO turbinar (teste orgânico)
+
+---
+
+DIA 3 (29/06 ~12h)
+------------------
+Rodar SQL e decidir vencedor → marketing/DECISAO-REEL-6-7.txt
+
+---
+
+NÃO FAZER
+---------
+❌ Turbinar Reel 7 antes do SQL dia 3
+❌ Repostar Reel 6 no feed (já foi ontem)
+❌ Misturar com campanha testadores Android (canal separado)

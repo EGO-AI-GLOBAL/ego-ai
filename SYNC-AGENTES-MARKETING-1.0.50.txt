@@ -1,14 +1,26 @@
 AGENTE MARKETING — BUILD 1.0.50
 ================================
-Estado: ✅ PRONTO
+Estado: ✅ PRONTO — 2026-06-27
 
-Zona: notas loja + validação testadores
+Zona: notas loja + validação testadores + orgânico Reels
+--------------------------------------------------------
 • marketing/NOTAS-1.0.50-PLAY.txt
 • marketing/VALIDAR-1.0.50.txt
+• marketing/MENSAGEM-TESTADORES-1.0.50.txt
 • VOCE-SO-FAZ-ISTO-1.0.50.txt
+
+Campanha orgânica Reel 6 vs 7 (27–29/06)
+-----------------------------------------
+• marketing/TESTE-DOR-NOVA-6-7.txt
+• marketing/POST-REEL-6.txt · POST-REEL-7.txt
+• marketing/POST-HOJE-COMPLETO.txt · POST-AMANHA-28-06.txt
+• marketing/DECISAO-REEL-6-7.txt
+• marketing/MARKETING-AGORA.txt · LANCAMENTO-STATUS.txt
+• marketing/CRESCIMENTO-APP.md
 
 Mensagem testadores: «1.0.50: ficam logados ao reabrir + recuperar senha corrigido»
 
-GIT: 82efa8c
+GIT build docs: 82efa8c
+GIT operacional: (commit desta sessão — marketing/ only)
 
-✅ MARKETING PRONTO — 82efa8c
+✅ MARKETING PRONTO — build 1.0.50 + campanha Reel 6/7

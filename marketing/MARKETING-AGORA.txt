@@ -1,0 +1,53 @@
+MARKETING — O QUE ESTÁ RODANDO (agente cuida)
+=============================================
+Atualizado: 27/06/2026
+
+BUILD 1.0.50 — PRONTO (docs marketing)
+--------------------------------------
+[x] NOTAS-1.0.50-PLAY.txt · VALIDAR-1.0.50.txt
+[x] MENSAGEM-TESTADORES-1.0.50.txt (enviar após loja)
+[ ] Supabase Redirect URLs (VOCE-SO-FAZ-ISTO-1.0.50.txt)
+[ ] AMANHA-1.0.50.bat → Monstrinhos sobe build
+[ ] Railway vars após loja (NOTAS-1.0.50-PLAY.txt)
+
+TESTE ORGÂNICO — REEL 6 vs 7 (NOVA DOR)
+---------------------------------------
+| Dia | Ação | Ficheiro |
+|-----|------|----------|
+| **27/06 (hoje)** | Post Reel 6 solidão 3h | POST-HOJE-COMPLETO.txt |
+| **28/06** | Post Reel 7 carga mental | POST-AMANHA-28-06.txt |
+| **29/06 ~12h** | SQL + decidir vencedor | DECISAO-REEL-6-7.txt |
+
+Regra: NÃO turbinar 6 nem 7 até SQL dia 3.
+Guia: marketing/TESTE-DOR-NOVA-6-7.txt
+
+CANAL SEPARADO
+--------------
+WhatsApp testadores Android → REPOST-TESTADORES-ANDROID.txt (não misturar com Reels 6/7)
+
+CRESCIMENTO DIÁRIO
+------------------
+SQL: supabase/CRESCIMENTO-DIARIO.sql → anotar em CRESCIMENTO-APP.md
+Baseline 25/06: perfis_total 28 · cadastros_7d 5 · chat_7d 5
+
+BIO / FIXADO
+------------
+Bio Instagram + TikTok → https://egoai.com.br
+Comentário fixado em todo Reel → https://egoai.com.br
+
+ROTINA
+------
+Seg/Qua/Sex: Reel novo ou repost do vencedor
+Todo dia: responder comentários em 2h
+Story: enquete ligada ao hook do Reel
+
+NÃO FAZER AGORA
+---------------
+• Turbinar Reel 6/7 antes do SQL 29/06
+• Repostar Reel 2/3/4/5 no feed
+• Mudar bio para links soltos Play/TestFlight (site primeiro)
+
+REFERÊNCIAS
+-----------
+Plano completo: marketing/PLANO-ACAO-AGORA.txt
+Build sync: SYNC-AGENTES-MARKETING-1.0.50.txt

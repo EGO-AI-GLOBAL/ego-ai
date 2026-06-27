@@ -1,0 +1,54 @@
+EGO-AI — TESTE DOR NOVA (Reel 6 vs 7) · orgânico · sem ads
+=============================================================
+
+Duas dores NOVAS — nunca testadas em ads:
+
+| Reel | Dor | Arquivo MP4 |
+|------|-----|-------------|
+| **6** | Solidão 3h · ninguém online | ego-ai-3h-solidao-reels.mp4 |
+| **7** | Carga mental · lembrete da família | ego-ai-carga-mental-reels.mp4 |
+
+Gerar: GERAR-REEL-6.bat · GERAR-REEL-7.bat
+
+---
+
+CRONOGRAMA (3 dias)
+-------------------
+
+**Hoje** — posta Reel **6** (3h solidão)
+  POST: marketing/POST-REEL-6.txt
+  Story: "Já ficou acordada com a cabeça cheia?" Sim/Não
+
+**Amanhã** — posta Reel **7** (carga mental)
+  POST: marketing/POST-REEL-7.txt
+  Story: "Você é o lembrete de todo mundo?" Sim/Não
+
+**Dia 3** — roda SQL + compara:
+  supabase/CRESCIMENTO-DIARIO.sql
+
+Anotar:
+  perfis_total subiu?
+  alguém mandou "oi" ou usou voz?
+  qual Reel teve mais comentários/DMs?
+
+---
+
+MÉTRICA QUE IMPORTA (não é view)
+---------------------------------
+✅ Cadastro + login + "oi" no chat em 48h
+❌ Só clique no link
+
+---
+
+REGRAS
+------
+• NÃO turbinar nenhum dos dois até ver SQL dia 3
+• NÃO repostar Reel 2/3/4/5/Testadores no feed
+• WhatsApp testadores Android = canal separado (REPOST-TESTADORES)
+
+---
+
+VENCEDOR
+--------
+O Reel que trouxer **cadastro + oi** ganha o próximo R$ 25 (se voltar ads).
+Se os dois falharem → micro-influencer mãe/rotina (PLANO-ACAO-AGORA.txt)

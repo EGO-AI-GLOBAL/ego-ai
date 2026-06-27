@@ -1,0 +1,39 @@
+EGO-AI — DECISÃO REEL 6 vs 7 (dia 3 · ~29/06)
+================================================
+
+RODAR SQL
+---------
+Supabase → SQL Editor → colar supabase/CRESCIMENTO-DIARIO.sql → RUN
+Anotar em marketing/CRESCIMENTO-APP.md
+
+---
+
+COMPARAR (qual Reel performou melhor?)
+--------------------------------------
+
+| Critério | Reel 6 (solidão 3h) | Reel 7 (carga mental) |
+|----------|---------------------|------------------------|
+| Data post | 27/06 | 28/06 |
+| Views / alcance (IG) | | |
+| Comentários + DMs | | |
+| perfis_total Δ (SQL) | | |
+| cadastros_hoje pós-post | | |
+| Alguém mandou "oi" / voz? | | |
+
+Regra: vence quem trouxer **cadastro + login + oi no chat** — não só clique.
+
+---
+
+DECISÃO (marcar uma)
+--------------------
+
+[ ] **Reel 6 vence** → turbinar R$ 25 com meta visitas ao site (TURBINAR-REEL-SITE.txt)
+[ ] **Reel 7 vence** → idem
+[ ] **Empate fraco** (0–1 cadastro) → micro-influencer mãe/rotina (PLANO-ACAO-AGORA.txt)
+[ ] **Ambos fracos** → pausar ads; focar testadores Android + build 1.0.50
+
+---
+
+PRÓXIMO REEL (se vencedor claro)
+--------------------------------
+Variante do ângulo vencedor · ~10s · orgânico 48h → depois R$ 25 site

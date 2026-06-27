@@ -1,0 +1,49 @@
+EGO-AI — POST DE HOJE (27/06) · REEL 6 · ORGÂNICO · SEM TURBINAR
+==================================================================
+
+VÍDEO (já gerado)
+-----------------
+marketing\videos\app-real\ego-ai-3h-solidao-reels.mp4
+
+Regenerar: duplo clique GERAR-REEL-6.bat
+
+Hook: 3h da manhã · ninguém online · desabafo sem julgar (dor NOVA — solidão)
+
+Guia completo: marketing/POST-REEL-6.txt
+
+---
+
+PASSO A PASSO (10 min)
+----------------------
+1. CapCut → Importar o MP4 acima
+2. Áudio → música calma → volume 12–15%
+3. Exportar 1080p · 9:16
+4. Instagram Reels → colar LEGENDA de POST-REEL-6.txt
+5. Comentário FIXADO (POST-REEL-6.txt)
+6. Story: "Já ficou acordada com a cabeça cheia?" → Sim / Não + link egoai.com.br
+7. NÃO turbinar (teste orgânico — ver TESTE-DOR-NOVA-6-7.txt)
+
+---
+
+AMANHÃ (28/06)
+--------------
+Reel 7 carga mental → marketing/POST-AMANHA-28-06.txt
+
+DIA 3 (29/06 ~12h)
+------------------
+SQL + comparar Reel 6 vs 7 → marketing/DECISAO-REEL-6-7.txt
+
+---
+
+NÃO FAZER HOJE
+--------------
+❌ Turbinar Reel 6
+❌ Repostar Reel 2/3/4/5/Testadores no feed
+❌ Dois Reels no mesmo dia (só o 6 hoje)
+
+---
+
+MÉTRICA (anotar amanhã ~12h)
+----------------------------
+SQL: supabase/CRESCIMENTO-DIARIO.sql → marketing/CRESCIMENTO-APP.md
+Meta: cadastro + login + "oi" no chat (não só clique no link)

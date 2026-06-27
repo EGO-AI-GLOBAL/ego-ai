@@ -1,0 +1,40 @@
+EGO-AI 1.0.50 — mensagem WhatsApp / grupo testadores
+======================================================
+
+ENVIAR DEPOIS da build 1.0.50 estar na loja (TestFlight + Play teste fechado)
+
+---
+
+VERSÃO CURTA (copiar)
+---------------------
+Oi pessoal! Atualizem o EGO-AI para a **1.0.50** 🙏
+
+• Fechar e reabrir o app → **continua logado**
+• Esqueci a senha → pedir novo link no app → e-mail → nova senha → entra sozinho
+• Avatares: só escuta (agenda só manual)
+
+iPhone: TestFlight · Android: link do teste fechado
+
+Qualquer bug me avisem. Obrigado! 💜
+
+---
+
+VERSÃO MÉDIA (se alguém perguntar detalhes)
+--------------------------------------------
+**1.0.50 — o que mudou:**
+
+1. **Sessão** — fechar e reabrir sem pedir senha de novo (iPhone + Android)
+2. **Recuperar senha** — link do e-mail abre página segura → nova senha → entra no app
+3. **Cadastro** — telefone pedido só uma vez (contas novas)
+4. **Chat** — avatares não agendam mais no chat; foco em escuta
+5. **Rituais 8h/14h/21h** — alinhados com agenda manual
+
+Checklist completo: marketing/VALIDAR-1.0.50.txt
+
+---
+
+LINKS
+-----
+Site: https://egoai.com.br
+iPhone: https://testflight.apple.com/join/eNDKdFWF
+Android: https://play.google.com/apps/testing/com.egoai.app
