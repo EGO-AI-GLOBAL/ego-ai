@@ -257,6 +257,7 @@ export function ChatComposer({
         </View>
       </View>
       </View>
+      </View>
 
       {voiceUiActive ? (
         <Text style={[styles.recordingHint, { color: colors.primary }]}>
