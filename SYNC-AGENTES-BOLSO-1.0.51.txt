@@ -1,0 +1,32 @@
+AGENTE EGO DE BOLSO — BUILD 1.0.51
+====================================
+
+Estado: ✅ PRONTO — commit (ver git log)
+
+Zona: Bolso Dia 4 — push 10h «Faltam X/5 missões» (máx. 2/dia com 18h)
+Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
+
+═══════════════════════════════════════════════════════════════════
+DIA 4 — PROGRAMACAO-EGO-BOLSO-V2.md
+═══════════════════════════════════════════════════════════════════
+
+[x] ego_api/ego_de_bolso_push.py — MORNING_HOUR=10, copy «Faltam X/5 missões»
+[x] Chave ui_state ego_de_bolso_push_morning_date (server-only)
+[x] Job horário processa 10h + 18h (máx. 2 push/dia)
+[x] Admin cron slot=morning|care|all
+[x] WellnessJourneyCard — texto lembretes 10h e 18h
+
+Testar: utilizador com 0/5 missões → push 10h «Faltam 5/5» · 18h mantém copy actual
+
+GIT CHECK
+---------
+[x] regression_guard.py + smoke_test_api.py OK
+[x] push origin main
+
+BUILD
+-----
+Este agente NÃO corre GERAR/EAS — agente Monstrinhos sobe 1.0.51.
+
+MENSAGEM
+--------
+✅ BOLSO PRONTO — push 10h missões + 18h cuidado (2/dia máx.)

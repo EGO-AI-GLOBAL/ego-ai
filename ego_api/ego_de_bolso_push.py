@@ -1,4 +1,4 @@
-"""Push diário 18h — EGO de Bolso com missão pendente (Expo Push API)."""
+"""Push EGO de Bolso — 10h (missões pendentes) e 18h (cuidado) via Expo Push API."""
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import datetime
 import logging
 import threading
 import time
-from typing import Any
+from typing import Any, Callable
 
 from ego_api import db
 from ego_api.config import read_env
@@ -25,7 +25,10 @@ except ImportError:
     from supabase import Client  # type: ignore[assignment]
 
 _LOG = logging.getLogger(__name__)
+MORNING_HOUR = 10
 CARE_HOUR = 18
+MORNING_PUSH_DATE_KEY = "ego_de_bolso_push_morning_date"
+CARE_PUSH_DATE_KEY = "ego_de_bolso_push_date"
 
 
 def ego_de_bolso_push_enabled() -> bool:
@@ -40,7 +43,9 @@ def ego_de_bolso_push_enabled() -> bool:
 def ego_de_bolso_push_status() -> dict[str, Any]:
     return {
         "enabled": ego_de_bolso_push_enabled(),
+        "morning_hour_local": MORNING_HOUR,
         "care_hour_local": CARE_HOUR,
+        "max_pushes_per_day": 2,
     }
 
 
@@ -150,11 +155,23 @@ def resolve_care_screen(journey: dict[str, Any]) -> str:
     return "chat"
 
 
+def _missions_remaining(journey: dict[str, Any]) -> int:
+    per_day = max(1, int(journey.get("missions_per_day") or 5))
+    today = max(0, int(journey.get("missions_today") or 0))
+    return max(0, per_day - today)
+
+
 def companion_needs_care(journey: dict[str, Any]) -> bool:
     if journey.get("mission_done_today") or journey.get("journey_finished"):
         return False
     pending = [s for s in (journey.get("steps") or []) if not s.get("done")]
     return bool(pending) or not journey.get("level_complete")
+
+
+def companion_has_morning_nudge(journey: dict[str, Any]) -> bool:
+    if journey.get("mission_done_today") or journey.get("journey_finished"):
+        return False
+    return _missions_remaining(journey) > 0
 
 
 def _sanitize_companion_name(raw: object) -> str:
@@ -165,11 +182,27 @@ def _sanitize_companion_name(raw: object) -> str:
     return name[:24]
 
 
+def _companion_stage_label(journey: dict[str, Any], *, companion_name: str = "") -> str:
+    custom = _sanitize_companion_name(companion_name or journey.get("companion_name"))
+    return custom or str(journey.get("companion_stage_label") or "EGO de Bolso").strip()
+
+
+def morning_notification_copy(
+    journey: dict[str, Any], *, companion_name: str = ""
+) -> tuple[str, str, str]:
+    stage = _companion_stage_label(journey, companion_name=companion_name)
+    per_day = max(1, int(journey.get("missions_per_day") or 5))
+    remaining = _missions_remaining(journey)
+    screen = resolve_care_screen(journey)
+    title = f"{stage} — bom dia! 🌅"
+    body = f"Faltam {remaining}/{per_day} missões hoje"
+    return title, body, screen
+
+
 def notification_copy(
     journey: dict[str, Any], *, companion_name: str = ""
 ) -> tuple[str, str, str]:
-    custom = _sanitize_companion_name(companion_name or journey.get("companion_name"))
-    stage = custom or str(journey.get("companion_stage_label") or "EGO de Bolso").strip()
+    stage = _companion_stage_label(journey, companion_name=companion_name)
     task = str(journey.get("today_task") or "Complete a missão de hoje").strip()
     screen = resolve_care_screen(journey)
     title = f"{stage} precisa de você 🥚"
@@ -192,34 +225,63 @@ def _bind_user_session(user_id: str, ui: dict[str, Any]) -> None:
     )
 
 
-def _should_send_now(ui: dict[str, Any]) -> tuple[bool, str]:
+def _should_send_slot(
+    ui: dict[str, Any], *, hour: int, date_key: str
+) -> tuple[bool, str]:
     if not _rituals_enabled(ui):
         return False, "rituals_off"
     if not _valid_expo_token(ui):
         return False, "no_token"
     local = _local_now_from_ui(ui)
-    if local.hour != CARE_HOUR:
-        return False, "not_care_hour"
+    if local.hour != hour:
+        return False, "not_push_hour"
     today = local.strftime("%Y-%m-%d")
-    if str(ui.get("ego_de_bolso_push_date") or "").strip() == today:
+    if str(ui.get(date_key) or "").strip() == today:
         return False, "already_sent"
     return True, ""
 
 
-def process_ego_de_bolso_care_pushes(
-    *,
-    limit: int = 200,
-    active_days: int = 45,
-    force: bool = False,
-) -> dict[str, int]:
-    """Envia push às 18h (fuso do aparelho) a quem tem missão pendente."""
-    stats = {
+def _empty_push_stats() -> dict[str, int]:
+    return {
         "candidates": 0,
         "eligible": 0,
         "sent": 0,
         "skipped": 0,
         "failed": 0,
     }
+
+
+def _fetch_active_profiles(
+    svc: Client, *, limit: int, active_days: int
+) -> list[dict[str, Any]]:
+    since = (
+        datetime.datetime.now(datetime.timezone.utc)
+        - datetime.timedelta(days=max(1, active_days))
+    ).isoformat()
+    res = (
+        svc.table("profiles")
+        .select("id,ui_state,last_login_at")
+        .not_.is_("last_login_at", "null")
+        .gte("last_login_at", since)
+        .order("last_login_at", desc=True)
+        .limit(min(500, max(1, limit)))
+        .execute()
+    )
+    return list(res.data or [])
+
+
+def _process_push_slot(
+    *,
+    hour: int,
+    date_key: str,
+    slot: str,
+    journey_eligible: Callable[[dict[str, Any]], bool],
+    copy_fn: Callable[[dict[str, Any], str], tuple[str, str, str]],
+    limit: int = 200,
+    active_days: int = 45,
+    force: bool = False,
+) -> dict[str, int]:
+    stats = _empty_push_stats()
     if not ego_de_bolso_push_enabled():
         stats["skipped"] = 1
         return stats
@@ -231,27 +293,13 @@ def process_ego_de_bolso_care_pushes(
 
     from ego_api import wellness_journey
 
-    since = (
-        datetime.datetime.now(datetime.timezone.utc)
-        - datetime.timedelta(days=max(1, active_days))
-    ).isoformat()
-
     try:
-        res = (
-            svc.table("profiles")
-            .select("id,ui_state,last_login_at")
-            .not_.is_("last_login_at", "null")
-            .gte("last_login_at", since)
-            .order("last_login_at", desc=True)
-            .limit(min(500, max(1, limit)))
-            .execute()
-        )
+        rows = _fetch_active_profiles(svc, limit=limit, active_days=active_days)
     except Exception as exc:
-        _LOG.warning("ego_de_bolso_push query failed: %s", exc)
+        _LOG.warning("ego_de_bolso_push query failed (%s): %s", slot, exc)
         stats["failed"] = 1
         return stats
 
-    rows = res.data or []
     stats["candidates"] = len(rows)
 
     for row in rows:
@@ -260,7 +308,7 @@ def process_ego_de_bolso_care_pushes(
             stats["skipped"] += 1
             continue
         ui = _parse_ui_state(row.get("ui_state"))
-        ok, reason = _should_send_now(ui)
+        ok, _reason = _should_send_slot(ui, hour=hour, date_key=date_key)
         if not ok and not force:
             stats["skipped"] += 1
             continue
@@ -272,29 +320,27 @@ def process_ego_de_bolso_care_pushes(
             _bind_user_session(user_id, ui)
             plan_tier = str(ui.get("plan_tier") or "essential").strip() or "essential"
             journey = wellness_journey.get_journey(svc, user_id, plan_tier=plan_tier)
-            if not companion_needs_care(journey):
+            if not journey_eligible(journey):
                 stats["skipped"] += 1
                 continue
             stats["eligible"] += 1
-            title, body, screen = notification_copy(
-                journey,
-                companion_name=str(ui.get("ego_companion_name") or ""),
-            )
+            companion_name = str(ui.get("ego_companion_name") or "")
+            title, body, screen = copy_fn(journey, companion_name)
             sent = send_expo_push(
                 [_valid_expo_token(ui)],
                 title=title,
                 body=body,
-                data={"type": "ego_de_bolso", "screen": screen},
+                data={"type": "ego_de_bolso", "screen": screen, "slot": slot},
             )
             if sent > 0:
                 local_date = _local_now_from_ui(ui).strftime("%Y-%m-%d")
-                ui["ego_de_bolso_push_date"] = local_date
+                ui[date_key] = local_date
                 db.update_profile_fields(svc, user_id, {"ui_state": ui})
                 stats["sent"] += 1
             else:
                 stats["failed"] += 1
         except Exception as exc:
-            _LOG.warning("ego_de_bolso_push user=%s: %s", user_id, exc)
+            _LOG.warning("ego_de_bolso_push user=%s slot=%s: %s", user_id, slot, exc)
             stats["failed"] += 1
         finally:
             set_session(None)
@@ -302,8 +348,75 @@ def process_ego_de_bolso_care_pushes(
     return stats
 
 
+def _morning_copy_wrapper(
+    journey: dict[str, Any], companion_name: str
+) -> tuple[str, str, str]:
+    return morning_notification_copy(journey, companion_name=companion_name)
+
+
+def _care_copy_wrapper(
+    journey: dict[str, Any], companion_name: str
+) -> tuple[str, str, str]:
+    return notification_copy(journey, companion_name=companion_name)
+
+
+def process_ego_de_bolso_morning_pushes(
+    *,
+    limit: int = 200,
+    active_days: int = 45,
+    force: bool = False,
+) -> dict[str, int]:
+    """Envia push às 10h (fuso do aparelho): «Faltam X/5 missões»."""
+    return _process_push_slot(
+        hour=MORNING_HOUR,
+        date_key=MORNING_PUSH_DATE_KEY,
+        slot="morning",
+        journey_eligible=companion_has_morning_nudge,
+        copy_fn=_morning_copy_wrapper,
+        limit=limit,
+        active_days=active_days,
+        force=force,
+    )
+
+
+def process_ego_de_bolso_care_pushes(
+    *,
+    limit: int = 200,
+    active_days: int = 45,
+    force: bool = False,
+) -> dict[str, int]:
+    """Envia push às 18h (fuso do aparelho) a quem tem missão pendente."""
+    return _process_push_slot(
+        hour=CARE_HOUR,
+        date_key=CARE_PUSH_DATE_KEY,
+        slot="care",
+        journey_eligible=companion_needs_care,
+        copy_fn=_care_copy_wrapper,
+        limit=limit,
+        active_days=active_days,
+        force=force,
+    )
+
+
+def process_ego_de_bolso_pushes(
+    *,
+    limit: int = 200,
+    active_days: int = 45,
+    force: bool = False,
+) -> dict[str, dict[str, int]]:
+    """Processa os dois slots (máx. 2 push/dia por utilizador)."""
+    return {
+        "morning": process_ego_de_bolso_morning_pushes(
+            limit=limit, active_days=active_days, force=force
+        ),
+        "care": process_ego_de_bolso_care_pushes(
+            limit=limit, active_days=active_days, force=force
+        ),
+    }
+
+
 def start_background_jobs() -> None:
-    """Verifica de hora a hora quem está às 18h locais."""
+    """Verifica de hora a hora quem está às 10h ou 18h locais."""
     if not ego_de_bolso_push_enabled():
         _LOG.info("ego_de_bolso_push: desligado (EGO_BOLSO_PUSH_ENABLED=0)")
         return
@@ -312,9 +425,10 @@ def start_background_jobs() -> None:
         time.sleep(90)
         while True:
             try:
-                stats = process_ego_de_bolso_care_pushes()
-                if stats.get("sent"):
-                    _LOG.info("ego_de_bolso_push batch: %s", stats)
+                batch = process_ego_de_bolso_pushes()
+                sent = batch["morning"].get("sent", 0) + batch["care"].get("sent", 0)
+                if sent:
+                    _LOG.info("ego_de_bolso_push batch: %s", batch)
             except Exception as exc:
                 _LOG.warning("ego_de_bolso_push background loop: %s", exc)
             time.sleep(3600)
@@ -324,4 +438,8 @@ def start_background_jobs() -> None:
         daemon=True,
         name="ego-de-bolso-push-background",
     ).start()
-    _LOG.info("ego_de_bolso_push: job horário iniciado (18h fuso do aparelho)")
+    _LOG.info(
+        "ego_de_bolso_push: job horário iniciado (%sh e %sh fuso do aparelho)",
+        MORNING_HOUR,
+        CARE_HOUR,
+    )

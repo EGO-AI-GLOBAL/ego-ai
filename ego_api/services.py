@@ -1776,6 +1776,7 @@ UI_STATE_SERVER_ONLY_KEYS = frozenset(
         "team_seats",
         "monthly_tokens_used",
         "ego_de_bolso_push_date",
+        "ego_de_bolso_push_morning_date",
         "monthly_tokens_period",
     }
 )

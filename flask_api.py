@@ -637,8 +637,12 @@ def admin_cron_daily_stats():
 @app.post("/api/v1/admin/cron/ego-de-bolso-care")
 @require_admin
 def admin_cron_ego_de_bolso_care():
-    """Push 18h (fuso do aparelho): EGO de Bolso com missão pendente."""
-    from ego_api.ego_de_bolso_push import process_ego_de_bolso_care_pushes
+    """Push 10h/18h (fuso do aparelho): EGO de Bolso com missões pendentes."""
+    from ego_api.ego_de_bolso_push import (
+        process_ego_de_bolso_care_pushes,
+        process_ego_de_bolso_morning_pushes,
+        process_ego_de_bolso_pushes,
+    )
 
     data = request.get_json(silent=True) or {}
     try:
@@ -650,8 +654,17 @@ def admin_cron_ego_de_bolso_care():
         "true",
         "yes",
     )
-    stats = process_ego_de_bolso_care_pushes(limit=min(500, max(1, limit)), force=force)
-    return _json_ok({"ok": True, "stats": stats})
+    slot = str(data.get("slot") or request.args.get("slot") or "all").strip().lower()
+    capped = min(500, max(1, limit))
+    if slot == "morning":
+        stats = process_ego_de_bolso_morning_pushes(limit=capped, force=force)
+    elif slot in ("care", "evening", "18h"):
+        stats = process_ego_de_bolso_care_pushes(limit=capped, force=force)
+    elif slot == "all":
+        stats = process_ego_de_bolso_pushes(limit=capped, force=force)
+    else:
+        return _json_error("slot inválido — use morning, care ou all.", 400)
+    return _json_ok({"ok": True, "slot": slot, "stats": stats})
 
 
 @app.post("/api/v1/admin/referrals/partners")

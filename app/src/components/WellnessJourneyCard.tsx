@@ -42,7 +42,7 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }
     namePromptShown.current = true;
     Alert.alert(
       "Dê um nome ao bolso",
-      "Escolha um nome para o seu companheiro — aparece nas missões e no lembrete das 18h.",
+      "Escolha um nome para o seu companheiro — aparece nas missões e nos lembretes às 10h e 18h.",
       [{ text: "OK" }]
     );
   }, [journey]);

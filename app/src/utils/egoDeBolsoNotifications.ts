@@ -6,7 +6,7 @@ import { isDailyCheckInEnabled } from "@/storage/chatHints";
 
 const EGO_BOLSO_CARE_ID = "ego-de-bolso-care-18h";
 
-/** Preferências para push do servidor (18h) — cancela lembrete local antigo. */
+/** Preferências para push do servidor (10h + 18h) — cancela lembrete local antigo. */
 export async function syncEgoDeBolsoCareNotification(
   _journey?: WellnessJourney | null
 ): Promise<void> {

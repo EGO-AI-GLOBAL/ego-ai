@@ -182,7 +182,15 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/ego_de_bolso_push.py",
-        ["process_ego_de_bolso_care_pushes", "send_expo_push", "companion_needs_care", "CARE_HOUR"],
+        [
+            "process_ego_de_bolso_care_pushes",
+            "process_ego_de_bolso_morning_pushes",
+            "morning_notification_copy",
+            "send_expo_push",
+            "companion_needs_care",
+            "MORNING_HOUR",
+            "CARE_HOUR",
+        ],
     ),
     (
         "ego_api/download_go.py",
