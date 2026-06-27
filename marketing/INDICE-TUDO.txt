@@ -1,0 +1,141 @@
+EGO-AI — ÍNDICE COMPLETO MARKETING (vídeos + legendas + operação)
+===================================================================
+Atualizado: 27/06/2026 · Agente Marketing zona D
+
+COMO USAR
+---------
+1. Escolhe o vídeo na tabela abaixo
+2. Abre o POST-*.txt → copia TÍTULO + LEGENDA + COMENTÁRIO FIXADO
+3. CapCut (opcional): música 12–15% → exportar 1080p 9:16 → postar
+4. Comentário fixado: https://egoai.com.br (ou link Play no reel testadores)
+
+Atalhos .bat na raiz do projecto:
+  ABRIR-REELS-6-E-7.bat          → pasta Reel 6 + 7
+  ABRIR-REELS-POR-RESULTADO.bat  → ranking CSV
+  GERAR-REEL-*.bat               → regenerar MP4
+
+NOTA: MP4 ficam no PC (marketing/videos/) — não vão pro GitHub (ficheiros grandes).
+
+================================================================================
+LINKS OFICIAIS
+================================================================================
+
+Site:        https://egoai.com.br
+Android:     https://play.google.com/apps/testing/com.egoai.app  (teste fechado)
+iPhone:      https://testflight.apple.com/join/eNDKdFWF         (TestFlight)
+Privacidade: https://egoai.com.br/privacidade/
+Suporte:     contato@egoai.com.br
+
+Config site: marketing/brand/config.json
+
+================================================================================
+CRONOGRAMA ACTUAL (orgânico Reel 6 vs 7)
+================================================================================
+
+| Dia      | Acção              | Ficheiro guia                    |
+|----------|--------------------|----------------------------------|
+| 27/06    | Post Reel 6        | POST-HOJE-COMPLETO.txt           |
+| 28/06    | Post Reel 7        | POST-AMANHA-28-06.txt            |
+| 29/06    | SQL + vencedor     | DECISAO-REEL-6-7.txt             |
+
+Paralelo (canal separado): 12 testadores Android → REPOST-TESTADORES-ANDROID.txt
+
+Painel diário: MARKETING-AGORA.txt · CRESCIMENTO-APP.md · CRESCIMENTO-DIARIO.sql
+
+================================================================================
+REELS APP-REAL — PRINCIPAIS (vídeo + legenda + gerar)
+================================================================================
+
+# | Vídeo (MP4)                              | Hook / título                              | Legenda (POST)                    | JSON receita              | Gerar .bat
+--|------------------------------------------|--------------------------------------------|-----------------------------------|---------------------------|---------------------------
+6 | ego-ai-3h-solidao-reels.mp4            | 3h da manhã e ninguém online? 🌙           | POST-REEL-6.txt                   | REEL-ENTREGA-6-SOLIDAO    | GERAR-REEL-6.bat
+7 | ego-ai-carga-mental-reels.mp4          | EU sou o lembrete de todo mundo 😮‍💨       | POST-REEL-7.txt                   | REEL-ENTREGA-7-CARGA-MENTAL | GERAR-REEL-7.bat
+— | ego-ai-testadores-android-reels.mp4    | Quem tem Android — 5 min? 🙏             | POST-REEL-TESTADORES-ANDROID.txt  | REEL-TESTADORES-ANDROID   | GERAR-REEL-TESTADORES-ANDROID.bat
+5 | ego-ai-agenda-reel5-reels.mp4          | POV: desabafa à noite → agenda de manhã 🌙 | POST-REEL-5.txt                   | REEL-ENTREGA-5-AGENDA     | GERAR-REEL-5.bat
+4 | ego-ai-agenda-reel4-reels.mp4          | Chega de "viu?" no Zap 😤                  | POST-REEL-4.txt                   | REEL-ENTREGA-4-AGENDA     | GERAR-REEL-4.bat
+3 | ego-ai-agenda-reel3-reels.mp4          | Se lembra de tudo da casa… 😤              | POST-REEL-3.txt                   | REEL-ENTREGA-3-AGENDA     | GERAR-REEL-3.bat
+2 | ego-ai-agenda-retencao-reels.mp4       | Se lembra de tudo da casa… 😤              | POST-REEL-AGENDA.txt              | REEL-ENTREGA-AGENDA       | GERAR-REEL-AGENDA-TESTE.bat
+1 | ego-ai-1.0.42-retencao-reels.mp4       | Baixei app pro meu humor… 🥚               | POST-REEL-ENTREGA.txt             | REEL-ENTREGA.json         | GERAR-REEL-ENTREGA.bat
+
+Pasta vídeos: marketing/videos/app-real/
+
+================================================================================
+REELS APP-REAL — VERSÕES 1.0.39 / LEGADO (ranking em CSV)
+================================================================================
+
+Rank | Vídeo                              | Ângulo      | Legenda / guia              | Gerar .bat
+-----|------------------------------------|-------------|-----------------------------|---------------------------
+🥇 1 | ego-ai-agenda-reel3-reels.mp4      | Agenda      | POST-REEL-3.txt             | GERAR-REEL-3.bat
+🥈 2 | ego-ai-agenda-retencao-reels.mp4   | Agenda      | POST-REEL-AGENDA.txt        | GERAR-REEL-AGENDA-TESTE.bat
+🥉 3 | ego-ai-1.0.39-retencao-reels.mp4   | Agenda ~14s | VIDEO-RETENCAO-1.0.39.txt   | GERAR-VIDEO-RETENCAO-1.0.39.bat
+  4  | ego-ai-1.0.39-viral-reels.mp4      | Agenda      | VIDEO-VIRAL-1.0.39.txt      | GERAR-VIDEO-VIRAL-1.0.39.bat
+  5  | ego-ai-1.0.39-reels.mp4            | Agenda ~22s | VIDEO-LEGENDAS-1.0.39.txt   | GERAR-VIDEO-1.0.39.bat
+  6  | ego-ai-1.0.39-claro-reels.mp4      | Agenda      | VIDEO-CLARO-1.0.39.txt      | GERAR-VIDEO-CLARO-1.0.39.bat
+  7  | ego-ai-1.0.42-retencao-reels.mp4   | Monstrinhos | POST-REEL-ENTREGA.txt       | GERAR-REEL-ENTREGA.bat
+  8  | ego-ai-hoje-reels.mp4              | Descarrego  | VIDEO-CAPCUT-HOJE.txt       | GERAR-VIDEO-HOJE.bat
+  9  | ego-ai-1.0.35-reels.mp4            | Features    | POST-VIDEO-AMANHA-1.0.35.txt| GERAR-VIDEO-AMANHA-1.0.35.bat
+ 10  | ego-ai-1.0.34-reels.mp4            | Apresentação| VIDEO-CAPCUT-1.0.34.txt     | GERAR-VIDEO-1.0.34.bat
+ 11  | ego-ai-app-real-reels.mp4          | 5 fotos app | POST-VIDEO-5-FOTOS-APP-REAL | GERAR-VIDEO-APP-REAL.bat
+
+Ranking completo + métricas: marketing/influencers/TODOS-REELS-POR-RESULTADO.csv
+
+================================================================================
+VÍDEOS LUNA / LEO (avatar gravado — legado)
+================================================================================
+
+Pasta: marketing/videos/luna/ · marketing/videos/leo/
+
+| Ficheiro                    | Uso                          | Legenda / guia                    |
+|-----------------------------|------------------------------|-----------------------------------|
+| luna/01-criativo-a-solidao  | Anúncio criativo A           | anuncios/ROTEIROS_CRIATIVOS.md    |
+| luna/02-criativo-b-produtiv | Anúncio criativo B           | anuncios/ROTEIROS_CRIATIVOS.md    |
+| luna/03-desabafo-domingo    | Orgânico                     | —                                 |
+| luna/04-stories-10s         | Story                        | —                                 |
+| luna/05-descarrego-completo | Descarrego longo             | POST-VIDEO-DESCARREGO-1.0.29.txt  |
+| leo/01–04                   | Par Leo (mesmos ângulos)     | anuncios/SCRIPTS_15S_FALAS.md     |
+
+Loops: marketing/videos/_loops/luna-speaking-loop.mp4 · leo-speaking-loop.mp4
+
+================================================================================
+OPERAÇÃO — TESTADORES, LOJAS, BUILD
+================================================================================
+
+| Assunto                         | Ficheiro                              |
+|---------------------------------|---------------------------------------|
+| 12 testadores Android + 14 dias | CAMPANHA-TESTE-FECHADO.txt            |
+| WhatsApp pedir repost Android   | REPOST-TESTADORES-ANDROID.txt         |
+| Mensagem grupo pós-build 1.0.50 | MENSAGEM-TESTADORES-1.0.50.txt        |
+| Notas loja Play/TestFlight      | NOTAS-1.0.50-PLAY.txt                 |
+| Checklist antes de avisar       | VALIDAR-1.0.50.txt                    |
+| TestFlight externo (passos)     | TESTFLIGHT-EXTERNO-1.0.40.txt         |
+| Ficha Play Google (copiar)      | PLAY-FICHA-FINAL-GOOGLE.txt           |
+| Copy App Store                  | loja/APP_STORE_COPY.md                |
+| Copy Play Store                 | loja/PLAY_STORE_COPY.md               |
+| Status lançamento               | LANCAMENTO-STATUS.txt                 |
+| Plano ads / influencers         | PLANO-ACAO-AGORA.txt                  |
+| Programa parceiros / cupom      | PROGRAMA-INDICACAO.md                 |
+| Estratégia completa             | ESTRATEGIA_DIVULGACAO.md              |
+| Bio 2 links                     | BIO-REDES-2-LINKS.txt                 |
+| Turbinar reel → site            | TURBINAR-REEL-SITE.txt                |
+
+================================================================================
+O QUE COPIAR EM CADA POST (checklist 2 min)
+================================================================================
+
+[ ] Importar MP4 no Instagram/TikTok Reels
+[ ] TÍTULO → campo título (se existir)
+[ ] LEGENDA → descrição do post (POST-REEL-*.txt)
+[ ] COMENTÁRIO FIXADO → link egoai.com.br ou Play (testadores)
+[ ] Story → enquete do POST ou TESTE-DOR-NOVA-6-7.txt
+[ ] NÃO turbinar Reel 6/7 até SQL dia 29/06
+
+================================================================================
+REGENERAR VÍDEO (se MP4 sumiu ou quiser refazer)
+================================================================================
+
+python scripts/generate_reel_entrega.py --config marketing/REEL-ENTREGA-6-SOLIDAO.json
+python scripts/generate_reel_entrega.py --config marketing/REEL-ENTREGA-7-CARGA-MENTAL.json
+
+Ou duplo clique GERAR-REEL-6.bat / GERAR-REEL-7.bat na raiz.
+
+Fotos CapCut: marketing/CAPCUT-FOTOS-1.0.39/ · CAPCUT-FOTOS-ENTREGA/
