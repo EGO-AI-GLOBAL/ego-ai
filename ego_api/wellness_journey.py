@@ -804,6 +804,25 @@ def _companion_stage(level: int) -> dict[str, str]:
     return {"stage": "adult", "label": "Adulto", "emoji": "🦜"}
 
 
+def _sanitize_companion_name(raw: object) -> str:
+    if not isinstance(raw, str):
+        raw = str(raw or "")
+    name = "".join(c for c in raw.strip() if c.isprintable() and c not in "\n\r\t")
+    name = " ".join(name.split())
+    return name[:24]
+
+
+def _companion_name_fields(supabase: Client | None, user_id: str) -> dict[str, Any]:
+    prof = db.load_profile(supabase, user_id) or {}
+    ui = db._parse_ui_state(prof)  # noqa: SLF001
+    name = _sanitize_companion_name(ui.get("ego_companion_name"))
+    setup_done = bool(ui.get("ego_companion_name_setup_done")) or bool(name)
+    return {
+        "companion_name": name or None,
+        "companion_name_setup_done": setup_done,
+    }
+
+
 def _plan_nudge(level_def: dict[str, Any], plan_tier: str) -> str | None:
     if plan_tier and plan_tier != "essential":
         return None
@@ -931,6 +950,7 @@ def build_journey_payload(
 
     at_max = level >= cap and complete
     companion = _companion_stage(level)
+    name_fields = _companion_name_fields(supabase, user_id)
     daily_fraction = _daily_care_fraction(missions_today, mission_done_today)
     progress = daily_fraction
     care_pct = int(round(min(100, max(0, daily_fraction * 100))))
@@ -966,6 +986,8 @@ def build_journey_payload(
         "companion_stage": companion["stage"],
         "companion_stage_label": companion["label"],
         "companion_sprite_emoji": companion["emoji"],
+        "companion_name": name_fields["companion_name"],
+        "companion_name_setup_done": name_fields["companion_name_setup_done"],
         "care_percent": care_pct,
     }
 

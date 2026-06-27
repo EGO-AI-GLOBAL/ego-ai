@@ -1,0 +1,38 @@
+AGENTE EGO DE BOLSO — BUILD 1.0.50
+====================================
+
+Estado: ✅ PRONTO — commit __HASH__
+
+Zona: Bolso Dia 3 — nome do companheiro (PROGRAMACAO-EGO-BOLSO-V2.md)
+Regra: REGRA-4-AGENTES-BUILD.txt — NÃO correr GERAR/EAS · NÃO mudar app.config.ts
+
+═══════════════════════════════════════════════════════════════════
+DIA 3 — NOME DO COMPANHEIRO
+═══════════════════════════════════════════════════════════════════
+
+[x] egoDeBolsoCompanionName.ts — sanitize, save ui_state, display name
+[x] CompanionNameChip.tsx — modal editar nome no bolso
+[x] CompanionPocketScene.tsx — chip nome + callback
+[x] WellnessJourneyCard.tsx — prompt 1ª vez + merge nome
+[x] EgoDeBolsoChatCard.tsx — badge com nome personalizado
+[x] egoDeBolsoCompanionMood.ts — frases com nome
+[x] ego_api/wellness_journey.py — companion_name no payload
+[x] ego_api/ego_de_bolso_push.py — push 18h com nome
+
+Testar: Agenda → Bolso → «Dar nome ao bolso» → guardar → frases mudam
+
+NÃO TOCADO: auth core, voz, Monstrinhos, app.config.ts
+
+GIT CHECK
+---------
+[x] git status --porcelain app/ ego_api/ flask_api.py → limpo na zona Bolso
+[x] regression_guard.py + smoke_test_api.py OK
+[x] push origin main
+
+BUILD
+-----
+Agente Monstrinhos: bump app.config.ts → 1.0.50 + GERAR quando 4 SYNC ✅
+
+MENSAGEM
+--------
+✅ BOLSO PRONTO — Dia 3 nome companheiro · commit __HASH__

@@ -9,6 +9,7 @@ import {
   egoDeBolsoDayCompleteMessage,
   egoDeBolsoMissionsComplete,
 } from "@/utils/egoDeBolsoCompanionMood";
+import { resolveCompanionDisplayName } from "@/utils/egoDeBolsoCompanionName";
 import { CompanionSprite } from "./companion/CompanionSprite";
 import { PocketCompanionShareModal } from "./PocketCompanionShareModal";
 
@@ -28,6 +29,7 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
   const care = egoDeBolsoDailyCarePercent(journey);
   const fillWidth = `${Math.max(care, care > 0 ? 8 : 0)}%` as DimensionValue;
   const stage = journey.companion_stage ?? "egg";
+  const petName = resolveCompanionDisplayName(journey);
 
   const onCare = () => {
     const route = resolveEgoDeBolsoCareRoute(journey);
@@ -44,7 +46,9 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
         <Pressable onPress={() => router.push("/(main)/wellness-journey")} style={styles.row}>
           <CompanionSprite stage={stage} size={52} happy={dayComplete || journey.level_complete} />
           <View style={styles.body}>
-            <Text style={[styles.badge, { color: colors.primary }]}>EGO DE BOLSO 🥚</Text>
+            <Text style={[styles.badge, { color: colors.primary }]}>
+              {petName.toUpperCase()} · EGO DE BOLSO 🥚
+            </Text>
             <Text style={[styles.level, { color: colors.text }]} numberOfLines={1}>
               Nível {journey.level}/{journey.max_level} · {journey.title}
               {journey.missions_per_day && !dayComplete

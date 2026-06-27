@@ -12,6 +12,7 @@ import {
   egoDeBolsoDayCompleteMessage,
   egoDeBolsoMissionsComplete,
 } from "@/utils/egoDeBolsoCompanionMood";
+import { companionNeedsNameSetup } from "@/utils/egoDeBolsoCompanionName";
 import { PocketCompanionShareModal } from "./PocketCompanionShareModal";
 
 type Props = {
@@ -23,7 +24,28 @@ type Props = {
 
 export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }: Props) {
   const levelUpShown = useRef(false);
+  const namePromptShown = useRef(false);
   const [shareOpen, setShareOpen] = useState(false);
+
+  const mergeCompanionName = (name: string) => {
+    if (!journey) return;
+    onJourneyUpdate?.({
+      ...journey,
+      companion_name: name,
+      companion_name_setup_done: true,
+    });
+  };
+
+  useEffect(() => {
+    if (!journey || namePromptShown.current) return;
+    if (!companionNeedsNameSetup(journey)) return;
+    namePromptShown.current = true;
+    Alert.alert(
+      "Dê um nome ao bolso",
+      "Escolha um nome para o seu companheiro — aparece nas missões e no lembrete das 18h.",
+      [{ text: "OK" }]
+    );
+  }, [journey]);
 
   useEffect(() => {
     if (!journey?.show_level_up || levelUpShown.current) return;
@@ -89,7 +111,11 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }
           </View>
         </View>
 
-        <CompanionPocketScene colors={colors} journey={journey} />
+        <CompanionPocketScene
+          colors={colors}
+          journey={journey}
+          onCompanionNameChange={mergeCompanionName}
+        />
 
         <View style={[styles.track, { backgroundColor: colors.border }]}>
           <View style={[styles.fill, { backgroundColor: colors.primary, width: fillWidth }]} />

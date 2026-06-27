@@ -157,8 +157,19 @@ def companion_needs_care(journey: dict[str, Any]) -> bool:
     return bool(pending) or not journey.get("level_complete")
 
 
-def notification_copy(journey: dict[str, Any]) -> tuple[str, str, str]:
-    stage = str(journey.get("companion_stage_label") or "EGO de Bolso").strip()
+def _sanitize_companion_name(raw: object) -> str:
+    if not isinstance(raw, str):
+        raw = str(raw or "")
+    name = "".join(c for c in raw.strip() if c.isprintable() and c not in "\n\r\t")
+    name = " ".join(name.split())
+    return name[:24]
+
+
+def notification_copy(
+    journey: dict[str, Any], *, companion_name: str = ""
+) -> tuple[str, str, str]:
+    custom = _sanitize_companion_name(companion_name or journey.get("companion_name"))
+    stage = custom or str(journey.get("companion_stage_label") or "EGO de Bolso").strip()
     task = str(journey.get("today_task") or "Complete a missão de hoje").strip()
     screen = resolve_care_screen(journey)
     title = f"{stage} precisa de você 🥚"
@@ -265,7 +276,10 @@ def process_ego_de_bolso_care_pushes(
                 stats["skipped"] += 1
                 continue
             stats["eligible"] += 1
-            title, body, screen = notification_copy(journey)
+            title, body, screen = notification_copy(
+                journey,
+                companion_name=str(ui.get("ego_companion_name") or ""),
+            )
             sent = send_expo_push(
                 [_valid_expo_token(ui)],
                 title=title,

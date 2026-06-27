@@ -356,6 +356,8 @@ export type WellnessJourney = {
   companion_stage?: string;
   companion_stage_label?: string;
   companion_sprite_emoji?: string;
+  companion_name?: string;
+  companion_name_setup_done?: boolean;
   care_percent?: number;
 };
 

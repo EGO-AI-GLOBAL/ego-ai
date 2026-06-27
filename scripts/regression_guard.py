@@ -61,6 +61,14 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["CompanionSprite", "celebrate"],
     ),
     (
+        "app/src/components/companion/CompanionNameChip.tsx",
+        ["CompanionNameChip", "saveCompanionName"],
+    ),
+    (
+        "app/src/utils/egoDeBolsoCompanionName.ts",
+        ["saveCompanionName", "ego_companion_name"],
+    ),
+    (
         "app/src/components/AppGradientBackground.tsx",
         ["AppGradientBackground"],
     ),
@@ -165,7 +173,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/wellness_journey.py",
-        ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "validate_journey_expansion_caps", "_format_today_task", "_daily_care_fraction", "_label_with_how"],
+        ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "validate_journey_expansion_caps", "_format_today_task", "_daily_care_fraction", "_label_with_how", "companion_name"],
     ),
     (
         "ego_api/ego_de_bolso_push.py",

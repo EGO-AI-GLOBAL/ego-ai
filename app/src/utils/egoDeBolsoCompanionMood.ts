@@ -1,6 +1,7 @@
 import type { WellnessJourney } from "@/api/types";
 import { egoDeBolsoDailyCarePercent } from "./egoDeBolsoDailyCare";
 import { resolveEgoDeBolsoCareRoute } from "./egoDeBolsoCareRoute";
+import { resolveCompanionDisplayName } from "./egoDeBolsoCompanionName";
 
 export type CompanionMood = "happy" | "waiting" | "lonely";
 
@@ -40,14 +41,15 @@ export function companionMoodLine(journey: WellnessJourney): string | null {
   if (egoDeBolsoMissionsComplete(journey)) {
     return egoDeBolsoDayCompleteMessage(journey);
   }
+  const name = resolveCompanionDisplayName(journey);
   const mood = companionMood(journey);
   const task = (journey.today_task || "").trim();
   if (mood === "lonely") {
-    if (task) return `Estou com saudade… ${task}`;
-    return "Estou com saudade — falta a missão de hoje 🥚";
+    if (task) return `${name} sente saudade… ${task}`;
+    return `${name} sente saudade — falta a missão de hoje 🥚`;
   }
-  if (task) return `Quase lá! ${task}`;
-  return "Falta pouco para completar o nível de hoje ✨";
+  if (task) return `Quase lá, ${name}! ${task}`;
+  return `${name} está quase no nível de hoje ✨`;
 }
 
 export function egoDeBolsoNotificationCopy(journey: WellnessJourney): {
@@ -55,7 +57,7 @@ export function egoDeBolsoNotificationCopy(journey: WellnessJourney): {
   body: string;
   screen: "wellness-journey" | "agenda" | "daily-care" | "chat";
 } {
-  const stage = journey.companion_stage_label ?? "EGO de Bolso";
+  const name = resolveCompanionDisplayName(journey);
   const task = (journey.today_task || "Complete a missão de hoje").trim();
   const route = resolveEgoDeBolsoCareRoute(journey);
   const screen =
@@ -68,7 +70,7 @@ export function egoDeBolsoNotificationCopy(journey: WellnessJourney): {
           : "wellness-journey";
 
   return {
-    title: `${stage} precisa de você 🥚`,
+    title: `${name} precisa de você 🥚`,
     body: task.length > 90 ? `${task.slice(0, 87)}…` : task,
     screen,
   };
