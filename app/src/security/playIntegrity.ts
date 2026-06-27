@@ -15,6 +15,23 @@ let preparePromise: Promise<boolean> | null = null;
 let cachedToken: { token: string; at: number } | null = null;
 
 const TOKEN_CACHE_MS = 90_000;
+/** Não atrasar chat/voz se o módulo Play Integrity travar no Android. */
+const TOKEN_REQUEST_MS = 4_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(null), ms);
+    promise
+      .then((value) => {
+        clearTimeout(timer);
+        resolve(value);
+      })
+      .catch(() => {
+        clearTimeout(timer);
+        resolve(null);
+      });
+  });
+}
 
 function integrityConfigured(): boolean {
   return Platform.OS === "android" && PROJECT_NUMBER.length > 0;
@@ -78,7 +95,7 @@ export async function getPlayIntegrityToken(): Promise<string | null> {
   const mod = await loadModule();
   if (!mod) return null;
   try {
-    const token = await mod.requestIntegrityToken();
+    const token = await withTimeout(mod.requestIntegrityToken(), TOKEN_REQUEST_MS);
     if (!token) return null;
     cachedToken = { token, at: Date.now() };
     return token;

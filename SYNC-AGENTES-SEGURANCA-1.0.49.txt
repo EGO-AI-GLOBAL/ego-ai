@@ -1,0 +1,25 @@
+AGENTE SEGURANÇA / API — BUILD 1.0.49+
+========================================
+
+Estado: ✅ PRONTO
+
+Regra: REGRA-4-AGENTES-BUILD.txt
+• NÃO corri GERAR / EAS / eas submit
+• NÃO alterei app.config.ts
+
+FECHADO NESTA RELEASE
+---------------------
+[x] playIntegrity.ts — timeout 4s no token Android (chat/voz não trava)
+[x] integrity_guard.py — modo monitor não chama Google a cada pedido
+[x] Parceiros/signup/relatório cadastros — já em main (42662cc, ddf294c)
+
+VALIDAÇÃO
+---------
+[x] regression_guard.py OK
+[x] smoke_test_api.py OK
+[x] security_production_check.py OK
+
+Commit: (preencher após push)
+Ficheiros: app/src/security/playIntegrity.ts, ego_api/integrity_guard.py
+
+✅ SEGURANÇA PRONTO — commit ______ — playIntegrity timeout + integrity monitor skip

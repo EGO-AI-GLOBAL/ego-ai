@@ -10,16 +10,12 @@ REGRA: Só Monstrinhos corre GERAR / AGUARDAR-E-SUBMETER / EAS.
 | B | EGO de Bolso  | SYNC-AGENTES-BOLSO-1.0.49.txt         | ✅ PRONTO (236bcc2) |
 | C | API/Parceiros | SYNC-AGENTES-API-1.0.49.txt           | ✅ PRONTO   |
 | D | Marketing     | SYNC-AGENTES-MARKETING-1.0.49.txt     | ✅ PRONTO   |
-| — | Segurança     | playIntegrity.ts + integrity_guard.py | PENDENTE — commit ou stash antes de GERAR |
+| — | Segurança     | SYNC-AGENTES-SEGURANCA-1.0.49.txt     | ✅ PRONTO   |
 
 Versão: 1.0.49 | iOS build 36 | Android versionCode 87
 
-BLOQUEIO sync-check
--------------------
-Se Segurança não fechar:
-  git stash push -m "wip seguranca" -- app/src/security/playIntegrity.ts ego_api/integrity_guard.py
-Ou agente Segurança: commit + push + SYNC-AGENTES-SEGURANCA-1.0.49.txt ✅
-
+BUILD: regression + smoke + sync-check OK — Segurança commitada (não stash)
+Falta: Monstrinhos → GERAR-1.0.49.bat (ou 1.0.50 se bump config)
 SEQUÊNCIA (utilizador)
 ----------------------
 1. VERIFICAR-SYNC-4-AGENTES.bat
@@ -32,4 +28,5 @@ O que há de novo (resumo)
 -------------------------
 • Visual premium login + chat (gradiente, vidro, bolhas)
 • Bolso Dia 2: pet pisca, flutua, celebra ao completar missão
+• Bolso Dia 3: nome do companheiro (incluído no mesmo binário)
 • Monstrinhos F6 (herdado 1.0.48) — 5 missões + cartão no chat

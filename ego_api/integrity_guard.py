@@ -42,6 +42,18 @@ def evaluate_request_integrity() -> tuple[bool, str, bool]:
         return True, "skipped", False
 
     token = (request.headers.get("X-Play-Integrity") or "").strip()
+
+    # Modo monitor: não chamar Google em cada pedido (só Android). Evita atrasos
+    # no chat enquanto iOS/web seguem sem este passo.
+    if not play_integrity_enforced():
+        if token:
+            _LOG.info("play_integrity monitor token_present route=%s", request.path)
+        else:
+            _LOG.warning(
+                "play_integrity monitor token_missing route=%s", request.path
+            )
+        return True, "monitor_skip", False
+
     ok, reason = verify_integrity_token(token)
     if ok:
         _LOG.info("play_integrity ok route=%s", request.path)
