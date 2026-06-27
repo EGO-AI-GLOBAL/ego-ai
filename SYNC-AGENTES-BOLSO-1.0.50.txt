@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO — BUILD 1.0.50
 ====================================
 
-Estado: ✅ PRONTO — commit __HASH__
+Estado: ✅ PRONTO — commit c4791fb
 
 Zona: Bolso Dia 3 — nome do companheiro (PROGRAMACAO-EGO-BOLSO-V2.md)
 Regra: REGRA-4-AGENTES-BUILD.txt — NÃO correr GERAR/EAS · NÃO mudar app.config.ts
@@ -35,4 +35,4 @@ Agente Monstrinhos: bump app.config.ts → 1.0.50 + GERAR quando 4 SYNC ✅
 
 MENSAGEM
 --------
-✅ BOLSO PRONTO — Dia 3 nome companheiro · commit __HASH__
+✅ BOLSO PRONTO — Dia 3 nome companheiro · commit c4791fb
