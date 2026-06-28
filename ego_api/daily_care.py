@@ -302,6 +302,20 @@ def _all_goals_done(goals: list[dict]) -> bool:
     return bool(goals) and all(bool(g.get("done")) for g in goals)
 
 
+def _avatar_congrats_line(supabase: Client | None, user_id: str, raw: dict, today: str) -> str | None:
+    """Frase do avatar quando completou todas as missões do jardim hoje."""
+    if str(raw.get("all_goals_bonus_date") or "") != today:
+        return None
+    from ego_api.persona import assistant_display_name_for_avatar
+
+    stored_a, _ = db.load_persona(supabase, user_id)
+    name = assistant_display_name_for_avatar(stored_a or "f1")
+    return (
+        f"{name} viu que você completou as missões do jardim hoje — orgulho de você. "
+        "Quer desabafar um pouco comigo?"
+    )
+
+
 def _maybe_all_goals_bonus(raw: dict, today: str) -> bool:
     goals = _daily_goals(raw, today, True)
     if not _all_goals_done(goals):
@@ -471,7 +485,7 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
     mission = _daily_mission(checked_today, current, goals)
     seeds = int(raw.get("seeds") or 0)
     all_done = _all_goals_done(goals) if checked_today else False
-    return {
+    payload = {
         "current": current,
         "longest": longest_eff,
         "last_date": last,
@@ -502,6 +516,10 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
         "all_goals_done": all_done,
         "all_goals_bonus": SEEDS_ALL_GOALS_BONUS,
     }
+    congrats = _avatar_congrats_line(supabase, user_id, raw, today)
+    if congrats:
+        payload["avatar_congrats"] = congrats
+    return payload
 
 
 def _share_hook(current: int, checked_today: bool, ranking: dict) -> str:
@@ -646,6 +664,9 @@ def record_goal(
     care = get_daily_care(supabase, user_id)
     if bonus_granted:
         care["goals_bonus_granted"] = True
+        line = _avatar_congrats_line(supabase, user_id, raw, today)
+        if line:
+            care["avatar_congrats"] = line
     return care
 
 

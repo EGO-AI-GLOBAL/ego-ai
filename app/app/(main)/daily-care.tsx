@@ -11,13 +11,16 @@ import {
 import { DailyCareChallenge } from "@/components/DailyCareChallenge";
 import { ScreenShell } from "@/components/ScreenShell";
 import { TrialBanner } from "@/components/TrialBanner";
+import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 
 /** Monstrinhos do Humor — check-in, ranking e partilha (WhatsApp, Instagram, TikTok). */
 export default function DailyCareScreen() {
   const colors = useColors();
+  const { session } = useAuth();
   const { data, loading, refreshing, error, refresh, mergeDailyCare } = useDashboard();
+  const userId = data.me?.user_id?.trim() ?? session?.user?.id?.trim() ?? "";
 
   useFocusEffect(
     useCallback(() => {
@@ -48,6 +51,7 @@ export default function DailyCareScreen() {
             <DailyCareChallenge
               colors={colors}
               care={data.daily_care}
+              userId={userId}
               onUpdate={(care, journey) => mergeDailyCare(care, journey)}
             />
           </>

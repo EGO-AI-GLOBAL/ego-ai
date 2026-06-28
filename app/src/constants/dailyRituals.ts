@@ -1,5 +1,7 @@
 /** Rituais diários — 7h amanhã revelado, 8h briefing, 14h checkpoint, 21h descarrego. */
 
+import { avatarRitualHook, avatarOfDaySuggestion } from "@/constants/avatarRituals";
+
 export type DailyRitualId = "reveal" | "morning" | "afternoon" | "evening";
 
 export const DAILY_RITUAL_HOURS: Record<DailyRitualId, number> = {
@@ -16,36 +18,40 @@ export function ritualNotificationId(ritual: DailyRitualId): string {
 }
 
 /** Prompt enviado ao chat quando o utilizador toca na notificação. */
-export function ritualChatPrompt(ritual: DailyRitualId, assistantName: string): string {
+export function ritualChatPrompt(
+  ritual: DailyRitualId,
+  assistantName: string,
+  avatarId?: string
+): string {
+  const hookFor = (slot: "morning" | "afternoon" | "evening") =>
+    avatarRitualHook(slot, avatarId, assistantName);
+
   switch (ritual) {
     case "reveal":
       return (
         `[Ritual 7h — amanhã revelado] Sou ${assistantName}. ` +
         `Bom dia acolhedor. Se houve desabafo ontem, lembre em UMA frase que os itens ficam na Agenda ` +
         `para o utilizador confirmar manualmente — você NÃO marca nada. ` +
-        `Pergunte como dormiu e como está se sentindo agora.`
+        `${hookFor("morning")}`
       );
     case "morning":
       return (
         `[Ritual 8h — briefing] Sou ${assistantName}. ` +
-        `Acolha o início do dia. Pergunte como está a energia e o humor. ` +
-        `Se mencionarem compromissos, escute — NÃO ofereça agendar; ` +
-        `se quiserem ver a agenda, diga que é no menu Agenda do app. ` +
+        `${hookFor("morning")} ` +
+        `Se mencionarem compromissos, escute — NÃO ofereça agendar. ` +
         `Foco: presença e escuta clínica, 3–5 frases.`
       );
     case "afternoon":
       return (
         `[Ritual 14h — checkpoint] Sou ${assistantName}. ` +
-        `Checkpoint emocional da tarde: como está o dia por dentro? ` +
-        `Valide cansaço ou ansiedade. NÃO empurre agenda nem marcar compromissos. ` +
-        `Tom parceiro, frases curtas, escuta profunda.`
+        `${hookFor("afternoon")} ` +
+        `Valide cansaço ou ansiedade. NÃO empurre agenda. Tom parceiro, frases curtas.`
       );
     case "evening":
       return (
         `[Ritual 21h — descarrego] Sou ${assistantName}. ` +
-        `Convide a desabafar com o microfone ou texto — só escuta e acolhimento. ` +
-        `NÃO peça para marcar nada hoje. Se mencionarem tarefas de amanhã, diga que amanhã ` +
-        `eles confirmam na Agenda manualmente. Tom calmo: «Solte agora, estou aqui.»`
+        `${hookFor("evening")} ` +
+        `NÃO peça para marcar nada hoje. Tom calmo: «Solte agora, estou aqui.»`
       );
   }
 }
@@ -56,7 +62,8 @@ export function ritualNotificationCopy(
   assistantName: string,
   userName?: string,
   streakCurrent?: number,
-  nightDumpStreak?: number
+  nightDumpStreak?: number,
+  avatarOfDay?: { avatar_id: string; shortName: string }
 ): { title: string; body: string } {
   const name = userName?.trim() || "você";
   switch (ritual) {
@@ -73,11 +80,19 @@ export function ritualNotificationCopy(
         body: `${assistantName}: bom dia! Abra a Agenda e confirme o desabafo de ontem.`,
       };
     }
-    case "morning":
+    case "morning": {
+      if (avatarOfDay) {
+        const day = avatarOfDaySuggestion(avatarOfDay.avatar_id, avatarOfDay.shortName, "morning");
+        return {
+          title: day.title,
+          body: `${day.body} Quer falar com ${avatarOfDay.shortName}?`,
+        };
+      }
       return {
         title: `${name}, como você está? ☀️`,
         body: `${assistantName}: toque — um momento de escuta para começar o dia.`,
       };
+    }
     case "afternoon":
       return {
         title: "Como está a tarde por dentro?",

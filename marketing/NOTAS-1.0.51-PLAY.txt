@@ -1,0 +1,61 @@
+EGO-AI 1.0.51 — Notas da versão (versionCode 90 · iOS build 39)
+================================================================
+
+O que há de novo
+----------------
+
+12 PERSONALIDADES REAIS
+• Cada avatar com tom próprio (calma, profissional, energético, jovem)
+• Luna, Leo, Kai… — escolhe quem precisa hoje, não o mesmo genérico
+
+AVATAR DO DIA + META SEMANAL
+• Notificação 8h: «Hoje a [avatar] sugere…»
+• Cartão no chat: meta 3 avatares diferentes por semana
+• Link para trocar de persona com 1 toque
+
+MEMÓRIA LEVE POR AVATAR
+• Cada um lembra 1–2 coisas da última conversa com ele
+• «Na última vez comigo você comentou…» — relação contínua
+
+STREAK DE CHAT (SÓ ESCUTA)
+• Dias seguidos falando no chat — separado do streak Monstrinhos
+• Subtítulo no avatar mostra progresso
+
+RITUAIS POR AVATAR + BOAS-VINDAS
+• 8h/14h/21h com convite diferente por persona
+• Primeira frase única ao entrar no chat
+
+MONSTRINHOS → AVATAR
+• Completar missões do jardim: frase do avatar escolhido a parabenizar
+
+BOLSO — PUSH 10h (Dia 4)
+• «Faltam X/5 missões» — máx. 2 push/dia
+
+---
+
+TEXTO CURTO — Play Console / TestFlight (copiar)
+------------------------------------------------
+12 avatares com personalidade real, avatar do dia, memória leve, streak de chat e rituais únicos. Monstrinhos parabeniza via avatar. Estabilidade.
+
+---
+
+TEXTO MÉDIO — «O que há de novo»
+--------------------------------
+• 12 avatares com personalidade distinta na escuta
+• Avatar do dia + meta semanal (3 avatares)
+• Memória leve por avatar — conversa continua, não recomeça
+• Streak de dias no chat (só escuta)
+• Rituais e boas-vindas únicos por persona
+• Missões Monstrinhos: parabéns do avatar escolhido
+• Push Bolso 10h com missões pendentes
+• Correções e estabilidade
+
+---
+
+Railway (após deploy API + loja)
+--------------------------------
+EGO_LATEST_APP_VERSION=1.0.51
+EGO_LATEST_ANDROID_VERSION_CODE=90
+EGO_APP_UPDATE_MESSAGE=1.0.51: 12 personalidades, avatar do dia, memória leve e streak de chat. Toque em Atualizar agora.
+
+EGO_MAINTENANCE=0

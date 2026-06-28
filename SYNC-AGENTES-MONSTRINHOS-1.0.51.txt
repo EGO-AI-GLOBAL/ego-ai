@@ -1,0 +1,29 @@
+AGENTE MONSTRINHOS — BUILD 1.0.51
+==================================
+Estado: ✅ PRONTO (código local — commit pendente push utilizador)
+
+Zona: app.config 1.0.51 + retenção 12 avatares + build EAS
+• version 1.0.51 · iOS build 39 · Android versionCode 90
+
+API (ego_api/)
+• avatar_personalities.py — 12 personalidades (calm/pro/energetic/young)
+• avatar_memory.py — memória leve por avatar_id em ui_state
+• gemini.py + services.py — inject personalidade + memória + save pós-msg
+• daily_care.py — avatar_congrats ao completar missões do jardim
+
+App (app/)
+• avatarWelcome.ts, avatarRituals.ts, avatarEngagement.ts, chatStreak.ts
+• AvatarEngagementCard.tsx — avatar do dia + meta 3/semana
+• chat.tsx — streak subtitle, engagement card, onboarding/ritual por avatar
+• dailyRituals.ts + dailyCheckInNotification.ts — notificação 8h avatar do dia
+• MoodDailyGoals.tsx — parabéns + push imediato + burst com frase avatar
+• MoodGardenWidgetCard.tsx — subtitle com avatar_congrats
+• pendingAvatarCongrats.ts — frase ao abrir chat
+• daily_care.py — avatar_congrats persiste no GET do dia
+• types.ts — avatar_congrats em DailyCareInfo
+
+ÚNICO que corre: AMANHA-1.0.51.bat (ou PREPARAR → GERAR → AGUARDAR)
+
+TESTES: regression_guard + smoke_test_api (correr antes do build)
+
+✅ MONSTRINHOS PRONTO — 1.0.51 · iOS 39 · Android 90

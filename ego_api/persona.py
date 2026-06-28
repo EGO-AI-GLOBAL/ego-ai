@@ -117,10 +117,14 @@ def apply_assistant_name_from_avatar(avatar_id: str | None) -> str:
     """Atualiza a sessão Flask com o nome do avatar ativo."""
     from ego_api.request_ctx import get_session
 
-    name = assistant_display_name_for_avatar(avatar_id)
+    aid = (avatar_id or FEMALE_AVATAR_ID).strip().lower()[:32]
+    entry = find_avatar(aid)
+    resolved = entry["avatar_id"] if entry else FEMALE_AVATAR_ID
+    name = assistant_display_name_for_avatar(resolved)
     sess = get_session()
     if sess:
         sess.assistant_name = name
+        sess.avatar_id = resolved
     return name
 
 

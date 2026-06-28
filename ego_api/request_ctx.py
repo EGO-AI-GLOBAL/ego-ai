@@ -15,6 +15,7 @@ class UserSession:
     refresh_token: str = ""
     user_name: str = ""
     assistant_name: str = "EGO-AI"
+    avatar_id: str = "f1"
     timezone: str = ""
     tz_offset_min: int | None = None
     pdf_context: str = ""

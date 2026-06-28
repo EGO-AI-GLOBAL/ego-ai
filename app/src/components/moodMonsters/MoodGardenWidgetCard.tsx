@@ -21,10 +21,12 @@ export function MoodGardenWidgetCard({ colors, care }: Props) {
   const streak = care.current ?? 0;
 
   const subtitle = useMemo(() => {
+    const congrats = care.avatar_congrats?.trim();
+    if (congrats) return congrats;
     if (!care.checked_today) return "Toque para registrar humor e cuidar do pet";
     if (done < total) return `${done}/${total} missões hoje · ${seeds} sementes`;
     return `Dia completo · ${streak} dias seguidos`;
-  }, [care.checked_today, done, total, seeds, streak]);
+  }, [care.avatar_congrats, care.checked_today, done, total, seeds, streak]);
 
   return (
     <Pressable

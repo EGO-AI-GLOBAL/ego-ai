@@ -19,6 +19,7 @@ from ego_api.config import (
 from ego_api.app_guide import APP_GUIDE_LLM_INSTRUCTION
 from ego_api.reminder_schedule import reminder_llm_instruction_block
 from ego_api.request_ctx import UserSession, get_session
+from ego_api.avatar_personalities import personality_instruction_for_avatar
 from ego_api.wellness_coach import WELLNESS_COACH_INSTRUCTION
 
 try:
@@ -231,12 +232,14 @@ def _pdf_instruction(pdf_context: str) -> str:
 
 
 def _persona_personality_instruction(sess: UserSession) -> str:
-    alias = (sess.assistant_name or "").strip().lower()
-    if alias == "luna":
-        return LUNA_PERSONALITY
-    if alias == "leo":
-        return LEO_PERSONALITY
-    return DEFAULT_ASSISTANT_PERSONALITY
+    aid = (sess.avatar_id or "").strip().lower()
+    if not aid:
+        alias = (sess.assistant_name or "").strip().lower()
+        if alias == "luna":
+            aid = "f1"
+        elif alias == "leo":
+            aid = "m1"
+    return personality_instruction_for_avatar(aid)
 
 
 def build_system_instruction(

@@ -15,6 +15,7 @@ import { SocialFollowBar } from "./SocialFollowBar";
 type Props = {
   colors: AppColors;
   care?: DailyCareInfo;
+  userId?: string;
   onUpdate: (care: DailyCareInfo, journey?: import("@/api/types").WellnessJourney) => void;
 };
 
@@ -59,11 +60,12 @@ function RankingLadder({ colors, care }: { colors: AppColors; care: DailyCareInf
 }
 
 /** Monstrinhos do Humor — jardim + pet ilustrado (estilo Finch). */
-export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
+export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
   const [busy, setBusy] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [goalsBurst, setGoalsBurst] = useState(false);
+  const [burstCongrats, setBurstCongrats] = useState<string | undefined>();
   const [hoverMood, setHoverMood] = useState<string | undefined>();
 
   if (!care?.question) {
@@ -121,7 +123,11 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
           visible={goalsBurst}
           bonus={care.all_goals_bonus ?? 3}
           totalGoals={care.daily_goals?.length ?? 5}
-          onDone={() => setGoalsBurst(false)}
+          congratsLine={burstCongrats ?? care.avatar_congrats}
+          onDone={() => {
+            setGoalsBurst(false);
+            setBurstCongrats(undefined);
+          }}
         />
         <View style={styles.head}>
           <Text style={[styles.badge, { color: colors.primary }]}>MONSTRINHOS DO HUMOR 💜</Text>
@@ -146,8 +152,12 @@ export function DailyCareChallenge({ colors, care, onUpdate }: Props) {
         <MoodDailyGoals
           colors={colors}
           care={care}
+          userId={userId}
           onUpdate={(next) => onUpdate(next)}
-          onGoalsBonus={() => setGoalsBurst(true)}
+          onGoalsBonus={(line) => {
+            setBurstCongrats(line);
+            setGoalsBurst(true);
+          }}
         />
 
         <MoodSeedShop colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />

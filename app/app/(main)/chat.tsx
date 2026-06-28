@@ -22,7 +22,7 @@ import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNig
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { ChatComposer } from "@/components/ChatComposer";
 import { ChatPreview } from "@/components/ChatPreview";
-import { AppGradientBackground } from "@/components/AppGradientBackground";
+import { AvatarEngagementCard } from "@/components/AvatarEngagementCard";
 import { getComposerPlaceholder } from "@/constants/chatQuickActions";
 import {
   ChatScheduleBanner,
@@ -68,9 +68,12 @@ import {
   buildSaveCelebrationSpeech,
   chatResultHasScheduleSave,
 } from "@/constants/saveCelebration";
+import { consumePendingAvatarCongrats } from "@/storage/pendingAvatarCongrats";
 import { consumePendingRitual } from "@/storage/pendingRitual";
 import { computeDayProgress } from "@/utils/dayProgress";
 import { streakAvatarSubtitle } from "@/utils/streakReactions";
+import { recordAvatarChat } from "@/utils/avatarEngagement";
+import { chatStreakSubtitle, getChatStreak, recordChatStreakDay } from "@/utils/chatStreak";
 import { isTrialExpired } from "@/utils/trialAccess";
 import {
   buildChatOnboardingMessage,
@@ -116,6 +119,15 @@ export default function ChatScreen() {
     },
     [setPersona, userId]
   );
+
+  const onEngagementAvatarOpen = useCallback(
+    (avatarId: string) => {
+      const entry = findAvatarInCatalog(avatarId);
+      if (!entry) return;
+      void onPersonaSaved({ avatar_id: entry.avatar_id, voice_id: entry.voice_id });
+    },
+    [onPersonaSaved]
+  );
   const [chatInput, setChatInput] = useState("");
   const [sending, setSending] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
@@ -134,10 +146,16 @@ export default function ChatScreen() {
   const ritualPendingRef = useRef<DailyRitualId | null>(null);
   const [nightDumpMode, setNightDumpMode] = useState(false);
   const [saveCelebrationLine, setSaveCelebrationLine] = useState<string | null>(null);
+  const [chatStreakDays, setChatStreakDays] = useState(0);
 
   useEffect(() => {
     void loadAutoPlayVoice().then(setAutoPlayVoice);
   }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    void getChatStreak(userId).then(setChatStreakDays);
+  }, [userId]);
 
   const cancelNightDump = useCallback(() => {
     setNightDumpMode(false);
@@ -407,7 +425,8 @@ export default function ChatScreen() {
       ? `${assistantName} está falando…`
       : micActive
         ? `${assistantName} está ouvindo…`
-        : streakAvatarSubtitle(data.streak, assistantName) ??
+        : chatStreakSubtitle(chatStreakDays, assistantName) ??
+          streakAvatarSubtitle(data.streak, assistantName) ??
           `${assistantName} · pronto para ajudar`;
   const checkout = data.me?.stripe_checkout;
   const access = data.access;
@@ -518,8 +537,8 @@ export default function ChatScreen() {
       const displayName =
         !nameLooksLikeEmailAlias && profileName ? profileName.trim() : undefined;
       const male = isMaleAvatar(persona.avatar_id);
-      const text = buildChatOnboardingMessage(assistantName, displayName, male);
-      const speech = buildChatOnboardingSpeech(assistantName, displayName, male);
+      const text = buildChatOnboardingMessage(assistantName, displayName, male, persona.avatar_id);
+      const speech = buildChatOnboardingSpeech(assistantName, displayName, male, persona.avatar_id);
       const next = await appendLocalAssistantMessage(userId, text, { onboarding: true });
       setLocalMessages(next);
       setLastChatResult({ reply: speech });
@@ -561,7 +580,12 @@ export default function ChatScreen() {
       if (localChatReady && chatMessages.length > 0) {
         scrollMessagesToEnd(false);
       }
-    }, [localChatReady, chatMessages.length, scrollMessagesToEnd])
+      if (userId) {
+        void consumePendingAvatarCongrats(userId).then((line) => {
+          if (line) setChatNotice(line);
+        });
+      }
+    }, [localChatReady, chatMessages.length, scrollMessagesToEnd, userId])
   );
 
   useEffect(() => {
@@ -782,6 +806,10 @@ export default function ChatScreen() {
       ]);
       applyChatResult(result, userLabel);
       await afterChatSaved(result, userLabel);
+      if (userId) {
+        void recordAvatarChat(userId, persona.avatar_id);
+        void recordChatStreakDay(userId).then(setChatStreakDays);
+      }
       trackJourneyStep("voice");
       if (result.voice_engine === "openai_realtime") {
         setChatNotice("A responder…");
@@ -876,6 +904,10 @@ export default function ChatScreen() {
         ]);
         applyChatResult(result, userLabel);
         await afterChatSaved(result, userLabel);
+        if (userId) {
+          void recordAvatarChat(userId, persona.avatar_id);
+          void recordChatStreakDay(userId).then(setChatStreakDays);
+        }
         trackJourneyStep("chat");
         await saveExchange(userLabel, result.reply);
         setPendingChat([]);
@@ -911,6 +943,9 @@ export default function ChatScreen() {
       playVoice,
       scrollMessagesToEnd,
       voice,
+      userId,
+      persona.avatar_id,
+      persona.voice_id,
       trackJourneyStep,
       trialExpired,
     ]
@@ -948,7 +983,7 @@ export default function ChatScreen() {
         afternoon: "Ponto",
         evening: "Desabafo",
       };
-      const prompt = ritualChatPrompt(ritual, assistantName);
+      const prompt = ritualChatPrompt(ritual, assistantName, persona.avatar_id);
       if (ritual === "morning" && !autoPlayVoice) {
         setAutoPlayVoice(true);
         void saveAutoPlayVoice(true);
@@ -1113,6 +1148,15 @@ export default function ChatScreen() {
                   void sendMessageText(`Alterar ou cancelar: ${item.title}`, item.title);
                 }
               }}
+            />
+          ) : null}
+
+          {(!loading || refreshing) && userId ? (
+            <AvatarEngagementCard
+              userId={userId}
+              currentAvatarId={persona.avatar_id}
+              colors={colors}
+              onOpenAvatar={onEngagementAvatarOpen}
             />
           ) : null}
 

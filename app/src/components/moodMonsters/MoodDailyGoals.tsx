@@ -1,15 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
+import * as Notifications from "expo-notifications";
 import { submitDailyCareGoal } from "@/api/client";
 import type { DailyCareGoal, DailyCareInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import { savePendingAvatarCongrats } from "@/storage/pendingAvatarCongrats";
 
 type Props = {
   colors: AppColors;
   care: DailyCareInfo;
+  userId?: string;
   onUpdate: (care: DailyCareInfo) => void;
-  onGoalsBonus?: () => void;
+  onGoalsBonus?: (congratsLine?: string) => void;
 };
 
 function GoalRow({
@@ -56,7 +59,7 @@ function GoalRow({
   );
 }
 
-export function MoodDailyGoals({ colors, care, onUpdate, onGoalsBonus }: Props) {
+export function MoodDailyGoals({ colors, care, userId, onUpdate, onGoalsBonus }: Props) {
   const goals = care.daily_goals ?? [];
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [breatheCount, setBreatheCount] = useState<number | null>(null);
@@ -105,8 +108,23 @@ export function MoodDailyGoals({ colors, care, onUpdate, onGoalsBonus }: Props) 
       if (!res?.daily_care) return;
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       onUpdate(res.daily_care);
+      const congratsLine = res.daily_care.avatar_congrats?.trim();
+      if (congratsLine && userId) {
+        void savePendingAvatarCongrats(userId, congratsLine);
+        if (Platform.OS !== "web") {
+          void Notifications.scheduleNotificationAsync({
+            content: {
+              title: "Jardim completo",
+              body: congratsLine,
+              sound: true,
+              data: { screen: "chat", type: "avatar_congrats" },
+            },
+            trigger: null,
+          }).catch(() => undefined);
+        }
+      }
       if (res.daily_care.goals_bonus_granted) {
-        onGoalsBonus?.();
+        onGoalsBonus?.(congratsLine);
       }
     } finally {
       setBusyKey(null);
@@ -114,6 +132,7 @@ export function MoodDailyGoals({ colors, care, onUpdate, onGoalsBonus }: Props) 
   };
 
   const doneCount = goals.filter((g) => g.done).length;
+  const congrats = care.avatar_congrats?.trim();
 
   return (
     <View style={styles.wrap}>
@@ -123,6 +142,9 @@ export function MoodDailyGoals({ colors, care, onUpdate, onGoalsBonus }: Props) 
           {doneCount}/{goals.length}
         </Text>
       </View>
+      {congrats ? (
+        <Text style={[styles.congrats, { color: colors.primary }]}>{congrats}</Text>
+      ) : null}
       {goals.map((g) => (
         <GoalRow
           key={g.key}
@@ -142,6 +164,7 @@ const styles = StyleSheet.create({
   head: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 8 },
   title: { fontSize: 14, fontWeight: "800" },
   counter: { fontSize: 12, fontWeight: "800" },
+  congrats: { fontSize: 13, lineHeight: 19, fontWeight: "600", marginBottom: 8 },
   row: {
     flexDirection: "row",
     alignItems: "center",

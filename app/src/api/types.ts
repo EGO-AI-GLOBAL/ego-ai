@@ -417,6 +417,7 @@ export type DailyCareInfo = {
   all_goals_done?: boolean;
   all_goals_bonus?: number;
   goals_bonus_granted?: boolean;
+  avatar_congrats?: string;
 };
 
 export type DailyCareShopItem = {

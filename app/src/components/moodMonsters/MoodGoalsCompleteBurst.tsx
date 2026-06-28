@@ -7,6 +7,7 @@ type Props = {
   visible: boolean;
   bonus?: number;
   totalGoals?: number;
+  congratsLine?: string;
   onDone?: () => void;
 };
 
@@ -16,6 +17,7 @@ export function MoodGoalsCompleteBurst({
   visible,
   bonus = 3,
   totalGoals = 5,
+  congratsLine,
   onDone,
 }: Props) {
   const scale = useRef(new Animated.Value(0.6)).current;
@@ -57,6 +59,11 @@ export function MoodGoalsCompleteBurst({
         <Text style={[styles.sub, { color: colors.primary }]}>
           {totalGoals}/{totalGoals} missões · +{bonus} sementes bónus
         </Text>
+        {congratsLine ? (
+          <Text style={[styles.congrats, { color: colors.text }]} numberOfLines={3}>
+            {congratsLine}
+          </Text>
+        ) : null}
       </Animated.View>
     </View>
   );
@@ -80,4 +87,5 @@ const styles = StyleSheet.create({
   emoji: { fontSize: 32 },
   title: { fontSize: 16, fontWeight: "900", marginTop: 6, textAlign: "center" },
   sub: { fontSize: 13, fontWeight: "700", marginTop: 4, textAlign: "center" },
+  congrats: { fontSize: 12, fontWeight: "600", marginTop: 8, textAlign: "center", lineHeight: 17 },
 });

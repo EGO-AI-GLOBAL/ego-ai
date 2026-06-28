@@ -30,6 +30,8 @@ import { loadStreakCache } from "@/storage/streakCache";
 
 import { ensureReminderNotificationPermission } from "@/utils/reminderNotifications";
 
+import { pickAvatarOfDay } from "@/utils/avatarEngagement";
+
 import { resolveUserId } from "@/utils/resolveUserId";
 
 
@@ -188,6 +190,16 @@ export async function syncDailyCheckInNotification(): Promise<void> {
 
     const userName = resolveUserDisplayName();
 
+    const session = getSession();
+
+    const uid = resolveUserId(session, session?.user?.id);
+
+    const dayAvatar = uid ? pickAvatarOfDay(uid) : undefined;
+
+    const avatarOfDay = dayAvatar
+      ? { avatar_id: dayAvatar.avatar_id, shortName: dayAvatar.shortName }
+      : undefined;
+
     const streakCache = await loadStreakCache();
 
     const streakCurrent = streakCache?.current ?? 0;
@@ -206,7 +218,8 @@ export async function syncDailyCheckInNotification(): Promise<void> {
         assistantName,
         userName,
         ritual === "evening" ? streakCurrent : undefined,
-        ritual === "reveal" || ritual === "evening" ? nightDumpStreak : undefined
+        ritual === "reveal" || ritual === "evening" ? nightDumpStreak : undefined,
+        ritual === "morning" ? avatarOfDay : undefined
       );
 
       await Notifications.cancelScheduledNotificationAsync(id);

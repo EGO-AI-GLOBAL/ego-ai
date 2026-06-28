@@ -1,0 +1,36 @@
+SYNC BUILD 1.0.51 — 4 AGENTES
+================================
+Atualizado: pronto para build automática amanhã
+
+REGRA: Duplo clique AMANHA-1.0.51.bat (ou PREPARAR → GERAR → AGUARDAR)
+
+| # | Agente        | Ficheiro sync                         | Estado        |
+|---|---------------|---------------------------------------|---------------|
+| A | Monstrinhos   | SYNC-AGENTES-MONSTRINHOS-1.0.51.txt   | ✅ PRONTO     |
+| B | EGO de Bolso  | SYNC-AGENTES-BOLSO-1.0.51.txt         | ✅ PRONTO     |
+| C | API/Segurança | SYNC-AGENTES-SEGURANCA-1.0.51.txt     | ✅ PRONTO     |
+| D | Marketing     | SYNC-AGENTES-MARKETING-1.0.50.txt     | ⚠️ reutilizar ou criar 1.0.51 |
+
+Versão: 1.0.51 | iOS build 39 | Android versionCode 90
+
+O que entra (Monstrinhos + API)
+-------------------------------
+• 12 personalidades reais nos avatares
+• Avatar do dia + meta semanal 3 avatares + cartão no chat
+• Memória leve por avatar (1–2 factos)
+• Streak de chat (só escuta) — separado Monstrinhos
+• Rituais e boas-vindas únicos por persona
+• Notificação 8h com avatar do dia
+• Monstrinhos: parabéns do avatar ao completar missões
+
+Bolso (já em main — Dia 4)
+• Push 10h «Faltam X/5 missões»
+
+Parte Bolso pendente (Dia 9 — agente Bolso)
+• Chat menciona missão bolso pendente → COMANDO-AGENTE-BOLSO-RETENCAO-AVATARES.txt
+
+SEQUÊNCIA AMANHÃ
+----------------
+1. PREPARAR-1.0.51.bat
+2. AMANHA-1.0.51.bat ou GERAR-1.0.51.bat → AGUARDAR-E-SUBMETER-1.0.51.bat
+3. Railway após loja: NOTAS-1.0.51-PLAY.txt

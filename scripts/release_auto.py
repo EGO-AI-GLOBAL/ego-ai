@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Release 1.0.50 automática: push + verificações + EAS + submit + ficheiros Railway."""
+"""Release automática: push + verificações + EAS + submit + ficheiros Railway."""
 from __future__ import annotations
 
 import argparse
@@ -12,28 +12,47 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 APP_CONFIG = ROOT / "app" / "app.config.ts"
 
-# Ficheiros obrigatórios na build 1.0.50 (100% do pacote)
-REQUIRED_1_0_50: list[str] = [
-    "app/app.config.ts",
-    "app/app/reset-password.tsx",
-    "app/app/forgot-password.tsx",
-    "app/src/storage/passwordRecovery.ts",
-    "app/src/storage/sessionRefresh.ts",
-    "app/src/utils/authLinkParams.ts",
-    "ego_api/auth_reset.py",
-    "ego_api/services.py",
-    "flask_api.py",
-    "marketing/NOTAS-1.0.50-PLAY.txt",
-]
-
-REQUIRED_SNIPPETS: list[tuple[str, str]] = [
-    ("app/src/api/client.ts", "completePasswordReset"),
-    ("ego_api/services.py", "def complete_password_reset("),
-    ("flask_api.py", '/auth/reset-password'),
-    ("ego_api/gemini.py", "melhor psicólogo"),
-    ("app/app.config.ts", 'version: "1.0.50"'),
-    ("app/src/context/AuthContext.tsx", "saveLocalProfilePhone"),
-]
+BUNDLE_BY_VERSION: dict[str, dict[str, list]] = {
+    "1.0.51": {
+        "files": [
+            "app/app.config.ts",
+            "ego_api/avatar_personalities.py",
+            "ego_api/avatar_memory.py",
+            "ego_api/daily_care.py",
+            "app/src/components/AvatarEngagementCard.tsx",
+            "app/src/constants/avatarWelcome.ts",
+            "marketing/NOTAS-1.0.51-PLAY.txt",
+        ],
+        "snippets": [
+            ("ego_api/avatar_personalities.py", "personality_instruction_for_avatar"),
+            ("ego_api/avatar_memory.py", "save_avatar_memory"),
+            ("app/app.config.ts", 'version: "1.0.51"'),
+            ("ego_api/daily_care.py", "_avatar_congrats_line"),
+        ],
+    },
+    "1.0.50": {
+        "files": [
+            "app/app.config.ts",
+            "app/app/reset-password.tsx",
+            "app/app/forgot-password.tsx",
+            "app/src/storage/passwordRecovery.ts",
+            "app/src/storage/sessionRefresh.ts",
+            "app/src/utils/authLinkParams.ts",
+            "ego_api/auth_reset.py",
+            "ego_api/services.py",
+            "flask_api.py",
+            "marketing/NOTAS-1.0.50-PLAY.txt",
+        ],
+        "snippets": [
+            ("app/src/api/client.ts", "completePasswordReset"),
+            ("ego_api/services.py", "def complete_password_reset("),
+            ("flask_api.py", '/auth/reset-password'),
+            ("ego_api/gemini.py", "melhor psicólogo"),
+            ("app/app.config.ts", 'version: "1.0.50"'),
+            ("app/src/context/AuthContext.tsx", "saveLocalProfilePhone"),
+        ],
+    },
+}
 
 
 def _run(cmd: list[str], *, cwd: Path = ROOT, check: bool = True) -> subprocess.CompletedProcess[str]:
@@ -48,13 +67,16 @@ def _run(cmd: list[str], *, cwd: Path = ROOT, check: bool = True) -> subprocess.
 
 
 def verify_bundle(version: str = "1.0.50") -> None:
-    print("=== Verificar pacote 1.0.50 (100%) ===")
-    missing = [p for p in REQUIRED_1_0_50 if not (ROOT / p).is_file()]
+    spec = BUNDLE_BY_VERSION.get(version)
+    if not spec:
+        raise SystemExit(f"Versão {version} sem pacote definido em release_auto.py")
+    print(f"=== Verificar pacote {version} (100%) ===")
+    missing = [p for p in spec["files"] if not (ROOT / p).is_file()]
     if missing:
         for p in missing:
             print(f"  FALTA  {p}")
-        raise SystemExit("Pacote 1.0.50 incompleto — faltam ficheiros.")
-    for path, needle in REQUIRED_SNIPPETS:
+        raise SystemExit(f"Pacote {version} incompleto — faltam ficheiros.")
+    for path, needle in spec["snippets"]:
         text = (ROOT / path).read_text(encoding="utf-8")
         if needle not in text:
             raise SystemExit(f"Pacote incompleto: {path} sem «{needle}»")
@@ -66,7 +88,7 @@ def verify_bundle(version: str = "1.0.50") -> None:
     if not m_ver or m_ver.group(1) != version:
         raise SystemExit(f"app.config.ts version deve ser {version}")
     print(f"  OK    versão {m_ver.group(1)} · iOS {m_ios.group(1) if m_ios else '?'} · Android {m_and.group(1) if m_and else '?'}")
-    print("Pacote 1.0.50 completo.\n")
+    print(f"Pacote {version} completo.\n")
 
 
 def git_push_if_needed() -> None:
@@ -88,11 +110,17 @@ def git_push_if_needed() -> None:
 
 
 def write_railway_snippet(version: str, android_code: str) -> Path:
-    msg = (
-        f"{version}: Recuperar senha + ficar logado ao reabrir. Avatares só escuta. "
-        "Toque em Atualizar agora."
+    messages = {
+        "1.0.51": (
+            f"{version}: 12 personalidades, avatar do dia, memória leve e Bolso ligado ao chat. "
+            "Toque em Atualizar agora."
+        ),
+    }
+    msg = messages.get(
+        version,
+        f"{version}: Recuperar senha + ficar logado ao reabrir. Avatares só escuta. Toque em Atualizar agora.",
     )
-    body = f"""# Colar no Railway após loja aprovar 1.0.50
+    body = f"""# Colar no Railway após loja aprovar {version}
 EGO_LATEST_APP_VERSION={version}
 EGO_LATEST_ANDROID_VERSION_CODE={android_code}
 EGO_APP_UPDATE_MESSAGE={msg}
@@ -112,6 +140,25 @@ def write_done_log(version: str, ids_path: Path) -> None:
     ids = {}
     if ids_path.is_file():
         ids = json.loads(ids_path.read_text(encoding="utf-8"))
+    summaries = {
+        "1.0.51": """Incluído 100%:
+• 12 personalidades + memória leve por avatar
+• Avatar do dia, meta semanal, streak chat
+• Monstrinhos → parabéns do avatar (push + chat)
+• Bolso: push 10h, estrelas/loja, chat ligado (herdado main)
+• Rituais e boas-vindas únicos por persona
+""",
+    }
+    summary = summaries.get(
+        version,
+        """Incluído 100%:
+• Recuperar senha (web + app + API)
+• Avatares só escuta (sem agendar no chat)
+• Sessão persistente ao reabrir app
+• Cadastro: telefone não repete para contas novas
+• Rituais 8h/14h/21h alinhados
+""",
+    )
     log.write_text(
         f"""EGO-AI {version} — release automática concluída
 ========================================
@@ -119,13 +166,7 @@ iOS build: {ids.get('ios', '?')}
 Android build: {ids.get('android', '?')}
 Enfileirado: {ids.get('queued_at', '?')}
 
-Incluído 100%:
-• Recuperar senha (web + app + API)
-• Avatares só escuta (sem agendar no chat)
-• Sessão persistente ao reabrir app
-• Cadastro: telefone não repete para contas novas
-• Rituais 8h/14h/21h alinhados
-
+{summary}
 Próximo: Railway vars em RAILWAY-VARS-{version}.txt (após loja)
 Supabase Redirect URLs: supabase/SUPABASE-REDIRECT-RESET-SENHA.txt
 """,
