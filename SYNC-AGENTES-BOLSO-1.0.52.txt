@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO — BUILD 1.0.52
 ====================================
 
-Estado: ✅ PRONTO — commit (ver git log)
+Estado: ✅ PRONTO — commit bdc9e13
 
 Zona: Bolso Dia 5 — estrelas + loja 5 cores de ovo
 Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
@@ -31,4 +31,4 @@ Monstrinhos: bump 1.0.52 + GERAR-1.0.52.bat (inclui Dia 4 push 10h se 1.0.51 nã
 
 MENSAGEM
 --------
-✅ BOLSO PRONTO — estrelas + loja 5 cores ovo · build 1.0.52
+✅ BOLSO PRONTO — bdc9e13 — estrelas + loja 5 cores ovo · build 1.0.52
