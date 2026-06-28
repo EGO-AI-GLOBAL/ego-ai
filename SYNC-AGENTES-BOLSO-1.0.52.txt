@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO — BUILD 1.0.52
 ====================================
 
-Estado: ✅ PRONTO — commit (ver git log)
+Estado: ✅ PRONTO — commit 622612e
 
 Zona: Dia 5 (estrelas + loja) + Dia 9 (chat + push avatar)
 Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
@@ -36,4 +36,4 @@ Monstrinhos: GERAR-1.0.52.bat (Dia 4–5–9 Bolso neste binário)
 
 MENSAGEM
 --------
-✅ BOLSO PRONTO — chat+push avatar · estrelas+loja · build 1.0.52
+✅ BOLSO PRONTO — 622612e — chat+push avatar · estrelas+loja · build 1.0.52
