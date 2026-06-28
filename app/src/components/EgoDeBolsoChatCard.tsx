@@ -44,7 +44,12 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
     <>
       <View style={[styles.wrap, { backgroundColor: colors.bgCard, borderColor: colors.primary }]}>
         <Pressable onPress={() => router.push("/(main)/wellness-journey")} style={styles.row}>
-          <CompanionSprite stage={stage} size={52} happy={dayComplete || journey.level_complete} />
+          <CompanionSprite
+            stage={stage}
+            size={52}
+            happy={dayComplete || journey.level_complete}
+            eggColor={journey.companion_egg_color}
+          />
           <View style={styles.body}>
             <Text style={[styles.badge, { color: colors.primary }]}>
               {petName.toUpperCase()} · EGO DE BOLSO 🥚

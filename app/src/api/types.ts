@@ -335,6 +335,16 @@ export type WellnessJourneyStep = {
   need?: number;
 };
 
+export type CompanionEggColorItem = {
+  id: string;
+  label: string;
+  emoji: string;
+  price: number;
+  owned: boolean;
+  active: boolean;
+  can_afford: boolean;
+};
+
 export type WellnessJourney = {
   level: number;
   max_level: number;
@@ -359,6 +369,9 @@ export type WellnessJourney = {
   companion_name?: string;
   companion_name_setup_done?: boolean;
   care_percent?: number;
+  stars?: number;
+  companion_egg_color?: string;
+  egg_color_shop?: CompanionEggColorItem[];
 };
 
 export type DailyCareMood = {

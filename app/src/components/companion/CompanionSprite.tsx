@@ -1,6 +1,7 @@
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useRef } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
+import { resolveEggPalette } from "@/utils/companionEggPalettes";
 
 export type CompanionStage = "egg" | "hatchling" | "teen" | "adult";
 
@@ -9,6 +10,7 @@ type Props = {
   size?: number;
   happy?: boolean;
   celebrate?: boolean;
+  eggColor?: string;
 };
 
 const STAGE_PALETTE: Record<
@@ -134,9 +136,12 @@ export function CompanionSprite({
   size = 100,
   happy = false,
   celebrate = false,
+  eggColor,
 }: Props) {
   const s = (stage as CompanionStage) || "egg";
-  const palette = STAGE_PALETTE[s] ?? STAGE_PALETTE.egg;
+  const eggPalette = resolveEggPalette(eggColor);
+  const palette =
+    s === "egg" ? eggPalette : (STAGE_PALETTE[s] ?? STAGE_PALETTE.egg);
   const wobble = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(0)).current;
   const floatY = useRef(new Animated.Value(0)).current;

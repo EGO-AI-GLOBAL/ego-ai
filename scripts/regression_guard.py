@@ -38,6 +38,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "respondEntreNosEvent",
             "submitDailyCareCheckin",
             "completeWellnessJourneyStep",
+            "export async function purchaseCompanionEggColor",
             "export async function requestPasswordReset",
             "export async function completePasswordReset",
         ],
@@ -60,7 +61,15 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/components/companion/CompanionSprite.tsx",
-        ["CompanionSprite", "celebrate"],
+        ["CompanionSprite", "celebrate", "eggColor"],
+    ),
+    (
+        "app/src/components/companion/CompanionEggColorShop.tsx",
+        ["CompanionEggColorShop", "purchaseCompanionEggColor"],
+    ),
+    (
+        "app/src/utils/companionEggPalettes.ts",
+        ["EGG_COLOR_PALETTES", "resolveEggPalette"],
     ),
     (
         "app/src/components/companion/CompanionNameChip.tsx",
@@ -164,6 +173,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             '@app.post("/api/v1/daily-care/goal")',
             '@app.post("/api/v1/daily-care/shop")',
             '@app.post("/api/v1/wellness-journey/step")',
+            '@app.post("/api/v1/wellness-journey/shop")',
             "admin_cron_ego_de_bolso_care",
             '@app.get("/go")',
         ],
@@ -178,7 +188,11 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/wellness_journey.py",
-        ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "validate_journey_expansion_caps", "_format_today_task", "_daily_care_fraction", "_label_with_how", "companion_name"],
+        ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "validate_journey_expansion_caps", "_format_today_task", "_daily_care_fraction", "_label_with_how", "companion_name", "egg_color_shop"],
+    ),
+    (
+        "ego_api/companion_shop.py",
+        ["purchase_egg_color", "award_mission_stars", "EGG_COLOR_ITEMS", "STARS_PER_MISSION"],
     ),
     (
         "ego_api/ego_de_bolso_push.py",

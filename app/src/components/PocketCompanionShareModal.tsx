@@ -56,7 +56,12 @@ function CardFace({ journey }: { journey: WellnessJourney }) {
 
       <Text style={styles.title}>EGO de Bolso</Text>
 
-      <CompanionSprite stage={stage} size={80} happy={journey.level_complete} />
+      <CompanionSprite
+        stage={stage}
+        size={80}
+        happy={journey.level_complete}
+        eggColor={journey.companion_egg_color}
+      />
 
       <Text style={styles.level}>
 

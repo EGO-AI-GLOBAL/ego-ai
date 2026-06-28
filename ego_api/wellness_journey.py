@@ -7,6 +7,13 @@ from typing import Any
 
 from ego_api import db
 from ego_api import progression
+from ego_api.companion_shop import (
+    DEFAULT_EGG_COLOR,
+    award_mission_stars,
+    merge_shop_into_state,
+    shop_catalog,
+    write_shop_fields,
+)
 from ego_api.streaks import _local_date_str, get_streak
 
 try:
@@ -437,7 +444,7 @@ def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
         key = str(k or "").strip()[:32]
         if key:
             clean_counts[key] = max(0, int(v or 0))
-    return {
+    state = {
         "level": level,
         "step_counts": clean_counts,
         "levels_completed": list(raw.get("levels_completed") or []),
@@ -446,6 +453,8 @@ def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
         "missions_today_date": str(raw.get("missions_today_date") or "").strip()[:10],
         "missions_today_count": max(0, int(raw.get("missions_today_count") or 0)),
     }
+    merge_shop_into_state(state, raw)
+    return state
 
 
 def _save_state(
@@ -463,6 +472,7 @@ def _save_state(
         "mission_done_date": str(state.get("mission_done_date") or "").strip()[:10],
         "missions_today_date": str(state.get("missions_today_date") or "").strip()[:10],
         "missions_today_count": max(0, int(state.get("missions_today_count") or 0)),
+        **write_shop_fields(state),
     }
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})
 
@@ -918,6 +928,8 @@ def _on_level_complete(
     if count >= MISSIONS_PER_DAY:
         state["mission_done_date"] = today
 
+    award_mission_stars(state, missions_per_day=MISSIONS_PER_DAY)
+
 
 def build_journey_payload(
     supabase: Client | None,
@@ -989,6 +1001,9 @@ def build_journey_payload(
         "companion_name": name_fields["companion_name"],
         "companion_name_setup_done": name_fields["companion_name_setup_done"],
         "care_percent": care_pct,
+        "stars": max(0, int(state.get("stars") or 0)),
+        "companion_egg_color": str(state.get("egg_color") or DEFAULT_EGG_COLOR),
+        "egg_color_shop": shop_catalog(state),
     }
 
 

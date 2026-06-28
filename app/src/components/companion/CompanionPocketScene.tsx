@@ -57,7 +57,11 @@ export function CompanionPocketScene({ colors, journey, onCompanionNameChange }:
             size={108}
             happy={missionDone}
             celebrate={celebrate}
+            eggColor={journey.companion_egg_color}
           />
+          {(journey.stars ?? 0) > 0 ? (
+            <Text style={styles.starsBadge}>⭐ {journey.stars} estrelas</Text>
+          ) : null}
           <Text style={styles.careLabel}>Cuidado {care}%</Text>
           <View style={styles.careTrack}>
             <View style={[styles.careFill, { width: fillWidth }]} />
@@ -111,6 +115,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   careLabel: { marginTop: 8, fontSize: 14, fontWeight: "800", color: "#fff" },
+  starsBadge: {
+    marginTop: 6,
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#FFE566",
+  },
   careTrack: {
     width: "88%",
     height: 12,

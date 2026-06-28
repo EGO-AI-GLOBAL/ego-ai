@@ -1537,6 +1537,22 @@ def wellness_journey_dismiss_level_up():
     return _json_ok({"wellness_journey": journey})
 
 
+@app.post("/api/v1/wellness-journey/shop")
+@require_auth
+@rate_limit(20, 60, scope="user")
+def wellness_journey_shop():
+    from ego_api.companion_shop import purchase_egg_color
+
+    data = request.get_json(silent=True) or {}
+    color = str(data.get("color") or data.get("color_id") or data.get("item") or "").strip()[:24]
+    if not color:
+        return _json_error("Informe a cor do ovo (color).")
+    prof = db.load_profile(g.supabase, g.user_id) or {}
+    tier, _ = db.user_plan_limits(prof)
+    journey = purchase_egg_color(g.supabase, g.user_id, color, plan_tier=tier)
+    return _json_ok({"wellness_journey": journey})
+
+
 @app.post("/api/v1/daily-care/checkin")
 @require_auth
 @rate_limit(12, 60, scope="user")

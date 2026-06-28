@@ -1,0 +1,34 @@
+AGENTE EGO DE BOLSO — BUILD 1.0.52
+====================================
+
+Estado: ✅ PRONTO — commit (ver git log)
+
+Zona: Bolso Dia 5 — estrelas + loja 5 cores de ovo
+Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
+
+═══════════════════════════════════════════════════════════════════
+DIA 5 — PROGRAMACAO-EGO-BOLSO-V2.md
+═══════════════════════════════════════════════════════════════════
+
+[x] ego_api/companion_shop.py — estrelas, 5 cores, purchase_egg_color
+[x] ego_api/wellness_journey.py — +1⭐/missão, +3⭐ ao 5/5, payload shop
+[x] flask_api.py — POST /api/v1/wellness-journey/shop
+[x] app — CompanionEggColorShop, companionEggPalettes, eggColor no sprite
+[x] EgoDeBolsoChatCard + PocketCompanionShareModal — cor do ovo
+
+Cores: cósmico (grátis), rosa 5⭐, esmeralda 8⭐, dourado 10⭐, pôr do sol 12⭐
+
+Testar: Agenda → Bolso → 1 missão → ⭐ sobe → Loja → comprar cor → ovo muda
+
+GIT CHECK
+---------
+[x] regression_guard.py + smoke_test_api.py OK
+[x] push origin main
+
+BUILD
+-----
+Monstrinhos: bump 1.0.52 + GERAR-1.0.52.bat (inclui Dia 4 push 10h se 1.0.51 não saiu)
+
+MENSAGEM
+--------
+✅ BOLSO PRONTO — estrelas + loja 5 cores ovo · build 1.0.52

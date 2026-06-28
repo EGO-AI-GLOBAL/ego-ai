@@ -667,6 +667,18 @@ export async function dismissWellnessLevelUp(): Promise<WellnessJourney | null> 
   }
 }
 
+export async function purchaseCompanionEggColor(
+  colorId: string
+): Promise<WellnessJourney | null> {
+  try {
+    const { data } = await api.post("wellness-journey/shop", { color: colorId });
+    const body = unwrap<{ wellness_journey: WellnessJourney }>(data);
+    return body.wellness_journey ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function submitDailyCareCheckin(moodKey: string): Promise<{
   daily_care: DailyCareInfo;
   wellness_journey?: WellnessJourney;
