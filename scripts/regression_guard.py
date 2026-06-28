@@ -89,7 +89,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/components/EgoDeBolsoChatCard.tsx",
-        ["EGO DE BOLSO", "PocketCompanionShareModal", "Cuidar agora"],
+        ["EGO DE BOLSO", "PocketCompanionShareModal", "Cuidar agora", "Falar disso"],
     ),
     (
         "app/src/utils/egoDeBolsoCareRoute.ts",
@@ -199,12 +199,18 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         [
             "process_ego_de_bolso_care_pushes",
             "process_ego_de_bolso_morning_pushes",
+            "maybe_send_mission_complete_push",
+            "mission_complete_notification_copy",
             "morning_notification_copy",
             "send_expo_push",
             "companion_needs_care",
             "MORNING_HOUR",
             "CARE_HOUR",
         ],
+    ),
+    (
+        "ego_api/bolso_chat.py",
+        ["bolso_mission_prompt_block", "try_mission_complete_push"],
     ),
     (
         "ego_api/download_go.py",

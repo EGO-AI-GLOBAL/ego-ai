@@ -1044,10 +1044,15 @@ def record_step(
 
     level_def = _level_def(int(state["level"]), cap)
 
-    if _level_complete(level_def, counts, streak_data):
+    mission_advanced = _level_complete(level_def, counts, streak_data)
+    if mission_advanced:
         _on_level_complete(state, supabase, cap)
 
     _save_state(supabase, user_id, state)
+    if mission_advanced:
+        from ego_api.bolso_chat import try_mission_complete_push
+
+        try_mission_complete_push(supabase, user_id, plan_tier=plan_tier)
     return build_journey_payload(
         supabase, user_id, streak=streak_data, plan_tier=plan_tier
     )
@@ -1067,12 +1072,16 @@ def sync_streak_levels(
 
     if not _mission_done_today(state):
         level_def = _level_def(int(state["level"]), cap)
-        if _level_complete(level_def, state["step_counts"], streak_data):
+        mission_advanced = _level_complete(level_def, state["step_counts"], streak_data)
+        if mission_advanced:
             _on_level_complete(state, supabase, cap)
             changed = True
 
     if changed:
         _save_state(supabase, user_id, state)
+        from ego_api.bolso_chat import try_mission_complete_push
+
+        try_mission_complete_push(supabase, user_id, plan_tier=plan_tier)
     return build_journey_payload(
         supabase, user_id, streak=streak_data, plan_tier=plan_tier
     )

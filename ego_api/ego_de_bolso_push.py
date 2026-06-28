@@ -29,6 +29,8 @@ MORNING_HOUR = 10
 CARE_HOUR = 18
 MORNING_PUSH_DATE_KEY = "ego_de_bolso_push_morning_date"
 CARE_PUSH_DATE_KEY = "ego_de_bolso_push_date"
+MISSION_PUSH_COUNT_KEY = "ego_de_bolso_mission_push_count"
+MISSION_PUSH_DATE_KEY = "ego_de_bolso_mission_push_date"
 
 
 def ego_de_bolso_push_enabled() -> bool:
@@ -46,6 +48,7 @@ def ego_de_bolso_push_status() -> dict[str, Any]:
         "morning_hour_local": MORNING_HOUR,
         "care_hour_local": CARE_HOUR,
         "max_pushes_per_day": 2,
+        "mission_push_on_complete": True,
     }
 
 
@@ -187,26 +190,57 @@ def _companion_stage_label(journey: dict[str, Any], *, companion_name: str = "")
     return custom or str(journey.get("companion_stage_label") or "EGO de Bolso").strip()
 
 
+def _avatar_display_name(supabase: Client | None, user_id: str) -> str:
+    from ego_api.persona import assistant_display_name_for_avatar
+
+    stored_a, _ = db.load_persona(supabase, user_id)
+    return assistant_display_name_for_avatar(stored_a)
+
+
 def morning_notification_copy(
-    journey: dict[str, Any], *, companion_name: str = ""
+    journey: dict[str, Any],
+    *,
+    companion_name: str = "",
+    avatar_name: str = "",
 ) -> tuple[str, str, str]:
     stage = _companion_stage_label(journey, companion_name=companion_name)
+    avatar = (avatar_name or "EGO-AI").strip() or "EGO-AI"
     per_day = max(1, int(journey.get("missions_per_day") or 5))
     remaining = _missions_remaining(journey)
     screen = resolve_care_screen(journey)
-    title = f"{stage} — bom dia! 🌅"
-    body = f"Faltam {remaining}/{per_day} missões hoje"
+    title = f"{avatar} · bom dia 🌅"
+    body = f"{stage}: faltam {remaining}/{per_day} missões hoje"
     return title, body, screen
 
 
 def notification_copy(
-    journey: dict[str, Any], *, companion_name: str = ""
+    journey: dict[str, Any], *, companion_name: str = "", avatar_name: str = ""
 ) -> tuple[str, str, str]:
     stage = _companion_stage_label(journey, companion_name=companion_name)
+    avatar = (avatar_name or "EGO-AI").strip() or "EGO-AI"
     task = str(journey.get("today_task") or "Complete a missão de hoje").strip()
     screen = resolve_care_screen(journey)
-    title = f"{stage} precisa de você 🥚"
+    title = f"{avatar} viu que {stage} precisa de você 🥚"
     body = task if len(task) <= 90 else f"{task[:87]}…"
+    return title, body, screen
+
+
+def mission_complete_notification_copy(
+    journey: dict[str, Any],
+    *,
+    companion_name: str = "",
+    avatar_name: str = "",
+    missions_today: int = 0,
+) -> tuple[str, str, str]:
+    stage = _companion_stage_label(journey, companion_name=companion_name)
+    avatar = (avatar_name or "EGO-AI").strip() or "EGO-AI"
+    per_day = max(1, int(journey.get("missions_per_day") or 5))
+    screen = resolve_care_screen(journey)
+    title = f"{avatar} viu que você cuidou do bolso 🥚"
+    if journey.get("mission_done_today") or missions_today >= per_day:
+        body = f"{stage}: {per_day}/{per_day} missões hoje — parabéns!"
+    else:
+        body = f"{stage}: missão {missions_today}/{per_day} — continue assim 💜"
     return title, body, screen
 
 
@@ -276,7 +310,7 @@ def _process_push_slot(
     date_key: str,
     slot: str,
     journey_eligible: Callable[[dict[str, Any]], bool],
-    copy_fn: Callable[[dict[str, Any], str], tuple[str, str, str]],
+    copy_fn: Callable[[dict[str, Any], str, str], tuple[str, str, str]],
     limit: int = 200,
     active_days: int = 45,
     force: bool = False,
@@ -325,7 +359,8 @@ def _process_push_slot(
                 continue
             stats["eligible"] += 1
             companion_name = str(ui.get("ego_companion_name") or "")
-            title, body, screen = copy_fn(journey, companion_name)
+            avatar_name = _avatar_display_name(svc, user_id)
+            title, body, screen = copy_fn(journey, companion_name, avatar_name)
             sent = send_expo_push(
                 [_valid_expo_token(ui)],
                 title=title,
@@ -349,15 +384,19 @@ def _process_push_slot(
 
 
 def _morning_copy_wrapper(
-    journey: dict[str, Any], companion_name: str
+    journey: dict[str, Any], companion_name: str, avatar_name: str = ""
 ) -> tuple[str, str, str]:
-    return morning_notification_copy(journey, companion_name=companion_name)
+    return morning_notification_copy(
+        journey, companion_name=companion_name, avatar_name=avatar_name
+    )
 
 
 def _care_copy_wrapper(
-    journey: dict[str, Any], companion_name: str
+    journey: dict[str, Any], companion_name: str, avatar_name: str = ""
 ) -> tuple[str, str, str]:
-    return notification_copy(journey, companion_name=companion_name)
+    return notification_copy(
+        journey, companion_name=companion_name, avatar_name=avatar_name
+    )
 
 
 def process_ego_de_bolso_morning_pushes(
@@ -413,6 +452,63 @@ def process_ego_de_bolso_pushes(
             limit=limit, active_days=active_days, force=force
         ),
     }
+
+
+def maybe_send_mission_complete_push(
+    supabase: Client | None,
+    user_id: str,
+    *,
+    plan_tier: str = "essential",
+) -> bool:
+    """Push ao completar missão — «[Avatar] viu que você cuidou do bolso»."""
+    if not ego_de_bolso_push_enabled() or not supabase or not user_id:
+        return False
+
+    from ego_api import wellness_journey
+    from ego_api.streaks import _local_date_str
+
+    prof = db.load_profile(supabase, user_id) or {}
+    ui = db._parse_ui_state(prof)  # noqa: SLF001
+    if not _rituals_enabled(ui):
+        return False
+    token = _valid_expo_token(ui)
+    if not token:
+        return False
+
+    journey = wellness_journey.get_journey(supabase, user_id, plan_tier=plan_tier)
+    missions_today = max(0, int(journey.get("missions_today") or 0))
+    if missions_today < 1:
+        return False
+
+    today = _local_date_str()
+    if str(ui.get(MISSION_PUSH_DATE_KEY) or "").strip() != today:
+        ui[MISSION_PUSH_DATE_KEY] = today
+        ui[MISSION_PUSH_COUNT_KEY] = 0
+
+    last_pushed = max(0, int(ui.get(MISSION_PUSH_COUNT_KEY) or 0))
+    if missions_today <= last_pushed:
+        return False
+
+    companion_name = str(ui.get("ego_companion_name") or "")
+    avatar_name = _avatar_display_name(supabase, user_id)
+    title, body, screen = mission_complete_notification_copy(
+        journey,
+        companion_name=companion_name,
+        avatar_name=avatar_name,
+        missions_today=missions_today,
+    )
+    sent = send_expo_push(
+        [token],
+        title=title,
+        body=body,
+        data={"type": "ego_de_bolso", "screen": screen, "slot": "mission"},
+    )
+    if sent > 0:
+        ui[MISSION_PUSH_COUNT_KEY] = missions_today
+        ui[MISSION_PUSH_DATE_KEY] = today
+        db.update_profile_fields(supabase, user_id, {"ui_state": ui})
+        return True
+    return False
 
 
 def start_background_jobs() -> None:

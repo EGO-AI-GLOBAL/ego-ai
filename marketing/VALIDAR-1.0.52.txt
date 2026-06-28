@@ -1,9 +1,11 @@
-VALIDAR 1.0.52 — Bolso Dia 5 (estrelas + loja ovo)
-==================================================
+VALIDAR 1.0.52 — Bolso Dia 5 + Dia 9
+=====================================
 
 [ ] Bolso — completar 1 missão → +1 estrela
 [ ] Bolso — fechar 5/5 missões → bónus +3 estrelas
 [ ] Bolso — Loja cores → comprar rosa (5⭐) → ovo muda
-[ ] Bolso — cor activa aparece no chat (EgoDeBolsoChatCard)
-[ ] Push 10h + 18h sem regressão (herdado 1.0.51)
+[ ] Chat — card Bolso mostra «Falta: …» + «Falar disso» preenche hint
+[ ] Chat — avatar menciona missão pendente (1–2 frases naturais)
+[ ] Push 10h/18h — título com nome do avatar (Luna, Leo, …)
+[ ] Push missão — «[Avatar] viu que você cuidou do bolso»
 [ ] Monstrinhos sem quebra

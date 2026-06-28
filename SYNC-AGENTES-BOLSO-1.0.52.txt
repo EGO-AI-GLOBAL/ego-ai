@@ -1,24 +1,29 @@
 AGENTE EGO DE BOLSO — BUILD 1.0.52
 ====================================
 
-Estado: ✅ PRONTO — commit bdc9e13
+Estado: ✅ PRONTO — commit (ver git log)
 
-Zona: Bolso Dia 5 — estrelas + loja 5 cores de ovo
+Zona: Dia 5 (estrelas + loja) + Dia 9 (chat + push avatar)
 Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
 
 ═══════════════════════════════════════════════════════════════════
-DIA 5 — PROGRAMACAO-EGO-BOLSO-V2.md
+DIA 5 — estrelas + loja 5 cores
 ═══════════════════════════════════════════════════════════════════
 
-[x] ego_api/companion_shop.py — estrelas, 5 cores, purchase_egg_color
-[x] ego_api/wellness_journey.py — +1⭐/missão, +3⭐ ao 5/5, payload shop
-[x] flask_api.py — POST /api/v1/wellness-journey/shop
-[x] app — CompanionEggColorShop, companionEggPalettes, eggColor no sprite
-[x] EgoDeBolsoChatCard + PocketCompanionShareModal — cor do ovo
+[x] ego_api/companion_shop.py — estrelas, purchase_egg_color
+[x] CompanionEggColorShop + companionEggPalettes
 
-Cores: cósmico (grátis), rosa 5⭐, esmeralda 8⭐, dourado 10⭐, pôr do sol 12⭐
+═══════════════════════════════════════════════════════════════════
+DIA 9 — chat ligado ao bolso + retenção avatares (zona Bolso)
+═══════════════════════════════════════════════════════════════════
 
-Testar: Agenda → Bolso → 1 missão → ⭐ sobe → Loja → comprar cor → ovo muda
+[x] ego_api/bolso_chat.py — inject prompt missão pendente no chat
+[x] services.py — agenda_ctx += bolso_mission_prompt_block
+[x] EgoDeBolsoChatCard — linha «Falta: …» + botão «Falar disso» → onCareHint
+[x] ego_de_bolso_push.py — copy 10h/18h com nome do avatar (persona)
+[x] Push ao completar missão — «[Avatar] viu que você cuidou do bolso»
+
+Testar: chat com missão pendente → avatar menciona bolso · completar missão → push
 
 GIT CHECK
 ---------
@@ -27,8 +32,8 @@ GIT CHECK
 
 BUILD
 -----
-Monstrinhos: bump 1.0.52 + GERAR-1.0.52.bat (inclui Dia 4 push 10h se 1.0.51 não saiu)
+Monstrinhos: GERAR-1.0.52.bat (Dia 4–5–9 Bolso neste binário)
 
 MENSAGEM
 --------
-✅ BOLSO PRONTO — bdc9e13 — estrelas + loja 5 cores ovo · build 1.0.52
+✅ BOLSO PRONTO — chat+push avatar · estrelas+loja · build 1.0.52

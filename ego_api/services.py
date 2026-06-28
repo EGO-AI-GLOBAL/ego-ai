@@ -841,6 +841,14 @@ def process_chat_message(
             schedule, user_display, supabase, user_id
         )
 
+    from ego_api.avatar_memory import memory_context_block
+
+    agenda_ctx += memory_context_block(supabase, user_id, avatar_id)
+
+    from ego_api.bolso_chat import bolso_mission_prompt_block
+
+    agenda_ctx += bolso_mission_prompt_block(supabase, user_id, plan_tier=tier)
+
     lang, _conf = gemini.detect_language(user_display)
 
     if cs.looks_like_today_agenda_query(user_display):
@@ -862,6 +870,10 @@ def process_chat_message(
         reply = gemini.strip_agenda_markers_from_reply(reply)
 
     mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
+
+    from ego_api.avatar_memory import save_avatar_memory
+
+    save_avatar_memory(supabase, user_id, avatar_id, user_display)
 
     warnings: list[str] = []
     reminders_saved: list[dict] = []
@@ -1777,6 +1789,8 @@ UI_STATE_SERVER_ONLY_KEYS = frozenset(
         "monthly_tokens_used",
         "ego_de_bolso_push_date",
         "ego_de_bolso_push_morning_date",
+        "ego_de_bolso_mission_push_count",
+        "ego_de_bolso_mission_push_date",
         "monthly_tokens_period",
     }
 )
