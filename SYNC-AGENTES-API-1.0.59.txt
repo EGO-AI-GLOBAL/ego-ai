@@ -20,7 +20,7 @@ DEPLOY API
 NÃO TOCADO: auth login/refresh, voz, Stripe, limites plano, Play Integrity, app.config.ts
 NÃO CORRI: GERAR / EAS / eas submit
 
-GIT: (hash após push)
+GIT: faf14ad
 TESTES: regression_guard + smoke OK
 
-✅ API PRONTO — API Monstrinhos Fase 7–8 — loja rotação + missões pool
+✅ API PRONTO — faf14ad — API Monstrinhos Fase 7–8 — loja rotação + missões pool
