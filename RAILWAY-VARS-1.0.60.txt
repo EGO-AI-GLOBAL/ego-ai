@@ -1,0 +1,14 @@
+# Colar no Railway — DEPOIS do GERAR 1.0.60 nas lojas
+# https://railway.app → serviço API → Variables
+
+EGO_LATEST_APP_VERSION=1.0.60
+EGO_LATEST_ANDROID_VERSION_CODE=99
+EGO_APP_UPDATE_MESSAGE=1.0.60: Voz Android corrigida + reset senha por e-mail Ego-IA. Loja e missões incluídas. Toque em Atualizar agora.
+EGO_MAINTENANCE=0
+
+# Confirmar (não apagar):
+EGO_PLAY_STORE_URL=https://play.google.com/apps/testing/com.egoai.app
+EGO_TESTFLIGHT_URL=https://testflight.apple.com/join/eNDKdFWF
+
+# Reset senha (API — deploy antes do build):
+# /health → password_reset_emails.via_brevo_api=true

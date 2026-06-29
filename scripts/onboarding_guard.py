@@ -134,6 +134,7 @@ def check_password_reset_api() -> int:
         ("flask_api.py", '@app.post("/api/v1/auth/forgot-password")'),
         ("flask_api.py", '@app.get("/auth/reset-password")'),
         ("ego_api/auth_reset.py", "password_reset_redirect_url"),
+        ("ego_api/auth_reset.py", "dispatch_password_reset_email"),
         ("app/src/api/client.ts", "requestPasswordReset"),
     ]:
         if needle in _read(rel):

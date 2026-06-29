@@ -687,6 +687,8 @@ export function useVoiceChat() {
     await Audio.setAudioModeAsync({
       allowsRecordingIOS: true,
       playsInSilentModeIOS: true,
+      shouldDuckAndroid: true,
+      playThroughEarpieceAndroid: false,
     });
     const recordingOptions: Audio.RecordingOptions = {
       ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
@@ -801,6 +803,7 @@ export function useVoiceChat() {
       setIsRecording(false);
       recordingRef.current = null;
       setMicSessionActive(false);
+      const uri = rec.getURI();
       await safeStopNativeRecording(rec);
       const Audio = getExpoAudio();
       if (Audio) {
@@ -811,7 +814,6 @@ export function useVoiceChat() {
           playThroughEarpieceAndroid: false,
         });
       }
-      const uri = rec.getURI();
       if (!uri) {
         throw new Error("Gravação vazia.");
       }
@@ -873,6 +875,7 @@ export function useVoiceChat() {
     setIsRecording(false);
     recordingRef.current = null;
     setMicSessionActive(false);
+    const uri = rec.getURI();
     await safeStopNativeRecording(rec);
     const Audio = getExpoAudio();
     if (Audio) {
@@ -883,7 +886,6 @@ export function useVoiceChat() {
         playThroughEarpieceAndroid: false,
       });
     }
-    const uri = rec.getURI();
     if (!uri) {
       throw new Error("Gravação vazia.");
     }

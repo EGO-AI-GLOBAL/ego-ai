@@ -51,6 +51,9 @@ export function MoodGardenWidgetCard({ colors, care }: Props) {
         {atRisk ? (
           <Text style={[styles.risk, { color: colors.warning }]}>Sequência em risco hoje</Text>
         ) : null}
+        <Text style={[styles.widgetHint, { color: colors.textMuted }]}>
+          Widget na home: segure o ícone → Widgets → Jardim
+        </Text>
       </View>
       <View style={styles.pet}>
         {care.checked_today && care.last_mood ? (
@@ -78,6 +81,7 @@ const styles = StyleSheet.create({
   title: { fontSize: 15, fontWeight: "700" },
   sub: { fontSize: 13, marginTop: 4, lineHeight: 18 },
   risk: { fontSize: 12, fontWeight: "600", marginTop: 6 },
+  widgetHint: { fontSize: 10, fontWeight: "600", marginTop: 6, lineHeight: 14 },
   pet: { alignItems: "center", justifyContent: "center", width: 64 },
   gardenEmoji: { fontSize: 40 },
 });

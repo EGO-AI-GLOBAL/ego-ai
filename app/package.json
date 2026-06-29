@@ -2,7 +2,7 @@
   "name": "ego-ai-expo",
   "version": "1.0.0",
   "private": true,
-  "main": "expo-router/entry",
+  "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "start:lan": "expo start --host lan --port 8081",
@@ -16,6 +16,7 @@
     "build:android:preview": "eas build --platform android --profile preview"
   },
   "dependencies": {
+    "@bacons/apple-targets": "^4.0.7",
     "@expo/metro-runtime": "~4.0.1",
     "@react-native-async-storage/async-storage": "1.23.1",
     "@react-native-community/datetimepicker": "8.2.0",
@@ -42,9 +43,10 @@
     "react": "18.3.1",
     "react-dom": "18.3.1",
     "react-native": "0.76.9",
+    "react-native-android-widget": "^0.16.1",
+    "react-native-google-play-integrity": "^1.1.0",
     "react-native-safe-area-context": "4.12.0",
     "react-native-screens": "~4.4.0",
-    "react-native-google-play-integrity": "^1.1.0",
     "react-native-view-shot": "^4.0.3",
     "react-native-web": "~0.19.13"
   },

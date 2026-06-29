@@ -30,7 +30,9 @@ Fases 7+  = paridade funcional real — ver marketing/FINCH-PARITY.md.
 
 | **8 Missões variadas** (pool 26, 1 surpresa/dia) | 1.0.59 | ✅ código |
 
-| 9+ Journal, eventos sazonais, social, widget nativo | — | planeado |
+| **9a Widget nativo** (home iOS/Android) | 1.0.60 | ✅ código |
+
+| 9+ Journal, eventos sazonais, social | — | planeado |
 
 
 

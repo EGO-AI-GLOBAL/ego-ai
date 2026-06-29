@@ -53,6 +53,9 @@ function routeFromDeepLink(url: string): Href | null {
   if (path === "login") {
     return "/login" as Href;
   }
+  if (path === "daily-care" || path === "jardim" || path === "mood-garden") {
+    return "/(main)/daily-care" as Href;
+  }
   return null;
 }
 

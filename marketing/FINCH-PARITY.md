@@ -25,7 +25,7 @@ Legenda: ❌ falta · 🟡 parcial · ✅ fechado (EGO, arte/textos próprios)
 | 10 | Gratidão / reflexão | Missão gratidão | ✅ | |
 | 11 | Ranking / streak / marcos | Escada + marcos 1–30 dias | ✅ | |
 | 12 | Push de retenção | Push jardim completo + Bolso | ✅ | |
-| 13 | Widget / presença no telefone | Card in-app (widget nativo) | 🟡 | widget home screen = futuro |
+| 13 | Widget / presença no telefone | Widget nativo iOS + Android | ✅ | **Fase 9a:** App Group + react-native-android-widget |
 | 14 | Loop não repetir em ~3 dias | Loja semanal + missões diárias | ✅ | **Fase 7+8** |
 | 15 | Zero sementes paradas (sink) | Loja + rotação | ✅ | **Fase 7** |
 
@@ -64,7 +64,8 @@ Legenda: ❌ falta · 🟡 parcial · ✅ fechado (EGO, arte/textos próprios)
 | 1–6 | MVP Monstrinhos (jardim, loop, loja básica, push, visual, widget in-app) | ✅ código |
 | **7** | Loja 30+ itens + rotação semanal + sink pós-base | ✅ **1.0.58** |
 | **8** | Missões pool 20+ + 1 surpresa/dia | ✅ **1.0.59** |
-| 9+ | Journal, eventos, social, widget nativo | planeado |
+| **9a Widget nativo** (home iOS/Android) | 1.0.60 | ✅ código |
+| 9+ Journal, eventos sazonais, social | planeado |
 
 ---
 
@@ -77,4 +78,4 @@ Legenda: ❌ falta · 🟡 parcial · ✅ fechado (EGO, arte/textos próprios)
 - [x] Pet/jardim evolui visivelmente com dias
 - [x] Loop missões não repetir em 3 dias (Fase 8)
 
-**Paridade declarável em marketing:** ❌ (linha 13 widget nativo ainda 🟡; desejáveis 16+ em aberto)
+**Paridade declarável em marketing:** 🟡 (obrigatórias ✅; desejáveis 16+ em aberto — não usar "100% Finch")

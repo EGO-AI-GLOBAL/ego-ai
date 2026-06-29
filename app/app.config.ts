@@ -17,7 +17,7 @@ if (isProd && apiUrl && !apiUrl.startsWith("https://")) {
 const config: ExpoConfig = {
   name: "Ego-IA",
   slug: "ego-ai",
-  version: "1.0.59",
+  version: "1.0.60",
   orientation: "portrait",
   scheme: "egoai",
   userInterfaceStyle: "automatic",
@@ -32,7 +32,10 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.egoai.app",
-    buildNumber: "46",
+    buildNumber: "47",
+    entitlements: {
+      "com.apple.security.application-groups": ["group.com.egoai.app.widget"],
+    },
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       LSApplicationQueriesSchemes: ["itms-beta", "itms-apps", "whatsapp", "instagram"],
@@ -45,7 +48,7 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    versionCode: 98,
+    versionCode: 99,
     package: "com.egoai.app",
     adaptiveIcon: {
       /** Mesmo PNG do iOS — evita ícone minúsculo dentro do círculo no launcher. */
@@ -66,6 +69,34 @@ const config: ExpoConfig = {
   },
   plugins: [
     "expo-router",
+    "@bacons/apple-targets",
+    [
+      "react-native-android-widget",
+      {
+        widgets: [
+          {
+            name: "MoodGarden",
+            label: "Jardim dos Monstrinhos",
+            minWidth: "250dp",
+            minHeight: "110dp",
+            targetCellWidth: 4,
+            targetCellHeight: 2,
+            description: "Humor, missões e sequência do jardim.",
+            updatePeriodMillis: 1800000,
+          },
+          {
+            name: "EgoDeBolso",
+            label: "EGO de Bolso",
+            minWidth: "250dp",
+            minHeight: "110dp",
+            targetCellWidth: 4,
+            targetCellHeight: 2,
+            description: "Missões do dia e desafio semanal do companheiro.",
+            updatePeriodMillis: 1800000,
+          },
+        ],
+      },
+    ],
     "expo-secure-store",
     [
       "expo-av",

@@ -53,7 +53,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/components/moodMonsters/MoodGardenWidgetCard.tsx",
-        ["MoodGardenWidgetCard", "if (!care?.question) return null", "useMemo"],
+        ["MoodGardenWidgetCard", "if (!care?.question) return null", "useMemo", "Widget na home"],
     ),
     (
         "app/src/components/AvatarEngagementCard.tsx",
@@ -94,6 +94,30 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     (
         "app/src/components/AppGradientBackground.tsx",
         ["AppGradientBackground"],
+    ),
+    (
+        "app/src/widgets/syncMoodGardenHomeWidget.tsx",
+        ["syncMoodGardenHomeWidget", "MoodGardenAndroidWidget"],
+    ),
+    (
+        "app/src/widgets/syncEgoDeBolsoHomeWidget.tsx",
+        ["syncEgoDeBolsoHomeWidget", "EgoDeBolsoAndroidWidget", "EgoDeBolso"],
+    ),
+    (
+        "app/src/widgets/EgoDeBolsoAndroidWidget.tsx",
+        ["EgoDeBolsoAndroidWidget", "EGO DE BOLSO"],
+    ),
+    (
+        "app/src/storage/egoDeBolsoWidgetSnapshot.ts",
+        ["EGO_DE_BOLSO_ANDROID_WIDGET_NAME", "buildEgoDeBolsoWidgetSnapshot"],
+    ),
+    (
+        "app/index.ts",
+        ["registerWidgetTaskHandler", "androidWidgetTaskHandler", "expo-router/entry"],
+    ),
+    (
+        "app/targets/mood-garden/expo-target.config.js",
+        ['type: "widget"', "MoodGardenWidget"],
     ),
     (
         "app/src/components/moodMonsters/MoodDecorSprite.tsx",

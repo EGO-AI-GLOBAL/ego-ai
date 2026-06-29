@@ -27,10 +27,12 @@ import {
 } from "@/utils/sharedCalendarNotifications";
 import { syncDailyCheckInNotification } from "@/utils/dailyCheckInNotification";
 import { syncEgoDeBolsoCareNotification } from "@/utils/egoDeBolsoNotifications";
+import { syncEgoDeBolsoHomeWidget } from "@/widgets/syncEgoDeBolsoHomeWidget";
 import {
   cancelMoodMonsterNotifications,
   syncMoodMonsterNotifications,
 } from "@/utils/moodMonsterNotifications";
+import { syncMoodGardenHomeWidget } from "@/widgets/syncMoodGardenHomeWidget";
 import { saveStreakCache } from "@/storage/streakCache";
 import {
   getLocalPersonaChoice,
@@ -221,7 +223,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         void syncSharedCalendarLocalNotifications(shared).catch(() => {});
         void syncDailyCheckInNotification().catch(() => {});
         void syncEgoDeBolsoCareNotification(dashboard.wellness_journey).catch(() => {});
+        void syncEgoDeBolsoHomeWidget(dashboard.wellness_journey).catch(() => {});
         void syncMoodMonsterNotifications(dashboard.daily_care).catch(() => {});
+        void syncMoodGardenHomeWidget(dashboard.daily_care).catch(() => {});
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar dados.";
@@ -312,6 +316,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const mergeWellnessJourney = useCallback((journey: WellnessJourney) => {
     setData((prev) => ({ ...prev, wellness_journey: journey }));
     void syncEgoDeBolsoCareNotification(journey).catch(() => {});
+    void syncEgoDeBolsoHomeWidget(journey).catch(() => {});
   }, []);
 
   const mergeDailyCare = useCallback((care: DailyCareInfo, journey?: WellnessJourney) => {
@@ -321,6 +326,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       ...(journey ? { wellness_journey: journey } : {}),
     }));
     void syncMoodMonsterNotifications(care).catch(() => {});
+    void syncMoodGardenHomeWidget(care).catch(() => {});
+    if (journey) void syncEgoDeBolsoHomeWidget(journey).catch(() => {});
   }, []);
 
   const setPersona = useCallback(async (avatarId: string, voiceId: string) => {

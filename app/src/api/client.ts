@@ -568,7 +568,7 @@ export async function submitNightDumpFromUri(opts: {
       uploadType: FileSystem.FileSystemUploadType.MULTIPART,
       fieldName: "audio",
       mimeType: audio_mime,
-      headers: voiceUploadAuthHeaders(),
+      headers: await buildVoiceUploadHeaders(),
       parameters: Object.fromEntries(
         Object.entries(deviceTimezonePayload()).map(([k, v]) => [k, String(v)])
       ),
@@ -802,6 +802,17 @@ function voiceUploadAuthHeaders(): Record<string, string> {
   return headers;
 }
 
+/** Multipart nativo (FileSystem.uploadAsync) não passa pelos interceptors axios. */
+async function buildVoiceUploadHeaders(): Promise<Record<string, string>> {
+  const headers = voiceUploadAuthHeaders();
+  headers["X-EGO-Platform"] = Platform.OS;
+  const integrity = await getPlayIntegrityToken();
+  if (integrity) {
+    headers["X-Play-Integrity"] = integrity;
+  }
+  return headers;
+}
+
 /** Android/iOS: upload nativo (axios FormData falha com frequência em produção). */
 export async function sendChatVoiceFileNative(opts: {
   uri: string;
@@ -821,7 +832,7 @@ export async function sendChatVoiceFileNative(opts: {
     uploadType: FileSystem.FileSystemUploadType.MULTIPART,
     fieldName: "audio",
     mimeType: audio_mime,
-    headers: voiceUploadAuthHeaders(),
+    headers: await buildVoiceUploadHeaders(),
     parameters: {
       message: "",
       audio_mime,
