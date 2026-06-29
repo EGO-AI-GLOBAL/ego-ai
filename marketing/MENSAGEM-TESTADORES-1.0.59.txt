@@ -1,0 +1,32 @@
+EGO-AI 1.0.59 — mensagem WhatsApp / grupo testadores
+======================================================
+
+ENVIAR DEPOIS da build 1.0.59 no TestFlight + Play (iOS 46 · Android 98)
+
+---
+
+VERSÃO CURTA (copiar)
+---------------------
+Oi pessoal! **Atualização 1.0.59** 🙏
+
+Novidades:
+• **Loja do jardim:** 34 itens + rotação semanal
+• **Missões:** variadas + **surpresa do dia**
+• **EGO de Bolso:** desafio semanal incluído
+
+📲 **iPhone:** TestFlight → **1.0.59 (build 46)**
+🤖 **Android:** Play teste fechado → **1.0.59 (98)**
+   (Android: se não abrir, manda teu **Gmail** que eu libero na lista)
+
+✅ Testem:
+1. Jardim → loja → itens da semana
+2. Missões do dia + surpresa
+3. Bolso (card semanal)
+4. Chat: avatar → «oi»
+
+Se falhar, mandem print com a versão.
+
+Obrigado! 💜
+
+iPhone: https://testflight.apple.com/join/eNDKdFWF
+Android: https://play.google.com/apps/testing/com.egoai.app

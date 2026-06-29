@@ -1,0 +1,20 @@
+AGENTE MARKETING — RELEASE 1.0.59
+===================================
+
+Estado: ✅ PRONTO
+
+Zona: textos lojas + testadores (só marketing/)
+• marketing/NOTAS-1.0.59-PLAY.txt
+• marketing/TESTFLIGHT-EXTERNO-1.0.59.txt
+• marketing/MENSAGEM-TESTADORES-1.0.59.txt
+
+Destaques release:
+• Loja 34 itens + rotação semanal (8/semana)
+• Missões variadas + surpresa/dia
+• Bolso semanal herdado
+
+NÃO correr GERAR/EAS — Monstrinhos
+
+GIT: (após commit desta release)
+
+✅ MARKETING PRONTO — 1.0.59 loja + missões + Bolso

@@ -1,0 +1,67 @@
+TestFlight EXTERNO — EGO-AI 1.0.59 (build 46)
+==============================================
+
+O submit iOS so ENVIA o .ipa.
+Testadores externos so veem quando voce ATIVA o build no grupo externo.
+
+LINK DIRETO (App Store Connect > TestFlight)
+--------------------------------------------
+https://appstoreconnect.apple.com/apps/6780595396/testflight/ios
+
+LINK TESTADORES (depois de "Pronto para testar")
+------------------------------------------------
+https://testflight.apple.com/join/eNDKdFWF
+
+PASSO A PASSO
+-------------
+
+1) Build 46 visivel em TestFlight > Builds iOS
+   Status: "Pronto para envio" ou "Processando"
+
+2) Export compliance (se pedir no build 46)
+   "Seu app usa criptografia?" → NAO (so HTTPS padrao)
+
+3) Testes EXTERNOS (nao confundir com Internos)
+   Menu: TestFlight > Testes externos
+   Abra o grupo (ex: "Testadores EGO")
+
+4) Adicionar build ao grupo externo
+   Grupo > Builds > + > versao 1.0.59 / build 46
+   Cole o texto "O QUE TESTAR" abaixo
+
+5) Enviar para revisao beta
+   "Enviar para revisao" / "Submit for Review"
+   Apple: algumas horas ate 1-2 dias
+
+6) Status = "Pronto para testar" / "Testing"
+   Avise o grupo (MENSAGEM-TESTADORES-1.0.59.txt)
+
+TEXTO "O QUE TESTAR" — copiar/colar no App Store Connect
+--------------------------------------------------------
+Versao 1.0.59 — loja expandida + missões variadas + Bolso semanal.
+
+O que mudou:
+• Loja do jardim: 34 itens com rotação semanal (8 por semana)
+• Missões diárias variadas + 1 surpresa por dia
+• EGO de Bolso: desafio semanal e rotina de cuidado (herdado)
+
+Como testar:
+1. Atualizar para 1.0.59 (build 46) no TestFlight
+2. Abrir jardim / Monstrinhos → loja → ver itens da semana
+3. Fazer check-in e missões do dia (incluir surpresa se aparecer)
+4. Ver card EGO de Bolso (semana / cuidar)
+5. Chat rápido: avatar → «oi»
+
+Se algo falhar: print da tela com a versao no canto (TestFlight).
+
+TEXTO CURTO — notas da versao (campo opcional)
+----------------------------------------------
+Loja 34 itens com rotação semanal; missões variadas + surpresa diária; Bolso semanal.
+
+CHECKLIST
+---------
+[ ] Build 46 no grupo EXTERNO (nao so interno)
+[ ] "O que testar" preenchido
+[ ] Enviado para revisao beta
+[ ] Status "Pronto para testar"
+[ ] Mensagem WhatsApp enviada ao grupo
