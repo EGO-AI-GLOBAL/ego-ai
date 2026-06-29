@@ -16,4 +16,4 @@ Scripts EAS:
 Testes pré-build: onboarding_guard + regression_guard + smoke + sync-check
 
 Código feature: GIT 0d10dab
-Build config: (preencher após commit prep)
+Build config: GIT ecf21c1
