@@ -18,9 +18,12 @@ def bolso_mission_prompt_block(
     """Injeta no system prompt quando há missões pendentes no bolso."""
     if not supabase or not user_id:
         return ""
-    from ego_api import wellness_journey
+    try:
+        from ego_api import wellness_journey
 
-    journey = wellness_journey.get_journey(supabase, user_id, plan_tier=plan_tier)
+        journey = wellness_journey.get_journey(supabase, user_id, plan_tier=plan_tier)
+    except Exception:
+        return ""
     if journey.get("mission_done_today") or journey.get("journey_finished"):
         return ""
 

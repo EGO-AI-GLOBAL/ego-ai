@@ -442,8 +442,16 @@ def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
     clean_counts: dict[str, int] = {}
     for k, v in counts.items():
         key = str(k or "").strip()[:32]
-        if key:
+        if not key:
+            continue
+        try:
             clean_counts[key] = max(0, int(v or 0))
+        except (TypeError, ValueError):
+            clean_counts[key] = 0
+    try:
+        missions_today_count = max(0, int(raw.get("missions_today_count") or 0))
+    except (TypeError, ValueError):
+        missions_today_count = 0
     state = {
         "level": level,
         "step_counts": clean_counts,
@@ -451,7 +459,7 @@ def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
         "show_level_up": bool(raw.get("show_level_up")),
         "mission_done_date": str(raw.get("mission_done_date") or "").strip()[:10],
         "missions_today_date": str(raw.get("missions_today_date") or "").strip()[:10],
-        "missions_today_count": max(0, int(raw.get("missions_today_count") or 0)),
+        "missions_today_count": missions_today_count,
     }
     merge_shop_into_state(state, raw)
     return state

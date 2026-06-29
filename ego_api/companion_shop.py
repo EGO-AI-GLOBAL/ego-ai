@@ -26,6 +26,13 @@ EGG_COLOR_ITEMS: list[dict[str, str | int]] = [
 _CATALOG = {str(i["id"]): i for i in EGG_COLOR_ITEMS}
 
 
+def _safe_int(raw: object, default: int = 0) -> int:
+    try:
+        return int(raw)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return default
+
+
 def normalize_egg_color(raw: object) -> str:
     cid = str(raw or DEFAULT_EGG_COLOR).strip().lower()[:24]
     return cid if cid in _CATALOG else DEFAULT_EGG_COLOR
@@ -46,7 +53,7 @@ def normalize_owned(raw: object) -> list[str]:
 
 def read_shop_fields(raw: dict[str, Any]) -> dict[str, Any]:
     return {
-        "stars": max(0, int(raw.get("stars") or 0)),
+        "stars": max(0, _safe_int(raw.get("stars"), 0)),
         "egg_color": normalize_egg_color(raw.get("egg_color")),
         "egg_colors_owned": normalize_owned(raw.get("egg_colors_owned")),
         "stars_bonus_date": str(raw.get("stars_bonus_date") or "").strip()[:10],

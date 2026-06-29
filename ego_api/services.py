@@ -843,11 +843,17 @@ def process_chat_message(
 
     from ego_api.avatar_memory import memory_context_block
 
-    agenda_ctx += memory_context_block(supabase, user_id, avatar_id)
+    try:
+        agenda_ctx += memory_context_block(supabase, user_id, avatar_id)
+    except Exception:
+        pass
 
     from ego_api.bolso_chat import bolso_mission_prompt_block
 
-    agenda_ctx += bolso_mission_prompt_block(supabase, user_id, plan_tier=tier)
+    try:
+        agenda_ctx += bolso_mission_prompt_block(supabase, user_id, plan_tier=tier)
+    except Exception:
+        pass
 
     lang, _conf = gemini.detect_language(user_display)
 
@@ -873,7 +879,10 @@ def process_chat_message(
 
     from ego_api.avatar_memory import save_avatar_memory
 
-    save_avatar_memory(supabase, user_id, avatar_id, user_display)
+    try:
+        save_avatar_memory(supabase, user_id, avatar_id, user_display)
+    except Exception:
+        pass
 
     warnings: list[str] = []
     reminders_saved: list[dict] = []

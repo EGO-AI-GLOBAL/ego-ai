@@ -43,6 +43,20 @@ def friendly_api_error(exc: BaseException | str, *, context: str = "") -> str:
     if "timeout" in low or "timed out" in low or "connection" in low:
         return "Servidor demorou a responder. Tente em instantes."
 
+    if any(
+        x in low
+        for x in (
+            "gemini",
+            "google",
+            "openai",
+            "quota",
+            "429",
+            "resource exhausted",
+            "cota",
+        )
+    ):
+        return raw[:500]
+
     if "limite" in low or "upgrade" in low:
         return raw[:500]
 
