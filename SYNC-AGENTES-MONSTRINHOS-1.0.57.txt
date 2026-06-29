@@ -7,6 +7,6 @@ Zona: crash «Chat indisponível» após avatar
 • onboarding_guard — bloqueia build sem import
 • app.config 1.0.57 · iOS build 45 · Android versionCode 97
 
-GIT: (preencher após commit)
+GIT: 2eabc59
 
 ✅ MONSTRINHOS — aguardar GERAR-1.0.57 + submit
