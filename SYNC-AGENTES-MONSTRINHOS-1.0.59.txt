@@ -16,4 +16,4 @@ Testes:
 Próximo: Fase 9+ (journal, eventos, widget nativo)
 Build: aguardar 4 agentes ✅ + GERAR-1.0.59.bat
 
-GIT: (preencher após commit)
+GIT: 0d10dab
