@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO — BUILD 1.0.53
 ====================================
 
-Estado: ✅ PRONTO — commit (ver git log)
+Estado: ✅ PRONTO — commit 209b37d
 
 Zona: Bolso Dia 6 — partilha viral (card + textos WA/IG)
 Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
@@ -28,4 +28,4 @@ Monstrinhos: GERAR-1.0.53.bat
 
 MENSAGEM
 --------
-✅ BOLSO PRONTO — partilha viral Dia 6 · build 1.0.53
+✅ BOLSO PRONTO — 209b37d — partilha viral Dia 6 · build 1.0.53
