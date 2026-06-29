@@ -179,9 +179,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const s = await apiSignup(email, password, fullName, phone, referralCode);
       if (s?.access_token) {
         const uid = s.user?.id?.trim();
-        if (uid) await consumeSecureWipeIfNeeded(uid);
-        await persist(s);
         const ph = phone?.trim();
+        await persist(s);
         if (uid && ph) {
           await saveLocalProfilePhone(uid, ph);
         }

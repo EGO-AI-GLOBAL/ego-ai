@@ -1,0 +1,15 @@
+NOTAS VERSÃO 1.0.55 — TestFlight / Play (teste fechado)
+========================================================
+
+CURTO (loja):
+Correção: telefone pedido só uma vez no cadastro. Fluxo cadastro → avatar → chat estável.
+
+MÉDIO:
+• Corrigido pedir telefone de novo após criar conta
+• Mantém correção 1.0.54: avatar após reinstalar no iPhone
+• Cadastro segue ordem: conta → avatar → chat
+
+TESTAR:
+1. Criar conta nova com telefone → NÃO deve pedir telefone outra vez
+2. Escolher avatar → chat abre
+3. Reinstalar → login → escolher avatar de novo

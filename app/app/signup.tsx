@@ -132,7 +132,7 @@ export default function SignupScreen() {
         );
         return;
       }
-      router.replace("/(main)/choose-avatar");
+      router.replace("/");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Não foi possível criar a conta.");
     } finally {

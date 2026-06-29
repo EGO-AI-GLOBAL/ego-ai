@@ -16,7 +16,7 @@ import { updateProfilePhone } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
-import { saveLocalProfilePhone } from "@/storage/profilePhoneLocal";
+import { saveLocalProfilePhone, clearSignupPhoneCache } from "@/storage/profilePhoneLocal";
 import { useColors } from "@/theme/ThemeContext";
 import { formatPhoneBrInput } from "@/utils/phoneBr";
 import { resolveUserId } from "@/utils/resolveUserId";
@@ -47,6 +47,7 @@ export default function CompleteProfileScreen() {
         await saveLocalProfilePhone(uid, normalized);
       }
       mergeProfilePhone(normalized);
+      if (uid) await clearSignupPhoneCache(uid);
       await refresh();
       mergeProfilePhone(normalized);
     } catch (e) {

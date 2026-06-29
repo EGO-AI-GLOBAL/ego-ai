@@ -2,7 +2,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { STORAGE_KEY } from "@/api/client";
 import { clearAuthAppVersion } from "@/storage/authAppVersion";
 import { clearLocalPersonaForUser } from "@/storage/personaPrefs";
-import { clearLocalProfilePhone } from "@/storage/profilePhoneLocal";
 import { deleteSecureItem } from "@/storage/sessionStorage";
 
 const INSTALL_MARKER = "ego_async_install_marker_v1";
@@ -41,7 +40,8 @@ export async function runFreshInstallMigrations(): Promise<void> {
 }
 
 /**
- * Após login ou restauro de sessão: limpa persona/telefone local se reinstall ou migração pediu.
+ * Após login ou restauro de sessão: limpa persona local se reinstall ou migração pediu.
+ * Telefone fica no servidor — não apagar local para não pedir de novo após cadastro.
  */
 export async function consumeSecureWipeIfNeeded(userId: string): Promise<void> {
   const uid = userId.trim();
@@ -50,6 +50,5 @@ export async function consumeSecureWipeIfNeeded(userId: string): Promise<void> {
   if (flag !== "1") return;
 
   await clearLocalPersonaForUser(uid);
-  await clearLocalProfilePhone(uid);
   await AsyncStorage.removeItem(PERSONA_WIPE_FLAG);
 }

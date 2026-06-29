@@ -4,6 +4,7 @@ import { ActivityIndicator, View } from "react-native";
 import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { getLocalPersonaChoice } from "@/storage/personaPrefs";
+import { getLocalProfilePhone } from "@/storage/profilePhoneLocal";
 import { useColors } from "@/theme/ThemeContext";
 import { isProfilePhoneMissing } from "@/utils/profileComplete";
 import { resolveUserId } from "@/utils/resolveUserId";
@@ -21,18 +22,28 @@ export function PersonaGate({ children }: Props) {
   const onCompleteProfile = segments.includes("complete-profile");
   const [localReady, setLocalReady] = useState(false);
   const [hasLocalChoice, setHasLocalChoice] = useState(false);
+  const [localPhone, setLocalPhone] = useState<string | null>(null);
   const uid = resolveUserId(session, data.me?.user_id);
 
   useEffect(() => {
     if (!uid) {
       setHasLocalChoice(false);
+      setLocalPhone(null);
       setLocalReady(true);
       return;
     }
-    void getLocalPersonaChoice(uid).then((choice) => {
-      setHasLocalChoice(Boolean(choice?.avatar_id && choice?.voice_id));
-      setLocalReady(true);
-    });
+    let cancelled = false;
+    void Promise.all([getLocalPersonaChoice(uid), getLocalProfilePhone(uid)]).then(
+      ([choice, phone]) => {
+        if (cancelled) return;
+        setHasLocalChoice(Boolean(choice?.avatar_id && choice?.voice_id));
+        setLocalPhone(phone);
+        setLocalReady(true);
+      }
+    );
+    return () => {
+      cancelled = true;
+    };
   }, [uid]);
 
   if (!localReady || loading) {
@@ -54,7 +65,7 @@ export function PersonaGate({ children }: Props) {
     !hasLocalChoice &&
     !onChooseAvatar &&
     !onCompleteProfile &&
-    !isProfilePhoneMissing(data.me)
+    !isProfilePhoneMissing(data.me, localPhone)
   ) {
     return <Redirect href="/(main)/choose-avatar" />;
   }

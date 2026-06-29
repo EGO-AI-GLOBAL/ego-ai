@@ -205,6 +205,9 @@ def check_fresh_install_guard() -> int:
     elif "consumeSecureWipeIfNeeded" not in guard:
         print("  ERRO  freshInstallGuard.ts sem consumeSecureWipeIfNeeded (persona Keychain)")
         failed += 1
+    elif "clearLocalProfilePhone" in guard.split("consumeSecureWipeIfNeeded", 1)[-1]:
+        print("  ERRO  consumeSecureWipeIfNeeded não deve apagar telefone (pede 2x no cadastro)")
+        failed += 1
     else:
         print("  OK    app/src/storage/freshInstallGuard.ts")
     if "clearLocalPersonaForUser" not in persona:

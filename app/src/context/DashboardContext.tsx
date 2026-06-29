@@ -38,7 +38,10 @@ import {
   markPersonaConfiguredLocal,
   saveLocalPersonaChoice,
 } from "@/storage/personaPrefs";
-import { getLocalProfilePhone } from "@/storage/profilePhoneLocal";
+import {
+  clearSignupPhoneCache,
+  getLocalProfilePhone,
+} from "@/storage/profilePhoneLocal";
 import { profilePhoneFromMe } from "@/utils/profileComplete";
 
 const empty: DashboardData = {
@@ -100,6 +103,7 @@ async function mergeStoredProfilePhone(
       ...dashboard,
       me: {
         ...dashboard.me,
+        profile_phone: phone,
         profile: {
           ...(dashboard.me.profile ?? {}),
           phone,
@@ -112,6 +116,7 @@ async function mergeStoredProfilePhone(
     me: {
       user_id: uid,
       email: getSession()?.user?.email ?? null,
+      profile_phone: phone,
       profile: { phone },
       persona_configured: false,
       persona: { avatar_id: "f1", voice_id: "vf1" },
@@ -199,6 +204,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         access: normalizeAccessInfo(dashboard.access),
       };
       dashboard = await mergeStoredProfilePhone(dashboard, uid);
+      if (uid && profilePhoneFromMe(dashboard.me)) {
+        void clearSignupPhoneCache(uid);
+      }
       setData(dashboard);
       void saveStreakCache(dashboard.streak);
       setPersonaLocalOk(Boolean(uid && localChoice));
@@ -358,6 +366,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           me: {
             ...prev.me,
+            profile_phone: normalized,
             profile: {
               ...(prev.me.profile ?? {}),
               phone: normalized,
@@ -371,6 +380,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         me: {
           user_id: uid,
           email: getSession()?.user?.email ?? null,
+          profile_phone: normalized,
           profile: { phone: normalized },
           persona_configured: false,
           persona: { avatar_id: "f1", voice_id: "vf1" },
