@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO — BUILD 1.0.57
 ====================================
 
-Estado: ✅ PRONTO — commit PENDING
+Estado: ✅ PRONTO — commit 4708f65
 
 Zona: Bolso Dias 7–10 — simulador viral + desafio semanal + polimento
 Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts (já 1.0.57 Monstrinhos)
@@ -42,4 +42,4 @@ Monstrinhos: PREPARAR-1.0.57.bat → GERAR-1.0.57.bat
 
 MENSAGEM
 --------
-✅ BOLSO 100% PRONTO — Dias 7+8+10 · build 1.0.57 · aguarda 4x ✅ no mestre SYNC
+✅ BOLSO 100% PRONTO — 4708f65 — Dias 7+8+10 · build 1.0.57 · aguarda 4x ✅ no mestre SYNC
