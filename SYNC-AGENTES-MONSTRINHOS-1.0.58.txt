@@ -17,4 +17,4 @@ Testes:
 Próximo: Fase 8 — missões pool 20+ + surpresa/dia
 Build: aguardar 4 agentes ✅ + GERAR-1.0.58.bat (Monstrinhos)
 
-GIT: (preencher após commit)
+GIT: b743b7b
