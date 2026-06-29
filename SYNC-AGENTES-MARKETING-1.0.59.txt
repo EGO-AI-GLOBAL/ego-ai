@@ -15,6 +15,6 @@ Destaques release:
 
 NÃO correr GERAR/EAS — Monstrinhos
 
-GIT: (após commit desta release)
+GIT: 910ad7e
 
-✅ MARKETING PRONTO — 1.0.59 loja + missões + Bolso
+✅ MARKETING PRONTO — commit 910ad7e — loja 34 itens + missões + Bolso
