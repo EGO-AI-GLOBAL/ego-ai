@@ -1,0 +1,18 @@
+NOTAS VERSÃO 1.0.56 — TestFlight / Play (teste fechado)
+=====================================================
+
+CURTO (O que há de novo)
+------------------------
+Correção: chat abre de novo logo após escolher o avatar. Sem ecrã «Algo deu errado».
+
+MÉDIO
+-----
+• Corrigido loop ao entrar no chat depois de escolher assistente
+• Áudio do chat mais estável no iPhone
+• Boas-vindas em texto primeiro; voz opcional com «Ouvir resposta»
+
+O QUE TESTAR
+------------
+1. Cadastro ou login → escolher avatar → chat abre
+2. Mensagem de boas-vindas visível
+3. Microfone e «Ouvir resposta» funcionam

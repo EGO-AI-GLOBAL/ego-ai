@@ -226,6 +226,24 @@ def check_fresh_install_guard() -> int:
     return failed
 
 
+def check_persona_gate() -> int:
+    print("\n=== Onboarding - PersonaGate após escolher avatar ===")
+    text = _read("app/src/components/PersonaGate.tsx")
+    if not text:
+        print("  ERRO  PersonaGate.tsx em falta")
+        return 1
+    failed = 0
+    if "personaGateOk" not in text:
+        print("  ERRO  PersonaGate deve usar personaGateOk (evita loop chat/avatar)")
+        failed += 1
+    if "personaReady" not in text:
+        print("  ERRO  PersonaGate deve combinar local + personaGateOk")
+        failed += 1
+    if failed == 0:
+        print("  OK    PersonaGate com personaGateOk")
+    return failed
+
+
 def main() -> int:
     failed = 0
     failed += check_hooks_order()
@@ -234,6 +252,7 @@ def main() -> int:
     failed += check_avatar_engagement_card()
     failed += check_password_reset_api()
     failed += check_fresh_install_guard()
+    failed += check_persona_gate()
     failed += scan_early_return_before_hooks()
     print()
     if failed:

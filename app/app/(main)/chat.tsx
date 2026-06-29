@@ -50,6 +50,7 @@ import { useColors } from "@/theme/ThemeContext";
 import { chatSavedNotice, chatWarnings } from "@/utils/chatFeedback";
 import { enrichChatError } from "@/utils/chatError";
 import { ChatWidgetErrorBoundary } from "@/monitoring/ChatWidgetErrorBoundary";
+import { ChatRouteErrorBoundary } from "@/monitoring/ChatRouteErrorBoundary";
 import {
   estimateTokenDelta,
   patchAccessWithTokenDelta,
@@ -103,6 +104,14 @@ function isImageAttachmentName(name: string): boolean {
 }
 
 export default function ChatScreen() {
+  return (
+    <ChatRouteErrorBoundary>
+      <ChatScreenInner />
+    </ChatRouteErrorBoundary>
+  );
+}
+
+function ChatScreenInner() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
@@ -149,10 +158,16 @@ export default function ChatScreen() {
   const [saveCelebrationLine, setSaveCelebrationLine] = useState<string | null>(null);
   const [chatStreakDays, setChatStreakDays] = useState(0);
   const [dashboardSettled, setDashboardSettled] = useState(false);
+  const [widgetsReady, setWidgetsReady] = useState(false);
 
   useEffect(() => {
     if (!loading) setDashboardSettled(true);
   }, [loading]);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setWidgetsReady(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
 
   useEffect(() => {
     void loadAutoPlayVoice().then(setAutoPlayVoice);
@@ -445,7 +460,7 @@ export default function ChatScreen() {
   const isDailyLimitFromError = /limite\s+di[aá]rio\s+atingido/i.test(chatError || "");
   const isDailyLimitReached = isDailyLimitFromAccess || isDailyLimitFromError;
   const trialExpired = isTrialExpired(access);
-  const showChatWidgets = dashboardSettled && (!loading || refreshing);
+  const showChatWidgets = dashboardSettled && widgetsReady && (!loading || refreshing);
 
   const onNightDumpPress = useCallback(() => {
     if (trialExpired) {
@@ -553,17 +568,7 @@ export default function ChatScreen() {
       stickToBottomRef.current = true;
       scrollMessagesToEnd(true);
 
-      await new Promise((r) => setTimeout(r, 500));
-      voice.unlockWebPlayback();
-      setChatNotice("Apresentação em voz…");
-      const voiceErr = await voice.replayLastText(
-        speech,
-        persona.voice_id,
-        persona.avatar_id
-      );
-      setChatNotice(
-        voiceErr ? "Leia a mensagem acima. Toque em «Ouvir resposta» para ouvir." : null
-      );
+      setChatNotice("Leia a mensagem de boas-vindas acima. Toque em «Ouvir resposta» para ouvir.");
     })();
   }, [
     localChatReady,
@@ -578,7 +583,6 @@ export default function ChatScreen() {
     persona.avatar_id,
     scrollMessagesToEnd,
     setLocalMessages,
-    voice,
   ]);
 
   useFocusEffect(

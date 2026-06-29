@@ -1,4 +1,3 @@
-import { Audio } from "expo-av";
 import * as FileSystem from "expo-file-system";
 import * as Speech from "expo-speech";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -12,6 +11,7 @@ import {
 import type { ChatHistoryPayload, SendChatResult } from "@/api/types";
 import type { AudioPlaybackSpeed } from "@/constants/audioSpeed";
 import { resolveSpeechVoiceId } from "@/constants/personas";
+import { getExpoAudio } from "@/utils/expoAvSafe";
 import { plainTextForSpeech } from "@/utils/speechText";
 import {
   mapGetUserMediaError,
@@ -29,7 +29,9 @@ type WebRecorderState = {
 };
 
 /** Liberta gravação nativa (prepared ou a gravar) — evita "Only one Recording object…". */
-async function safeStopNativeRecording(rec: Audio.Recording | null): Promise<void> {
+async function safeStopNativeRecording(
+  rec: import("expo-av").Audio.Recording | null
+): Promise<void> {
   if (!rec) return;
   try {
     await rec.stopAndUnloadAsync();
@@ -410,11 +412,11 @@ export function useVoiceChat() {
   const [micSessionActive, setMicSessionActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [audioSpeed, setAudioSpeedState] = useState<AudioPlaybackSpeed>(1);
-  const recordingRef = useRef<Audio.Recording | null>(null);
+  const recordingRef = useRef<import("expo-av").Audio.Recording | null>(null);
   const webRecorderRef = useRef<WebRecorderState | null>(null);
   const recordingStartedAtRef = useRef<number>(0);
   const isRecordingRef = useRef(false);
-  const soundRef = useRef<Audio.Sound | null>(null);
+  const soundRef = useRef<import("expo-av").Audio.Sound | null>(null);
   const webAudioRef = useRef<HTMLAudioElement | null>(null);
   const audioSpeedRef = useRef<AudioPlaybackSpeed>(1);
 
@@ -519,6 +521,10 @@ export function useVoiceChat() {
         const dir = FileSystem.cacheDirectory;
         if (!dir) {
           throw new Error("Cache de áudio indisponível.");
+        }
+        const Audio = getExpoAudio();
+        if (!Audio) {
+          throw new Error("Áudio indisponível neste dispositivo.");
         }
         const ext = mime.includes("wav") ? "wav" : "mp3";
         const path = `${dir}ego_tts_${Date.now()}.${ext}`;
@@ -670,6 +676,10 @@ export function useVoiceChat() {
       await safeStopNativeRecording(recordingRef.current);
       recordingRef.current = null;
     }
+    const Audio = getExpoAudio();
+    if (!Audio) {
+      throw new Error("Áudio indisponível neste dispositivo.");
+    }
     const perm = await Audio.requestPermissionsAsync();
     if (!perm.granted) {
       throw new Error("Permissão do microfone negada.");
@@ -792,12 +802,15 @@ export function useVoiceChat() {
       recordingRef.current = null;
       setMicSessionActive(false);
       await safeStopNativeRecording(rec);
-      await Audio.setAudioModeAsync({
-        allowsRecordingIOS: false,
-        playsInSilentModeIOS: true,
-        shouldDuckAndroid: true,
-        playThroughEarpieceAndroid: false,
-      });
+      const Audio = getExpoAudio();
+      if (Audio) {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        });
+      }
       const uri = rec.getURI();
       if (!uri) {
         throw new Error("Gravação vazia.");
@@ -861,12 +874,15 @@ export function useVoiceChat() {
     recordingRef.current = null;
     setMicSessionActive(false);
     await safeStopNativeRecording(rec);
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: true,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
-    });
+    const Audio = getExpoAudio();
+    if (Audio) {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: false,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+    }
     const uri = rec.getURI();
     if (!uri) {
       throw new Error("Gravação vazia.");

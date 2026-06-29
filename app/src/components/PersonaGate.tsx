@@ -16,7 +16,7 @@ type Props = {
 export function PersonaGate({ children }: Props) {
   const colors = useColors();
   const { session } = useAuth();
-  const { data, loading } = useDashboard();
+  const { data, loading, personaGateOk } = useDashboard();
   const segments = useSegments();
   const onChooseAvatar = segments.includes("choose-avatar");
   const onCompleteProfile = segments.includes("complete-profile");
@@ -46,6 +46,12 @@ export function PersonaGate({ children }: Props) {
     };
   }, [uid]);
 
+  useEffect(() => {
+    if (personaGateOk) setHasLocalChoice(true);
+  }, [personaGateOk]);
+
+  const personaReady = hasLocalChoice || personaGateOk;
+
   if (!localReady || loading) {
     return (
       <View
@@ -62,7 +68,7 @@ export function PersonaGate({ children }: Props) {
   }
 
   if (
-    !hasLocalChoice &&
+    !personaReady &&
     !onChooseAvatar &&
     !onCompleteProfile &&
     !isProfilePhoneMissing(data.me, localPhone)
