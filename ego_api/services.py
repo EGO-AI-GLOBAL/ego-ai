@@ -158,7 +158,13 @@ def signup(
             {
                 "email": email_norm,
                 "password": password,
-                "options": {"data": {"full_name": display, "country": "Brasil"}},
+                "options": {
+                    "data": {
+                        "full_name": display,
+                        "country": "Brasil",
+                        "phone": phone_norm,
+                    }
+                },
             }
         )
         payload = _session_payload(res)
@@ -1737,7 +1743,14 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
     avatar_id, voice_id = ensure_persona_normalized(supabase, user_id)
     ok_access, status = db.check_access(supabase, user_id)
     prof_phone = str(prof.get("phone") or "").strip()
-    if prof_phone:
+    if not prof_phone:
+        from ego_api.profile_phone_resolve import resolve_profile_phone
+
+        prof_phone = resolve_profile_phone(supabase, user_id, prof)
+        if prof_phone:
+            prof = dict(prof)
+            prof["phone"] = prof_phone
+    elif prof_phone:
         prof = dict(prof)
         prof["phone"] = prof_phone
     return {

@@ -16,15 +16,13 @@ def _client_platform() -> str:
 
 
 def play_integrity_applies() -> bool:
-    """Só Android com integridade activa no servidor."""
+    """Só Android explícito (header X-EGO-Platform). Legacy sem header = não bloquear."""
     from ego_api.play_integrity import play_integrity_enabled
 
     if not play_integrity_enabled():
         return False
     platform = _client_platform()
-    if platform in ("ios", "web"):
-        return False
-    return True
+    return platform == "android"
 
 
 def evaluate_request_integrity() -> tuple[bool, str, bool]:

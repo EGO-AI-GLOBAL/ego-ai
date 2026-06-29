@@ -14,6 +14,7 @@ Ou:
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 import time
@@ -213,7 +214,42 @@ def _parse_bearer() -> tuple[str, str]:
     else:
         access = ""
     refresh = request.headers.get("X-Refresh-Token", "").strip()
+    # Upload nativo (FileSystem.uploadAsync) às vezes não envia Authorization no Android.
+    if not access:
+        form = request.form or {}
+        raw = str(form.get("access_token") or form.get("authorization") or "").strip()
+        if raw.lower().startswith("bearer "):
+            raw = raw[7:].strip()
+        if raw:
+            access = raw
+        if not refresh:
+            refresh = str(
+                form.get("refresh_token") or form.get("x_refresh_token") or ""
+            ).strip()
     return access, refresh
+
+
+def _multipart_voice_audio() -> tuple[bytes | None, str]:
+    """Lê áudio de multipart — tolera nomes de campo alternativos e base64 no form."""
+    audio_mime = str(request.form.get("audio_mime") or "audio/mp4")
+    for key in ("audio", "file", "voice", "recording"):
+        upload = request.files.get(key)
+        if not upload:
+            continue
+        data = upload.read()
+        if upload.content_type:
+            audio_mime = upload.content_type
+        if data:
+            return data, audio_mime
+    raw_b64 = str(request.form.get("audio_base64") or "").strip()
+    if raw_b64:
+        try:
+            data = base64.b64decode(raw_b64, validate=False)
+            if data:
+                return data, audio_mime
+        except (ValueError, TypeError):
+            pass
+    return None, audio_mime
 
 
 def _optional_authenticated_profile() -> dict | None:
@@ -226,7 +262,10 @@ def _optional_authenticated_profile() -> dict | None:
         return None
     try:
         if refresh:
-            client.auth.set_session(access, refresh)
+            try:
+                client.auth.set_session(access, refresh)
+            except Exception:
+                client.postgrest.auth(access)
         else:
             client.postgrest.auth(access)
         user_resp = client.auth.get_user(access)
@@ -261,7 +300,10 @@ def require_auth(f: Callable) -> Callable:
             )
         try:
             if refresh:
-                client.auth.set_session(access, refresh)
+                try:
+                    client.auth.set_session(access, refresh)
+                except Exception:
+                    client.postgrest.auth(access)
             else:
                 client.postgrest.auth(access)
             user_resp = client.auth.get_user(access)
@@ -389,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-29-1.0.59-monstrinhos-shop-missions",
+        "api_build": "2026-06-29-1.0.60-hotfix-voz-phone",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -945,24 +987,19 @@ def chat_send():
             "true",
             "yes",
         )
-        audio_mime = str(request.form.get("audio_mime") or "audio/mp4")
         raw_hist = request.form.get("history")
         if raw_hist:
             try:
                 client_history = json.loads(raw_hist)
             except (json.JSONDecodeError, TypeError):
                 client_history = None
-        upload = request.files.get("audio")
-        if upload:
-            audio_bytes = upload.read()
-            if upload.content_type:
-                audio_mime = upload.content_type
-            if not audio_bytes:
-                return _json_error(
-                    "Áudio vazio no envio. Grave de novo (microfone → falar → seta).",
-                    400,
-                )
-        elif not message.strip():
+        audio_bytes, audio_mime = _multipart_voice_audio()
+        if audio_bytes is not None and len(audio_bytes) < 128:
+            return _json_error(
+                "Áudio vazio no envio. Grave de novo (microfone → falar → seta).",
+                400,
+            )
+        if audio_bytes is None and not message.strip():
             return _json_error(
                 "Áudio não chegou ao servidor. Toque no microfone, fale e toque outra vez.",
                 400,
