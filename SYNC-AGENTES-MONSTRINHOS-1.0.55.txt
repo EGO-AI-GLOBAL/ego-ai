@@ -9,4 +9,6 @@ Zona: telefone duplicado + fluxo cadastro
 • signup → / (gates decidem ordem)
 • app.config 1.0.55 · iOS build 43 · Android versionCode 95
 
-GIT: (pendente commit)
+GIT: ba83081
+
+✅ MONSTRINHOS PRONTO — commit ba83081 — build 1.0.55 em fila
