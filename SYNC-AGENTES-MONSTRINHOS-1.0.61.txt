@@ -1,0 +1,21 @@
+AGENTE MONSTRINHOS — RELEASE 1.0.61 (EAS PRONTO)
+=================================================
+Estado: ✅ PRONTO — aguardo Release 4× ✅ (NÃO GERAR ainda)
+
+Zona: hotfix voz Android — JSON/base64 antes do upload nativo multipart
+• app/src/api/client.ts — ensureFreshSessionForPost, tokens no form, fallbacks night-dump/voz
+• app/src/hooks/useVoiceChat.ts — Android: pre-read base64 antes de stop; sendChatVoiceMessage primeiro
+• app/src/security/playIntegrity.ts — timeout Integrity no interceptor
+• app.config.ts — 1.0.61 · Android 100 · iOS buildNumber EAS autoIncrement (47 base)
+
+API produção: api_build=2026-06-29-1.0.60-hotfix-voz-phone
+
+Scripts EAS:
+• PREPARAR-1.0.61.bat
+• GERAR-1.0.61.bat (NÃO correr até Release ✅)
+• AGUARDAR-E-SUBMETER-1.0.61.bat
+• builds-1.0.61.ids.json
+
+Testes pré-build: onboarding_guard + regression_guard + smoke — OK (2026-06-29)
+
+GIT: 92f6827
