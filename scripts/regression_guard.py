@@ -128,8 +128,16 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["Instagram Stories", "Instagram Post", "Instagram Reels", "WhatsApp"],
     ),
     (
+        "app/src/utils/egoDeBolsoShare.ts",
+        [
+            "buildPocketCompanionWhatsAppText",
+            "buildPocketCompanionInstagramCaption",
+            "pocketCompanionCardHeadline",
+        ],
+    ),
+    (
         "app/src/components/PocketCompanionShareModal.tsx",
-        ["EGO de Bolso", "Eu estou no nível", "sharePocketCompanionWhatsApp"],
+        ["EGO de Bolso", "Desafiar amigos", "sharePocketCompanionWhatsApp", "pocketCompanionCardChallenge"],
     ),
     (
         "app/src/components/WellnessJourneyCard.tsx",

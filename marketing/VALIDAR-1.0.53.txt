@@ -1,0 +1,8 @@
+VALIDAR 1.0.53 — Bolso Dia 6 (partilha viral)
+=============================================
+
+[ ] Bolso → Postar → cartão mostra nome do pet + missões + estrelas
+[ ] WhatsApp — texto com desafio «responde com teu nível» + links
+[ ] Instagram Stories — legenda curta + imagem do cartão
+[ ] Dia completo — cartão diz «Fechei 5/5 missões»
+[ ] Bolso Dia 5/9 sem regressão

@@ -118,33 +118,13 @@ export function buildStreakStoriesCaption(opts: {
   return buildStreakShareText(opts);
 }
 
-function rebrandShareLine(text: string): string {
-  return text
-    .replace(/Jornada de Cuidado/gi, "EGO de Bolso")
-    .replace(/Companheiro de Bolso/gi, "EGO de Bolso")
-    .replace(/Desafio Diário/gi, "Monstrinhos do Humor");
-}
-
-export function buildPocketCompanionShareText(journey: WellnessJourney): string {
-  const level = journey.level ?? 1;
-  const title = (journey.title || "EGO de Bolso").trim();
-  const emoji = journey.emoji || "🥚";
-  const headline = rebrandShareLine(
-    (
-      journey.share_challenge ||
-      `Qual é teu nível? ${level} ${emoji} ${title} — EGO de Bolso EGO-AI`
-    ).trim()
-  );
-  return (
-    `${headline}\n\n` +
-    `Eu estou no nível ${level}. E você?\n\n` +
-    `Tamagotchi de bem-estar — estilo anos 90, com a Luna 💜\n` +
-    `👉 Responde com seu nível (ex: 2, 5 ou 10) 🥚\n\n` +
-    buildAppDownloadLinksBlock() +
-    `\n\n` +
-    buildSocialFollowBlock()
-  );
-}
+export {
+  buildPocketCompanionInstagramCaption,
+  buildPocketCompanionShareText,
+  buildPocketCompanionWhatsAppText,
+  pocketCompanionCardChallenge,
+  pocketCompanionCardHeadline,
+} from "@/utils/egoDeBolsoShare";
 
 export function buildWellnessJourneyShareText(journey: WellnessJourney): string {
   return buildPocketCompanionShareText(journey);
