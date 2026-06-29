@@ -9,6 +9,6 @@ Zona: crash pós-login / reinstall iOS
 • ErrorBoundary mostra versão instalada
 • app.config 1.0.53 · iOS build 41 · Android versionCode 93
 
-GIT: (preencher após commit)
+GIT: 50c00ba
 
-✅ MONSTRINHOS — aguardar GERAR-1.0.53 + submit
+✅ MONSTRINHOS PRONTO — commit 50c00ba — build 1.0.53
