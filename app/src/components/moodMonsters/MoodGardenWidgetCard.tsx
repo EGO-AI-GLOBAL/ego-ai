@@ -11,22 +11,23 @@ type Props = {
 };
 
 export function MoodGardenWidgetCard({ colors, care }: Props) {
-  if (!care?.question) return null;
-
-  const goals = care.daily_goals ?? [];
+  const goals = care?.daily_goals ?? [];
   const done = goals.filter((g) => g.done).length;
   const total = goals.length || 5;
-  const atRisk = Boolean(care.at_risk);
-  const seeds = care.seeds ?? 0;
-  const streak = care.current ?? 0;
+  const atRisk = Boolean(care?.at_risk);
+  const seeds = care?.seeds ?? 0;
+  const streak = care?.current ?? 0;
 
   const subtitle = useMemo(() => {
+    if (!care?.question) return "";
     const congrats = care.avatar_congrats?.trim();
     if (congrats) return congrats;
-    if (!care.checked_today) return "Toque para registrar humor e cuidar do pet";
+    if (!care.checked_today) return "Toque para registrar humor e cuidar o pet";
     if (done < total) return `${done}/${total} missões hoje · ${seeds} sementes`;
     return `Dia completo · ${streak} dias seguidos`;
-  }, [care.avatar_congrats, care.checked_today, done, total, seeds, streak]);
+  }, [care?.question, care?.avatar_congrats, care?.checked_today, done, total, seeds, streak]);
+
+  if (!care?.question) return null;
 
   return (
     <Pressable

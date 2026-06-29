@@ -1,0 +1,25 @@
+EGO-AI 1.0.52 HOTFIX — o que falta manual (5 min)
+=================================================
+
+A build EAS corre sozinha (URGENCIA-1.0.52.bat).
+Isto é SÓ no Supabase — NÃO é SQL.
+
+PASSO 1 — Redirect URLs (link do e-mail abre certo)
+----------------------------------------------------
+Duplo clique: ABRIR-SUPABASE-RESET-SENHA.bat
+→ Authentication → URL Configuration → Add URL (cada uma) → Save
+
+PASSO 2 — SMTP (e-mail «Esqueci a senha» chegar)
+-------------------------------------------------
+Duplo clique: ABRIR-SUPABASE-SMTP-RESET.bat
+→ Project Settings → Authentication → SMTP → Custom SMTP (Brevo)
+
+PASSO 3 — Depois da loja aprovar
+---------------------------------
+Railway → colar RAILWAY-VARS-1.0.52.txt
+
+PASSO 4 — Avisar testadores
+----------------------------
+marketing/NOTAS-1.0.52-PLAY.txt (mensagem WhatsApp no fim)
+
+Sheila: cadastrar de novo após atualizar para 1.0.52

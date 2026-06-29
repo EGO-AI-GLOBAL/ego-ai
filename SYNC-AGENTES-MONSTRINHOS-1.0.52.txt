@@ -1,0 +1,15 @@
+AGENTE MONSTRINHOS — BUILD 1.0.52 HOTFIX
+=========================================
+Estado: ✅ PRONTO
+
+Zona: crash chat + versão EAS
+• app.config 1.0.52 · iOS build 40 · Android versionCode 92
+• MoodGardenWidgetCard hooks fix
+• AvatarEngagementCard colors.bgCard
+• SpeakingAvatar hooks order
+
+ÚNICO que corre: URGENCIA-1.0.52.bat
+
+GIT: (após commit desta release)
+
+✅ MONSTRINHOS PRONTO — 1.0.52 hotfix crash + senha

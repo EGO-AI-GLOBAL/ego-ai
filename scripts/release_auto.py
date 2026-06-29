@@ -13,6 +13,30 @@ ROOT = Path(__file__).resolve().parents[1]
 APP_CONFIG = ROOT / "app" / "app.config.ts"
 
 BUNDLE_BY_VERSION: dict[str, dict[str, list]] = {
+    "1.0.52": {
+        "files": [
+            "app/app.config.ts",
+            "app/src/components/moodMonsters/MoodGardenWidgetCard.tsx",
+            "app/src/components/AvatarEngagementCard.tsx",
+            "app/src/components/SpeakingAvatar.tsx",
+            "app/app/reset-password.tsx",
+            "app/app/forgot-password.tsx",
+            "app/src/storage/passwordRecovery.ts",
+            "ego_api/auth_reset.py",
+            "ego_api/services.py",
+            "marketing/NOTAS-1.0.52-PLAY.txt",
+            "supabase/SUPABASE-REDIRECT-RESET-SENHA.txt",
+            "supabase/SUPABASE-SMTP-RESET-SENHA.txt",
+        ],
+        "snippets": [
+            ("app/src/components/moodMonsters/MoodGardenWidgetCard.tsx", "if (!care?.question) return null"),
+            ("app/src/components/AvatarEngagementCard.tsx", "colors.bgCard"),
+            ("app/app.config.ts", 'version: "1.0.52"'),
+            ("app/src/api/client.ts", "completePasswordReset"),
+            ("ego_api/auth_reset.py", "password_reset_redirect_url"),
+            ("flask_api.py", '/auth/reset-password'),
+        ],
+    },
     "1.0.51": {
         "files": [
             "app/app.config.ts",
@@ -111,6 +135,10 @@ def git_push_if_needed() -> None:
 
 def write_railway_snippet(version: str, android_code: str) -> Path:
     messages = {
+        "1.0.52": (
+            f"{version}: Corrige crash ao escolher avatar + recuperar senha de ponta a ponta. "
+            "Toque em Atualizar agora."
+        ),
         "1.0.51": (
             f"{version}: 12 personalidades, avatar do dia, memória leve e Bolso ligado ao chat. "
             "Toque em Atualizar agora."
@@ -141,6 +169,12 @@ def write_done_log(version: str, ids_path: Path) -> None:
     if ids_path.is_file():
         ids = json.loads(ids_path.read_text(encoding="utf-8"))
     summaries = {
+        "1.0.52": """Incluído 100% (hotfix urgente):
+• FIX crash «Algo deu errado» ao escolher Luna/Leo (iPhone + Android)
+• Recuperar senha: app + API + página web (herdado 1.0.50, validado nesta build)
+• Sessão persistente ao reabrir
+• Após loja: configurar Supabase Redirect URLs + SMTP (guias em supabase/)
+""",
         "1.0.51": """Incluído 100%:
 • 12 personalidades + memória leve por avatar
 • Avatar do dia, meta semanal, streak chat

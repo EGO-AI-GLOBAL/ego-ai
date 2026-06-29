@@ -47,7 +47,7 @@ export function AvatarEngagementCard({ userId, currentAvatarId, colors, onOpenAv
   const weeklyLeft = Math.max(0, weekly.goal - weekly.done);
 
   return (
-    <View style={[styles.wrap, { borderColor: colors.border, backgroundColor: colors.card }]}>
+    <View style={[styles.wrap, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
       <Text style={[styles.title, { color: colors.text }]}>{suggestion.title}</Text>
       <Text style={[styles.body, { color: colors.textMuted }]}>{suggestion.body}</Text>
       <Pressable

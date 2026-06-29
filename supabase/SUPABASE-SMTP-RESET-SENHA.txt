@@ -1,0 +1,41 @@
+╔══════════════════════════════════════════════════════════════╗
+║  ⛔ NÃO COLE ISTO NO SQL EDITOR — NÃO É SQL ⛔              ║
+║  Supabase → Project Settings → Authentication → SMTP       ║
+╚══════════════════════════════════════════════════════════════╝
+
+PORQUÊ
+------
+• E-mail de BOAS-VINDAS → API EGO (Brevo) → chega ✓
+• E-mail ESQUECI A SENHA → Supabase Auth → remetente padrão → spam / não chega ✗
+
+Solução: mesmo remetente Ego-IA via Brevo SMTP no Supabase.
+
+PASSO A PASSO
+-------------
+1. Brevo → SMTP & API → aba "Chaves SMTP" (não API keys)
+2. Anote:
+   - Servidor: smtp-relay.brevo.com
+   - Porta: 587
+   - Login: e-mail da conta Brevo
+   - Senha: chave SMTP do Brevo
+
+3. Supabase → https://supabase.com/dashboard → projeto EGO-AI
+4. Project Settings (engrenagem) → Authentication
+5. Secção "SMTP Settings" → Enable Custom SMTP → ON
+6. Preencher:
+   - Host: smtp-relay.brevo.com
+   - Port: 587
+   - Username: (e-mail Brevo)
+   - Password: (chave SMTP Brevo)
+   - Sender email: contato@egoai.com.br
+   - Sender name: Ego-IA
+7. Save
+
+8. Redirect URLs (se ainda não fez):
+   → ABRIR-SUPABASE-RESET-SENHA.bat
+
+TESTAR
+------
+1. App → Esqueci a senha → seu e-mail
+2. Spam/lixo — remetente Ego-IA
+3. Link abre página «Nova senha» → guardar → entrar no app

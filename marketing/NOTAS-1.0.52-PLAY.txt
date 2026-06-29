@@ -1,0 +1,59 @@
+EGO-AI 1.0.52 — HOTFIX urgente (versionCode 92 · iOS build 40)
+==============================================================
+
+O que há de novo
+----------------
+
+CORREÇÃO CRÍTICA — CRASH AO ENTRAR
+• «Algo deu errado» ao escolher Luna/Leo — corrigido (iPhone + Android)
+• Novos testadores conseguem chegar ao chat e mandar «oi»
+
+RECUPERAR SENHA (completo nesta build)
+• Esqueci a senha no app → e-mail → link → nova senha → entra no app
+• Link abre página segura no telemóvel ou no app (egoai://reset-password)
+
+SESSÃO PERSISTENTE
+• Fechar e reabrir mantém login
+
+---
+
+TEXTO CURTO — Play Console / TestFlight (copiar)
+------------------------------------------------
+Hotfix: corrige crash ao escolher avatar. Recuperar senha de ponta a ponta. Sessão mantém login. Atualizem já.
+
+---
+
+TEXTO MÉDIO — «O que há de novo»
+--------------------------------
+• Corrigido crash ao escolher assistente (Luna/Leo)
+• Recuperar senha: pedir link → e-mail → nova senha → entrar
+• Sessão: fechar e reabrir sem pedir login de novo
+• Estabilidade
+
+---
+
+OBRIGATÓRIO NO SUPABASE (1x — não é SQL)
+----------------------------------------
+1. Redirect URLs → ABRIR-SUPABASE-RESET-SENHA.bat
+2. SMTP Brevo (e-mail de reset chegar) → ABRIR-SUPABASE-SMTP-RESET.bat
+
+Sem SMTP: boas-vindas chega (API), reset pode não chegar (Supabase).
+
+---
+
+Railway (após loja publicar 1.0.52)
+-----------------------------------
+EGO_LATEST_APP_VERSION=1.0.52
+EGO_LATEST_ANDROID_VERSION_CODE=92
+EGO_APP_UPDATE_MESSAGE=1.0.52: Crash corrigido + recuperar senha. Toque em Atualizar agora.
+
+EGO_MAINTENANCE=0
+
+---
+
+Mensagem testadores (WhatsApp)
+------------------------------
+Atualizem para **1.0.52** 🙏
+• Crash ao escolher avatar — corrigido
+• Esqueci a senha → pedir novo link no app (confiram spam)
+• Depois de instalar: cadastro → Luna → «oi» no chat

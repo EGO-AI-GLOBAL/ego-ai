@@ -8,8 +8,11 @@ title Supabase — Redirect URLs (NAO e SQL)
 
 echo.
 echo ============================================================
-echo   ATENCAO: NAO e SQL — NAO cole nada no SQL Editor
+echo   ⛔ NAO E SQL — NAO ABRA O SQL EDITOR PARA ISTO ⛔
 echo ============================================================
+echo.
+echo   SQL Editor     = APAGAR-CONTA-SHEILA.sql, CRESCIMENTO...
+echo   Redirect URLs  = PAINEL Authentication ^> URL Configuration
 echo.
 echo Isto e configuracao no PAINEL do Supabase:
 echo   Authentication ^> URL Configuration ^> Redirect URLs

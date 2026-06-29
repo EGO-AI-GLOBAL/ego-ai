@@ -213,6 +213,11 @@ export function SpeakingAvatar({
   const thinking = Boolean(isThinking);
   const pulse = useRef(new Animated.Value(1)).current;
   const speakRing = useRef(new Animated.Value(0)).current;
+  const aid = (avatarId || "f1").toLowerCase();
+  const name =
+    findAvatarInCatalog(aid)?.shortName ?? (isMaleAvatar(aid) ? "Leo" : "Luna");
+  const [videoUri, setVideoUri] = useState<string | null>(null);
+  const [videoReady, setVideoReady] = useState(false);
 
   useEffect(() => {
     if (!speaking) {
@@ -268,11 +273,6 @@ export function SpeakingAvatar({
     loop.start();
     return () => loop.stop();
   }, [listening, thinking, pulse]);
-  const aid = (avatarId || "f1").toLowerCase();
-  const name =
-    findAvatarInCatalog(aid)?.shortName ?? (isMaleAvatar(aid) ? "Leo" : "Luna");
-  const [videoUri, setVideoUri] = useState<string | null>(null);
-  const [videoReady, setVideoReady] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
