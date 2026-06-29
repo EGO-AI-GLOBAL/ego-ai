@@ -32,6 +32,6 @@ TESTES
 NÃO TOCADO: Stripe · limites plano · EDGE_TTS · EGO_MAINTENANCE · app.config.ts
 NÃO CORRI: GERAR / EAS
 
-GIT: (hash após push)
+GIT: bf7a3e9
 
-✅ API PRONTO — API Monstrinhos Fase 7–8 + reset senha Brevo 1.0.61
+✅ API PRONTO — bf7a3e9 — API Monstrinhos Fase 7–8 + reset senha Brevo 1.0.61
