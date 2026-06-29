@@ -5,7 +5,10 @@ from __future__ import annotations
 import re
 from typing import Any
 
-from supabase import Client
+try:
+    from ego_supabase import Client
+except ImportError:
+    from supabase import Client  # type: ignore[assignment]
 
 from ego_api.db import load_profile, update_profile_fields
 
