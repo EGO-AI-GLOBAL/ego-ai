@@ -9,6 +9,6 @@ Zona: crash após escolher avatar (loop PersonaGate)
 • chat.tsx — boas-vindas texto; widgets 1 frame depois
 • app.config 1.0.56 · iOS build 44 · Android versionCode 96
 
-GIT: (preencher após commit)
+GIT: cdbea14
 
 ✅ MONSTRINHOS — aguardar GERAR-1.0.56 + submit
