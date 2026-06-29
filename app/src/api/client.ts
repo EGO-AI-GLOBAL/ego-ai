@@ -5,6 +5,7 @@ import { API_V1 } from "@/constants/config";
 import { normalizeAccessInfo } from "@/constants/planLimits";
 import { resolveSpeechVoiceId } from "@/constants/personas";
 import { getPlayIntegrityToken } from "@/security/playIntegrity";
+import { sessionNeedsRefresh } from "@/storage/sessionRefresh";
 import type {
   AccessInfo,
   ApiErr,
@@ -138,7 +139,10 @@ api.interceptors.request.use(async (config) => {
   const h = config.headers as Record<string, string>;
   h["X-EGO-Platform"] = Platform.OS;
   if (routeNeedsIntegrity(config.url, config.method)) {
-    const token = await getPlayIntegrityToken();
+    const token = await Promise.race([
+      getPlayIntegrityToken(),
+      new Promise<null>((resolve) => setTimeout(() => resolve(null), 800)),
+    ]);
     if (token) {
       h["X-Play-Integrity"] = token;
     }
@@ -529,6 +533,7 @@ export async function createReminder(payload: {
 }
 
 export async function submitNightDumpText(text: string): Promise<NightDumpResult> {
+  await ensureFreshSessionForPost();
   const { data } = await api.post(
     "night-dump",
     { text: text.trim(), ...deviceTimezonePayload() },
@@ -549,7 +554,30 @@ export async function submitNightDumpBlob(blob: Blob): Promise<NightDumpResult> 
   const tz = deviceTimezonePayload();
   form.append("timezone", tz.timezone);
   form.append("tz_offset_min", String(tz.tz_offset_min));
+  const authFields = voiceUploadAuthFormFields();
+  if (authFields.access_token) form.append("access_token", authFields.access_token);
+  if (authFields.refresh_token) form.append("refresh_token", authFields.refresh_token);
+  await ensureFreshSessionForPost();
   const { data } = await api.post("night-dump", form, { timeout: TIMEOUT_CHAT_MS });
+  return unwrap<NightDumpResult>(data);
+}
+
+async function submitNightDumpBase64FromUri(opts: {
+  uri: string;
+  audioMime?: string;
+}): Promise<NightDumpResult> {
+  const uri = (opts.uri || "").trim();
+  if (!uri) throw new Error("Gravação vazia.");
+  const audio_mime = normalizeVoiceMime(opts.audioMime);
+  const audio_base64 = await FileSystem.readAsStringAsync(uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  await ensureFreshSessionForPost();
+  const { data } = await api.post(
+    "night-dump",
+    { audio_base64, audio_mime, ...deviceTimezonePayload() },
+    { timeout: TIMEOUT_CHAT_MS }
+  );
   return unwrap<NightDumpResult>(data);
 }
 
@@ -561,29 +589,45 @@ export async function submitNightDumpFromUri(opts: {
   if (!uri) throw new Error("Gravação vazia.");
   const audio_mime = normalizeVoiceMime(opts.audioMime);
   if (Platform.OS !== "web") {
-    const base = API_V1.endsWith("/") ? API_V1 : `${API_V1}/`;
-    const url = `${base}night-dump`;
-    const res = await FileSystem.uploadAsync(url, uri, {
-      httpMethod: "POST",
-      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-      fieldName: "audio",
-      mimeType: audio_mime,
-      headers: await buildVoiceUploadHeaders(),
-      parameters: Object.fromEntries(
-        Object.entries(deviceTimezonePayload()).map(([k, v]) => [k, String(v)])
-      ),
-    });
-    if (res.status < 200 || res.status >= 300) {
-      let detail = `Erro ${res.status} ao enviar desabafo.`;
-      try {
-        const parsed = JSON.parse(res.body) as { error?: string };
-        if (parsed.error) detail = parsed.error;
-      } catch {
-        /* ignore */
+    await ensureFreshSessionForPost();
+    try {
+      const base = API_V1.endsWith("/") ? API_V1 : `${API_V1}/`;
+      const url = `${base}night-dump`;
+      const res = await FileSystem.uploadAsync(url, uri, {
+        httpMethod: "POST",
+        uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+        fieldName: "audio",
+        mimeType: audio_mime,
+        headers: await buildVoiceUploadHeaders(),
+        parameters: {
+          audio_mime,
+          ...voiceUploadAuthFormFields(),
+          ...Object.fromEntries(
+            Object.entries(deviceTimezonePayload()).map(([k, v]) => [k, String(v)])
+          ),
+        },
+      });
+      if (res.status < 200 || res.status >= 300) {
+        let detail = `Erro ${res.status} ao enviar desabafo.`;
+        try {
+          const parsed = JSON.parse(res.body) as { error?: string };
+          if (parsed.error) detail = parsed.error;
+        } catch {
+          /* ignore */
+        }
+        throw new ApiClientError(detail, res.status);
       }
-      throw new ApiClientError(detail, res.status);
+      return unwrap<NightDumpResult>(JSON.parse(res.body));
+    } catch (nativeErr) {
+      if (Platform.OS === "android") {
+        try {
+          return await submitNightDumpBase64FromUri(opts);
+        } catch {
+          throw nativeErr;
+        }
+      }
+      throw nativeErr;
     }
-    return unwrap<NightDumpResult>(JSON.parse(res.body));
   }
   const audioBase64 = await FileSystem.readAsStringAsync(uri, {
     encoding: FileSystem.EncodingType.Base64,
@@ -802,11 +846,40 @@ function voiceUploadAuthHeaders(): Record<string, string> {
   return headers;
 }
 
+/** Campos extra no multipart — alguns Android não enviam Authorization no uploadAsync. */
+function voiceUploadAuthFormFields(): Record<string, string> {
+  const session = getSession();
+  const access = session?.access_token?.trim() || "";
+  const refresh = session?.refresh_token?.trim() || "";
+  const fields: Record<string, string> = {};
+  if (access) fields.access_token = access;
+  if (refresh) fields.refresh_token = refresh;
+  return fields;
+}
+
+/** Renova sessão antes de POST caro (upload nativo não passa pelo interceptor axios). */
+async function ensureFreshSessionForPost(): Promise<void> {
+  const session = getSession();
+  if (!session?.refresh_token || !sessionNeedsRefresh(session)) return;
+  try {
+    const next = await refreshSessionToken(session.refresh_token, session);
+    setSession(next);
+    if (onSessionPersist) {
+      await onSessionPersist(next);
+    }
+  } catch {
+    /* segue com token actual — API pode aceitar refresh no form/header */
+  }
+}
+
 /** Multipart nativo (FileSystem.uploadAsync) não passa pelos interceptors axios. */
 async function buildVoiceUploadHeaders(): Promise<Record<string, string>> {
   const headers = voiceUploadAuthHeaders();
   headers["X-EGO-Platform"] = Platform.OS;
-  const integrity = await getPlayIntegrityToken();
+  const integrity = await Promise.race([
+    getPlayIntegrityToken(),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 800)),
+  ]);
   if (integrity) {
     headers["X-Play-Integrity"] = integrity;
   }
@@ -838,6 +911,7 @@ export async function sendChatVoiceFileNative(opts: {
       audio_mime,
       speak: opts.speak !== false ? "true" : "false",
       history: JSON.stringify(opts.history ?? []),
+      ...voiceUploadAuthFormFields(),
       ...Object.fromEntries(
         Object.entries(deviceTimezonePayload()).map(([k, v]) => [k, String(v)])
       ),
@@ -894,6 +968,9 @@ export async function sendChatVoiceFile(opts: {
   const tz = deviceTimezonePayload();
   form.append("timezone", tz.timezone);
   form.append("tz_offset_min", String(tz.tz_offset_min));
+  const authFields = voiceUploadAuthFormFields();
+  if (authFields.access_token) form.append("access_token", authFields.access_token);
+  if (authFields.refresh_token) form.append("refresh_token", authFields.refresh_token);
 
   const { data } = await api.post("chat/messages", form, {
     timeout: TIMEOUT_CHAT_MS,
@@ -905,25 +982,69 @@ export async function sendChatVoiceFile(opts: {
   return body;
 }
 
-/** Telefone: upload nativo primeiro; browser usa blob/axios. */
+async function sendChatVoiceBase64FromUri(opts: {
+  uri: string;
+  audioMime?: string;
+  speak?: boolean;
+  history?: ChatHistoryPayload;
+}): Promise<SendChatResult> {
+  const uri = (opts.uri || "").trim();
+  if (!uri) {
+    throw new Error("Gravação vazia.");
+  }
+  const audioBase64 = await FileSystem.readAsStringAsync(uri, {
+    encoding: FileSystem.EncodingType.Base64,
+  });
+  return sendChatVoiceMessage({
+    audioBase64,
+    audioMime: opts.audioMime,
+    speak: opts.speak,
+    history: opts.history,
+  });
+}
+
+/** Android: JSON/base64 primeiro (axios + refresh); iOS: nativo primeiro. */
 export async function sendChatVoiceFromUri(opts: {
   uri: string;
   audioMime?: string;
   speak?: boolean;
   history?: ChatHistoryPayload;
 }): Promise<SendChatResult> {
-  if (Platform.OS !== "web") {
+  if (Platform.OS === "web") {
+    return sendChatVoiceFile(opts);
+  }
+
+  await ensureFreshSessionForPost();
+
+  if (Platform.OS === "android") {
     try {
-      return await sendChatVoiceFileNative(opts);
-    } catch (nativeErr) {
+      return await sendChatVoiceBase64FromUri(opts);
+    } catch (jsonErr) {
       try {
-        return await sendChatVoiceFile(opts);
+        return await sendChatVoiceFileNative(opts);
+      } catch {
+        try {
+          return await sendChatVoiceFile(opts);
+        } catch {
+          throw jsonErr;
+        }
+      }
+    }
+  }
+
+  try {
+    return await sendChatVoiceFileNative(opts);
+  } catch (nativeErr) {
+    try {
+      return await sendChatVoiceFile(opts);
+    } catch {
+      try {
+        return await sendChatVoiceBase64FromUri(opts);
       } catch {
         throw nativeErr;
       }
     }
   }
-  return sendChatVoiceFile(opts);
 }
 
 /** Envio de voz no browser (Safari) — ficheiro binário, sem base64 no JSON. */

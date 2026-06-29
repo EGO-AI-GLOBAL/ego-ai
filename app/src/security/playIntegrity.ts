@@ -86,7 +86,7 @@ export async function preparePlayIntegrity(): Promise<boolean> {
 export async function getPlayIntegrityToken(): Promise<string | null> {
   if (!integrityConfigured()) return null;
   if (!prepared) {
-    const ok = await preparePlayIntegrity();
+    const ok = await withTimeout(preparePlayIntegrity(), 2_000);
     if (!ok) return null;
   }
   if (cachedToken && Date.now() - cachedToken.at < TOKEN_CACHE_MS) {
