@@ -1,22 +1,44 @@
-ROADMAP — Monstrinhos do Humor (paridade Finch)
-==============================================
-
-Fases 1–6 = MVP (loop jogável, não paridade total).
-Fases 7+  = paridade funcional real — ver marketing/FINCH-PARITY.md.
-
-| Fase | Escopo | Estado |
-|------|--------|--------|
-| 1 Base (jardim, pet, ranking) | 1.0.40–41 | ✅ |
-| 2 Loop diário (missões, sementes) | 1.0.42 | ✅ |
-| 3 Economia (loja, burst, histórico) | 1.0.43 | ✅ |
-| 4 Retenção (push) | 1.0.44 | ✅ |
-| 5 Visual wow | 1.0.47 | ✅ |
-| 6 Profundidade (widget in-app + 5 missões) | 1.0.48 | ✅ código |
-| **7 Loja expandida** (34 itens, rotação 8/semana, sink pós-base) | 1.0.58 | ✅ código |
-| **8 Missões variadas** (pool 20+, 1 surpresa/dia) | 1.0.59 | ⏳ próxima |
-| 9+ Journal, eventos sazonais, social, widget nativo | — | planeado |
-
-MVP (1–6): fechado.
-Paridade Finch: acompanhar FINCH-PARITY.md — não marcar % até checklist obrigatória ✅.
-
-Monitor: a cada 7 dias ler notas públicas Finch (App Store/Play) e atualizar FINCH-PARITY.md.
+ROADMAP — Monstrinhos do Humor (paridade Finch)
+
+==============================================
+
+
+
+Fases 1–6 = MVP (loop jogável, não paridade total).
+
+Fases 7+  = paridade funcional real — ver marketing/FINCH-PARITY.md.
+
+
+
+| Fase | Escopo | Estado |
+
+|------|--------|--------|
+
+| 1 Base (jardim, pet, ranking) | 1.0.40–41 | ✅ |
+
+| 2 Loop diário (missões, sementes) | 1.0.42 | ✅ |
+
+| 3 Economia (loja, burst, histórico) | 1.0.43 | ✅ |
+
+| 4 Retenção (push) | 1.0.44 | ✅ |
+
+| 5 Visual wow | 1.0.47 | ✅ |
+
+| 6 Profundidade (widget in-app + 5 missões) | 1.0.48 | ✅ código |
+
+| **7 Loja expandida** (34 itens, rotação 8/semana, sink pós-base) | 1.0.58 | ✅ código |
+
+| **8 Missões variadas** (pool 26, 1 surpresa/dia) | 1.0.59 | ✅ código |
+
+| 9+ Journal, eventos sazonais, social, widget nativo | — | planeado |
+
+
+
+MVP (1–6): fechado.
+
+Paridade Finch: acompanhar FINCH-PARITY.md — não marcar % até checklist obrigatória ✅.
+
+
+
+Monitor: a cada 7 dias ler notas públicas Finch (App Store/Play) e atualizar FINCH-PARITY.md.
+

@@ -472,6 +472,8 @@ export type DailyCareGoal = {
   done: boolean;
   seeds_reward: number;
   locked?: boolean;
+  kind?: "checkin" | "tap" | "breathe" | "adventure";
+  surprise?: boolean;
 };
 
 export type DailyCareAdventure = {

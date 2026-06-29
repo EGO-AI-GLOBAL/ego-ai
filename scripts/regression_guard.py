@@ -207,6 +207,10 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["get_daily_care", "record_checkin", "record_goal", "purchase_shop_item", "CARE_MILESTONES", "shop_week_label"],
     ),
     (
+        "ego_api/daily_care_missions.py",
+        ["validate_mission_pool_size", "MISSION_POOL", "SURPRISE_POOL", "build_daily_goals"],
+    ),
+    (
         "ego_api/daily_care_shop.py",
         ["validate_shop_catalog_size", "SHOP_BASE_ITEMS", "SHOP_ROTATING_POOL", "shop_catalog_payload"],
     ),
@@ -427,10 +431,54 @@ def check_shop_catalog() -> int:
         return 1
 
 
+def check_mission_pool() -> int:
+    print("\n=== Missões Monstrinhos (pool 20+ + surpresa/dia) ===")
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        import datetime
+
+        from ego_api.daily_care_missions import (
+            MISSION_POOL,
+            SURPRISE_POOL,
+            build_daily_goals,
+            daily_mission_keys,
+            missions_differ_within_days,
+            validate_mission_pool_size,
+        )
+
+        validate_mission_pool_size()
+        today = datetime.date.today().isoformat()
+        tomorrow = (datetime.date.today() + datetime.timedelta(days=1)).isoformat()
+        day3 = (datetime.date.today() + datetime.timedelta(days=2)).isoformat()
+        goals = build_daily_goals({}, today, False, checkin_seeds=5)
+        surprise = [g for g in goals if g.get("surprise")]
+        if len(surprise) != 1:
+            print(f"  ERRO  esperado 1 surpresa/dia, veio {len(surprise)}")
+            return 1
+        if len(goals) != 5:
+            print(f"  ERRO  esperado 5 missões (check-in + 4), veio {len(goals)}")
+            return 1
+        if not missions_differ_within_days(today, tomorrow):
+            print("  ERRO  missões iguais hoje e amanhã")
+            return 1
+        if daily_mission_keys(today) == daily_mission_keys(day3):
+            print("  AVISO  missões dia+2 iguais — raro mas aceitável")
+        print(
+            f"  OK    {len(MISSION_POOL)} regulares + {len(SURPRISE_POOL)} surpresa "
+            f"= {len(MISSION_POOL) + len(SURPRISE_POOL)} · 1 surpresa/dia"
+        )
+        return 0
+    except Exception as exc:
+        print(f"  ERRO  missões Monstrinhos: {exc}")
+        return 1
+
+
 def main() -> int:
     failed = check_symbols()
     failed += check_journey_missions()
     failed += check_shop_catalog()
+    failed += check_mission_pool()
     try:
         import importlib.util
 

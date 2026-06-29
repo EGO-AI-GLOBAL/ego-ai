@@ -693,9 +693,7 @@ export async function submitDailyCareCheckin(moodKey: string): Promise<{
   }
 }
 
-export async function submitDailyCareGoal(
-  goalKey: "breathe" | "adventure" | "water" | "gratitude"
-): Promise<{ daily_care: DailyCareInfo } | null> {
+export async function submitDailyCareGoal(goalKey: string): Promise<{ daily_care: DailyCareInfo } | null> {
   try {
     const { data } = await api.post("daily-care/goal", { goal: goalKey });
     const body = unwrap<{ daily_care: DailyCareInfo }>(data);

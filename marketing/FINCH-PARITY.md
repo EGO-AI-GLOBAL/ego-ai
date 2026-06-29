@@ -2,7 +2,7 @@
 
 **Regra:** não usar "100%", "igual ao Finch" nem "Feel Finch 95%" em marketing até **todas** as linhas obrigatórias estiverem ✅.
 
-**Última revisão:** 2026-06-29 (agente Monstrinhos · Fase 7 loja)  
+**Última revisão:** 2026-06-29 (agente Monstrinhos · Fase 8 missões)  
 **Fonte Finch (público):** App Store / Play — notas "What's New" v3.73.x (jun/2026): correções + tweaks visuais; eventos sazonais (ex. Poolside Pals, micropets, wearables).
 
 Legenda: ❌ falta · 🟡 parcial · ✅ fechado (EGO, arte/textos próprios)
@@ -19,14 +19,14 @@ Legenda: ❌ falta · 🟡 parcial · ✅ fechado (EGO, arte/textos próprios)
 | 4 | Loja de decorações (catálogo grande) | Loja do jardim | ✅ | **Fase 7:** 34 itens, rotação 8/semana |
 | 5 | Gastar moeda quando base esgota | Rotação semanal | ✅ | **Fase 7:** pool 24 + reset segunda-feira |
 | 6 | Evolução visível do ambiente | 5 estágios jardim + decor streak | ✅ | Semente → Paraíso |
-| 7 | Missões / metas diárias variadas | 5 missões fixas | 🟡 | **Fase 8:** pool 20+ + surpresa/dia |
+| 7 | Missões / metas diárias variadas | Pool 26 + surpresa/dia | ✅ | **Fase 8:** 3 regulares + 1 surpresa + check-in |
 | 8 | Aventura diária do pet | Aventura no jardim | ✅ | após respiração |
 | 9 | Respiração guiada | 3 respirações + haptic | ✅ | |
 | 10 | Gratidão / reflexão | Missão gratidão | ✅ | |
 | 11 | Ranking / streak / marcos | Escada + marcos 1–30 dias | ✅ | |
 | 12 | Push de retenção | Push jardim completo + Bolso | ✅ | |
 | 13 | Widget / presença no telefone | Card in-app (widget nativo) | 🟡 | widget home screen = futuro |
-| 14 | Loop não repetir em ~3 dias | Rotação loja semanal | ✅ | missões = Fase 8 |
+| 14 | Loop não repetir em ~3 dias | Loja semanal + missões diárias | ✅ | **Fase 7+8** |
 | 15 | Zero sementes paradas (sink) | Loja + rotação | ✅ | **Fase 7** |
 
 ---
@@ -63,7 +63,7 @@ Legenda: ❌ falta · 🟡 parcial · ✅ fechado (EGO, arte/textos próprios)
 |------|--------|--------|
 | 1–6 | MVP Monstrinhos (jardim, loop, loja básica, push, visual, widget in-app) | ✅ código |
 | **7** | Loja 30+ itens + rotação semanal + sink pós-base | ✅ **1.0.58** |
-| **8** | Missões pool 20+ + 1 surpresa/dia | ❌ próxima |
+| **8** | Missões pool 20+ + 1 surpresa/dia | ✅ **1.0.59** |
 | 9+ | Journal, eventos, social, widget nativo | planeado |
 
 ---
@@ -73,8 +73,8 @@ Legenda: ❌ falta · 🟡 parcial · ✅ fechado (EGO, arte/textos próprios)
 - [x] Comprar decorações além das 5 originais
 - [x] Ver itens diferentes na loja a cada semana
 - [x] Gastar sementes depois de esgotar catálogo base
-- [ ] Missão diferente amanhã (Fase 8)
+- [x] Missão diferente amanhã (Fase 8)
 - [x] Pet/jardim evolui visivelmente com dias
-- [ ] Loop missões não repetir em 3 dias (Fase 8)
+- [x] Loop missões não repetir em 3 dias (Fase 8)
 
-**Paridade declarável em marketing:** ❌ (aguardar Fase 8 + linhas 7 e 14 ✅)
+**Paridade declarável em marketing:** ❌ (linha 13 widget nativo ainda 🟡; desejáveis 16+ em aberto)

@@ -24,7 +24,7 @@ export function MoodAdventureBanner({ colors, adventure }: Props) {
       <Text style={[styles.sub, { color: colors.textMuted }]}>{adventure.subtitle}</Text>
       {adventure.can_collect ? (
         <Text style={[styles.hint, { color: colors.primary }]}>
-          Toque em “Buscar o monstrinho” nas missões para a recompensa.
+          Toque na missão de aventura abaixo para a recompensa.
         </Text>
       ) : null}
     </View>

@@ -1,0 +1,19 @@
+AGENTE MONSTRINHOS — FASE 8 MISSÕES VARIADAS (1.0.59)
+====================================================
+Estado: ✅ PRONTO
+
+Zona: paridade Finch — Fase 8 (missões)
+• ego_api/daily_care_missions.py — pool 26 (18 + 8 surpresa), 3/dia + 1 surpresa
+• ego_api/daily_care.py — record_goal genérico, aventura só quando sorteada
+• MoodDailyGoals.tsx — kind breathe/tap/adventure + badge surpresa
+• client.ts — submitDailyCareGoal aceita qualquer key do dia
+• FINCH-PARITY.md — linhas 7 e 14 ✅
+
+Testes:
+• regression_guard.py — check_mission_pool OK
+• smoke_test_api.py — OK
+
+Próximo: Fase 9+ (journal, eventos, widget nativo)
+Build: aguardar 4 agentes ✅ + GERAR-1.0.59.bat
+
+GIT: (preencher após commit)

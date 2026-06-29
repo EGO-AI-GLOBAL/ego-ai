@@ -6,6 +6,16 @@ import datetime
 
 from ego_api import db
 from ego_api import progression
+from ego_api.daily_care_missions import (
+    apply_mission_complete,
+    breathe_done_today,
+    build_daily_goals,
+    has_adventure_today,
+    is_goal_done,
+    is_mission_allowed_today,
+    mission_by_key,
+    reset_daily_goals,
+)
 from ego_api.daily_care_shop import (
     lookup_shop_item,
     shop_catalog_payload,
@@ -107,8 +117,9 @@ def _daily_mission(checked_today: bool, current: int, goals: list[dict]) -> dict
     pending = [g for g in goals if not g.get("done") and not g.get("locked")]
     if pending:
         nxt = pending[0]
+        prefix = "Missão surpresa" if nxt.get("surprise") else "Missão"
         return {
-            "text": f"Missão: {nxt.get('label', 'cuidar do jardim')}",
+            "text": f"{prefix}: {nxt.get('label', 'cuidar do jardim')}",
             "action": str(nxt.get("key") or "checkin"),
         }
     if checked_today:
@@ -141,56 +152,11 @@ def _decor_unlocked(current: int) -> list[dict[str, str | int]]:
 
 
 def _daily_goals(raw: dict, today: str, checked_today: bool) -> list[dict]:
-    breathe_done = str(raw.get("breathe_date") or "") == today
-    water_done = str(raw.get("water_date") or "") == today
-    gratitude_done = str(raw.get("gratitude_date") or "") == today
-    adv_collected = checked_today and bool(raw.get("adventure_collected"))
-    return [
-        {
-            "key": "checkin",
-            "label": "Registrar seu humor",
-            "emoji": "💜",
-            "done": checked_today,
-            "seeds_reward": SEEDS_CHECKIN,
-            "locked": False,
-        },
-        {
-            "key": "breathe",
-            "label": "Respirar fundo 3 vezes",
-            "emoji": "🌬️",
-            "done": breathe_done,
-            "seeds_reward": SEEDS_BREATHE,
-            "locked": not checked_today,
-        },
-        {
-            "key": "water",
-            "label": "Regar o jardim",
-            "emoji": "💧",
-            "done": water_done,
-            "seeds_reward": SEEDS_WATER,
-            "locked": not checked_today,
-        },
-        {
-            "key": "gratitude",
-            "label": "Agradecer algo bom hoje",
-            "emoji": "🙏",
-            "done": gratitude_done,
-            "seeds_reward": SEEDS_GRATITUDE,
-            "locked": not checked_today,
-        },
-        {
-            "key": "adventure",
-            "label": "Buscar o monstrinho na aventura",
-            "emoji": "🎒",
-            "done": adv_collected,
-            "seeds_reward": SEEDS_ADVENTURE,
-            "locked": not checked_today,
-        },
-    ]
+    return build_daily_goals(raw, today, checked_today, checkin_seeds=SEEDS_CHECKIN)
 
 
 def _adventure_payload(raw: dict, today: str, checked_today: bool) -> dict:
-    if not checked_today:
+    if not checked_today or not has_adventure_today(today):
         return {
             "active": False,
             "progress": 0,
@@ -200,8 +166,8 @@ def _adventure_payload(raw: dict, today: str, checked_today: bool) -> dict:
             "collected": False,
             "reward_seeds": SEEDS_ADVENTURE,
         }
-    breathe_done = str(raw.get("breathe_date") or "") == today
-    collected = bool(raw.get("adventure_collected"))
+    breathe_done = breathe_done_today(raw, today)
+    collected = is_goal_done(raw, today, "adventure")
     progress = 100 if collected else (66 if breathe_done else 33)
     return {
         "active": not collected,
@@ -551,10 +517,9 @@ def record_checkin(
                 "last_mood_label": mood["label"],
                 "total_checkins": total,
                 "seeds": seeds,
-                "breathe_date": "",
-                "adventure_collected": False,
             }
         )
+        reset_daily_goals(raw)
 
     ui["daily_care"] = raw
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})
@@ -586,10 +551,6 @@ def record_goal(
 ) -> dict:
     if not supabase or not user_id:
         return get_daily_care(supabase, user_id)
-    key = (goal_key or "").strip().lower()
-    if key not in ("breathe", "adventure", "water", "gratitude"):
-        return get_daily_care(supabase, user_id)
-
     today = _local_date_str()
     prof = db.load_profile(supabase, user_id) or {}
     ui = db._parse_ui_state(prof)  # noqa: SLF001
@@ -598,34 +559,24 @@ def record_goal(
     if last != today:
         return get_daily_care(supabase, user_id)
 
+    key = (goal_key or "").strip().lower()[:24]
+    mission = mission_by_key(key)
+    if not mission or not is_mission_allowed_today(raw, today, key):
+        return get_daily_care(supabase, user_id)
+    if is_goal_done(raw, today, key):
+        return get_daily_care(supabase, user_id)
+
+    kind = str(mission.get("kind") or "tap")
+    if kind == "adventure" and not breathe_done_today(raw, today):
+        return get_daily_care(supabase, user_id)
+
     seeds = int(raw.get("seeds") or 0)
-    bonus_granted = False
-    if key == "breathe":
-        if str(raw.get("breathe_date") or "") == today:
-            return get_daily_care(supabase, user_id)
-        raw["breathe_date"] = today
-        raw["seeds"] = seeds + SEEDS_BREATHE
-        _append_seed_history(raw, "earn", SEEDS_BREATHE, "Respiração")
-    elif key == "adventure":
-        if bool(raw.get("adventure_collected")):
-            return get_daily_care(supabase, user_id)
-        if str(raw.get("breathe_date") or "") != today:
-            return get_daily_care(supabase, user_id)
-        raw["adventure_collected"] = True
-        raw["seeds"] = seeds + SEEDS_ADVENTURE
-        _append_seed_history(raw, "earn", SEEDS_ADVENTURE, "Aventura")
-    elif key == "water":
-        if str(raw.get("water_date") or "") == today:
-            return get_daily_care(supabase, user_id)
-        raw["water_date"] = today
-        raw["seeds"] = seeds + SEEDS_WATER
-        _append_seed_history(raw, "earn", SEEDS_WATER, "Regar jardim")
-    elif key == "gratitude":
-        if str(raw.get("gratitude_date") or "") == today:
-            return get_daily_care(supabase, user_id)
-        raw["gratitude_date"] = today
-        raw["seeds"] = seeds + SEEDS_GRATITUDE
-        _append_seed_history(raw, "earn", SEEDS_GRATITUDE, "Gratidão")
+    reward = apply_mission_complete(raw, today, mission)
+    if reward <= 0:
+        return get_daily_care(supabase, user_id)
+    raw["seeds"] = seeds + reward
+    label = str(mission.get("label") or key)
+    _append_seed_history(raw, "earn", reward, label[:48])
     bonus_granted = _maybe_all_goals_bonus(raw, today)
 
     ui["daily_care"] = raw
