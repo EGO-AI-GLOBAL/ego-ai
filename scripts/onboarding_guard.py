@@ -244,6 +244,19 @@ def check_persona_gate() -> int:
     return failed
 
 
+def check_chat_screen_imports() -> int:
+    print("\n=== Onboarding - chat.tsx imports obrigatórios ===")
+    text = _read("app/app/(main)/chat.tsx")
+    if not text:
+        print("  ERRO  chat.tsx em falta")
+        return 1
+    if "<AppGradientBackground" in text and "@/components/AppGradientBackground" not in text:
+        print("  ERRO  chat.tsx usa AppGradientBackground sem import")
+        return 1
+    print("  OK    chat.tsx com AppGradientBackground importado")
+    return 0
+
+
 def main() -> int:
     failed = 0
     failed += check_hooks_order()
@@ -253,6 +266,7 @@ def main() -> int:
     failed += check_password_reset_api()
     failed += check_fresh_install_guard()
     failed += check_persona_gate()
+    failed += check_chat_screen_imports()
     failed += scan_early_return_before_hooks()
     print()
     if failed:

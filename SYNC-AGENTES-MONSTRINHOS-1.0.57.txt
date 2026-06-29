@@ -1,0 +1,12 @@
+AGENTE MONSTRINHOS — BUILD 1.0.57 HOTFIX CHAT ABRE
+==================================================
+Estado: 🔄 BUILD EM CURSO
+
+Zona: crash «Chat indisponível» após avatar
+• chat.tsx — import AppGradientBackground (ReferenceError)
+• onboarding_guard — bloqueia build sem import
+• app.config 1.0.57 · iOS build 45 · Android versionCode 97
+
+GIT: (preencher após commit)
+
+✅ MONSTRINHOS — aguardar GERAR-1.0.57 + submit

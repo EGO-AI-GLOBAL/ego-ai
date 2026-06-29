@@ -20,6 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { checkoutUrlForTier } from "@/utils/planCheckout";
 import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText, completeWellnessJourneyStep } from "@/api/client";
 import type { ChatMessage, SendChatResult } from "@/api/types";
+import { AppGradientBackground } from "@/components/AppGradientBackground";
 import { ChatComposer } from "@/components/ChatComposer";
 import { ChatPreview } from "@/components/ChatPreview";
 import { AvatarEngagementCard } from "@/components/AvatarEngagementCard";

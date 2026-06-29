@@ -1,0 +1,25 @@
+EGO-AI 1.0.57 — mensagem WhatsApp / grupo testadores
+======================================================
+
+ENVIAR DEPOIS da build 1.0.57 no TestFlight (iOS build 45)
+
+---
+
+VERSÃO CURTA (copiar)
+---------------------
+Oi pessoal! **Atualização urgente 1.0.57** 🙏
+
+A 1.0.56 ainda crashava ao abrir o chat — **esta corrige de vez**.
+
+📲 TestFlight → **1.0.57 (build 45)**
+
+✅ Testem:
+1. Escolher avatar
+2. **Chat abre** (sem «Chat indisponível»)
+3. Mandar «oi» no chat
+
+Se falhar, mandem print com a versão.
+
+Obrigado! 💜
+
+iPhone: https://testflight.apple.com/join/eNDKdFWF
