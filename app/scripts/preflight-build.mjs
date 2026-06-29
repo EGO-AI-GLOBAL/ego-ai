@@ -10,7 +10,7 @@ import {
   readFileSync,
   statSync,
 } from "fs";
-import { dirname, join } from "path";
+import { dirname, join, sep } from "path";
 import { fileURLToPath } from "url";
 import { spawnSync } from "child_process";
 
@@ -174,6 +174,50 @@ function checkDeps() {
   }
 }
 
+function checkOnboardingGuards() {
+  console.log("\n[3b/4] Onboarding (cadastro → avatar → chat)...");
+  const moodGarden = join(
+    appDir,
+    "src",
+    "components",
+    "moodMonsters",
+    "MoodGardenWidgetCard.tsx"
+  );
+  if (existsSync(moodGarden)) {
+    const t = readFileSync(moodGarden, "utf8");
+    const hookAt = t.indexOf("const subtitle = useMemo");
+    const guardAt = t.indexOf("if (!care?.question) return null");
+    if (hookAt < 0 || guardAt < 0 || hookAt > guardAt) {
+      fail(
+        "MoodGardenWidgetCard: useMemo deve vir ANTES de return null (crash utilizador novo)"
+      );
+    } else {
+      ok("MoodGardenWidgetCard hooks order");
+    }
+    if (t.includes("colors.card")) {
+      fail("MoodGardenWidgetCard: nao usar colors.card");
+    }
+  }
+  const engagement = join(appDir, "src", "components", "AvatarEngagementCard.tsx");
+  if (existsSync(engagement)) {
+    const t = readFileSync(engagement, "utf8");
+    if (!t.includes("colors.bgCard") || t.includes("colors.card")) {
+      fail("AvatarEngagementCard: usar colors.bgCard, nunca colors.card");
+    } else {
+      ok("AvatarEngagementCard colors.bgCard");
+    }
+  }
+  for (const rel of [
+    "app/(main)/choose-avatar.tsx",
+    "app/forgot-password.tsx",
+    "app/reset-password.tsx",
+  ]) {
+    const p = join(appDir, rel.replace(/\//g, sep));
+    if (!existsSync(p)) fail(`onboarding em falta: ${rel}`);
+    else ok(rel);
+  }
+}
+
 function checkRequiredFiles() {
   for (const rel of REQUIRED_SRC) {
     const p = join(appDir, "src", rel);
@@ -232,6 +276,7 @@ repairAvatars();
 
 console.log("\n[3/4] Lista obrigatoria...");
 checkRequiredFiles();
+checkOnboardingGuards();
 
 if (!skipBundle && errors === 0) {
   bundleAndroid();

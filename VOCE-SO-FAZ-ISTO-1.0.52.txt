@@ -23,3 +23,9 @@ PASSO 4 — Avisar testadores
 marketing/NOTAS-1.0.52-PLAY.txt (mensagem WhatsApp no fim)
 
 Sheila: cadastrar de novo após atualizar para 1.0.52
+
+PASSO 5 — Daqui para a frente (não repetir o atraso)
+-----------------------------------------------------
+Antes de CADA build: python scripts/regression_guard.py
+  → bloqueia se hooks do chat estiverem errados (crash utilizador novo)
+Teste obrigatório: conta NOVA → Luna → «oi» (não só a tua conta antiga)

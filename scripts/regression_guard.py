@@ -52,6 +52,14 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["MoodGardenAmbient", "cloud"],
     ),
     (
+        "app/src/components/moodMonsters/MoodGardenWidgetCard.tsx",
+        ["MoodGardenWidgetCard", "if (!care?.question) return null", "useMemo"],
+    ),
+    (
+        "app/src/components/AvatarEngagementCard.tsx",
+        ["AvatarEngagementCard", "colors.bgCard", "onOpenAvatar"],
+    ),
+    (
         "app/src/components/companion/CompanionPocketAmbient.tsx",
         ["CompanionPocketAmbient", "cloud"],
     ),
@@ -372,6 +380,22 @@ def check_journey_missions() -> int:
 def main() -> int:
     failed = check_symbols()
     failed += check_journey_missions()
+    try:
+        import importlib.util
+
+        og_path = ROOT / "scripts" / "onboarding_guard.py"
+        spec = importlib.util.spec_from_file_location("onboarding_guard", og_path)
+        if spec and spec.loader:
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
+            if mod.main() != 0:
+                failed += 1
+        else:
+            print("\n  ERRO  não foi possível carregar onboarding_guard.py")
+            failed += 1
+    except Exception as exc:
+        print(f"\n  ERRO  onboarding_guard: {exc}")
+        failed += 1
     failed += check_health()
     print()
     if failed:

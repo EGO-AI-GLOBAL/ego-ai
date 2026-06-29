@@ -96,11 +96,16 @@ App agenda via avatar ► chat_schedule + LLM (extensível)
 
 ```powershell
 cd "raiz do projeto"
-python scripts/regression_guard.py
+python scripts/regression_guard.py   # inclui onboarding_guard (cadastro→avatar→chat)
 python scripts/smoke_test_api.py
 ```
 
-Windows: `VERIFICAR-ANTES-DEPLOY.bat`
+**Teste manual obrigatório antes de EAS** (conta nova, não a tua):
+cadastro → Luna → chat sem crash → opcional esqueci senha.
+
+Windows: `VERIFICAR-ANTES-DEPLOY.bat` · `VERIFICAR-ANTES-DO-BUILD.bat`
+
+Supabase (1x): Redirect URLs + SMTP reset — `VOCE-SO-FAZ-ISTO-1.0.52.txt`
 
 ## Se algo quebrou após update
 

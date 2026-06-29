@@ -202,7 +202,9 @@ Enfileirado: {ids.get('queued_at', '?')}
 
 {summary}
 Próximo: Railway vars em RAILWAY-VARS-{version}.txt (após loja)
-Supabase Redirect URLs: supabase/SUPABASE-REDIRECT-RESET-SENHA.txt
+Supabase: ABRIR-SUPABASE-RESET-SENHA.bat + ABRIR-SUPABASE-SMTP-RESET.bat
+Antes de cada build: regression_guard (onboarding_guard incluído)
+Teste manual: conta NOVA → Luna → chat → «oi»
 """,
         encoding="utf-8",
     )

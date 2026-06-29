@@ -1,0 +1,55 @@
+---
+description: Fluxo utilizador novo — cadastro, avatar, chat, senha (não regredir)
+alwaysApply: true
+---
+
+# Onboarding — não quebrar utilizador novo
+
+## O que é
+
+Utilizador **novo**: cadastro → escolher Luna/Leo → **chat** → «oi».
+
+Se isto crashar, **cadastros sobem mas login/chat não** — atrasa o projeto inteiro.
+
+## Regras ao editar componentes do chat
+
+1. **Nunca** `return null` **antes** de `useMemo` / `useState` / `useEffect` no mesmo componente.
+2. **Nunca** `colors.card` — só existe `colors.bgCard` em `AppColors`.
+3. Cartões no chat (`MoodGardenWidgetCard`, `AvatarEngagementCard`, `EgoDeBolsoChatCard`) — testar mentalmente: «dados da API chegam depois do 1º render?»
+
+## Ficheiros críticos (não regredir sem teste)
+
+| Ficheiro | Risco |
+|----------|--------|
+| `MoodGardenWidgetCard.tsx` | Crash #1 histórico |
+| `AvatarEngagementCard.tsx` | `colors.card` inválido |
+| `choose-avatar.tsx` + `PersonaPicker.tsx` | Porta pós-cadastro |
+| `forgot-password.tsx` + `reset-password.tsx` | Recuperar senha |
+| `ego_api/auth_reset.py` | Link do e-mail |
+
+## Antes de QUALQUER build EAS
+
+```powershell
+python scripts/regression_guard.py
+python scripts/smoke_test_api.py
+```
+
+`regression_guard` inclui **onboarding_guard** — build **bloqueia** se hooks estiverem na ordem errada.
+
+## Teste manual obrigatório (Monstrinhos no dia do build)
+
+Conta **nova** ou apagada no Supabase:
+
+1. Cadastrar
+2. Escolher Luna
+3. Ver chat (sem «Algo deu errado»)
+4. Esqueci a senha → e-mail (spam) → nova senha
+
+**Não** publicar só porque «a minha conta antiga abre».
+
+## Supabase (não é código — 1x por projeto)
+
+- Redirect URLs: `ABRIR-SUPABASE-RESET-SENHA.bat`
+- SMTP reset: `ABRIR-SUPABASE-SMTP-RESET.bat`
+
+Sem isto, recuperar senha **não chega** ao utilizador mesmo com app correto.
