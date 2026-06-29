@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO — BUILD 1.0.61
 ====================================
 
-Estado: ✅ PRONTO — commit PENDING
+Estado: ✅ PRONTO — commit 8a52423
 
 Zona: Bolso v3 polish + cadastro UX (compensar update extra)
 Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
@@ -39,4 +39,4 @@ Monstrinhos: PREPARAR-1.0.61.bat → GERAR-1.0.61.bat
 
 MENSAGEM
 --------
-✅ BOLSO PRONTO — PENDING — build 1.0.61
+✅ BOLSO PRONTO — 8a52423 — build 1.0.61
