@@ -120,12 +120,16 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ['type: "widget"', "MoodGardenWidget"],
     ),
     (
-        "app/src/components/moodMonsters/MoodDecorSprite.tsx",
-        ["MoodDecorSprite"],
+        "app/src/components/PersonaGate.tsx",
+        ["PersonaGate", "choose-avatar", "personaGateOk"],
+    ),
+    (
+        "app/src/components/ProfilePhoneGate.tsx",
+        ["ProfilePhoneGate", "Telefone já é pedido no signup"],
     ),
     (
         "app/src/components/EgoDeBolsoChatCard.tsx",
-        ["EGO DE BOLSO", "PocketCompanionShareModal", "Cuidar agora", "Falar disso", "Semana:"],
+        ["EGO DE BOLSO", "PocketCompanionShareModal", "Cuidar agora", "Falar disso", "Semana:", "pendingHighlight"],
     ),
     (
         "app/src/utils/egoDeBolsoCareRoute.ts",
@@ -248,7 +252,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/companion_weekly.py",
-        ["build_weekly_payload", "touch_weekly_day_complete", "WEEK_DAYS_GOAL"],
+        ["build_weekly_payload", "touch_weekly_day_complete", "try_award_weekly_bonus", "STARS_WEEKLY_BONUS", "WEEK_DAYS_GOAL"],
     ),
     (
         "ego_api/ego_de_bolso_push.py",

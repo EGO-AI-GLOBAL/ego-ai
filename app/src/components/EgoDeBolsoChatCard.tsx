@@ -110,7 +110,16 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
 
     <>
 
-      <View style={[styles.wrap, { backgroundColor: colors.bgCard, borderColor: colors.primary }]}>
+      <View
+        style={[
+          styles.wrap,
+          {
+            backgroundColor: hasPendingMissions ? colors.primaryTint : colors.bgCard,
+            borderColor: colors.primary,
+            borderWidth: hasPendingMissions ? 2 : 1.5,
+          },
+        ]}
+      >
 
         <Pressable onPress={() => router.push("/(main)/wellness-journey")} style={styles.row}>
 
@@ -175,13 +184,9 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
             </Text>
 
             {hasPendingMissions && pendingLine ? (
-
-              <Text style={[styles.pending, { color: colors.textMuted }]} numberOfLines={2}>
-
+              <Text style={[styles.pendingHighlight, { color: colors.primary }]} numberOfLines={2}>
                 Falta: {pendingLine}
-
               </Text>
-
             ) : null}
 
             {journey.weekly_challenge && !journey.weekly_challenge.complete ? (
@@ -200,30 +205,19 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
 
         <View style={styles.actions}>
 
-          {hasPendingMissions ? (
-
-            <Pressable onPress={onCare} style={[styles.btn, { backgroundColor: colors.primary }]}>
-
-              <Text style={styles.btnText}>Cuidar agora</Text>
-
+          {hasPendingMissions && onCareHint ? (
+            <Pressable onPress={onTalk} style={[styles.btn, { backgroundColor: colors.primary, flex: 1.2 }]}>
+              <Text style={styles.btnText}>Falar disso</Text>
             </Pressable>
-
           ) : null}
 
-          {hasPendingMissions && onCareHint ? (
-
+          {hasPendingMissions ? (
             <Pressable
-
-              onPress={onTalk}
-
-              style={[styles.btnOutline, { borderColor: colors.primary }]}
-
+              onPress={onCare}
+              style={[styles.btnOutline, { borderColor: colors.primary, flex: 1 }]}
             >
-
-              <Text style={[styles.btnOutlineText, { color: colors.primary }]}>Falar disso</Text>
-
+              <Text style={[styles.btnOutlineText, { color: colors.primary }]}>Cuidar agora</Text>
             </Pressable>
-
           ) : null}
 
           <Pressable
@@ -305,6 +299,7 @@ const styles = StyleSheet.create({
   task: { fontSize: 11, lineHeight: 15 },
 
   pending: { fontSize: 10, lineHeight: 14, marginTop: 4, fontStyle: "italic" },
+  pendingHighlight: { fontSize: 11, lineHeight: 15, marginTop: 6, fontWeight: "800" },
 
   actions: { flexDirection: "row", gap: 8, marginTop: 10 },
 

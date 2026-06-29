@@ -352,6 +352,8 @@ export type WeeklyChallenge = {
   days_remaining: number;
   complete: boolean;
   today_done: boolean;
+  bonus_stars?: number;
+  bonus_awarded?: boolean;
   message: string;
 };
 

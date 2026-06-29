@@ -41,6 +41,11 @@ export function CompanionWeeklyBar({ colors, weekly }: Props) {
       <Text style={[styles.msg, { color: colors.textMuted }]} numberOfLines={2}>
         {weekly.message}
       </Text>
+      {weekly.complete && weekly.bonus_awarded && weekly.bonus_stars ? (
+        <Text style={[styles.bonus, { color: colors.primary }]}>
+          +{weekly.bonus_stars} estrelas na loja de cores
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -67,4 +72,5 @@ const styles = StyleSheet.create({
   },
   fill: { height: "100%", borderRadius: 3 },
   msg: { fontSize: 10, lineHeight: 14, marginTop: 6 },
+  bonus: { fontSize: 10, lineHeight: 14, marginTop: 4, fontWeight: "800" },
 });

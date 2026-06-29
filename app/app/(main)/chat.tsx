@@ -1019,24 +1019,58 @@ function ChatScreenInner() {
     }
     const typed = chatInput.trim();
     if (nightDumpMode && typed) {
+      if (!session) {
+        setChatError("Sessão expirada. Faça login de novo para enviar o desabafo.");
+        return;
+      }
+      if (trialExpired) {
+        Alert.alert("Teste encerrado", "Assine um plano para continuar o desabafo e o chat.");
+        return;
+      }
+      if (isDailyLimitReached) {
+        Alert.alert(
+          "Limite diário",
+          "O desabafo usa a mesma cota do chat. Espere até 00:00 ou assine um plano para continuar."
+        );
+        return;
+      }
       setSending(true);
       setChatError(null);
       setChatNotice("A processar desabafo…");
+      stickToBottomRef.current = true;
+      setPendingChat([
+        { role: "user", content: typed },
+        { role: "assistant", content: "…" },
+      ]);
+      scrollMessagesToEnd(true);
       try {
         const dump = await submitNightDumpText(typed);
         const reply =
           dump.comfort_reply?.trim() ||
           "Recebi. Amanhã de manhã confirme na Agenda.";
+        setPendingChat([
+          { role: "user", content: typed },
+          { role: "assistant", content: reply },
+        ]);
         await saveExchange(typed, reply, { userWasVoice: false });
         setChatInput("");
         setNightDumpMode(false);
+        setPendingChat([]);
         finishNightDump(dump);
         if (autoPlayVoice) {
           await voice.replayLastText(reply, persona.voice_id, persona.avatar_id);
         }
       } catch (e) {
-        setChatError(e instanceof Error ? e.message : "Erro no desabafo.");
+        setPendingChat([]);
+        setChatNotice(null);
+        setChatError(
+          enrichChatError(
+            e instanceof Error ? e.message : "Erro no desabafo.",
+            data.access
+          )
+        );
       } finally {
+        void refreshAccess();
         setSending(false);
       }
       return;
@@ -1418,7 +1452,7 @@ function ChatScreenInner() {
             pdfLoading={pdfLoading}
             pdfActive={pdfCharCount > 0}
             pdfPartCount={pdfPartCount}
-            error={isDailyLimitReached ? null : chatError}
+            error={chatError}
             notice={chatNotice}
             onInputFocus={() => {
               stickToBottomRef.current = true;

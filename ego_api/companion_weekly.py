@@ -6,6 +6,7 @@ import datetime
 from typing import Any
 
 WEEK_DAYS_GOAL = 4
+STARS_WEEKLY_BONUS = 10
 
 
 def _local_today() -> str:
@@ -50,12 +51,17 @@ def merge_weekly_into_state(state: dict[str, Any], raw: dict[str, Any]) -> None:
     else:
         state["week_key"] = week_key
         state["week_days_done"] = _normalize_days_done(raw.get("week_days_done"), week_key)
+    state["week_bonus_awarded_key"] = str(raw.get("week_bonus_awarded_key") or "").strip()
 
 
 def write_weekly_fields(state: dict[str, Any]) -> dict[str, Any]:
     week_key = str(state.get("week_key") or _iso_week_key()).strip()
     days = _normalize_days_done(state.get("week_days_done"), week_key)
-    return {"week_key": week_key, "week_days_done": days}
+    return {
+        "week_key": week_key,
+        "week_days_done": days,
+        "week_bonus_awarded_key": str(state.get("week_bonus_awarded_key") or "").strip(),
+    }
 
 
 def touch_weekly_day_complete(state: dict[str, Any]) -> bool:
@@ -73,6 +79,19 @@ def touch_weekly_day_complete(state: dict[str, Any]) -> bool:
     return True
 
 
+def try_award_weekly_bonus(state: dict[str, Any]) -> bool:
+    """+STARS_WEEKLY_BONUS uma vez por semana ISO ao fechar 4/4 dias."""
+    week_key = str(state.get("week_key") or _iso_week_key()).strip()
+    days_done = len(_normalize_days_done(state.get("week_days_done"), week_key))
+    if days_done < WEEK_DAYS_GOAL:
+        return False
+    if str(state.get("week_bonus_awarded_key") or "") == week_key:
+        return False
+    state["stars"] = max(0, int(state.get("stars") or 0)) + STARS_WEEKLY_BONUS
+    state["week_bonus_awarded_key"] = week_key
+    return True
+
+
 def build_weekly_payload(state: dict[str, Any]) -> dict[str, Any]:
     week_key = str(state.get("week_key") or _iso_week_key()).strip()
     days_done = len(_normalize_days_done(state.get("week_days_done"), week_key))
@@ -81,13 +100,23 @@ def build_weekly_payload(state: dict[str, Any]) -> dict[str, Any]:
     today = _local_today()
     today_done = today in _normalize_days_done(state.get("week_days_done"), week_key)
     remaining = max(0, goal - days_done)
+    bonus_awarded = str(state.get("week_bonus_awarded_key") or "") == week_key
 
     if complete:
-        message = f"Desafio da semana completo — {days_done}/{goal} dias 🎉"
+        message = (
+            f"Desafio completo — +{STARS_WEEKLY_BONUS} estrelas esta semana!"
+            if bonus_awarded
+            else f"Desafio da semana completo — {days_done}/{goal} dias"
+        )
     elif today_done:
-        message = f"Hoje fechou! Faltam {remaining} dia(s) esta semana para o bónus."
+        message = (
+            f"Hoje fechou! Faltam {remaining} dia(s) para o bónus de "
+            f"{STARS_WEEKLY_BONUS} estrelas."
+        )
     else:
-        message = f"Desafio da semana: {days_done}/{goal} dias com 5/5 missões"
+        message = (
+            f"Desafio: {days_done}/{goal} dias 5/5 · bónus +{STARS_WEEKLY_BONUS} estrelas"
+        )
 
     return {
         "week_key": week_key,
@@ -96,5 +125,7 @@ def build_weekly_payload(state: dict[str, Any]) -> dict[str, Any]:
         "days_remaining": remaining,
         "complete": complete,
         "today_done": today_done,
+        "bonus_stars": STARS_WEEKLY_BONUS,
+        "bonus_awarded": bonus_awarded,
         "message": message,
     }

@@ -18,6 +18,7 @@ from ego_api.companion_weekly import (
     build_weekly_payload,
     merge_weekly_into_state,
     touch_weekly_day_complete,
+    try_award_weekly_bonus,
     write_weekly_fields,
 )
 from ego_api.streaks import _local_date_str, get_streak
@@ -944,6 +945,7 @@ def _on_level_complete(
     if count >= MISSIONS_PER_DAY:
         state["mission_done_date"] = today
         touch_weekly_day_complete(state)
+        try_award_weekly_bonus(state)
 
     award_mission_stars(state, missions_per_day=MISSIONS_PER_DAY)
 
@@ -963,6 +965,8 @@ def build_journey_payload(
     before_count = int(state.get("missions_today_count") or 0)
     state = _sync_daily_missions(state, supabase, user_id, streak_data, cap)
     if int(state["level"]) != before_level or int(state.get("missions_today_count") or 0) != before_count:
+        _save_state(supabase, user_id, state)
+    if try_award_weekly_bonus(state):
         _save_state(supabase, user_id, state)
     level = int(state["level"])
     level_def = _level_def(level, cap)

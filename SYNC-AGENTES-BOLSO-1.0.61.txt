@@ -1,0 +1,42 @@
+AGENTE EGO DE BOLSO — BUILD 1.0.61
+====================================
+
+Estado: ✅ PRONTO — commit PENDING
+
+Zona: Bolso v3 polish + cadastro UX (compensar update extra)
+Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
+
+═══════════════════════════════════════════════════════════════════
+OBRIGATÓRIO — cadastro / chat
+═══════════════════════════════════════════════════════════════════
+
+[x] ProfilePhoneGate — gate removido (telefone no signup)
+[x] PersonaGate — sem redirect complete-profile
+[x] _layout.tsx — sem ProfilePhoneGate
+[x] chat.tsx — desabafo escrito: pending «…» + erro visível (enrichChatError)
+
+═══════════════════════════════════════════════════════════════════
+BOLSO v3 + polish
+═══════════════════════════════════════════════════════════════════
+
+[x] companion_weekly.py — bónus +10 estrelas ao fechar 4/4 dias
+[x] wellness_journey.py — award + persist bónus semanal
+[x] CompanionWeeklyBar + types — bonus_stars / bonus_awarded
+[x] EgoDeBolsoChatCard — «Falta» destacado + «Falar disso» primário
+[x] egoDeBolsoWidgetSnapshot — mensagem semanal da API
+[x] bolso_chat.py — já em main (avatar + missões pendentes)
+[x] syncEgoDeBolsoHomeWidget — já em DashboardContext (login/refresh)
+
+GIT CHECK
+---------
+[x] regression_guard.py OK
+[x] smoke_test_api.py OK
+[x] push origin main
+
+BUILD
+-----
+Monstrinhos: PREPARAR-1.0.61.bat → GERAR-1.0.61.bat
+
+MENSAGEM
+--------
+✅ BOLSO PRONTO — PENDING — build 1.0.61

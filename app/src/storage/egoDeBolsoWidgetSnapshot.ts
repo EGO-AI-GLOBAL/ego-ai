@@ -45,10 +45,8 @@ export function buildEgoDeBolsoWidgetSnapshot(
   }
 
   let weeklyLine = "";
-  if (weekly) {
-    weeklyLine = weekly.complete
-      ? `Desafio da semana: ${weekly.days_done}/${weekly.days_goal} dias`
-      : `Semana: ${weekly.days_done}/${weekly.days_goal} dias com 5/5`;
+  if (weekly?.message) {
+    weeklyLine = weekly.message;
   }
 
   return {
