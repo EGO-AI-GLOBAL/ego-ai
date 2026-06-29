@@ -18,7 +18,7 @@ export function MoodSeedShop({ colors, care, onUpdate }: Props) {
 
   if (!items.length) return null;
 
-  const onBuy = async (itemId: string, label: string, price: number) => {
+  const onBuy = async (itemId: string, label: string) => {
     if (busyId) return;
     setBusyId(itemId);
     try {
@@ -37,6 +37,10 @@ export function MoodSeedShop({ colors, care, onUpdate }: Props) {
 
   const seeds = care.seeds ?? 0;
   const ownedCount = items.filter((i) => i.owned).length;
+  const buyableCount = items.filter((i) => !i.owned).length;
+  const weekLabel = care.shop_week_label?.trim();
+  const resetDate = care.shop_rotation_reset?.trim();
+  const baseComplete = care.shop_base_complete;
 
   return (
     <View style={styles.wrap}>
@@ -46,9 +50,17 @@ export function MoodSeedShop({ colors, care, onUpdate }: Props) {
       >
         <Text style={[styles.headTitle, { color: colors.text }]}>🛒 Loja do jardim</Text>
         <Text style={[styles.headMeta, { color: colors.textMuted }]}>
-          🌰 {seeds} · {ownedCount}/{items.length} decorações
+          🌰 {seeds} · {ownedCount} decor · {buyableCount} à venda
         </Text>
       </Pressable>
+
+      {open && weekLabel ? (
+        <Text style={[styles.rotationHint, { color: colors.textMuted }]}>
+          {baseComplete ? "Catálogo base completo — " : ""}
+          Novidades da {weekLabel}
+          {resetDate ? ` · renova ${resetDate.slice(5).replace("-", "/")}` : ""}
+        </Text>
+      ) : null}
 
       {open ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.row}>
@@ -57,7 +69,7 @@ export function MoodSeedShop({ colors, care, onUpdate }: Props) {
             return (
               <Pressable
                 key={item.id}
-                onPress={() => void onBuy(item.id, item.label, item.price)}
+                onPress={() => void onBuy(item.id, item.label)}
                 disabled={disabled}
                 style={[
                   styles.item,
@@ -69,6 +81,9 @@ export function MoodSeedShop({ colors, care, onUpdate }: Props) {
                 ]}
               >
                 <Text style={styles.itemEmoji}>{item.owned ? "✓" : item.emoji}</Text>
+                {item.rotating && !item.owned ? (
+                  <Text style={[styles.rotBadge, { color: colors.primary }]}>Semana</Text>
+                ) : null}
                 <Text style={[styles.itemLabel, { color: colors.text }]} numberOfLines={1}>
                   {item.label}
                 </Text>
@@ -112,6 +127,7 @@ const styles = StyleSheet.create({
   },
   headTitle: { fontSize: 13, fontWeight: "800" },
   headMeta: { fontSize: 11, fontWeight: "600" },
+  rotationHint: { fontSize: 10, fontWeight: "600", marginTop: 6, lineHeight: 14 },
   row: { marginTop: 8 },
   item: {
     width: 92,
@@ -122,6 +138,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   itemEmoji: { fontSize: 26 },
+  rotBadge: { fontSize: 8, fontWeight: "800", marginTop: 2 },
   itemLabel: { fontSize: 10, fontWeight: "700", marginTop: 4 },
   itemPrice: { fontSize: 10, fontWeight: "600", marginTop: 2 },
   hist: {

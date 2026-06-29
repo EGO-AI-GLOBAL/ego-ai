@@ -2,7 +2,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { DailyCareDecor, DailyCareShopOwned } from "@/api/types";
-import { DECOR_POSITIONS, GARDEN_DECOR, GARDEN_GRADIENTS, gardenStageFromDays } from "@/constants/moodMonsters";
+import { GARDEN_DECOR, GARDEN_GRADIENTS, decorPositionForId, gardenStageFromDays } from "@/constants/moodMonsters";
 import { MoodDecorSprite } from "./MoodDecorSprite";
 import { MoodGardenAmbient } from "./MoodGardenAmbient";
 
@@ -22,9 +22,13 @@ type Props = {
 
 function renderDecor(items: DecorItem[], keyPrefix: string) {
   return items.map((item, index) => {
-    const pos = DECOR_POSITIONS[item.id];
-    if (!pos) return null;
-    const sway = item.id === "butterfly" || item.id === "windmill" || item.id === "lantern";
+    const pos = decorPositionForId(item.id, index);
+    const sway =
+      item.id === "butterfly" ||
+      item.id === "windmill" ||
+      item.id === "lantern" ||
+      item.id === "kite" ||
+      item.id === "happy_cloud";
     return (
       <MoodDecorSprite
         key={`${keyPrefix}-${item.id}`}

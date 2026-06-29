@@ -424,6 +424,10 @@ export type DailyCareInfo = {
   adventure?: DailyCareAdventure;
   shop_items?: DailyCareShopItem[];
   shop_owned?: DailyCareShopOwned[];
+  shop_week_label?: string;
+  shop_rotation_reset?: string;
+  shop_base_complete?: boolean;
+  shop_rotating_available?: number;
   seed_history?: DailyCareSeedHistoryEntry[];
   all_goals_done?: boolean;
   all_goals_bonus?: number;
@@ -438,6 +442,7 @@ export type DailyCareShopItem = {
   price: number;
   owned: boolean;
   can_afford: boolean;
+  rotating?: boolean;
 };
 
 export type DailyCareShopOwned = {

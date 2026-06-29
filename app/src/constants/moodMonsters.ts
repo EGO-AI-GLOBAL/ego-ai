@@ -80,7 +80,27 @@ export const DECOR_POSITIONS: Record<string, { left: string; top: number; size: 
   bench: { left: "32%", top: 72, size: 26 },
   birdhouse: { left: "82%", top: 58, size: 24 },
   windmill: { left: "48%", top: 24, size: 30 },
+  stone_path: { left: "18%", top: 76, size: 20 },
+  pond: { left: "62%", top: 70, size: 24 },
+  swing: { left: "38%", top: 58, size: 26 },
+  totem: { left: "72%", top: 32, size: 28 },
+  scarecrow: { left: "8%", top: 44, size: 26 },
 };
+
+/** Posição derivada do id para itens da loja sem slot fixo (catálogo 30+). */
+export function decorPositionForId(id: string, index = 0): { left: `${number}%`; top: number; size: number } {
+  const fixed = DECOR_POSITIONS[id];
+  if (fixed) {
+    return { left: fixed.left as `${number}%`, top: fixed.top, size: fixed.size };
+  }
+  let h = 0;
+  for (let i = 0; i < id.length; i += 1) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  h = (h + index * 17) >>> 0;
+  const left = 10 + (h % 72);
+  const top = 36 + ((h >> 4) % 38);
+  const size = 20 + (h % 9);
+  return { left: `${left}%`, top, size };
+}
 
 export function moodKeyOrDefault(key?: string): MoodKey {
   if (key && key in MOOD_PALETTES) return key as MoodKey;

@@ -204,7 +204,11 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/daily_care.py",
-        ["get_daily_care", "record_checkin", "record_goal", "purchase_shop_item", "CARE_MILESTONES"],
+        ["get_daily_care", "record_checkin", "record_goal", "purchase_shop_item", "CARE_MILESTONES", "shop_week_label"],
+    ),
+    (
+        "ego_api/daily_care_shop.py",
+        ["validate_shop_catalog_size", "SHOP_BASE_ITEMS", "SHOP_ROTATING_POOL", "shop_catalog_payload"],
     ),
     (
         "ego_api/wellness_journey.py",
@@ -393,9 +397,40 @@ def check_journey_missions() -> int:
         return 1
 
 
+def check_shop_catalog() -> int:
+    print("\n=== Loja Monstrinhos (30+ itens + rotação) ===")
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from ego_api.daily_care_shop import (
+            SHOP_BASE_ITEMS,
+            SHOP_ROTATING_POOL,
+            SHOP_ROTATION_COUNT,
+            validate_shop_catalog_size,
+            shop_catalog_payload,
+        )
+
+        validate_shop_catalog_size()
+        sample = shop_catalog_payload({}, 100)
+        items = sample.get("shop_items") or []
+        rotating = [i for i in items if i.get("rotating")]
+        if len(rotating) != SHOP_ROTATION_COUNT:
+            print(f"  ERRO  rotação semanal: esperado {SHOP_ROTATION_COUNT}, veio {len(rotating)}")
+            return 1
+        print(
+            f"  OK    {len(SHOP_BASE_ITEMS)} base + {len(SHOP_ROTATING_POOL)} pool "
+            f"= {len(SHOP_BASE_ITEMS) + len(SHOP_ROTATING_POOL)} itens · {len(rotating)}/semana"
+        )
+        return 0
+    except Exception as exc:
+        print(f"  ERRO  loja Monstrinhos: {exc}")
+        return 1
+
+
 def main() -> int:
     failed = check_symbols()
     failed += check_journey_missions()
+    failed += check_shop_catalog()
     try:
         import importlib.util
 

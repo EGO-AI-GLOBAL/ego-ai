@@ -6,6 +6,11 @@ import datetime
 
 from ego_api import db
 from ego_api import progression
+from ego_api.daily_care_shop import (
+    lookup_shop_item,
+    shop_catalog_payload,
+    shop_owned_decor,
+)
 from ego_api.request_ctx import get_session
 from ego_api.schedule_tz import local_now_from_session
 
@@ -67,14 +72,6 @@ SEEDS_GRATITUDE = 2
 SEEDS_ADVENTURE = 3
 SEEDS_ALL_GOALS_BONUS = 3
 SEED_HISTORY_MAX = 10
-
-SHOP_ITEMS: list[dict[str, str | int]] = [
-    {"id": "mushroom", "emoji": "🍄", "label": "Cogumelo", "price": 6},
-    {"id": "lantern", "emoji": "🏮", "label": "Lanterna", "price": 8},
-    {"id": "bench", "emoji": "🪑", "label": "Banco", "price": 10},
-    {"id": "birdhouse", "emoji": "🪺", "label": "Ninho", "price": 12},
-    {"id": "windmill", "emoji": "🎡", "label": "Moinho", "price": 15},
-]
 
 DECOR_UNLOCKS: list[dict[str, str | int]] = [
     {"id": "flowers", "emoji": "🌷", "min_days": 1, "label": "Flores"},
@@ -244,39 +241,6 @@ def _append_seed_history(raw: dict, action: str, amount: int, label: str) -> Non
     }
     hist = [entry, *[h for h in hist if isinstance(h, dict)]]
     raw["seed_history"] = hist[:SEED_HISTORY_MAX]
-
-
-def _shop_catalog(raw: dict, seeds: int) -> list[dict]:
-    owned = set(_shop_owned_ids(raw))
-    out: list[dict] = []
-    for item in SHOP_ITEMS:
-        iid = str(item["id"])
-        price = int(item["price"])
-        out.append(
-            {
-                "id": iid,
-                "emoji": str(item["emoji"]),
-                "label": str(item["label"]),
-                "price": price,
-                "owned": iid in owned,
-                "can_afford": seeds >= price and iid not in owned,
-            }
-        )
-    return out
-
-
-def _shop_owned_decor(raw: dict) -> list[dict[str, str]]:
-    owned = set(_shop_owned_ids(raw))
-    by_id = {str(i["id"]): i for i in SHOP_ITEMS}
-    return [
-        {
-            "id": iid,
-            "emoji": str(by_id[iid]["emoji"]),
-            "label": str(by_id[iid]["label"]),
-        }
-        for iid in _shop_owned_ids(raw)
-        if iid in by_id
-    ]
 
 
 def _seed_history_payload(raw: dict) -> list[dict]:
@@ -484,6 +448,7 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
     goals = _daily_goals(raw, today, checked_today)
     mission = _daily_mission(checked_today, current, goals)
     seeds = int(raw.get("seeds") or 0)
+    shop_payload = shop_catalog_payload(raw, seeds)
     all_done = _all_goals_done(goals) if checked_today else False
     payload = {
         "current": current,
@@ -510,8 +475,12 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
         "decor_unlocked": _decor_unlocked(max(current, longest_eff)),
         "daily_goals": goals,
         "adventure": _adventure_payload(raw, today, checked_today),
-        "shop_items": _shop_catalog(raw, seeds),
-        "shop_owned": _shop_owned_decor(raw),
+        "shop_items": shop_payload["shop_items"],
+        "shop_owned": shop_owned_decor(raw),
+        "shop_week_label": shop_payload["shop_week_label"],
+        "shop_rotation_reset": shop_payload["shop_rotation_reset"],
+        "shop_base_complete": shop_payload["shop_base_complete"],
+        "shop_rotating_available": shop_payload["shop_rotating_available"],
         "seed_history": _seed_history_payload(raw),
         "all_goals_done": all_done,
         "all_goals_bonus": SEEDS_ALL_GOALS_BONUS,
@@ -678,8 +647,7 @@ def purchase_shop_item(
     if not supabase or not user_id:
         return get_daily_care(supabase, user_id)
     iid = (item_id or "").strip().lower()[:24]
-    catalog = {str(i["id"]): i for i in SHOP_ITEMS}
-    item = catalog.get(iid)
+    item = lookup_shop_item(iid)
     if not item:
         return get_daily_care(supabase, user_id)
 
