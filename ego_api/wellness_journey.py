@@ -14,6 +14,12 @@ from ego_api.companion_shop import (
     shop_catalog,
     write_shop_fields,
 )
+from ego_api.companion_weekly import (
+    build_weekly_payload,
+    merge_weekly_into_state,
+    touch_weekly_day_complete,
+    write_weekly_fields,
+)
 from ego_api.streaks import _local_date_str, get_streak
 
 try:
@@ -462,6 +468,7 @@ def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
         "missions_today_count": missions_today_count,
     }
     merge_shop_into_state(state, raw)
+    merge_weekly_into_state(state, raw)
     return state
 
 
@@ -481,6 +488,7 @@ def _save_state(
         "missions_today_date": str(state.get("missions_today_date") or "").strip()[:10],
         "missions_today_count": max(0, int(state.get("missions_today_count") or 0)),
         **write_shop_fields(state),
+        **write_weekly_fields(state),
     }
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})
 
@@ -935,6 +943,7 @@ def _on_level_complete(
 
     if count >= MISSIONS_PER_DAY:
         state["mission_done_date"] = today
+        touch_weekly_day_complete(state)
 
     award_mission_stars(state, missions_per_day=MISSIONS_PER_DAY)
 
@@ -1012,6 +1021,7 @@ def build_journey_payload(
         "stars": max(0, int(state.get("stars") or 0)),
         "companion_egg_color": str(state.get("egg_color") or DEFAULT_EGG_COLOR),
         "egg_color_shop": shop_catalog(state),
+        "weekly_challenge": build_weekly_payload(state),
     }
 
 

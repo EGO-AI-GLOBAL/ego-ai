@@ -1,0 +1,25 @@
+VALIDAR 1.0.57 — Bolso 100% (Dias 7–10)
+=========================================
+
+DIA 7 — Simulador viral
+[ ] python scripts/simulate_bolso_viral.py — 3 cenários sem erro
+[ ] marketing/BOLSO-VIRAL-CENARIOS.md legível
+
+DIA 8 — Desafio semanal
+[ ] Bolso mostra «DESAFIO DA SEMANA» com barra X/4
+[ ] Completar 5/5 missões num dia incrementa contador semanal
+[ ] Chat card mostra «Semana: X/4 dias 5/5» quando incompleto
+[ ] Nova semana (ISO) reinicia contador
+
+DIA 6/5/9/4 — sem regressão
+[ ] Postar → WA/IG com links
+[ ] Loja de cores + estrelas
+[ ] Push 10h/18h (cron) + «Falar disso» no chat
+[ ] Nome do pet + avatar nos lembretes
+
+DIA 10 — Polimento
+[ ] regression_guard.py OK
+[ ] smoke_test_api.py OK
+[ ] Android + iOS — mesmo binário 1.0.57
+
+Widget Android: fase 2 (não bloqueia build)

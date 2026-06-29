@@ -1,0 +1,45 @@
+AGENTE EGO DE BOLSO — BUILD 1.0.57
+====================================
+
+Estado: ✅ PRONTO — commit PENDING
+
+Zona: Bolso Dias 7–10 — simulador viral + desafio semanal + polimento
+Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts (já 1.0.57 Monstrinhos)
+
+═══════════════════════════════════════════════════════════════════
+ROADMAP PROGRAMACAO-EGO-BOLSO-V2.md — 100%
+═══════════════════════════════════════════════════════════════════
+
+Dia 4 (1.0.51) ✅ push 10h/18h
+Dia 5 (1.0.52) ✅ estrelas + loja cores
+Dia 6 (1.0.53) ✅ partilha viral card WA/IG
+Dia 9 (1.0.52) ✅ chat + push avatar missão
+Dia 7 (1.0.57) ✅ scripts/simulate_bolso_viral.py + marketing/BOLSO-VIRAL-CENARIOS.md
+Dia 8 (1.0.57) ✅ ego_api/companion_weekly.py — 4 dias 5/5 na semana
+Dia 10 (1.0.57) ✅ regression + VALIDAR-1.0.57.txt · widget Android fase 2
+
+Ficheiros novos/alterados (Dias 7–10)
+--------------------------------------
+[x] ego_api/companion_weekly.py
+[x] ego_api/wellness_journey.py — weekly_challenge no payload
+[x] scripts/simulate_bolso_viral.py
+[x] marketing/BOLSO-VIRAL-CENARIOS.md
+[x] marketing/VALIDAR-1.0.57.txt
+[x] app/src/components/companion/CompanionWeeklyBar.tsx
+[x] app/src/components/WellnessJourneyCard.tsx
+[x] app/src/components/EgoDeBolsoChatCard.tsx — linha semana
+[x] app/src/api/types.ts — WeeklyChallenge
+[x] scripts/regression_guard.py
+
+GIT CHECK
+---------
+[x] regression_guard.py OK
+[x] smoke_test_api.py OK
+
+BUILD
+-----
+Monstrinhos: PREPARAR-1.0.57.bat → GERAR-1.0.57.bat
+
+MENSAGEM
+--------
+✅ BOLSO 100% PRONTO — Dias 7+8+10 · build 1.0.57 · aguarda 4x ✅ no mestre SYNC

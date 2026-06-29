@@ -6,6 +6,7 @@ import { dismissWellnessLevelUp } from "@/api/client";
 import type { AppColors } from "@/theme/colors";
 import { CompanionPocketScene } from "@/components/companion/CompanionPocketScene";
 import { CompanionEggColorShop } from "@/components/companion/CompanionEggColorShop";
+import { CompanionWeeklyBar } from "@/components/companion/CompanionWeeklyBar";
 import { EgoDeBolsoTrialNudge } from "@/components/EgoDeBolsoTrialNudge";
 import { egoDeBolsoDailyCarePercent } from "@/utils/egoDeBolsoDailyCare";
 import { formatWellnessPendingLine } from "@/utils/egoDeBolsoStepHints";
@@ -125,6 +126,8 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }
             onUpdate={onJourneyUpdate}
           />
         ) : null}
+
+        <CompanionWeeklyBar colors={colors} weekly={journey.weekly_challenge} />
 
         <View style={[styles.track, { backgroundColor: colors.border }]}>
           <View style={[styles.fill, { backgroundColor: colors.primary, width: fillWidth }]} />

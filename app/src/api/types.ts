@@ -345,6 +345,16 @@ export type CompanionEggColorItem = {
   can_afford: boolean;
 };
 
+export type WeeklyChallenge = {
+  week_key: string;
+  days_done: number;
+  days_goal: number;
+  days_remaining: number;
+  complete: boolean;
+  today_done: boolean;
+  message: string;
+};
+
 export type WellnessJourney = {
   level: number;
   max_level: number;
@@ -372,6 +382,7 @@ export type WellnessJourney = {
   stars?: number;
   companion_egg_color?: string;
   egg_color_shop?: CompanionEggColorItem[];
+  weekly_challenge?: WeeklyChallenge;
 };
 
 export type DailyCareMood = {

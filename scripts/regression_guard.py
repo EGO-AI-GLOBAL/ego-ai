@@ -76,6 +76,10 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["CompanionEggColorShop", "purchaseCompanionEggColor"],
     ),
     (
+        "app/src/components/companion/CompanionWeeklyBar.tsx",
+        ["CompanionWeeklyBar", "DESAFIO DA SEMANA"],
+    ),
+    (
         "app/src/utils/companionEggPalettes.ts",
         ["EGG_COLOR_PALETTES", "resolveEggPalette"],
     ),
@@ -97,7 +101,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/components/EgoDeBolsoChatCard.tsx",
-        ["EGO DE BOLSO", "PocketCompanionShareModal", "Cuidar agora", "Falar disso"],
+        ["EGO DE BOLSO", "PocketCompanionShareModal", "Cuidar agora", "Falar disso", "Semana:"],
     ),
     (
         "app/src/utils/egoDeBolsoCareRoute.ts",
@@ -204,11 +208,15 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/wellness_journey.py",
-        ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "validate_journey_expansion_caps", "_format_today_task", "_daily_care_fraction", "_label_with_how", "companion_name", "egg_color_shop"],
+        ["get_journey", "record_step", "JOURNEY_LEVELS", "validate_journey_levels", "validate_journey_expansion_caps", "_format_today_task", "_daily_care_fraction", "_label_with_how", "companion_name", "egg_color_shop", "weekly_challenge"],
     ),
     (
         "ego_api/companion_shop.py",
         ["purchase_egg_color", "award_mission_stars", "EGG_COLOR_ITEMS", "STARS_PER_MISSION"],
+    ),
+    (
+        "ego_api/companion_weekly.py",
+        ["build_weekly_payload", "touch_weekly_day_complete", "WEEK_DAYS_GOAL"],
     ),
     (
         "ego_api/ego_de_bolso_push.py",
