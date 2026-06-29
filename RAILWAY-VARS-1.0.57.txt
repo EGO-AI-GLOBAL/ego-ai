@@ -1,0 +1,7 @@
+Railway — colar DEPOIS do TestFlight / Play terem a 1.0.57
+===========================================================
+
+EGO_LATEST_APP_VERSION=1.0.57
+EGO_LATEST_ANDROID_VERSION_CODE=97
+EGO_APP_UPDATE_MESSAGE=Correção: chat abre após escolher o avatar. Atualize para continuar.
+EGO_MAINTENANCE=0
