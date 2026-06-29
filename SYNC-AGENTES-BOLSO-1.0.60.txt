@@ -1,0 +1,30 @@
+AGENTE EGO DE BOLSO — BUILD 1.0.60
+====================================
+
+Estado: ✅ PRONTO — Herdado 1.0.59 — sem mudanças nesta release
+
+Zona: Bolso — release 1.0.60 (paridade com Monstrinhos)
+Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
+
+═══════════════════════════════════════════════════════════════════
+HERANÇA 1.0.59 (commit 1cf17bd → feature Bolso 4708f65)
+═══════════════════════════════════════════════════════════════════
+
+Roadmap v2 Bolso — 100% em produção (4708f65).
+Widget Android Bolso: WIP local (precisa app.config Monstrinhos + build EAS) — não entra nesta release.
+
+Nesta release 1.0.60: zero commit Bolso em main.
+
+GIT CHECK
+---------
+[x] git pull origin main — OK
+[x] Diff Bolso widget local não commitado (app.config/package.json = Monstrinhos)
+[x] regression/smoke omitidos (sem código novo em main)
+
+BUILD
+-----
+Monstrinhos: PREPARAR-1.0.60.bat → GERAR-1.0.60.bat
+
+MENSAGEM
+--------
+✅ BOLSO PRONTO — herdado 1cf17bd — release 1.0.60
