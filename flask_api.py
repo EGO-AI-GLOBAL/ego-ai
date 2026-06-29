@@ -389,7 +389,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-29-1.0.57-chat-hotfix",
+        "api_build": "2026-06-29-1.0.57-chat-hotfix2",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1001,6 +1001,27 @@ def chat_send():
         from ego_api.monitoring import log_api_exception
 
         log_api_exception(exc, route="/api/v1/chat/messages")
+        reply = (result or {}).get("reply") if isinstance(result, dict) else None
+        if isinstance(reply, str) and reply.strip():
+            try:
+                return _json_ok(
+                    {
+                        "reply": reply.strip(),
+                        "user_message_id": result.get("user_message_id"),
+                        "assistant_message_id": result.get("assistant_message_id"),
+                        "language": result.get("language") or "pt-BR",
+                        "warnings": result.get("warnings") or [],
+                        "reminders_saved": [],
+                        "agenda_saved": [],
+                        "shared_calendars_saved": [],
+                        "shared_events_saved": [],
+                        "shared_members_saved": [],
+                        "shared_calendars_deleted": [],
+                        "access": {},
+                    }
+                )
+            except Exception:
+                pass
         return _json_error(friendly_api_error(exc, context="chat"), 500)
 
 

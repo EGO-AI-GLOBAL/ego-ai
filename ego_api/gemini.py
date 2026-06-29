@@ -529,7 +529,11 @@ def _generate_reply_inner(
                     )
                     resp = model.generate_content(parts_voice)
                     sess.gemini_model_ok = mid
-                    text = resp.text or ""
+                    try:
+                        text = resp.text or ""
+                    except Exception as te:  # noqa: BLE001
+                        last_error = te
+                        continue
                     if text:
                         return text
                     return "Não obtive texto na resposta."
@@ -573,7 +577,11 @@ def _generate_reply_inner(
                         resp = model.generate_content(user_text)
 
                 sess.gemini_model_ok = mid
-                text = resp.text or ""
+                try:
+                    text = resp.text or ""
+                except Exception as te:  # noqa: BLE001
+                    last_error = te
+                    continue
                 if text:
                     return text
                 return "Não obtive texto na resposta."

@@ -5,6 +5,8 @@ from __future__ import annotations
 
 def friendly_api_error(exc: BaseException | str, *, context: str = "") -> str:
     raw = str(exc).strip() if exc is not None else ""
+    if not raw and exc is not None:
+        raw = type(exc).__name__
     low = raw.lower()
 
     if not raw:
@@ -74,7 +76,10 @@ def friendly_api_error(exc: BaseException | str, *, context: str = "") -> str:
     ):
         return raw[:500]
 
-    return _default(context)
+    default = _default(context)
+    if context == "chat" and raw:
+        return f"{default} ({raw[:200]})"
+    return default
 
 
 def _default(context: str) -> str:

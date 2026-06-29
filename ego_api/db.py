@@ -617,8 +617,14 @@ def build_plan_access_payload(
     email = str(prof.get("email") or "").strip().lower()
     from ego_api.referrals import build_referral_offer_payload, referral_benefit_for_access
 
-    referral_benefit = referral_benefit_for_access(prof)
-    referral_offer = build_referral_offer_payload(supabase, prof)
+    referral_benefit = None
+    referral_offer = None
+    try:
+        referral_benefit = referral_benefit_for_access(prof)
+        referral_offer = build_referral_offer_payload(supabase, prof)
+    except Exception:
+        referral_benefit = None
+        referral_offer = None
     return {
         "access_allowed": ok_access,
         "access_status": status,

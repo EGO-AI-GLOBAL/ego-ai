@@ -357,6 +357,29 @@ def _is_casual_chat_message(text: str) -> bool:
     return not any(k in t for k in keys)
 
 
+def _safe_plan_access_payload(
+    supabase: Client | None, user_id: str, profile: dict | None = None
+) -> dict:
+    try:
+        return db.build_plan_access_payload(supabase, user_id, profile)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[EGO] build_plan_access_payload: {exc}", flush=True)
+        prof = profile or (
+            (db.load_profile(supabase, user_id) or {}) if supabase and user_id else {}
+        )
+        tier, limits = db.user_plan_limits(prof)
+        return {
+            "access_allowed": True,
+            "access_status": "ok",
+            "plan_tier": tier,
+            "plan_label": plan_label(tier),
+            "daily_text_messages_ok": True,
+            "daily_text_messages_used": 0,
+            "daily_text_messages_limit": limits.daily_text_messages,
+            "monthly_tokens_ok": True,
+        }
+
+
 def _history_from_client(client_history: list | None) -> list[dict[str, str]]:
     if not client_history:
         return []
@@ -1270,85 +1293,118 @@ def process_chat_message(
             user_create_payload.get("calendar_name") or ""
         ).strip()
 
-    reply_clean = ensure_visible_chat_reply(
-        reply_clean,
-        reminders_saved=reminders_saved,
-        agenda_saved=agenda_saved,
-        rem_items=rem_items,
-        ag_items=ag_items,
-        warnings=warnings,
-        shared_calendars_saved=shared_calendars_saved,
-        shared_events_saved=shared_events_saved,
-        shared_members_saved=shared_members_saved,
-        shared_setup=shared_setup_payload,
-        shared_invite=shared_invite_payload,
-        shared_event=shared_event_payload,
-        shared_delete=shared_delete_payload,
-        shared_calendars_deleted=shared_calendars_deleted,
-        shared_calendars_created=shared_calendars_created,
-        user_requested_cal_name=user_requested_cal_name,
-    )
+    try:
+        reply_clean = ensure_visible_chat_reply(
+            reply_clean,
+            reminders_saved=reminders_saved,
+            agenda_saved=agenda_saved,
+            rem_items=rem_items,
+            ag_items=ag_items,
+            warnings=warnings,
+            shared_calendars_saved=shared_calendars_saved,
+            shared_events_saved=shared_events_saved,
+            shared_members_saved=shared_members_saved,
+            shared_setup=shared_setup_payload,
+            shared_invite=shared_invite_payload,
+            shared_event=shared_event_payload,
+            shared_delete=shared_delete_payload,
+            shared_calendars_deleted=shared_calendars_deleted,
+            shared_calendars_created=shared_calendars_created,
+            user_requested_cal_name=user_requested_cal_name,
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"[EGO] ensure_visible_chat_reply: {exc}", flush=True)
+        reply_clean = (reply_clean or reply or "").strip()
 
     if not chat_agenda:
         schedule = {"step": "", "draft": {}}
 
-    cs.save_chat_schedule(
-        supabase,
-        user_id,
-        prof,
-        schedule
-        if (schedule.get("step") or (schedule.get("draft") or {}))
-        else None,
-    )
+    try:
+        cs.save_chat_schedule(
+            supabase,
+            user_id,
+            prof,
+            schedule
+            if (schedule.get("step") or (schedule.get("draft") or {}))
+            else None,
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"[EGO] save_chat_schedule: {exc}", flush=True)
 
-    mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_clean)
-    tok_n = gemini.count_tokens_approx(user_display, reply_clean)
-    db.add_tokens_used(supabase, user_id, tok_n, prof)
-    prof = db.load_profile(supabase, user_id) or prof
+    try:
+        mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_clean)
+        tok_n = gemini.count_tokens_approx(user_display, reply_clean)
+        db.add_tokens_used(supabase, user_id, tok_n, prof)
+        prof = db.load_profile(supabase, user_id) or prof
 
-    payload: dict = {
-        "reply": reply_clean,
-        "user_message_id": mid_u,
-        "assistant_message_id": mid_a,
-        "language": lang,
-        "warnings": warnings,
-        "reminders_saved": reminders_saved,
-        "agenda_saved": agenda_saved,
-        "shared_calendars_saved": shared_calendars_saved,
-        "shared_events_saved": shared_events_saved,
-        "shared_members_saved": shared_members_saved,
-        "shared_calendars_deleted": shared_calendars_deleted,
-        "access": db.build_plan_access_payload(supabase, user_id, prof),
-    }
-    if voice_transcript:
-        payload["user_transcript"] = voice_transcript
-    # Áudio inline atrasa o texto no telemóvel; o app pede TTS depois (/tts ou playVoice).
-    from ego_api.config import read_env
+        payload: dict = {
+            "reply": reply_clean,
+            "user_message_id": mid_u,
+            "assistant_message_id": mid_a,
+            "language": lang,
+            "warnings": warnings,
+            "reminders_saved": reminders_saved,
+            "agenda_saved": agenda_saved,
+            "shared_calendars_saved": shared_calendars_saved,
+            "shared_events_saved": shared_events_saved,
+            "shared_members_saved": shared_members_saved,
+            "shared_calendars_deleted": shared_calendars_deleted,
+            "access": _safe_plan_access_payload(supabase, user_id, prof),
+        }
+        if voice_transcript:
+            payload["user_transcript"] = voice_transcript
+        # Áudio inline atrasa o texto no telemóvel; o app pede TTS depois (/tts ou playVoice).
+        from ego_api.config import read_env
 
-    inline_tts = read_env("EGO_CHAT_INLINE_TTS", "0").lower() in (
-        "1",
-        "true",
-        "yes",
-        "sim",
-    )
-    if inline_tts and speak_reply_effective and reply_clean.strip():
-        from ego_api import tts
-        from ego_api.persona import resolve_tts_voice
+        inline_tts = read_env("EGO_CHAT_INLINE_TTS", "0").lower() in (
+            "1",
+            "true",
+            "yes",
+            "sim",
+        )
+        if inline_tts and speak_reply_effective and reply_clean.strip():
+            from ego_api import tts
+            from ego_api.persona import resolve_tts_voice
 
-        avatar_id, voice_id = ensure_persona_normalized(supabase, user_id)
-        resolved_voice = resolve_tts_voice(voice_id, avatar_id)
-        mp3 = tts.synthesize_speech_mp3(reply_clean, resolved_voice, avatar_id)
-        payload["tts_voice_id"] = resolved_voice
-        if mp3:
-            db.increment_daily_tts(supabase, user_id)
-            payload["tts_audio_base64"] = base64.b64encode(mp3).decode("ascii")
-            payload["tts_mime"] = "audio/mpeg"
-        else:
-            payload["tts_error"] = (
-                "Áudio indisponível. No servidor: pip install edge-tts"
-            )
+            avatar_id, voice_id = ensure_persona_normalized(supabase, user_id)
+            resolved_voice = resolve_tts_voice(voice_id, avatar_id)
+            mp3 = tts.synthesize_speech_mp3(reply_clean, resolved_voice, avatar_id)
+            payload["tts_voice_id"] = resolved_voice
+            if mp3:
+                db.increment_daily_tts(supabase, user_id)
+                payload["tts_audio_base64"] = base64.b64encode(mp3).decode("ascii")
+                payload["tts_mime"] = "audio/mpeg"
+            else:
+                payload["tts_error"] = (
+                    "Áudio indisponível. No servidor: pip install edge-tts"
+                )
 
-    return payload, None
+        return payload, None
+    except Exception as post_exc:  # noqa: BLE001
+        import traceback
+
+        traceback.print_exc()
+        fallback = (reply_clean or reply or "").strip()
+        if not fallback or gemini.is_gemini_error_reply(fallback):
+            return None, f"Chat: {type(post_exc).__name__} — {post_exc}"
+        try:
+            mid_a = db.save_chat_message(supabase, user_id, "assistant", fallback)
+        except Exception:
+            mid_a = None
+        return {
+            "reply": fallback,
+            "user_message_id": mid_u,
+            "assistant_message_id": mid_a,
+            "language": lang,
+            "warnings": warnings,
+            "reminders_saved": reminders_saved,
+            "agenda_saved": agenda_saved,
+            "shared_calendars_saved": shared_calendars_saved,
+            "shared_events_saved": shared_events_saved,
+            "shared_members_saved": shared_members_saved,
+            "shared_calendars_deleted": shared_calendars_deleted,
+            "access": _safe_plan_access_payload(supabase, user_id, prof),
+        }, None
 
 
 def enforce_agenda_limit(
