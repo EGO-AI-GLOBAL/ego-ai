@@ -1,0 +1,15 @@
+NOTAS VERSÃO 1.0.54 — TestFlight / Play (teste fechado)
+========================================================
+
+CURTO (loja):
+Correção: após login, escolha de avatar aparece de novo se reinstalou o app. Sem crash antes do avatar.
+
+MÉDIO:
+• Corrigido crash após login quando o iPhone guardava avatar antigo no Keychain
+• Após reinstalar: login → escolher avatar → chat
+• Mantém correções da 1.0.53 (sessão zombie, widgets isolados)
+
+TESTAR:
+1. Apagar app → instalar 1.0.54 → LOGIN
+2. Entrar → deve ir para ESCOLHER AVATAR (não crashar)
+3. Escolher avatar → chat abre normal

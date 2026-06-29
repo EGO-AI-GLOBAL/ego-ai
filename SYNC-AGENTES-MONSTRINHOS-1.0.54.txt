@@ -1,0 +1,11 @@
+AGENTE MONSTRINHOS — BUILD 1.0.54 HOTFIX PERSONA KEYCHAIN
+==========================================================
+Estado: 🔄 CÓDIGO PRONTO — aguarda commit + GERAR
+
+Zona: crash pós-login antes do avatar
+• freshInstallGuard — wipe persona/telefone Keychain após reinstall
+• runFreshInstallMigrations — corrige quem já tinha 1.0.53 sem wipe
+• personaPrefs.clearLocalPersonaForUser
+• app.config 1.0.54 · iOS build 42 · Android versionCode 94
+
+GIT: (pendente commit)

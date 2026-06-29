@@ -1,5 +1,9 @@
 import type { PersonaChoice } from "@/constants/personas";
-import { getSecureItem, saveSecureItem } from "@/storage/sessionStorage";
+import {
+  deleteSecureItem,
+  getSecureItem,
+  saveSecureItem,
+} from "@/storage/sessionStorage";
 
 function configuredKey(userId: string): string {
   return `ego_persona_ok_${userId}`;
@@ -59,4 +63,12 @@ export async function getLocalPersonaChoice(
   } catch {
     return null;
   }
+}
+
+/** Apaga escolha local (Keychain sobrevive reinstall no iOS). */
+export async function clearLocalPersonaForUser(userId: string): Promise<void> {
+  const uid = userId.trim();
+  if (!uid) return;
+  await deleteSecureItem(configuredKey(uid));
+  await deleteSecureItem(choiceKey(uid));
 }

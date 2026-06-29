@@ -32,7 +32,11 @@ import {
   saveAuthAppVersion,
   shouldClearSessionForAppUpdate,
 } from "@/storage/authAppVersion";
-import { clearSecureSessionIfFreshInstall } from "@/storage/freshInstallGuard";
+import {
+  clearSecureSessionIfFreshInstall,
+  consumeSecureWipeIfNeeded,
+  runFreshInstallMigrations,
+} from "@/storage/freshInstallGuard";
 import { sessionNeedsRefresh } from "@/storage/sessionRefresh";
 import { preparePlayIntegrity } from "@/security/playIntegrity";
 
@@ -112,6 +116,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     (async () => {
       try {
         await clearSecureSessionIfFreshInstall();
+        await runFreshInstallMigrations();
         const raw = await getSecureItem(STORAGE_KEY);
         if (raw) {
           if (await shouldClearSessionForAppUpdate()) {
@@ -120,6 +125,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             const parsed = JSON.parse(raw) as AuthSession;
             if (parsed?.access_token) {
+              const uid = parsed.user?.id?.trim();
+              if (uid) await consumeSecureWipeIfNeeded(uid);
               const next = await refreshSessionIfNeeded(parsed);
               if (next === parsed) {
                 await persist(parsed);
@@ -153,6 +160,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("Resposta de login sem token.");
       }
       await saveLastLoginEmail(email.trim());
+      const uid = s.user?.id?.trim();
+      if (uid) await consumeSecureWipeIfNeeded(uid);
       await persist(s);
       void preparePlayIntegrity();
     },
@@ -169,8 +178,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     ) => {
       const s = await apiSignup(email, password, fullName, phone, referralCode);
       if (s?.access_token) {
-        await persist(s);
         const uid = s.user?.id?.trim();
+        if (uid) await consumeSecureWipeIfNeeded(uid);
+        await persist(s);
         const ph = phone?.trim();
         if (uid && ph) {
           await saveLocalProfilePhone(uid, ph);
@@ -195,6 +205,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!s?.access_token) {
         throw new Error("Sessão inválida.");
       }
+      const uid = s.user?.id?.trim();
+      if (uid) await consumeSecureWipeIfNeeded(uid);
       await persist(s);
       void preparePlayIntegrity();
     },

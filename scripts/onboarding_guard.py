@@ -194,6 +194,7 @@ def check_fresh_install_guard() -> int:
     print("\n=== Onboarding - sessão zombie após reinstall (iOS Keychain) ===")
     guard = _read("app/src/storage/freshInstallGuard.ts")
     auth = _read("app/src/context/AuthContext.tsx")
+    persona = _read("app/src/storage/personaPrefs.ts")
     failed = 0
     if "clearSecureSessionIfFreshInstall" not in guard:
         print("  ERRO  freshInstallGuard.ts sem clearSecureSessionIfFreshInstall")
@@ -201,13 +202,24 @@ def check_fresh_install_guard() -> int:
     elif "ego_async_install_marker_v1" not in guard:
         print("  ERRO  freshInstallGuard.ts sem marcador AsyncStorage")
         failed += 1
+    elif "consumeSecureWipeIfNeeded" not in guard:
+        print("  ERRO  freshInstallGuard.ts sem consumeSecureWipeIfNeeded (persona Keychain)")
+        failed += 1
     else:
         print("  OK    app/src/storage/freshInstallGuard.ts")
+    if "clearLocalPersonaForUser" not in persona:
+        print("  ERRO  personaPrefs.ts sem clearLocalPersonaForUser")
+        failed += 1
+    else:
+        print("  OK    personaPrefs limpa escolha local")
     if "clearSecureSessionIfFreshInstall" not in auth:
         print("  ERRO  AuthContext não chama clearSecureSessionIfFreshInstall no arranque")
         failed += 1
+    elif "consumeSecureWipeIfNeeded" not in auth:
+        print("  ERRO  AuthContext não consome wipe de persona após login")
+        failed += 1
     else:
-        print("  OK    AuthContext limpa Keychain em reinstall")
+        print("  OK    AuthContext limpa Keychain em reinstall + persona")
     return failed
 
 
