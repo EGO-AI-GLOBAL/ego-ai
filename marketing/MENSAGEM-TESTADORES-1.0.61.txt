@@ -1,0 +1,36 @@
+EGO-AI 1.0.61 — mensagem WhatsApp / grupo testadores
+======================================================
+
+ENVIAR DEPOIS da build 1.0.61 no TestFlight + Play (iOS 50 · Android 100)
+
+---
+
+VERSÃO CURTA (copiar)
+---------------------
+Oi pessoal! **Atualização 1.0.61** 🙏
+
+Desta vez é **hotfix honesto** — a 1.0.60 prometia voz no Android e em alguns celulares ainda falhava. **A 1.0.61 corrige de verdade.**
+
+Novidades:
+• **Voz Android** — microfone → avatar (testem quem falhou na 60!)
+• **Desabafo escrito** — erro mais claro se não enviar
+• **Cadastro** — telefone no signup; acabou o loop «Complete seu cadastro»
+• **Jardim (59/60):** loja 34 itens + missões surpresa + widget na home
+
+📲 **iPhone:** TestFlight → **1.0.61 (build 50)**
+🤖 **Android:** Play teste fechado → **1.0.61 (100)**
+   (Android: se não abrir, manda teu **Gmail** que eu libero na lista)
+
+✅ Testem:
+1. **Android:** gravar voz → resposta do avatar
+2. Desabafo **por texto** (se usarem)
+3. Cadastro novo ou login sem ficar preso no «Complete cadastro»
+4. Jardim → loja → missões
+5. Chat: avatar → «oi»
+
+Se falhar, mandem print com a **versão** no canto.
+
+Obrigado! 💜
+
+iPhone: https://testflight.apple.com/join/eNDKdFWF
+Android: https://play.google.com/apps/testing/com.egoai.app

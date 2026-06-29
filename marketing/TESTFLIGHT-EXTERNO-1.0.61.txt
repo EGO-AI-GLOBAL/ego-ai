@@ -1,0 +1,69 @@
+TestFlight EXTERNO — EGO-AI 1.0.61 (build 50)
+==============================================
+
+O submit iOS so ENVIA o .ipa.
+Testadores externos so veem quando voce ATIVA o build no grupo externo.
+
+LINK DIRETO (App Store Connect > TestFlight)
+--------------------------------------------
+https://appstoreconnect.apple.com/apps/6780595396/testflight/ios
+
+LINK TESTADORES (depois de "Pronto para testar")
+------------------------------------------------
+https://testflight.apple.com/join/eNDKdFWF
+
+PASSO A PASSO
+-------------
+
+1) Build 50 visivel em TestFlight > Builds iOS
+   Status: "Pronto para envio" ou "Processando"
+   (EAS autoIncrement — confirmar numero no painel)
+
+2) Export compliance (se pedir no build 50)
+   "Seu app usa criptografia?" → NAO (so HTTPS padrao)
+
+3) Testes EXTERNOS (nao confundir com Internos)
+   Menu: TestFlight > Testes externos
+   Abra o grupo (ex: "Testadores EGO")
+
+4) Adicionar build ao grupo externo
+   Grupo > Builds > + > versao 1.0.61 / build 50
+   Cole o texto "O QUE TESTAR" abaixo
+
+5) Enviar para revisao beta
+   "Enviar para revisao" / "Submit for Review"
+   Apple: algumas horas ate 1-2 dias
+
+6) Status = "Pronto para testar" / "Testing"
+   Avise o grupo (MENSAGEM-TESTADORES-1.0.61.txt)
+
+TEXTO "O QUE TESTAR" — copiar/colar no App Store Connect
+--------------------------------------------------------
+Versao 1.0.61 — hotfix voz Android real + cadastro + desabafo.
+
+O que mudou:
+• Voz Android: correcao real (JSON/base64) — 1.0.60 ainda falhava em alguns aparelhos
+• Desabafo escrito: mensagem de erro mais clara
+• Cadastro: telefone no signup; fim do loop «Complete seu cadastro»
+• Herdado: loja 34 + missões surpresa; widget jardim; reset senha Ego-IA (1.0.60)
+
+Como testar:
+1. Atualizar para 1.0.61 (build 50) no TestFlight
+2. iPhone: chat voz + texto «oi» (regressao)
+3. Se cadastro novo: telefone no signup → nao repetir ecra «Complete cadastro»
+4. Desabafo por texto (opcional) — ver se erro e legivel se falhar
+5. Jardim → loja → missões do dia
+
+Se algo falhar: print da tela com a versao no canto (TestFlight).
+
+TEXTO CURTO — notas da versao (campo opcional)
+----------------------------------------------
+Voz Android fix real; desabafo erro claro; cadastro sem loop; jardim + widget herdados.
+
+CHECKLIST
+---------
+[ ] Build 50 no grupo EXTERNO (nao so interno)
+[ ] "O que testar" preenchido
+[ ] Enviado para revisao beta
+[ ] Status "Pronto para testar"
+[ ] Mensagem WhatsApp enviada ao grupo
