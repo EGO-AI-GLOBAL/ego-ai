@@ -232,17 +232,24 @@ def signup(
 
 
 def request_password_reset(email: str, redirect_to: str = "") -> tuple[bool, str | None]:
-    """Envia e-mail de recuperação via Supabase Auth."""
-    from ego_api.auth_reset import password_reset_redirect_url
+    """Envia e-mail de recuperação — Brevo (Ego-IA) ou fallback Supabase SMTP."""
+    from ego_api.auth_reset import (
+        brevo_reset_available,
+        dispatch_password_reset_email,
+        password_reset_redirect_url,
+    )
 
-    client = create_anon_client()
-    if not client:
-        return False, "Supabase não configurado."
     email_norm, err = normalize_email(email)
     if err:
         return False, err
+    target = (redirect_to or "").strip() or password_reset_redirect_url()
     try:
-        target = (redirect_to or "").strip() or password_reset_redirect_url()
+        if brevo_reset_available():
+            dispatch_password_reset_email(email_norm, redirect_to=target)
+            return True, None
+        client = create_anon_client()
+        if not client:
+            return False, "Supabase não configurado."
         client.auth.reset_password_for_email(email_norm, {"redirect_to": target})
         return True, None
     except Exception as e:  # noqa: BLE001

@@ -1,11 +1,15 @@
-"""Recuperação de senha — redirect URL e página web (/auth/reset-password)."""
+"""Recuperação de senha — Brevo, redirect URL e página web (/auth/reset-password)."""
 
 from __future__ import annotations
 
 import html
 import json
+import logging
+from typing import Any
 
 from ego_api.config import read_env
+
+_LOG = logging.getLogger("ego.auth_reset")
 
 
 def password_reset_redirect_url() -> str:
@@ -17,6 +21,125 @@ def password_reset_redirect_url() -> str:
     if not base:
         base = "https://ego-ai-production-a2c2.up.railway.app"
     return f"{base}/auth/reset-password"
+
+
+def service_role_configured() -> bool:
+    return bool(read_env("SUPABASE_SERVICE_ROLE_KEY", "").strip())
+
+
+def brevo_reset_available() -> bool:
+    from ego_api.signup_emails import brevo_configured
+
+    return brevo_configured() and service_role_configured()
+
+
+def password_reset_emails_status() -> dict[str, Any]:
+    from ego_api.signup_emails import brevo_configured
+
+    brevo = brevo_configured()
+    svc = service_role_configured()
+    return {
+        "via_brevo_api": bool(brevo and svc),
+        "brevo_configured": brevo,
+        "service_role": svc,
+        "redirect_url": password_reset_redirect_url(),
+    }
+
+
+def _extract_action_link(link_res: Any) -> str:
+    if isinstance(link_res, dict):
+        props = link_res.get("properties") or link_res
+        if isinstance(props, dict):
+            return str(props.get("action_link") or link_res.get("action_link") or "").strip()
+        return str(link_res.get("action_link") or "").strip()
+    props = getattr(link_res, "properties", None)
+    if props is not None:
+        if isinstance(props, dict):
+            return str(props.get("action_link") or "").strip()
+        return str(getattr(props, "action_link", "") or "").strip()
+    return str(getattr(link_res, "action_link", "") or "").strip()
+
+
+def _password_reset_bodies(reset_link: str, email: str) -> tuple[str, str, str]:
+    from ego_api.signup_emails import DEFAULT_FROM_NAME, SUPPORT_EMAIL
+
+    subject = "Ego-IA — criar nova senha"
+    text = f"""Olá!
+
+Recebemos um pedido para redefinir a senha da sua conta Ego-IA ({email}).
+
+Crie uma nova senha aqui (link válido por tempo limitado):
+{reset_link}
+
+Se não pediu isto, ignore este e-mail — a senha actual mantém-se.
+
+Dúvida? {SUPPORT_EMAIL}
+
+Equipe {DEFAULT_FROM_NAME}
+"""
+    safe_link = html.escape(reset_link)
+    html_body = f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+<body style="font-family:Segoe UI,Arial,sans-serif;line-height:1.55;color:#111;margin:0;padding:16px;">
+  <div style="max-width:560px;">
+    <p>Olá!</p>
+    <p>Recebemos um pedido para redefinir a senha da sua conta <strong>Ego-IA</strong>.</p>
+    <p><a href="{safe_link}" style="display:inline-block;padding:12px 18px;background:#0A122A;color:#fff;text-decoration:none;border-radius:8px;">Criar nova senha</a></p>
+    <p style="font-size:0.9rem;color:#555;">Se o botão não abrir, copie este link:<br>{safe_link}</p>
+    <p style="font-size:0.9rem;color:#555;">Se não pediu isto, ignore este e-mail.</p>
+    <p>Equipe {html.escape(DEFAULT_FROM_NAME)} · {html.escape(SUPPORT_EMAIL)}</p>
+  </div>
+</body>
+</html>"""
+    return subject, text, html_body
+
+
+def dispatch_password_reset_email(email: str, *, redirect_to: str = "") -> None:
+    """Gera link recovery (service role) e envia via Brevo — remetente Ego-IA."""
+    from ego_api.signup_emails import send_brevo_api_email
+    from ego_api.supabase_client import create_service_client
+
+    if not brevo_reset_available():
+        raise RuntimeError("Reset via Brevo indisponível (BREVO_API_KEY ou service role).")
+
+    admin = create_service_client()
+    if not admin:
+        raise RuntimeError("Supabase service role indisponível.")
+
+    email_norm = (email or "").strip().lower()
+    if not email_norm or "@" not in email_norm:
+        raise ValueError("E-mail inválido.")
+
+    target = (redirect_to or "").strip() or password_reset_redirect_url()
+
+    try:
+        link_res = admin.auth.admin.generate_link(
+            {
+                "type": "recovery",
+                "email": email_norm,
+                "options": {"redirect_to": target},
+            }
+        )
+    except Exception as exc:  # noqa: BLE001
+        err = str(exc).lower()
+        if "user" in err and ("not found" in err or "not exist" in err or "invalid" in err):
+            _LOG.info("password_reset skip unknown email domain=%s", email_norm.split("@")[-1])
+            return
+        raise
+
+    action_link = _extract_action_link(link_res)
+    if not action_link:
+        raise RuntimeError("Link de recuperação não gerado pelo Supabase.")
+
+    subject, text, html_body = _password_reset_bodies(action_link, email_norm)
+    send_brevo_api_email(
+        to_email=email_norm,
+        subject=subject,
+        text_body=text,
+        html_body=html_body,
+    )
+    _LOG.info("password_reset sent via brevo email=%s", email_norm)
 
 
 def render_reset_password_page(*, api_base: str) -> tuple[str, int, dict[str, str]]:

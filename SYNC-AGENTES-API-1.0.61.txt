@@ -1,0 +1,37 @@
+AGENTE API & SEGURANÇA — BUILD 1.0.61
+======================================
+Estado: ✅ PRONTO
+
+Zona: API Monstrinhos Fase 7–8 — loja rotação + missões pool; sem mudança auth/Stripe/voz
+
+HERDADO (já em main)
+--------------------
+[x] daily_care_shop.py + daily_care_missions.py (Monstrinhos Fase 7–8)
+[x] hotfix voz-phone live: api_build 1.0.60-hotfix-voz-phone (8067365)
+[x] bolso_chat.py — bloco missão pendente no prompt chat (já ligado em services.py)
+
+NESTE COMMIT (1.0.61)
+---------------------
+[x] ego_api/auth_reset.py — dispatch_password_reset_email via Brevo + generate_link
+[x] ego_api/services.py — forgot-password usa Brevo quando disponível
+[x] flask_api.py — password_reset_emails no /health + api_build 1.0.61
+
+PÓS-DEPLOY Railway (confirmar)
+------------------------------
+/health:
+  ok=true
+  api_build=2026-06-29-1.0.61-password-reset-brevo
+  password_reset_emails.via_brevo_api=true
+  password_reset_emails.service_role=true
+
+TESTES
+------
+[x] regression_guard.py OK
+[x] smoke_test_api.py OK
+
+NÃO TOCADO: Stripe · limites plano · EDGE_TTS · EGO_MAINTENANCE · app.config.ts
+NÃO CORRI: GERAR / EAS
+
+GIT: (hash após push)
+
+✅ API PRONTO — API Monstrinhos Fase 7–8 + reset senha Brevo 1.0.61

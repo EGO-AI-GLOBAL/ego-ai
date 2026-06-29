@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-29-1.0.60-hotfix-voz-phone",
+        "api_build": "2026-06-29-1.0.61-password-reset-brevo",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -475,6 +475,12 @@ def health():
         from ego_api.signup_emails import signup_emails_status
 
         payload["signup_emails"] = signup_emails_status()
+    except Exception:
+        pass
+    try:
+        from ego_api.auth_reset import password_reset_emails_status
+
+        payload["password_reset_emails"] = password_reset_emails_status()
     except Exception:
         pass
     try:
