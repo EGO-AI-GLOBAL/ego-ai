@@ -49,6 +49,7 @@ import { useVoiceChat } from "@/hooks/useVoiceChat";
 import { useColors } from "@/theme/ThemeContext";
 import { chatSavedNotice, chatWarnings } from "@/utils/chatFeedback";
 import { enrichChatError } from "@/utils/chatError";
+import { ChatWidgetErrorBoundary } from "@/monitoring/ChatWidgetErrorBoundary";
 import {
   estimateTokenDelta,
   patchAccessWithTokenDelta,
@@ -147,6 +148,11 @@ export default function ChatScreen() {
   const [nightDumpMode, setNightDumpMode] = useState(false);
   const [saveCelebrationLine, setSaveCelebrationLine] = useState<string | null>(null);
   const [chatStreakDays, setChatStreakDays] = useState(0);
+  const [dashboardSettled, setDashboardSettled] = useState(false);
+
+  useEffect(() => {
+    if (!loading) setDashboardSettled(true);
+  }, [loading]);
 
   useEffect(() => {
     void loadAutoPlayVoice().then(setAutoPlayVoice);
@@ -439,6 +445,7 @@ export default function ChatScreen() {
   const isDailyLimitFromError = /limite\s+di[aá]rio\s+atingido/i.test(chatError || "");
   const isDailyLimitReached = isDailyLimitFromAccess || isDailyLimitFromError;
   const trialExpired = isTrialExpired(access);
+  const showChatWidgets = dashboardSettled && (!loading || refreshing);
 
   const onNightDumpPress = useCallback(() => {
     if (trialExpired) {
@@ -1055,28 +1062,32 @@ export default function ChatScreen() {
             },
           ]}
         >
-          <SpeakingAvatar
-            avatarId={persona.avatar_id}
-            subtitle={avatarSubtitle}
-            isSpeaking={voice.isSpeaking}
-            isListening={
-              voice.isPhoneCall
-                ? voice.isUserSpeaking && !voice.isSpeaking && !voice.isAssistantThinking
-                : micActive && !voice.isSpeaking
-            }
-            isThinking={voice.isPhoneCall && voice.isAssistantThinking}
-            compact
-            hideLabel
-          />
-          <PersonaPicker
-            colors={colors}
-            variant="chat"
-            planTier={userPlanTier}
-            persona={persona}
-            disabled={personaBusy}
-            onPersonaChange={(p) => void setPersona(p.avatar_id, p.voice_id)}
-            onSaved={onPersonaSaved}
-          />
+          <ChatWidgetErrorBoundary name="speaking-avatar">
+            <SpeakingAvatar
+              avatarId={persona.avatar_id}
+              subtitle={avatarSubtitle}
+              isSpeaking={voice.isSpeaking}
+              isListening={
+                voice.isPhoneCall
+                  ? voice.isUserSpeaking && !voice.isSpeaking && !voice.isAssistantThinking
+                  : micActive && !voice.isSpeaking
+              }
+              isThinking={voice.isPhoneCall && voice.isAssistantThinking}
+              compact
+              hideLabel
+            />
+          </ChatWidgetErrorBoundary>
+          <ChatWidgetErrorBoundary name="persona-picker">
+            <PersonaPicker
+              colors={colors}
+              variant="chat"
+              planTier={userPlanTier}
+              persona={persona}
+              disabled={personaBusy}
+              onPersonaChange={(p) => void setPersona(p.avatar_id, p.voice_id)}
+              onSaved={onPersonaSaved}
+            />
+          </ChatWidgetErrorBoundary>
           <View style={styles.voiceControls}>
             <View style={styles.voiceToggleRow}>
               <Text style={[styles.voiceLabel, { color: colors.textMuted }]}>
@@ -1151,25 +1162,31 @@ export default function ChatScreen() {
             />
           ) : null}
 
-          {(!loading || refreshing) && userId ? (
-            <AvatarEngagementCard
-              userId={userId}
-              currentAvatarId={persona.avatar_id}
-              colors={colors}
-              onOpenAvatar={onEngagementAvatarOpen}
-            />
+          {showChatWidgets && userId ? (
+            <ChatWidgetErrorBoundary name="avatar-engagement">
+              <AvatarEngagementCard
+                userId={userId}
+                currentAvatarId={persona.avatar_id}
+                colors={colors}
+                onOpenAvatar={onEngagementAvatarOpen}
+              />
+            </ChatWidgetErrorBoundary>
           ) : null}
 
-          {!loading || refreshing ? (
-            <MoodGardenWidgetCard colors={colors} care={data.daily_care} />
+          {showChatWidgets ? (
+            <ChatWidgetErrorBoundary name="mood-garden">
+              <MoodGardenWidgetCard colors={colors} care={data.daily_care} />
+            </ChatWidgetErrorBoundary>
           ) : null}
 
-          {!loading || refreshing ? (
-            <EgoDeBolsoChatCard
-              colors={colors}
-              journey={data.wellness_journey}
-              onCareHint={setChatNotice}
-            />
+          {showChatWidgets ? (
+            <ChatWidgetErrorBoundary name="ego-bolso">
+              <EgoDeBolsoChatCard
+                colors={colors}
+                journey={data.wellness_journey}
+                onCareHint={setChatNotice}
+              />
+            </ChatWidgetErrorBoundary>
           ) : null}
 
           {localChatReady && chatMessages.length > 0 ? (

@@ -1,0 +1,14 @@
+AGENTE MONSTRINHOS — BUILD 1.0.53 HOTFIX LOGIN
+================================================
+Estado: 🔄 BUILD EM CURSO
+
+Zona: crash pós-login / reinstall iOS
+• freshInstallGuard — limpa sessão Keychain após reinstall
+• ChatWidgetErrorBoundary — widgets não derrubam o chat
+• SpeakingAvatar — expo-av com fallback foto
+• ErrorBoundary mostra versão instalada
+• app.config 1.0.53 · iOS build 41 · Android versionCode 93
+
+GIT: (preencher após commit)
+
+✅ MONSTRINHOS — aguardar GERAR-1.0.53 + submit

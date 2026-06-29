@@ -1,0 +1,16 @@
+NOTAS VERSÃO 1.0.53 — TestFlight / Play (teste fechado)
+========================================================
+
+CURTO (loja):
+Correção urgente: app abre de novo após reinstalar no iPhone. Login estável. Chat não trava ao entrar.
+
+MÉDIO:
+• Corrigido crash ao abrir o app (reinstall TestFlight + sessão antiga no iPhone)
+• Chat continua mesmo se um cartão falhar
+• Avatar com fallback se o vídeo não carregar
+• Versão visível no ecrã de erro para suporte
+
+TESTAR:
+1. Apagar app → instalar 1.0.53 → deve mostrar LOGIN
+2. Entrar → chat abre sem «Algo deu errado»
+3. Monstrinhos / Bolso / avatar visíveis ou chat usável

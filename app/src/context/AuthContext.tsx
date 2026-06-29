@@ -32,6 +32,7 @@ import {
   saveAuthAppVersion,
   shouldClearSessionForAppUpdate,
 } from "@/storage/authAppVersion";
+import { clearSecureSessionIfFreshInstall } from "@/storage/freshInstallGuard";
 import { sessionNeedsRefresh } from "@/storage/sessionRefresh";
 import { preparePlayIntegrity } from "@/security/playIntegrity";
 
@@ -110,6 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     (async () => {
       try {
+        await clearSecureSessionIfFreshInstall();
         const raw = await getSecureItem(STORAGE_KEY);
         if (raw) {
           if (await shouldClearSessionForAppUpdate()) {

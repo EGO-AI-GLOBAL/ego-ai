@@ -1,3 +1,4 @@
+import Constants from "expo-constants";
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { captureException } from "./errorReporter";
@@ -18,11 +19,19 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render(): ReactNode {
     if (this.state.error) {
+      const version = Constants.expoConfig?.version || "?";
+      const build =
+        Constants.expoConfig?.ios?.buildNumber ||
+        String(Constants.expoConfig?.android?.versionCode || "");
       return (
         <View style={styles.wrap}>
           <Text style={styles.title}>Algo deu errado</Text>
           <Text style={styles.msg}>
             O erro foi enviado automaticamente. Feche e abra o app, ou tente de novo.
+          </Text>
+          <Text style={styles.version}>
+            Versão {version}
+            {build ? ` (${build})` : ""}
           </Text>
           <Pressable
             style={styles.btn}
@@ -45,7 +54,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#0f0f12",
   },
   title: { color: "#fff", fontSize: 20, fontWeight: "700", marginBottom: 12 },
-  msg: { color: "#aaa", fontSize: 15, lineHeight: 22, marginBottom: 24 },
+  msg: { color: "#aaa", fontSize: 15, lineHeight: 22, marginBottom: 12 },
+  version: { color: "#666", fontSize: 12, marginBottom: 24 },
   btn: {
     backgroundColor: "#6c5ce7",
     paddingVertical: 14,

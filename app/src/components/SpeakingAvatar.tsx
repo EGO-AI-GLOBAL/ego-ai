@@ -1,5 +1,5 @@
 import { Asset } from "expo-asset";
-import React, { createElement, useCallback, useEffect, useRef, useState } from "react";
+import React, { createElement, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   Image,
@@ -17,6 +17,15 @@ import {
 } from "@/constants/personas";
 import { findAvatarInCatalog } from "@/constants/avatarCatalog";
 import { useColors } from "@/theme/ThemeContext";
+
+function loadExpoAv(): typeof import("expo-av") | null {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    return require("expo-av");
+  } catch {
+    return null;
+  }
+}
 
 type Props = {
   avatarId?: string;
@@ -79,21 +88,22 @@ function NativeSpeakingVideo({
   avatarId: string;
   speaking: boolean;
 }) {
-  const { Audio, Video, ResizeMode } = require("expo-av") as typeof import("expo-av");
-  const videoRef = useRef<InstanceType<typeof Video>>(null);
+  const av = useMemo(() => loadExpoAv(), []);
+  const videoRef = useRef<{ setPositionAsync?: (n: number) => Promise<void>; playAsync?: () => Promise<void>; pauseAsync?: () => Promise<void> } | null>(null);
   const wasSpeakingRef = useRef(false);
   const [videoUri, setVideoUri] = useState<string | null>(null);
   const [videoReady, setVideoReady] = useState(false);
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    void Audio.setAudioModeAsync({
+    if (!av?.Audio) return;
+    void av.Audio.setAudioModeAsync({
       allowsRecordingIOS: true,
       playsInSilentModeIOS: true,
       shouldDuckAndroid: true,
       playThroughEarpieceAndroid: false,
     }).catch(() => undefined);
-  }, [Audio]);
+  }, [av]);
 
   useEffect(() => {
     let cancelled = false;
@@ -161,6 +171,18 @@ function NativeSpeakingVideo({
       void syncPlayback(true, reset);
     }
   }, [speaking, syncPlayback]);
+
+  if (!av?.Video) {
+    return (
+      <Image
+        source={avatarImageSource(avatarId)}
+        style={[styles.media, styles.overlay, styles.photoOnTop]}
+        resizeMode="cover"
+      />
+    );
+  }
+
+  const { Video, ResizeMode } = av;
 
   return (
     <>

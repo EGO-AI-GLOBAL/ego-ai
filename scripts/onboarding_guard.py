@@ -31,6 +31,7 @@ HOOKS_BEFORE_GUARD: list[tuple[str, str, str]] = [
 ]
 
 ONBOARDING_FILES = [
+    "app/src/storage/freshInstallGuard.ts",
     "app/app/(main)/choose-avatar.tsx",
     "app/app/forgot-password.tsx",
     "app/app/reset-password.tsx",
@@ -152,8 +153,10 @@ def scan_early_return_before_hooks() -> int:
         APP_SRC / "components" / "moodMonsters" / "MoodGardenWidgetCard.tsx",
         APP_SRC / "components" / "AvatarEngagementCard.tsx",
         APP_SRC / "components" / "EgoDeBolsoChatCard.tsx",
+        APP_SRC / "components" / "SpeakingAvatar.tsx",
         APP_SRC / "components" / "TrialExpiredBanner.tsx",
         APP_SRC / "components" / "ChatDayStrip.tsx",
+        APP_SRC / "components" / "WellnessJourneyCard.tsx",
     ]
     for path in scan_files:
         if not path.is_file():
@@ -187,6 +190,27 @@ def scan_early_return_before_hooks() -> int:
     return failed
 
 
+def check_fresh_install_guard() -> int:
+    print("\n=== Onboarding - sessão zombie após reinstall (iOS Keychain) ===")
+    guard = _read("app/src/storage/freshInstallGuard.ts")
+    auth = _read("app/src/context/AuthContext.tsx")
+    failed = 0
+    if "clearSecureSessionIfFreshInstall" not in guard:
+        print("  ERRO  freshInstallGuard.ts sem clearSecureSessionIfFreshInstall")
+        failed += 1
+    elif "ego_async_install_marker_v1" not in guard:
+        print("  ERRO  freshInstallGuard.ts sem marcador AsyncStorage")
+        failed += 1
+    else:
+        print("  OK    app/src/storage/freshInstallGuard.ts")
+    if "clearSecureSessionIfFreshInstall" not in auth:
+        print("  ERRO  AuthContext não chama clearSecureSessionIfFreshInstall no arranque")
+        failed += 1
+    else:
+        print("  OK    AuthContext limpa Keychain em reinstall")
+    return failed
+
+
 def main() -> int:
     failed = 0
     failed += check_hooks_order()
@@ -194,6 +218,7 @@ def main() -> int:
     failed += check_onboarding_files()
     failed += check_avatar_engagement_card()
     failed += check_password_reset_api()
+    failed += check_fresh_install_guard()
     failed += scan_early_return_before_hooks()
     print()
     if failed:
