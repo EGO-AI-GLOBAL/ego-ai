@@ -116,7 +116,10 @@ export default function LoginScreen() {
               A sessão fica guardada neste telefone. A senha pode ser preenchida pelo
               gestor de senhas do Android.
             </Text>
-            <Link href="/forgot-password" asChild>
+            <Link
+              href={{ pathname: "/forgot-password", params: { email: email.trim() } }}
+              asChild
+            >
               <Pressable style={styles.forgotWrap} hitSlop={8}>
                 <Text style={[styles.forgot, { color: colors.primaryLight }]}>
                   Esqueci a senha?
@@ -124,7 +127,44 @@ export default function LoginScreen() {
               </Pressable>
             </Link>
             {error ? (
-              <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
+              <>
+                <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
+                {/incorretos/i.test(error) ? (
+                  <Text style={[styles.errorHint, { color: colors.textMuted }]}>
+                    Se o cadastro falhou antes (telefone ou e-mail em vermelho), a conta pode não
+                    existir.
+                  </Text>
+                ) : null}
+                {/não encontramos conta|criar conta/i.test(error) ? (
+                  <Link href="/signup" asChild>
+                    <Pressable style={styles.errorAction}>
+                      <Text style={[styles.errorActionText, { color: colors.primary }]}>
+                        Criar conta agora
+                      </Text>
+                    </Pressable>
+                  </Link>
+                ) : /incorretos/i.test(error) ? (
+                  <View style={styles.errorActions}>
+                    <Link href="/signup" asChild>
+                      <Pressable style={styles.errorAction}>
+                        <Text style={[styles.errorActionText, { color: colors.primary }]}>
+                          Criar conta
+                        </Text>
+                      </Pressable>
+                    </Link>
+                    <Link
+                      href={{ pathname: "/forgot-password", params: { email: email.trim() } }}
+                      asChild
+                    >
+                      <Pressable style={styles.errorAction}>
+                        <Text style={[styles.errorActionText, { color: colors.primaryLight }]}>
+                          Esqueci a senha
+                        </Text>
+                      </Pressable>
+                    </Link>
+                  </View>
+                ) : null}
+              </>
             ) : null}
             <Pressable
               style={[styles.btnWrap, busy && styles.btnDisabled]}
@@ -207,6 +247,16 @@ const styles = StyleSheet.create({
   forgotWrap: { alignSelf: "flex-end", marginTop: 8 },
   forgot: { fontSize: 14, fontWeight: "600" },
   error: { marginTop: 12, fontSize: 14 },
+  errorHint: { marginTop: 8, fontSize: 13, lineHeight: 18, textAlign: "center" },
+  errorActions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 16,
+    marginTop: 10,
+    justifyContent: "center",
+  },
+  errorAction: { paddingVertical: 6, paddingHorizontal: 4 },
+  errorActionText: { fontSize: 14, fontWeight: "700" },
   btnWrap: {
     marginTop: 20,
     borderRadius: 14,

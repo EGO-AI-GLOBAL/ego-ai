@@ -440,6 +440,33 @@ export async function signup(
   return null;
 }
 
+export type SignupCheckResult = {
+  ok: boolean;
+  reason?: string;
+  message?: string;
+  masked_email?: string;
+  action?: "signup" | "login" | "forgot_password";
+};
+
+export async function checkSignupEligibility(
+  email: string,
+  phone: string
+): Promise<SignupCheckResult> {
+  const { data } = await axios.post(
+    `${apiBase}auth/signup-check`,
+    { email: email.trim(), phone: phone.trim() },
+    { timeout: 20000, headers: { "Content-Type": "application/json" } }
+  );
+  const body = unwrap<SignupCheckResult & { ok?: boolean }>(data);
+  return {
+    ok: Boolean(body.ok),
+    reason: body.reason,
+    message: body.message,
+    masked_email: body.masked_email,
+    action: body.action,
+  };
+}
+
 export async function refreshSessionToken(
   refresh_token: string,
   prior?: AuthSession | null

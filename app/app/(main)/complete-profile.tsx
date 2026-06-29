@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -9,6 +9,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthTextInput } from "@/components/AuthTextInput";
 import { EgoLogo } from "@/components/EgoLogo";
@@ -30,6 +31,13 @@ export default function CompleteProfileScreen() {
   const [phone, setPhone] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const existing = (data.me?.phone || "").trim();
+    if (existing) {
+      router.replace("/(main)/chat");
+    }
+  }, [data.me?.phone]);
 
   const onSubmit = async () => {
     setError(null);

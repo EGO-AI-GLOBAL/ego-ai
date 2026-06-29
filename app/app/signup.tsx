@@ -16,7 +16,7 @@ import { AppGradientBackground } from "@/components/AppGradientBackground";
 import { AuthTextInput } from "@/components/AuthTextInput";
 import { EgoLogo } from "@/components/EgoLogo";
 import { PasswordField } from "@/components/PasswordField";
-import { validateReferralCode } from "@/api/client";
+import { validateReferralCode, checkSignupEligibility } from "@/api/client";
 import { useAuth } from "@/context/AuthContext";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useColors } from "@/theme/ThemeContext";
@@ -118,6 +118,11 @@ export default function SignupScreen() {
     }
     setBusy(true);
     try {
+      const pre = await checkSignupEligibility(email.trim(), phone.trim());
+      if (!pre.ok) {
+        setError(pre.message || "Não foi possível criar a conta.");
+        return;
+      }
       const display = preferredName.trim();
       const { needsEmailConfirm } = await signUp(
         email.trim(),
@@ -293,6 +298,27 @@ export default function SignupScreen() {
             </Pressable>
 
             {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
+            {error && /cadastrado|Entrar|Esqueci a senha|encontramos conta/i.test(error) ? (
+              <View style={styles.authHintRow}>
+                <Link href="/login" asChild>
+                  <Pressable style={styles.authHintBtn}>
+                    <Text style={[styles.authHintBtnText, { color: colors.primary }]}>
+                      Ir para Entrar
+                    </Text>
+                  </Pressable>
+                </Link>
+                <Link
+                  href={{ pathname: "/forgot-password", params: { email: email.trim() } }}
+                  asChild
+                >
+                  <Pressable style={styles.authHintBtn}>
+                    <Text style={[styles.authHintBtnText, { color: colors.primaryLight }]}>
+                      Esqueci a senha
+                    </Text>
+                  </Pressable>
+                </Link>
+              </View>
+            ) : null}
             {info ? <Text style={[styles.info, { color: colors.success }]}>{info}</Text> : null}
             <Pressable
               style={[styles.btnWrap, busy && styles.btnDisabled]}
@@ -362,6 +388,15 @@ const styles = StyleSheet.create({
   checkMark: { color: "#fff", fontWeight: "800", fontSize: 14 },
   termsText: { flex: 1, fontSize: 13, lineHeight: 18 },
   error: { marginTop: 12, fontSize: 14 },
+  authHintRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 12,
+    marginTop: 10,
+    justifyContent: "center",
+  },
+  authHintBtn: { paddingVertical: 6, paddingHorizontal: 4 },
+  authHintBtnText: { fontSize: 14, fontWeight: "700" },
   referralHint: { marginTop: 6, fontSize: 12, lineHeight: 16 },
   info: { marginTop: 12, fontSize: 14, lineHeight: 20 },
   btnWrap: {

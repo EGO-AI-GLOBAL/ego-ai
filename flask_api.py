@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-29-1.0.61-password-reset-brevo",
+        "api_build": "2026-06-29-1.0.61-signup-auth-recovery",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -526,6 +526,16 @@ def auth_login():
     if err:
         return _json_error(err, 401)
     return _json_ok({"session": payload})
+
+
+@app.post("/api/v1/auth/signup-check")
+@rate_limit(30, 60, scope="ip")
+def auth_signup_check():
+    data = request.get_json(silent=True) or {}
+    result = services.signup_check(data.get("email", ""), data.get("phone", ""))
+    if result.get("ok"):
+        return _json_ok(result)
+    return _json_ok({**result, "ok": False})
 
 
 @app.post("/api/v1/auth/signup")
@@ -762,19 +772,16 @@ def admin_referrals_report_csv():
 @app.post("/api/v1/auth/forgot-password")
 @rate_limit(5, 60, scope="ip")
 def auth_forgot_password():
+    from ego_api.auth_signup import MSG_RESET_SENT
+
     data = request.get_json(silent=True) or {}
     ok, err = services.request_password_reset(
         data.get("email", ""),
         redirect_to=str(data.get("redirect_to") or data.get("redirect_url") or ""),
     )
-    if err:
-        return _json_error(err, 400)
-    return _json_ok(
-        {
-            "sent": ok,
-            "message": "Se o e-mail existir, receberá um link para criar uma nova senha.",
-        }
-    )
+    if not ok:
+        return _json_error(err or "Não foi possível enviar o e-mail.", 400)
+    return _json_ok({"sent": True, "message": MSG_RESET_SENT})
 
 
 @app.post("/api/v1/auth/reset-password")

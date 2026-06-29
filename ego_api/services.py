@@ -32,11 +32,24 @@ def normalize_email(raw: str) -> tuple[str, str | None]:
     return email, None
 
 
+def mask_email_for_hint(email: str) -> str:
+    """E-mail parcial para orientar login sem expor conta inteira."""
+    from ego_api.auth_signup import mask_email_for_hint as _mask
+
+    return _mask(email)
+
+
+def signup_duplicate_phone_message(phone_norm: str) -> str:
+    from ego_api.auth_signup import duplicate_phone_message
+
+    return duplicate_phone_message(phone_norm)
+
+
 def format_auth_error(exc: BaseException) -> str:
     msg = str(exc).strip()
     low = msg.lower()
     if "already registered" in low or "user already exists" in low:
-        return "Este e-mail já está cadastrado."
+        return "Este e-mail já está cadastrado. Use Entrar ou Esqueci a senha."
     if "invalid login" in low or "invalid credentials" in low:
         return "E-mail ou senha incorretos."
     if "expired" in low or "invalid jwt" in low or "token is invalid" in low:
@@ -92,7 +105,10 @@ def login(email: str, password: str) -> tuple[dict | None, str | None]:
         touch_last_login(client, uid)
         return payload, None
     except Exception as e:  # noqa: BLE001
-        return None, format_auth_error(e)
+        err = format_auth_error(e)
+        from ego_api.auth_signup import login_failure_message
+
+        return None, login_failure_message(email_norm, err)
 
 
 def _signup_user_id(res: object) -> str:
@@ -138,20 +154,20 @@ def signup(
     if not (password or "").strip():
         return None, "Informe a senha."
     display = (full_name or "").strip() or email_norm.split("@")[0] or "Usuário"
+    from ego_api.auth_signup import check_signup_eligibility, delete_auth_user, signup_failure_message
     from ego_api.phone_utils import normalize_phone_br
 
     phone_norm, phone_err = normalize_phone_br(phone)
     if phone_err:
         return None, phone_err
     if not phone_norm:
-        return None, "Informe o telefone com DDD."
+        from ego_api.auth_signup import MSG_SIGNUP_PHONE_REQUIRED
 
-    from ego_api.shared_calendars import resolve_user_id_by_email, resolve_user_id_by_phone
+        return None, MSG_SIGNUP_PHONE_REQUIRED
 
-    if resolve_user_id_by_email(email_norm):
-        return None, "Este e-mail já está cadastrado."
-    if resolve_user_id_by_phone(phone_norm):
-        return None, "Este telefone já está cadastrado."
+    pre = check_signup_eligibility(email_norm, phone_norm)
+    if not pre.get("ok"):
+        return None, str(pre.get("message") or "Não foi possível criar a conta.")
 
     try:
         res = client.auth.sign_up(
@@ -182,7 +198,8 @@ def signup(
                     phone=phone_norm,
                 )
                 if not ok:
-                    return None, prof_err or "Não foi possível criar o perfil."
+                    delete_auth_user(uid)
+                    return None, signup_failure_message(prof_err or "", phone_norm)
                 ref_err = _apply_referral_after_signup(uid, referral_code)
                 if ref_err:
                     return None, ref_err
@@ -212,7 +229,8 @@ def signup(
             client, uid, email=email_norm, full_name=display, phone=phone_norm
         )
         if not ok:
-            return None, prof_err or "Não foi possível criar o perfil."
+            delete_auth_user(uid)
+            return None, signup_failure_message(prof_err or "", phone_norm)
         ref_err = _apply_referral_after_signup(uid, referral_code)
         if ref_err:
             return None, ref_err
@@ -231,6 +249,12 @@ def signup(
         return None, format_auth_error(e)
 
 
+def signup_check(email: str, phone: str) -> dict[str, Any]:
+    from ego_api.auth_signup import check_signup_eligibility
+
+    return check_signup_eligibility(email, phone)
+
+
 def request_password_reset(email: str, redirect_to: str = "") -> tuple[bool, str | None]:
     """Envia e-mail de recuperação — Brevo (Ego-IA) ou fallback Supabase SMTP."""
     from ego_api.auth_reset import (
@@ -238,10 +262,13 @@ def request_password_reset(email: str, redirect_to: str = "") -> tuple[bool, str
         dispatch_password_reset_email,
         password_reset_redirect_url,
     )
+    from ego_api.auth_signup import MSG_NO_ACCOUNT, auth_account_exists
 
     email_norm, err = normalize_email(email)
     if err:
         return False, err
+    if not auth_account_exists(email_norm):
+        return False, MSG_NO_ACCOUNT
     target = (redirect_to or "").strip() or password_reset_redirect_url()
     try:
         if brevo_reset_available():

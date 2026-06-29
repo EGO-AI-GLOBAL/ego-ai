@@ -1069,7 +1069,9 @@ def _profile_update_error_message(exc: str) -> str:
     if "profiles_phone_unique" in low or (
         "duplicate key" in low and "phone" in low
     ):
-        return "Este telefone já está cadastrado."
+        from ego_api.auth_signup import duplicate_phone_message
+
+        return duplicate_phone_message("")
     return exc or "Não foi possível atualizar o perfil."
 
 

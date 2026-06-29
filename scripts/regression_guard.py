@@ -285,9 +285,17 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "def request_password_reset(",
             "def complete_password_reset(",
             "Este e-mail já está cadastrado",
-            "Este telefone já está cadastrado",
             "def process_chat_message",
             "check_token_allowance",
+        ],
+    ),
+    (
+        "ego_api/auth_signup.py",
+        [
+            "Este telefone já está cadastrado",
+            "check_signup_eligibility",
+            "delete_auth_user",
+            "MSG_NO_ACCOUNT",
         ],
     ),
     (
