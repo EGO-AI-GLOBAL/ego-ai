@@ -10,4 +10,4 @@ app.config.ts: 1.0.66 · Android 106 · iOS 55
 
 Scripts: PREPARAR / GERAR / AGUARDAR-1.0.66.bat · builds-1.0.66.ids.json
 
-GIT: (após push desta release)
+GIT: 10d2a45 (hotfix voz anti-loop Android/iOS)
