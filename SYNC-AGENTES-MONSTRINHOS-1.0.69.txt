@@ -10,4 +10,4 @@ Zona: voz iOS + Android (mesmo código RN)
 
 app.config.ts: 1.0.69 · autoIncrement EAS
 
-GIT: (após commit deste release)
+GIT: 942a196
