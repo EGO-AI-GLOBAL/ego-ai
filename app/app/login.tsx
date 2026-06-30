@@ -1,4 +1,4 @@
-import { Link, Redirect, router } from "expo-router";
+import { Link, Redirect, router, useLocalSearchParams } from "expo-router";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useEffect, useState } from "react";
 import {
@@ -26,16 +26,23 @@ export default function LoginScreen() {
   const colors = useColors();
   const { session, loading, signIn } = useAuth();
   const { bottomInset } = useKeyboardHeight();
+  const params = useLocalSearchParams<{ email?: string }>();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const raw = params.email;
+    const fromLink = (Array.isArray(raw) ? raw[0] : raw) || "";
+    if (fromLink.trim()) {
+      setEmail(fromLink.trim());
+      return;
+    }
     void loadLastLoginEmail().then((saved) => {
       if (saved) setEmail(saved);
     });
-  }, []);
+  }, [params.email]);
 
   if (!loading && session) {
     return <Redirect href="/" />;

@@ -3,8 +3,16 @@ export function authTokensFromUrl(url: string): {
   access_token?: string;
   refresh_token?: string;
   type?: string;
+  email?: string;
+  user_id?: string;
 } {
-  const out: { access_token?: string; refresh_token?: string; type?: string } = {};
+  const out: {
+    access_token?: string;
+    refresh_token?: string;
+    type?: string;
+    email?: string;
+    user_id?: string;
+  } = {};
   const ingest = (chunk: string) => {
     if (!chunk) return;
     for (const part of chunk.split("&")) {
@@ -15,6 +23,8 @@ export function authTokensFromUrl(url: string): {
       if (key === "access_token") out.access_token = val;
       if (key === "refresh_token") out.refresh_token = val;
       if (key === "type") out.type = val;
+      if (key === "email") out.email = val;
+      if (key === "user_id") out.user_id = val;
     }
   };
   const hashIdx = url.indexOf("#");

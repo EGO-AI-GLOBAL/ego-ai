@@ -231,9 +231,13 @@ def render_reset_password_page(*, api_base: str = "") -> tuple[str, int, dict[st
       <p class="err" id="err" style="display:none"></p>
     </div>
     <div id="panel-done" style="display:none">
-      <h1>Senha alterada</h1>
-      <p class="ok">Pode entrar no app com a nova senha.</p>
-      <a class="link" href="egoai://login">Abrir EGO-AI</a>
+      <h1>Senha guardada</h1>
+      <p class="ok" id="done-msg">A abrir o EGO-AI…</p>
+      <p class="ok" id="done-email" style="display:none"></p>
+      <a class="link" id="open-app" href="egoai://login">Abrir EGO-AI</a>
+      <p class="err" id="done-fallback" style="display:none;font-size:0.85rem;margin-top:14px">
+        Se o app não abrir sozinho, toque em «Abrir EGO-AI» ou entre manualmente com o e-mail acima e a senha nova.
+      </p>
     </div>
     <div id="panel-bad" style="display:none">
       <h1>Link inválido</h1>
@@ -287,6 +291,39 @@ def render_reset_password_page(*, api_base: str = "") -> tuple[str, int, dict[st
       bindPasswordToggle("pw-toggle", "pw");
       bindPasswordToggle("pw2-toggle", "pw2");
 
+      function sessionDeepLink(sess) {{
+        var s = sess || {{}};
+        var u = s.user || {{}};
+        var parts = [
+          "access_token=" + encodeURIComponent(s.access_token || ""),
+          "refresh_token=" + encodeURIComponent(s.refresh_token || ""),
+          "type=login"
+        ];
+        if (u.email) parts.push("email=" + encodeURIComponent(u.email));
+        if (u.id) parts.push("user_id=" + encodeURIComponent(u.id));
+        return "egoai://session#" + parts.join("&");
+      }}
+
+      function openAppAfterReset(sess) {{
+        var deep = sessionDeepLink(sess);
+        var openLink = document.getElementById("open-app");
+        var doneMsg = document.getElementById("done-msg");
+        var doneEmail = document.getElementById("done-email");
+        var fallback = document.getElementById("done-fallback");
+        var email = (sess && sess.user && sess.user.email) ? sess.user.email : "";
+        if (openLink) openLink.setAttribute("href", deep);
+        if (doneEmail && email) {{
+          doneEmail.textContent = "Conta: " + email;
+          doneEmail.style.display = "block";
+        }}
+        if (fallback) fallback.style.display = "block";
+        show("panel-done");
+        if (doneMsg) doneMsg.textContent = "Senha guardada. A abrir o EGO-AI…";
+        window.setTimeout(function () {{
+          window.location.href = deep;
+        }}, 500);
+      }}
+
       parseTokens();
       if (tokens.access && tokens.refresh) {{
         show("panel-form");
@@ -327,6 +364,11 @@ def render_reset_password_page(*, api_base: str = "") -> tuple[str, int, dict[st
             .then(function (r) {{ return r.json().then(function (j) {{ return {{ ok: r.ok, j: j }}; }}); }})
             .then(function ({{ ok, j }}) {{
               if (ok && (j.ok || j.session)) {{
+                var sess = j.session || null;
+                if (sess && sess.access_token) {{
+                  openAppAfterReset(sess);
+                  return;
+                }}
                 show("panel-done");
                 return;
               }}

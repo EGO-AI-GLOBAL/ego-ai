@@ -1,6 +1,9 @@
 import * as Linking from "expo-linking";
 import { router, type Href } from "expo-router";
 import { useEffect } from "react";
+import { saveLastLoginEmail } from "@/api/client";
+import type { AuthSession } from "@/api/types";
+import { useAuth } from "@/context/AuthContext";
 import { savePostLoginRoute } from "@/storage/postLoginRoute";
 import { savePasswordRecoveryTokens } from "@/storage/passwordRecovery";
 import { authTokensFromUrl } from "@/utils/authLinkParams";
@@ -53,13 +56,47 @@ function routeFromDeepLink(url: string): Href | null {
   if (path === "login") {
     return "/login" as Href;
   }
+  if (path === "session" || path === "auth/session") {
+    return "/" as Href;
+  }
   if (path === "daily-care" || path === "jardim" || path === "mood-garden") {
     return "/(main)/daily-care" as Href;
   }
   return null;
 }
 
-async function handleUrl(url: string | null) {
+async function maybeApplySessionLogin(
+  url: string,
+  applySession: (s: AuthSession) => Promise<void>
+): Promise<boolean> {
+  const tokens = authTokensFromUrl(url);
+  if (!tokens.access_token || !tokens.refresh_token) return false;
+  if (tokens.type !== "login") return false;
+
+  const parsed = Linking.parse(url);
+  const path = (parsed.path || "").replace(/^\/+/, "").toLowerCase();
+  if (path !== "session" && path !== "auth/session" && path !== "login") return false;
+
+  await applySession({
+    access_token: tokens.access_token,
+    refresh_token: tokens.refresh_token,
+    expires_at: null,
+    user: {
+      id: tokens.user_id || "",
+      email: tokens.email || "",
+    },
+  });
+  if (tokens.email) {
+    await saveLastLoginEmail(tokens.email);
+  }
+  router.replace("/");
+  return true;
+}
+
+async function handleUrl(
+  url: string | null,
+  applySession: (s: AuthSession) => Promise<void>
+) {
   if (!url) return;
   const lower = url.toLowerCase();
   const isEgo =
@@ -67,6 +104,8 @@ async function handleUrl(url: string | null) {
     lower.includes("egoai/") ||
     lower.includes("/auth/reset-password");
   if (!isEgo && !lower.includes("access_token=")) return;
+
+  if (await maybeApplySessionLogin(url, applySession)) return;
 
   const recovered = await maybeStoreRecoveryTokens(url);
   if (recovered) {
@@ -81,13 +120,15 @@ async function handleUrl(url: string | null) {
   }
 }
 
-/** egoai://signup, egoai://reset-password — cadastro, recuperação de senha. */
+/** egoai://signup, egoai://reset-password, egoai://session — cadastro, recuperação, login pós-reset. */
 export function useDeepLinkRouting() {
+  const { applySession } = useAuth();
+
   useEffect(() => {
-    void Linking.getInitialURL().then((url) => handleUrl(url));
+    void Linking.getInitialURL().then((url) => handleUrl(url, applySession));
     const sub = Linking.addEventListener("url", (ev) => {
-      void handleUrl(ev.url);
+      void handleUrl(ev.url, applySession);
     });
     return () => sub.remove();
-  }, []);
+  }, [applySession]);
 }
