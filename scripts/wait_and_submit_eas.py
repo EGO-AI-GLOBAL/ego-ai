@@ -48,6 +48,8 @@ def _run(cmd: list[str], *, cwd: Path = APP) -> subprocess.CompletedProcess[str]
         cwd=cwd,
         env=env,
         text=True,
+        encoding="utf-8",
+        errors="replace",
         capture_output=True,
         check=False,
     )
