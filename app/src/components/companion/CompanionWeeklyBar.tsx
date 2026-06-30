@@ -14,6 +14,10 @@ export function CompanionWeeklyBar({ colors, weekly }: Props) {
 
   const pct = weekly.days_goal > 0 ? weekly.days_done / weekly.days_goal : 0;
   const fillWidth = `${Math.min(100, Math.round(pct * 100))}%` as DimensionValue;
+  const bonusStars = weekly.bonus_stars ?? 10;
+  const progressCopy = weekly.complete
+    ? `${weekly.days_done}/${weekly.days_goal} dias com 5/5 — bónus recebido`
+    : `${weekly.days_done}/${weekly.days_goal} dias com 5/5 → +${bonusStars} estrelas na loja de cores`;
 
   return (
     <View style={[styles.wrap, { borderColor: colors.border }]}>
@@ -39,11 +43,11 @@ export function CompanionWeeklyBar({ colors, weekly }: Props) {
         />
       </View>
       <Text style={[styles.msg, { color: colors.textMuted }]} numberOfLines={2}>
-        {weekly.message}
+        {progressCopy}
       </Text>
-      {weekly.complete && weekly.bonus_awarded && weekly.bonus_stars ? (
+      {weekly.complete && weekly.bonus_awarded ? (
         <Text style={[styles.bonus, { color: colors.primary }]}>
-          +{weekly.bonus_stars} estrelas na loja de cores
+          +{bonusStars} estrelas na loja de cores
         </Text>
       ) : null}
     </View>

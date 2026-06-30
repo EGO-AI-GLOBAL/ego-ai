@@ -23,6 +23,7 @@ import {
 import { resolveCompanionDisplayName } from "@/utils/egoDeBolsoCompanionName";
 
 import { formatWellnessPendingLine } from "@/utils/egoDeBolsoStepHints";
+import { buildBolsoTalkDraft } from "@/utils/buildBolsoTalkDraft";
 
 import { CompanionSprite } from "./companion/CompanionSprite";
 
@@ -38,13 +39,17 @@ type Props = {
 
   onCareHint?: (message: string) => void;
 
+  onTalkMission?: (draft: string) => void;
+
+  celebrate?: boolean;
+
 };
 
 
 
 /** Mini-card EGO de Bolso no chat — missão do dia + postar. */
 
-export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
+export function EgoDeBolsoChatCard({ colors, journey, onCareHint, onTalkMission, celebrate = false }: Props) {
 
   const [shareOpen, setShareOpen] = useState(false);
 
@@ -95,13 +100,7 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
 
 
   const onTalk = () => {
-
-    onCareHint?.(
-
-      `Quero falar sobre a missão do ${petName} (${missionsToday}/${missionsPerDay} hoje): ${journey.today_task}`
-
-    );
-
+    onTalkMission?.(buildBolsoTalkDraft(journey));
   };
 
 
@@ -130,6 +129,8 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
             size={52}
 
             happy={dayComplete || journey.level_complete}
+
+            celebrate={celebrate}
 
             eggColor={journey.companion_egg_color}
 
@@ -205,7 +206,7 @@ export function EgoDeBolsoChatCard({ colors, journey, onCareHint }: Props) {
 
         <View style={styles.actions}>
 
-          {hasPendingMissions && onCareHint ? (
+          {hasPendingMissions && onTalkMission ? (
             <Pressable onPress={onTalk} style={[styles.btn, { backgroundColor: colors.primary, flex: 1.2 }]}>
               <Text style={styles.btnText}>Falar disso</Text>
             </Pressable>

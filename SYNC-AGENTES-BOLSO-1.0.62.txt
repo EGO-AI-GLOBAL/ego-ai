@@ -1,0 +1,28 @@
+AGENTE EGO DE BOLSO — BUILD 1.0.62
+====================================
+
+Estado: ✅ PRONTO — commit PENDING
+
+Zona: Bolso chat UX — «Falar disso», confetti missão, copy semanal
+Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
+
+═══════════════════════════════════════════════════════════════════
+1.0.62 — Falar disso + confetti + barra semanal
+═══════════════════════════════════════════════════════════════════
+
+[x] buildBolsoTalkDraft.ts — draft pré-preenchido da missão
+[x] EgoDeBolsoChatCard — onTalkMission(draft) + celebrate → CompanionSprite
+[x] chat.tsx — setChatInput(draft) + aviso curto
+[x] chat.tsx — trackJourneyStep: missions_today subiu → bolsoCelebrate ~1.4s
+[x] CompanionWeeklyBar — copy «X/4 dias com 5/5 → +10 estrelas na loja de cores»
+[x] regression_guard.py — símbolos novos
+
+GIT CHECK
+---------
+[x] regression_guard.py OK
+[x] smoke_test_api.py OK
+[x] push origin main
+
+BUILD
+-----
+Monstrinhos: PREPARAR-1.0.62.bat → GERAR-1.0.62.bat

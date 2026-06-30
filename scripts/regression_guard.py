@@ -104,6 +104,10 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["queueMonsterChatNotice", "consumeMonsterChatNotice"],
     ),
     (
+        "app/src/widgets/syncMoodGardenHomeWidget.tsx",
+        ["syncMoodGardenHomeWidget", "MoodGardenAndroidWidget"],
+    ),
+    (
         "app/src/widgets/syncEgoDeBolsoHomeWidget.tsx",
         ["syncEgoDeBolsoHomeWidget", "EgoDeBolsoAndroidWidget", "EgoDeBolso"],
     ),
