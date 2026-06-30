@@ -122,6 +122,12 @@ def main() -> int:
             elif "Nova senha" not in html:
                 print("  ERRO  pagina reset sem conteudo esperado")
                 failed += 1
+            elif "/auth/api/v1/auth/reset-password" in html:
+                print("  ERRO  pagina reset com URL API errada (/auth/api/...)")
+                failed += 1
+            elif "/api/v1/auth/reset-password" not in html:
+                print("  ERRO  pagina reset sem endpoint POST correto")
+                failed += 1
             else:
                 print("  OK    pagina recuperar senha em producao")
     else:

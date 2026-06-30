@@ -12,14 +12,22 @@ from ego_api.config import read_env
 _LOG = logging.getLogger("ego.auth_reset")
 
 
+def public_api_base() -> str:
+    """Origem HTTPS da API Flask (sem sufixo /auth/reset-password)."""
+    base = read_env("EGO_PUBLIC_API_URL", "").strip().rstrip("/")
+    if not base:
+        return "https://ego-ai-production-a2c2.up.railway.app"
+    if base.endswith("/auth"):
+        return base[: -len("/auth")]
+    return base
+
+
 def password_reset_redirect_url() -> str:
     """URL que o Supabase abre após clicar no e-mail (tokens no #hash)."""
     custom = read_env("EGO_PASSWORD_RESET_REDIRECT_URL", "").strip().rstrip("/")
     if custom:
         return custom
-    base = read_env("EGO_PUBLIC_API_URL", "").strip().rstrip("/")
-    if not base:
-        base = "https://ego-ai-production-a2c2.up.railway.app"
+    base = public_api_base()
     return f"{base}/auth/reset-password"
 
 
@@ -142,8 +150,9 @@ def dispatch_password_reset_email(email: str, *, redirect_to: str = "") -> None:
     _LOG.info("password_reset sent via brevo email=%s", email_norm)
 
 
-def render_reset_password_page(*, api_base: str) -> tuple[str, int, dict[str, str]]:
-    api = (api_base or "").rstrip("/") or password_reset_redirect_url().rsplit("/", 1)[0]
+def render_reset_password_page(*, api_base: str = "") -> tuple[str, int, dict[str, str]]:
+    _ = api_base  # legado: flask passa EGO_PUBLIC_API_URL — usar public_api_base()
+    api = public_api_base()
     endpoint = f"{api}/api/v1/auth/reset-password"
     body = f"""<!DOCTYPE html>
 <html lang="pt-BR">

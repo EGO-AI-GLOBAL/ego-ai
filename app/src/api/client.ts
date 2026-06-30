@@ -457,9 +457,22 @@ export async function checkSignupEligibility(
     { email: email.trim(), phone: phone.trim() },
     { timeout: 20000, headers: { "Content-Type": "application/json" } }
   );
-  const body = unwrap<SignupCheckResult & { ok?: boolean }>(data);
+  const body = data as SignupCheckResult & { ok?: boolean; error?: string };
+  // API devolve ok:false + message (e-mail/telefone já usado) — não é erro de transporte
+  if (body.reason || typeof body.message === "string") {
+    return {
+      ok: Boolean(body.ok),
+      reason: body.reason,
+      message: body.message,
+      masked_email: body.masked_email,
+      action: body.action,
+    };
+  }
+  if (body.ok === false) {
+    throw new Error(body.error || "Não foi possível verificar o cadastro.");
+  }
   return {
-    ok: Boolean(body.ok),
+    ok: true,
     reason: body.reason,
     message: body.message,
     masked_email: body.masked_email,
