@@ -18,14 +18,34 @@ export function MoodGardenWidgetCard({ colors, care }: Props) {
   const seeds = care?.seeds ?? 0;
   const streak = care?.current ?? 0;
 
+  const remaining = Math.max(0, total - done);
+
   const subtitle = useMemo(() => {
     if (!care?.question) return "";
     const congrats = care.avatar_congrats?.trim();
     if (congrats) return congrats;
+    if (atRisk) {
+      if (!care.checked_today) {
+        return streak > 0
+          ? `Sequência de ${streak} dias em risco — faça check-in hoje`
+          : "Check-in pendente — não perca o dia";
+      }
+      if (remaining > 0) {
+        return `Faltam ${remaining} missões · ${streak} dias em risco`;
+      }
+    }
     if (!care.checked_today) return "Toque para registrar humor e cuidar o pet";
-    if (done < total) return `${done}/${total} missões hoje · ${seeds} sementes`;
+    if (remaining > 0) return `Faltam ${remaining} missões · ${seeds} sementes · ${streak} dias`;
     return `Dia completo · ${streak} dias seguidos`;
-  }, [care?.question, care?.avatar_congrats, care?.checked_today, done, total, seeds, streak]);
+  }, [
+    care?.question,
+    care?.avatar_congrats,
+    care?.checked_today,
+    atRisk,
+    remaining,
+    seeds,
+    streak,
+  ]);
 
   if (!care?.question) return null;
 
@@ -49,7 +69,15 @@ export function MoodGardenWidgetCard({ colors, care }: Props) {
           {subtitle}
         </Text>
         {atRisk ? (
-          <Text style={[styles.risk, { color: colors.warning }]}>Sequência em risco hoje</Text>
+          <Text style={[styles.risk, { color: colors.warning }]}>
+            {remaining > 0
+              ? `⚠ Faltam ${remaining} missões · streak em risco`
+              : "⚠ Sequência em risco hoje"}
+          </Text>
+        ) : remaining > 0 && care.checked_today ? (
+          <Text style={[styles.risk, { color: colors.primary }]}>
+            Faltam {remaining} missões hoje
+          </Text>
         ) : null}
         <Text style={[styles.widgetHint, { color: colors.textMuted }]}>
           Widget na home: segure o ícone → Widgets → Jardim

@@ -35,17 +35,38 @@ export function buildMoodGardenWidgetSnapshot(
   const streak = care.current ?? 0;
   const atRisk = Boolean(care.at_risk);
 
+  const remaining = Math.max(0, total - done);
+
   let subtitle = "Toque para registrar humor e cuidar o pet";
   const congrats = care.avatar_congrats?.trim();
   if (congrats) {
     subtitle = congrats;
+  } else if (atRisk) {
+    if (!care.checked_today) {
+      subtitle =
+        streak > 0
+          ? `Sequência ${streak}d em risco — check-in pendente`
+          : "Check-in pendente hoje";
+    } else if (remaining > 0) {
+      subtitle = `Faltam ${remaining} missões · ${streak}d em risco`;
+    } else {
+      subtitle = `Dia completo · ${streak} dias`;
+    }
   } else if (!care.checked_today) {
     subtitle = "Check-in pendente hoje";
-  } else if (done < total) {
-    subtitle = `${done}/${total} missões · ${seeds} sementes`;
+  } else if (remaining > 0) {
+    subtitle = `Faltam ${remaining} missões · ${seeds} sementes`;
   } else {
     subtitle = `Dia completo · ${streak} dias seguidos`;
   }
+
+  const goalsLine = care.checked_today
+    ? remaining > 0
+      ? `Faltam ${remaining}/${total} · ${streak}d`
+      : `${total}/${total} missões · ${streak}d`
+    : atRisk && streak > 0
+      ? `Streak ${streak}d em risco`
+      : "Check-in pendente";
 
   const emoji =
     care.checked_today && care.last_mood_emoji
@@ -57,7 +78,7 @@ export function buildMoodGardenWidgetSnapshot(
     subtitle,
     emoji,
     atRisk,
-    goalsLine: care.checked_today ? `${done}/${total} missões` : "Check-in pendente",
+    goalsLine,
   };
 }
 

@@ -4,6 +4,7 @@ import * as Haptics from "expo-haptics";
 import { submitDailyCareCheckin } from "@/api/client";
 import type { DailyCareInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import { queueMonsterChatNotice } from "@/utils/monsterChatNotice";
 import { DailyCareShareModal } from "./DailyCareShareModal";
 import { MoodAdventureBanner } from "./moodMonsters/MoodAdventureBanner";
 import { MoodDailyGoals } from "./moodMonsters/MoodDailyGoals";
@@ -157,6 +158,10 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
           onGoalsBonus={(line) => {
             setBurstCongrats(line);
             setGoalsBurst(true);
+            const msg =
+              line?.trim() ||
+              "Dia completo no Jardim! Volte ao chat para celebrar com seu avatar.";
+            void queueMonsterChatNotice(msg);
           }}
         />
 

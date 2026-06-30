@@ -53,7 +53,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/components/moodMonsters/MoodGardenWidgetCard.tsx",
-        ["MoodGardenWidgetCard", "if (!care?.question) return null", "useMemo", "Widget na home"],
+        ["MoodGardenWidgetCard", "if (!care?.question) return null", "useMemo", "streak em risco"],
     ),
     (
         "app/src/components/AvatarEngagementCard.tsx",
@@ -77,7 +77,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/components/companion/CompanionWeeklyBar.tsx",
-        ["CompanionWeeklyBar", "DESAFIO DA SEMANA"],
+        ["CompanionWeeklyBar", "DESAFIO DA SEMANA", "estrelas na loja de cores"],
     ),
     (
         "app/src/utils/companionEggPalettes.ts",
@@ -96,8 +96,12 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["AppGradientBackground"],
     ),
     (
-        "app/src/widgets/syncMoodGardenHomeWidget.tsx",
-        ["syncMoodGardenHomeWidget", "MoodGardenAndroidWidget"],
+        "app/src/storage/moodGardenWidgetSnapshot.ts",
+        ["buildMoodGardenWidgetSnapshot", "goalsLine", "MOOD_GARDEN_WIDGET_STORAGE_KEY"],
+    ),
+    (
+        "app/src/utils/monsterChatNotice.ts",
+        ["queueMonsterChatNotice", "consumeMonsterChatNotice"],
     ),
     (
         "app/src/widgets/syncEgoDeBolsoHomeWidget.tsx",
@@ -129,7 +133,11 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/components/EgoDeBolsoChatCard.tsx",
-        ["EGO DE BOLSO", "PocketCompanionShareModal", "Cuidar agora", "Falar disso", "Semana:", "pendingHighlight"],
+        ["EGO DE BOLSO", "PocketCompanionShareModal", "Cuidar agora", "Falar disso", "Semana:", "pendingHighlight", "onTalkMission", "celebrate", "buildBolsoTalkDraft"],
+    ),
+    (
+        "app/src/utils/buildBolsoTalkDraft.ts",
+        ["buildBolsoTalkDraft", "missions_per_day"],
     ),
     (
         "app/src/utils/egoDeBolsoCareRoute.ts",

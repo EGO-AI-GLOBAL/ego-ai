@@ -72,6 +72,7 @@ import {
   chatResultHasScheduleSave,
 } from "@/constants/saveCelebration";
 import { consumePendingAvatarCongrats } from "@/storage/pendingAvatarCongrats";
+import { consumeMonsterChatNotice } from "@/utils/monsterChatNotice";
 import { consumePendingRitual } from "@/storage/pendingRitual";
 import { computeDayProgress } from "@/utils/dayProgress";
 import { streakAvatarSubtitle } from "@/utils/streakReactions";
@@ -626,8 +627,14 @@ function ChatScreenInner() {
         scrollMessagesToEnd(false);
       }
       if (userId) {
-        void consumePendingAvatarCongrats(userId).then((line) => {
-          if (line) setChatNotice(line);
+        void consumeMonsterChatNotice().then((monster) => {
+          if (monster) {
+            setChatNotice(monster);
+            return;
+          }
+          void consumePendingAvatarCongrats(userId).then((line) => {
+            if (line) setChatNotice(line);
+          });
         });
       }
     }, [localChatReady, chatMessages.length, scrollMessagesToEnd, userId])

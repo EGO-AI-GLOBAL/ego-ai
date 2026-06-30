@@ -123,11 +123,14 @@ export function ChatComposer({
   const bottomPad = Math.max(insets.bottom, isWeb ? 12 : 8);
   const hasText = value.trim().length > 0;
   const voiceUiActive = Boolean(isRecording || micSessionActive);
+  const voiceOnly = voiceUiActive && !hasText;
   const sendArmed = voiceSendArmed !== false;
-  const showSend = hasText || (voiceUiActive && sendArmed);
-  const showMic = !hasText && (!voiceUiActive || !sendArmed) && !sending;
+  const showVoiceSend = voiceOnly && sendArmed;
+  const showSend = hasText || showVoiceSend;
+  const showMic = !hasText && !sending && !showVoiceSend;
   const sendDisabled =
-    sending || (!voiceUiActive && !hasText) || (voiceUiActive && !sendArmed);
+    sending || (!voiceUiActive && !hasText) || (voiceOnly && !sendArmed);
+  const trailingWide = showVoiceSend;
 
   const onMicTap = () => {
     if (sending) return;
@@ -206,7 +209,7 @@ export function ChatComposer({
             styles.input,
             {
               color: colors.text,
-              paddingRight: voiceUiActive ? 52 : 48,
+              paddingRight: trailingWide ? 96 : voiceUiActive ? 52 : 48,
             },
           ]}
           placeholder={voiceUiActive ? "A ouvir…" : placeholder}
@@ -223,9 +226,38 @@ export function ChatComposer({
           returnKeyType="send"
         />
 
-        <View style={styles.trailing}>
+        <View style={[styles.trailing, trailingWide && styles.trailingWide]}>
           {sending ? (
             <ActivityIndicator color={colors.primary} size="small" />
+          ) : showVoiceSend ? (
+            <>
+              <View
+                style={[
+                  styles.actionBtn,
+                  styles.actionBtnCompact,
+                  styles.micCircle,
+                  { backgroundColor: colors.primary, opacity: 0.85 },
+                ]}
+                accessibilityElementsHidden
+              >
+                <Ionicons name="mic" size={22} color="#fff" />
+              </View>
+              <Pressable
+                style={[
+                  styles.actionBtn,
+                  styles.actionBtnCompact,
+                  styles.sendCircle,
+                  { backgroundColor: colors.primary },
+                  sendDisabled && styles.actionDisabled,
+                ]}
+                onPress={onSend}
+                disabled={sendDisabled}
+                accessibilityRole="button"
+                accessibilityLabel="Enviar mensagem de voz"
+              >
+                <Ionicons name="arrow-up" size={20} color="#fff" />
+              </Pressable>
+            </>
           ) : showSend ? (
             <Pressable
               style={[
@@ -355,12 +387,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 52,
   },
+  trailingWide: {
+    flexDirection: "row",
+    width: 96,
+    gap: 2,
+  },
   actionBtn: {
     width: 48,
     height: 48,
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
+  },
+  actionBtnCompact: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
   },
   sendCircle: {},
   micCircle: {
