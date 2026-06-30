@@ -1,33 +1,26 @@
-EGO-AI 1.0.62 — mensagem WhatsApp / grupo testadores
-======================================================
+EGO-AI 1.0.62 — nota para testadores (build 101 Android / iOS 51)
+==================================================================
 
-ENVIAR DEPOIS da build 1.0.62 no TestFlight + Play (iOS 51 · Android 101)
+Olá! Nova versão com foco em voz no Android e melhorias no Bolso e Jardim.
 
----
+🎤 VOZ (Android) — testem primeiro
+• Toque no microfone → fale → toque na seta ↑ para enviar
+• O mic e a seta ficam lado a lado (não deve enviar sozinho ao tocar no mic)
 
-VERSÃO CURTA (copiar)
----------------------
-Oi pessoal! **Atualização 1.0.62** 🙏
+🌱 JARDIM DOS MONSTRINHOS
+• Card no chat mostra «Faltam X missões · streak em risco» quando aplicável
+• Widget na home (Android): segure o ícone → Widgets → Jardim — deve mostrar streak
+• Ao completar todas as missões do dia, volte ao chat — aparece mensagem de parabéns
 
-Foco desta versão:
-• **Voz Android** — microfone + seta de enviar (sem mensagem fantasma / sem enviar sozinho)
-• **Jardim (Monstrinhos):** loja 34 itens + missões com **surpresa do dia**
-• **EGO de Bolso:** card semanal + rotina de cuidado
+🥚 EGO DE BOLSO
+• «Falar disso» coloca o texto da missão na caixa de mensagem (edite se quiser e envie)
+• Ao concluir uma missão (chat/voz), o pet faz animação de celebração
+• Barra semanal: 4/4 dias com 5/5 → +10 estrelas na loja de cores
 
-📲 **iPhone:** TestFlight → **1.0.62 (build 51)**
-🤖 **Android:** Play teste fechado → **1.0.62 (101)**
-   (Android: se não abrir, manda teu **Gmail** que eu libero na lista)
+Como atualizar
+• Android (teste fechado): Play Store → EGO-AI → Atualizar
+  https://play.google.com/apps/testing/com.egoai.app
+• iPhone: TestFlight → EGO-AI (build 51)
+  https://testflight.apple.com/join/eNDKdFWF
 
-✅ Testem (principalmente Android):
-1. Chat → **gravar voz** → só envia quando você tocar na **seta** → avatar responde
-2. Confirmar que **não** manda áudio sozinho ao soltar o mic
-3. **Jardim** → loja → itens da semana → missões do dia
-4. **Bolso** → ver card da semana / cuidar (se já ativou antes)
-5. Chat texto: avatar → «oi»
-
-Se falhar, mandem print com a **versão** no canto.
-
-Obrigado! 💜
-
-iPhone: https://testflight.apple.com/join/eNDKdFWF
-Android: https://play.google.com/apps/testing/com.egoai.app
+Obrigado por testar! Qualquer bug: descreva o passo a passo (modelo do telefone ajuda).

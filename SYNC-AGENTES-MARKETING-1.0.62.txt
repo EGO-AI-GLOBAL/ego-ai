@@ -1,20 +1,7 @@
 AGENTE MARKETING — RELEASE 1.0.62
-===================================
-
+==================================
 Estado: ✅ PRONTO
 
-Zona: textos testadores (só marketing/)
 • marketing/MENSAGEM-TESTADORES-1.0.62.txt
 
-Destaques release:
-• Voz Android — mic + seta (sem envio fantasma)
-• Jardim — loja 34 + missões surpresa
-• EGO de Bolso — card semanal + cuidar
-
-iOS build 51 · Android versionCode 101
-
-NÃO correr GERAR/EAS — Monstrinhos
-
-GIT: 58e56e2
-
-✅ MARKETING PRONTO — commit 58e56e2 — voz Android + jardim + bolso
+GIT: (atualizar após commit)
