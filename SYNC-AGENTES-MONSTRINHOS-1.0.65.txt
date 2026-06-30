@@ -1,0 +1,13 @@
+AGENTE MONSTRINHOS — RELEASE 1.0.65 (EAS)
+==========================================
+Estado: ✅ PRONTO — revert voz 26/06
+
+Zona: voz iOS + Android
+• ChatComposer.tsx — restaurado de e336af0 (26/06): mic e seta separados
+• chat.tsx — fluxo onMicPress/onMicPressOut de 26/06 (sem voiceSendArmed/micGestureRef)
+
+app.config.ts: 1.0.65 · Android 105 · iOS 54 (EAS autoIncrement)
+
+Scripts: PREPARAR / GERAR / AGUARDAR-1.0.65.bat · builds-1.0.65.ids.json
+
+GIT: (após commit desta release)

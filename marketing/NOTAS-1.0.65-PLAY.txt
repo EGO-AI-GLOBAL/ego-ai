@@ -1,0 +1,17 @@
+NOTAS VERSÃO 1.0.65 — TestFlight / Play (teste fechado)
+=====================================================
+iOS build 54+ · Android versionCode 105+ (EAS autoIncrement)
+
+CURTO (O que há de novo — copiar TestFlight / Play)
+---------------------------------------------------
+Voz restaurada ao fluxo de 26/06: microfone e seta separados. Corrige a regressão das versões 1.0.62–1.0.64.
+
+O QUE TESTAR
+------------
+1. Atualizar para 1.0.65
+2. Texto: escrever e enviar com seta ↑
+3. Voz: mic → falar 2–3 s → seta ↑ → avatar responde
+
+TEXTO WHATSAPP
+--------------
+Ver: marketing/MENSAGEM-TESTADORES-1.0.65.txt

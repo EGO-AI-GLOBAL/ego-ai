@@ -1,0 +1,16 @@
+EGO-AI — SYNC MESTRE 1.0.65
+============================
+Release: revert voz 26/06 (corrige 1.0.62–1.0.64)
+
+| Agente      | Ficheiro sync                         | Estado        |
+|-------------|---------------------------------------|---------------|
+| Monstrinhos | SYNC-AGENTES-MONSTRINHOS-1.0.65.txt   | ✅ PRONTO     |
+| Bolso       | (herdado 1.0.62 — sem diff novo)      | ✅ PRONTO     |
+| API         | (produção 1.0.61 — sem diff novo)     | ✅ PRONTO     |
+| Marketing   | NOTAS + MENSAGEM 1.0.65               | ✅ PRONTO     |
+
+app.config.ts: 1.0.65 · Android versionCode 105 · iOS buildNumber 54
+
+Antes de GERAR-1.0.65.bat:
+1. PREPARAR-1.0.65.bat OK
+2. git push main

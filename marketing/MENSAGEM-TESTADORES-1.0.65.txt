@@ -1,0 +1,18 @@
+EGO-AI 1.0.65 — nota para testadores
+======================================
+
+Olá! Voltámos a **voz como estava a funcionar em 26/06**.
+
+🎤 VOZ
+• Toque no **microfone** → fale 2–3 segundos
+• Toque na **seta ↑** para enviar
+• (Mic e seta são botões separados — como antes)
+
+✏️ TEXTO
+• Escreva e toque na seta ↑ — deve aparecer a sua mensagem no chat
+
+Como atualizar
+• Android: https://play.google.com/apps/testing/com.egoai.app
+• iPhone TestFlight: https://testflight.apple.com/join/eNDKdFWF
+
+Obrigado!

@@ -136,20 +136,12 @@ export function ChatComposer({
       style={[
         styles.outer,
         {
-          paddingBottom: bottomPad + 6,
+          borderTopColor: colors.border,
+          backgroundColor: colors.bg,
+          paddingBottom: bottomPad + 10,
         },
       ]}
     >
-      <View
-        style={[
-          styles.floatShell,
-          {
-            backgroundColor: colors.glassBg,
-            borderColor: colors.glassBorder,
-            shadowColor: colors.primary,
-          },
-        ]}
-      >
       <View style={styles.composerRow}>
         {onPdfPress ? (
           <Pressable
@@ -231,7 +223,7 @@ export function ChatComposer({
                 sendDisabled && styles.actionDisabled,
               ]}
               onPress={onSend}
-              disabled={sendDisabled || sending}
+              disabled={sendDisabled}
               accessibilityRole="button"
               accessibilityLabel={
                 voiceUiActive ? "Enviar mensagem de voz" : "Enviar mensagem"
@@ -257,7 +249,6 @@ export function ChatComposer({
         </View>
       </View>
       </View>
-      </View>
 
       {voiceUiActive ? (
         <Text style={[styles.recordingHint, { color: colors.primary }]}>
@@ -277,19 +268,9 @@ export function ChatComposer({
 const styles = StyleSheet.create({
   outer: {
     flexShrink: 0,
-    paddingHorizontal: 10,
-    paddingTop: 4,
-  },
-  floatShell: {
-    borderRadius: 28,
-    borderWidth: 1,
-    paddingHorizontal: 10,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: 6,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.16,
-    shadowRadius: 14,
-    elevation: 8,
   },
   composerRow: {
     flexDirection: "row",

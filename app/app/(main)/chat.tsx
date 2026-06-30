@@ -779,15 +779,33 @@ function ChatScreenInner() {
     setChatNotice(null);
     try {
       await voice.startRecording(historyForApi());
-      setChatNotice("A gravar… toque na seta ↑ para enviar.");
+      if (voice.activeVoiceMode === "realtime") {
+        setChatNotice("A ouvir… toque ↑ para enviar.");
+      } else if (voice.webUsesSpeechToText) {
+        setChatNotice("A ouvir… toque ↑ para enviar.");
+      } else if (voice.webMicMode === "recorder") {
+        setChatNotice("A gravar… toque na seta ↑ para enviar.");
+      } else {
+        setChatNotice("A gravar… toque na seta ↑ para enviar.");
+      }
     } catch (e) {
       setChatError(e instanceof Error ? e.message : "Microfone indisponível.");
     }
   };
 
   const onMicPressOut = async () => {
-    if (!micActive || micBusyRef.current || sending) return;
+    if (!micActive || micBusyRef.current) return;
+    if (!voice.isRecording) {
+      const ready = await voice.waitForRecording(2500);
+      if (!ready) {
+        await voice.cancelRecording();
+        setChatNotice(null);
+        setChatError("Microfone não iniciou. Toque no microfone, fale 2s e toque na seta ↑.");
+        return;
+      }
+    }
     micBusyRef.current = true;
+    voice.unlockWebPlayback();
     setChatError(null);
     setChatNotice("A ouvir o áudio…");
     setSending(true);
@@ -796,17 +814,6 @@ function ChatScreenInner() {
       { role: "assistant", content: "…" },
     ]);
     try {
-      if (!voice.isRecording) {
-        const ready = await voice.waitForRecording(2500);
-        if (!ready) {
-          await voice.cancelRecording();
-          setChatNotice(null);
-          setChatError("Microfone não iniciou. Toque no microfone, fale 2s e toque na seta ↑.");
-          setPendingChat([]);
-          return;
-        }
-      }
-      voice.unlockWebPlayback();
       if (nightDumpMode) {
         setChatNotice("A processar desabafo…");
         const raw = await voice.stopRecordingRaw();
@@ -830,7 +837,6 @@ function ChatScreenInner() {
         }
         return;
       }
-      // speak=false no upload: TTS da resposta fica no cliente (playVoice / /tts).
       const result = await voice.stopRecordingAndSend(false, historyForApi(), {
         onDelta: (_chunk, full) => {
           setChatNotice("A responder…");
@@ -912,7 +918,6 @@ function ChatScreenInner() {
       }
       return;
     }
-
     await onMicPressIn();
   };
 
@@ -1044,7 +1049,6 @@ function ChatScreenInner() {
 
   const onSendText = async () => {
     if (voice.isRecording || voice.micSessionActive) {
-      if (sending || micBusyRef.current) return;
       await onMicPressOut();
       return;
     }
