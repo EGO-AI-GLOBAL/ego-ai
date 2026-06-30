@@ -1,0 +1,11 @@
+EGO-AI 1.0.66 — pronto para build
+=================================
+
+Hotfix voz: anti-loop Android (mic/seta mesmo pixel), debounce, mínimo 2 s.
+
+Passos:
+1. PREPARAR-1.0.66.bat
+2. GERAR-1.0.66.bat
+3. AGUARDAR-E-SUBMETER-1.0.66.bat
+
+Versão: 1.0.66 · iOS 55 · Android 106

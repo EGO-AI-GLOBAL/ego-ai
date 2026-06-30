@@ -1,0 +1,16 @@
+EGO-AI — SYNC MESTRE 1.0.66
+============================
+Release: hotfix voz Android/iOS (anti-loop mic → seta ↑)
+
+| Agente      | Ficheiro sync                         | Estado        |
+|-------------|---------------------------------------|---------------|
+| Monstrinhos | SYNC-AGENTES-MONSTRINHOS-1.0.66.txt   | ✅ PRONTO     |
+| Bolso       | (herdado 1.0.65 — sem diff novo)      | ✅ PRONTO     |
+| API         | (produção — sem diff novo)            | ✅ PRONTO     |
+| Marketing   | NOTAS + MENSAGEM 1.0.66               | ✅ PRONTO     |
+
+app.config.ts: 1.0.66 · Android versionCode 106 · iOS buildNumber 55
+
+Antes de GERAR-1.0.66.bat:
+1. PREPARAR-1.0.66.bat OK
+2. git push main

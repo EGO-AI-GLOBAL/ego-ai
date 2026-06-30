@@ -1,0 +1,26 @@
+NOTAS VERSÃO 1.0.66 — TestFlight / Play (teste fechado)
+=====================================================
+iOS build 55 · Android versionCode 106
+
+CURTO — copiar em «O que há de novo» (Play / App Store)
+-------------------------------------------------------
+Correção da voz no Android: microfone e seta de envio não disparam mais em loop. Toque no mic, fale 2–3 segundos, depois na seta ↑. Mantém reset de senha e excluir conta da 1.0.65.
+
+MÉDIO — TestFlight «O que testar» / notas internas
+--------------------------------------------------
+• Voz Android: mic → falar 2–3 s → seta ↑ (sem loop ao tocar no mic)
+• Voz iOS: mesmo fluxo
+• Texto no chat
+• Reset de senha (auto-login após guardar)
+
+O QUE TESTAR (checklist)
+------------------------
+1. Atualizar para 1.0.66
+2. Android: voz (prioridade)
+3. iPhone: voz
+4. Texto no chat
+5. Reset de senha (opcional)
+
+TEXTO WHATSAPP
+--------------
+Ver: marketing/MENSAGEM-TESTADORES-1.0.66.txt

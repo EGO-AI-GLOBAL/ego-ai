@@ -270,6 +270,12 @@ function ChatScreenInner() {
   } = useLocalChatHistory(userId, data.messages);
   const onboardingSeedRef = useRef(false);
   const micBusyRef = useRef(false);
+  const micStartingRef = useRef(false);
+  const micLastTapRef = useRef(0);
+  /** Bloqueia seta ↑ logo após o mic (Android: mesmo pixel, envio fantasma). */
+  const micSuppressSendUntilRef = useRef(0);
+  const voiceSendArmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [voiceSendArmed, setVoiceSendArmed] = useState(false);
   const messagesScrollRef = useRef<ScrollView>(null);
   /** Se true, mantém o scroll no fim ao crescer o histórico (entrada no chat / nova msg). */
   const stickToBottomRef = useRef(true);
@@ -297,6 +303,34 @@ function ChatScreenInner() {
     void voice.stopPlayback();
     setLastChatResult(null);
   }, [persona.avatar_id, persona.voice_id, voice.stopPlayback]);
+
+  /** Seta ↑ só depois do 1.º toque no mic terminar — evita envio no mesmo gesto (Android + iOS). */
+  useEffect(() => {
+    if (!voice.isRecording && !voice.micSessionActive) {
+      setVoiceSendArmed(false);
+      micSuppressSendUntilRef.current = 0;
+      if (voiceSendArmTimerRef.current) {
+        clearTimeout(voiceSendArmTimerRef.current);
+        voiceSendArmTimerRef.current = null;
+      }
+      return;
+    }
+    if (voice.isRecording) {
+      setVoiceSendArmed(false);
+      micSuppressSendUntilRef.current = Date.now() + 750;
+      if (voiceSendArmTimerRef.current) clearTimeout(voiceSendArmTimerRef.current);
+      voiceSendArmTimerRef.current = setTimeout(() => {
+        setVoiceSendArmed(true);
+        voiceSendArmTimerRef.current = null;
+      }, 750);
+    }
+    return () => {
+      if (voiceSendArmTimerRef.current) {
+        clearTimeout(voiceSendArmTimerRef.current);
+        voiceSendArmTimerRef.current = null;
+      }
+    };
+  }, [voice.isRecording, voice.micSessionActive]);
 
   const profile = data.me?.profile as Record<string, unknown> | undefined;
 
@@ -769,12 +803,13 @@ function ChatScreenInner() {
         "Se for contrato ou relatório, destaque datas, valores e obrigações relevantes.";
 
   const onMicPressIn = async () => {
-    if (sending || micBusyRef.current) return;
+    if (sending || micBusyRef.current || micStartingRef.current) return;
     if (!session) {
       setChatError("Sessão expirada. Faça login de novo para usar o microfone.");
       return;
     }
     if (micActive) return;
+    micStartingRef.current = true;
     setChatError(null);
     setChatNotice(null);
     try {
@@ -790,11 +825,13 @@ function ChatScreenInner() {
       }
     } catch (e) {
       setChatError(e instanceof Error ? e.message : "Microfone indisponível.");
+    } finally {
+      micStartingRef.current = false;
     }
   };
 
   const onMicPressOut = async () => {
-    if (!micActive || micBusyRef.current) return;
+    if (!micActive || micBusyRef.current || sending) return;
     if (!voice.isRecording) {
       const ready = await voice.waitForRecording(2500);
       if (!ready) {
@@ -804,8 +841,12 @@ function ChatScreenInner() {
         return;
       }
     }
+    const elapsed = voice.getRecordingElapsedMs();
+    if (elapsed < 900) {
+      setChatNotice("A gravar… fale pelo menos 2 segundos e toque na seta ↑.");
+      return;
+    }
     micBusyRef.current = true;
-    voice.unlockWebPlayback();
     setChatError(null);
     setChatNotice("A ouvir o áudio…");
     setSending(true);
@@ -814,6 +855,7 @@ function ChatScreenInner() {
       { role: "assistant", content: "…" },
     ]);
     try {
+      voice.unlockWebPlayback();
       if (nightDumpMode) {
         setChatNotice("A processar desabafo…");
         const raw = await voice.stopRecordingRaw();
@@ -894,7 +936,7 @@ function ChatScreenInner() {
   };
 
   const onMicPress = async () => {
-    if (sending || micBusyRef.current) return;
+    if (sending || micBusyRef.current || micStartingRef.current) return;
     if (!session) {
       setChatError("Sessão expirada. Faça login de novo para usar o microfone.");
       return;
@@ -910,14 +952,16 @@ function ChatScreenInner() {
       return;
     }
 
+    // Já a gravar: só lembrar a seta ↑ (nunca enviar com 2.º toque no microfone).
     if (micActive) {
-      if (voice.isRecording) {
-        await onMicPressOut();
-      } else {
-        setChatNotice("A preparar microfone… aguarde um instante.");
-      }
+      setChatNotice("A gravar… toque na seta ↑ para enviar.");
       return;
     }
+
+    const now = Date.now();
+    if (now - micLastTapRef.current < 500) return;
+    micLastTapRef.current = now;
+
     await onMicPressIn();
   };
 
@@ -1049,6 +1093,11 @@ function ChatScreenInner() {
 
   const onSendText = async () => {
     if (voice.isRecording || voice.micSessionActive) {
+      if (sending || micBusyRef.current) return;
+      if (!voiceSendArmed || Date.now() < micSuppressSendUntilRef.current) {
+        setChatNotice("A gravar… aguarde a seta ↑ e fale pelo menos 2 segundos.");
+        return;
+      }
       await onMicPressOut();
       return;
     }
@@ -1486,7 +1535,8 @@ function ChatScreenInner() {
             sending={sending || trialExpired}
             isRecording={voice.isRecording}
             micSessionActive={voice.micSessionActive}
-            voiceReady={voice.isRecording && !trialExpired}
+            voiceReady={voice.isRecording && voiceSendArmed && !trialExpired}
+            voiceSendArmed={voiceSendArmed}
             onMicPress={onMicPress}
             onPdfPress={() => onDocPress()}
             pdfLoading={pdfLoading}

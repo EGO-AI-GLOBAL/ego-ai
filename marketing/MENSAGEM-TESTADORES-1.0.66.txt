@@ -1,0 +1,21 @@
+EGO-AI 1.0.66 — atualize e teste
+=================================
+
+Olá! Nova versão 1.0.66 no ar — foco na VOZ.
+
+🎤 VOZ (corrigida no Android)
+• Toque no microfone → fale 2–3 segundos
+• Espere a seta ↑ aparecer → toque para enviar
+• Não deve entrar em loop ao tocar no mic
+
+✏️ TEXTO
+• Escreva e toque na seta ↑
+
+🔑 RESET DE SENHA (igual 1.0.65)
+• Esqueci a senha → e-mail → guardar → app abre logado
+
+Como atualizar
+• Android: https://play.google.com/apps/testing/com.egoai.app
+• iPhone TestFlight: https://testflight.apple.com/join/eNDKdFWF
+
+Se algo falhar, mande print. Obrigado!

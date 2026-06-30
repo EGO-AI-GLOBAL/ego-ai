@@ -1,0 +1,13 @@
+AGENTE MONSTRINHOS — RELEASE 1.0.66 (EAS)
+==========================================
+Estado: ✅ PRONTO — hotfix voz Android anti-loop
+
+Zona: voz iOS + Android
+• ChatComposer.tsx — seta ↑ só após 750 ms (voiceSendArmed); mic e seta não no mesmo toque
+• chat.tsx — mic só grava; seta envia; debounce 500 ms; mínimo 2 s de fala; anti-duplo envio
+
+app.config.ts: 1.0.66 · Android 106 · iOS 55
+
+Scripts: PREPARAR / GERAR / AGUARDAR-1.0.66.bat · builds-1.0.66.ids.json
+
+GIT: (após push desta release)
