@@ -18,4 +18,4 @@ Scripts EAS:
 Testes automáticos: onboarding_guard + regression_guard + smoke — OK
 Voz Android: PENDENTE teste USB utilizador — não afirmar «voz 100%»
 
-GIT: d60f26a (feature) · voz base b168380
+GIT: 61594ee (widget streak) · d60f26a (feature) · voz base b168380
