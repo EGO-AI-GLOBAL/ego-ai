@@ -428,7 +428,7 @@ export function useVoiceChat() {
     isRecordingRef.current = isRecording;
   }, [isRecording]);
 
-  const waitForRecording = useCallback(async (timeoutMs = 2500): Promise<boolean> => {
+  const waitForRecording = useCallback(async (timeoutMs = 800): Promise<boolean> => {
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
       if (isRecordingRef.current) return true;
@@ -545,13 +545,22 @@ export function useVoiceChat() {
         });
         const { sound } = await Audio.Sound.createAsync({ uri: path });
         soundRef.current = sound;
-        sound.setOnPlaybackStatusUpdate((status) => {
-          if (status.isLoaded && status.didJustFinish) {
-            void stopPlayback();
-          }
-        });
         await sound.setRateAsync(rate, true);
-        await sound.playAsync();
+        await new Promise<void>((resolve, reject) => {
+          const safety = setTimeout(() => resolve(), 120_000);
+          sound.setOnPlaybackStatusUpdate((status) => {
+            if (!status.isLoaded) return;
+            if (status.didJustFinish) {
+              clearTimeout(safety);
+              resolve();
+            }
+          });
+          void sound.playAsync().catch((err) => {
+            clearTimeout(safety);
+            reject(err);
+          });
+        });
+        await stopPlayback();
       } catch (e) {
         setIsSpeaking(false);
         throw e;
@@ -691,29 +700,36 @@ export function useVoiceChat() {
     if (!perm.granted) {
       throw new Error("Permissão do microfone negada.");
     }
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-      playsInSilentModeIOS: true,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
-    });
-    const recordingOptions: Audio.RecordingOptions = {
-      ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
-      android: {
-        extension: ".m4a",
-        outputFormat: Audio.AndroidOutputFormat.MPEG_4,
-        audioEncoder: Audio.AndroidAudioEncoder.AAC,
-        sampleRate: 44100,
-        numberOfChannels: 1,
-        bitRate: 128000,
-      },
-      ios: Audio.RecordingOptionsPresets.HIGH_QUALITY.ios,
-    };
-    const { recording } = await Audio.Recording.createAsync(recordingOptions);
-    recordingRef.current = recording;
-    recordingStartedAtRef.current = Date.now();
     setMicSessionActive(true);
-    setIsRecording(true);
+    recordingStartedAtRef.current = Date.now();
+    try {
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+        shouldDuckAndroid: true,
+        playThroughEarpieceAndroid: false,
+      });
+      const recordingOptions: Audio.RecordingOptions = {
+        ...Audio.RecordingOptionsPresets.HIGH_QUALITY,
+        android: {
+          extension: ".m4a",
+          outputFormat: Audio.AndroidOutputFormat.MPEG_4,
+          audioEncoder: Audio.AndroidAudioEncoder.AAC,
+          sampleRate: 44100,
+          numberOfChannels: 1,
+          bitRate: 128000,
+        },
+        ios: Audio.RecordingOptionsPresets.HIGH_QUALITY.ios,
+      };
+      const { recording } = await Audio.Recording.createAsync(recordingOptions);
+      recordingRef.current = recording;
+      setIsRecording(true);
+    } catch (e) {
+      setMicSessionActive(false);
+      setIsRecording(false);
+      recordingStartedAtRef.current = 0;
+      throw e;
+    }
   }, [stopPlayback]);
 
   const finishWebRecording = useCallback((): Promise<{ blob: Blob; mime: string }> => {

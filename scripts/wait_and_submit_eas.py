@@ -90,26 +90,35 @@ def wait_both(ios_id: str, android_id: str, poll_sec: int = 60) -> None:
         time.sleep(poll_sec)
 
 
+def _safe_print(text: str) -> None:
+    out = text or ""
+    try:
+        print(out)
+    except UnicodeEncodeError:
+        enc = getattr(sys.stdout, "encoding", None) or "utf-8"
+        print(out.encode(enc, errors="replace").decode(enc, errors="replace"))
+
+
 def submit_pair(ios_id: str, android_id: str) -> None:
     print("Submetendo iOS (TestFlight)...")
     proc_ios = _run(
         ["eas", "submit", "--platform", "ios", "--id", ios_id, "--non-interactive"]
     )
     if proc_ios.returncode != 0:
-        print(proc_ios.stdout)
+        _safe_print(proc_ios.stdout or "")
         print(proc_ios.stderr, file=sys.stderr)
         raise SystemExit(proc_ios.returncode)
-    print(proc_ios.stdout)
+    _safe_print(proc_ios.stdout or "")
 
     print("Submetendo Android (Play)...")
     proc_and = _run(
         ["eas", "submit", "--platform", "android", "--id", android_id, "--non-interactive"]
     )
     if proc_and.returncode != 0:
-        print(proc_and.stdout)
+        _safe_print(proc_and.stdout or "")
         print(proc_and.stderr, file=sys.stderr)
         raise SystemExit(proc_and.returncode)
-    print(proc_and.stdout)
+    _safe_print(proc_and.stdout or "")
     print("Submit iOS + Android concluído (uma vez só).")
 
 

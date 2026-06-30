@@ -271,7 +271,7 @@ function ChatScreenInner() {
   const keyboardBottomInset = keyboard.bottomInset;
   const keyboardOpen = keyboardHeight > 0;
   const micActive = voice.isRecording || voice.micSessionActive || voice.isPhoneCall;
-  const personaBusy = sending || micActive;
+  const personaBusy = sending || micActive || voice.isSpeaking;
   const audioStatusLabel = voice.isPhoneCall
     ? voice.isSpeaking
       ? "Em chamada — a falar…"
@@ -763,16 +763,17 @@ function ChatScreenInner() {
 
   const onMicPressOut = async () => {
     if (!micActive || micBusyRef.current) return;
+    micBusyRef.current = true;
     if (!voice.isRecording) {
-      const ready = await voice.waitForRecording(2500);
+      const ready = await voice.waitForRecording(800);
       if (!ready) {
+        micBusyRef.current = false;
         await voice.cancelRecording();
         setChatNotice(null);
         setChatError("Microfone não iniciou. Toque no microfone, fale 2s e toque na seta ↑.");
         return;
       }
     }
-    micBusyRef.current = true;
     voice.unlockWebPlayback();
     setChatError(null);
     setChatNotice("A ouvir o áudio…");
@@ -834,7 +835,6 @@ function ChatScreenInner() {
       );
       setPendingChat([]);
       setLastChatResult(result);
-      setSending(false);
       if (result.voice_engine === "openai_realtime") {
         setChatNotice("Resposta em voz reproduzida.");
       } else if (result.reply?.trim()) {
@@ -878,11 +878,7 @@ function ChatScreenInner() {
     }
 
     if (micActive) {
-      if (voice.isRecording) {
-        await onMicPressOut();
-      } else {
-        setChatNotice("A preparar microfone… aguarde um instante.");
-      }
+      setChatNotice("A gravar… toque na seta ↑ para enviar.");
       return;
     }
 
@@ -1006,6 +1002,7 @@ function ChatScreenInner() {
   ]);
 
   const onSendText = async () => {
+    if (micBusyRef.current) return;
     if (voice.isRecording || voice.micSessionActive) {
       await onMicPressOut();
       return;

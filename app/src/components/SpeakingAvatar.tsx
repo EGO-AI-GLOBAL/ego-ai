@@ -96,16 +96,6 @@ function NativeSpeakingVideo({
   const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
-    if (!av?.Audio) return;
-    void av.Audio.setAudioModeAsync({
-      allowsRecordingIOS: true,
-      playsInSilentModeIOS: true,
-      shouldDuckAndroid: true,
-      playThroughEarpieceAndroid: false,
-    }).catch(() => undefined);
-  }, [av]);
-
-  useEffect(() => {
     let cancelled = false;
     setVideoUri(null);
     setVideoReady(false);
