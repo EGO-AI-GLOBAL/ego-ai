@@ -13,7 +13,8 @@ MSG_NO_ACCOUNT = (
     "Se o cadastro parou com erro vermelho, use Criar conta — não Entrar."
 )
 MSG_RESET_SENT = (
-    "Enviamos um link para criar nova senha. Verifique o e-mail (incluindo spam)."
+    "Enviamos um link de Ego-IA (contato@egoai.com.br) para criar nova senha. "
+    "Verifique a caixa de entrada e a pasta de spam."
 )
 MSG_SIGNUP_PHONE_REQUIRED = "Informe o telefone com DDD."
 

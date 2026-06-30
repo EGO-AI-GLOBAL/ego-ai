@@ -1,8 +1,9 @@
 import * as Application from "expo-application";
 import { router } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -10,6 +11,7 @@ import {
   Text,
   View,
 } from "react-native";
+import { deleteMyAccount } from "@/api/client";
 import { PersonaPicker } from "@/components/PersonaPicker";
 import { AccountUpdateCard } from "@/components/AccountUpdateCard";
 import { ProfilePhoneCard } from "@/components/ProfilePhoneCard";
@@ -27,8 +29,56 @@ export default function AccountScreen() {
   const colors = useColors();
   const { signOut } = useAuth();
   const { data, loading, refreshing, error, refresh, setPersona } = useDashboard();
+  const [deleting, setDeleting] = useState(false);
   const persona = accountPersona(data.me?.persona);
   const apiOk = isProductionApiOk();
+  const hasPaidPlan = Boolean(data.access?.is_pro);
+
+  const runDeleteAccount = async () => {
+    setDeleting(true);
+    try {
+      await deleteMyAccount();
+      await signOut();
+      router.replace("/login");
+    } catch (e) {
+      const msg =
+        e instanceof Error ? e.message : "Não foi possível excluir a conta.";
+      Alert.alert("Não foi possível excluir", msg);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
+  const onDeleteAccountPress = () => {
+    const subHint = hasPaidPlan
+      ? "\n\nTem plano pago: cancele a assinatura em Planos ou no portal Stripe antes de excluir."
+      : "";
+    Alert.alert(
+      "Excluir minha conta?",
+      `Esta ação é permanente. Apagamos o seu perfil, conversas, agenda, monstrinhos e demais dados do EGO-AI.${subHint}\n\nDeseja continuar?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir conta",
+          style: "destructive",
+          onPress: () => {
+            Alert.alert(
+              "Confirmar exclusão",
+              "Não há como recuperar os dados depois. A conta será apagada de imediato.",
+              [
+                { text: "Voltar", style: "cancel" },
+                {
+                  text: "Excluir permanentemente",
+                  style: "destructive",
+                  onPress: () => void runDeleteAccount(),
+                },
+              ]
+            );
+          },
+        },
+      ]
+    );
+  };
 
   const profile = data.me?.profile as Record<string, unknown> | undefined;
   const profileName =
@@ -157,9 +207,38 @@ export default function AccountScreen() {
               }}
               accessibilityRole="button"
               accessibilityLabel="Sair da conta"
+              disabled={deleting}
             >
               <Text style={[styles.signOutText, { color: colors.text }]}>Sair</Text>
             </Pressable>
+
+            <View style={[styles.dangerZone, { borderColor: colors.border }]}>
+              <Text style={[styles.dangerTitle, { color: colors.text }]}>
+                Exclusão de conta
+              </Text>
+              <Text style={[styles.dangerHint, { color: colors.textMuted }]}>
+                Apaga permanentemente a sua conta e dados no EGO-AI. Também pode pedir por e-mail
+                em contato@egoai.com.br.
+              </Text>
+              <Pressable
+                style={({ pressed }) => [
+                  styles.deleteBtn,
+                  { opacity: deleting ? 0.6 : pressed ? 0.85 : 1 },
+                ]}
+                onPress={onDeleteAccountPress}
+                disabled={deleting}
+                accessibilityRole="button"
+                accessibilityLabel="Excluir minha conta"
+              >
+                {deleting ? (
+                  <ActivityIndicator color={colors.danger} />
+                ) : (
+                  <Text style={[styles.deleteBtnText, { color: colors.danger }]}>
+                    Excluir minha conta
+                  </Text>
+                )}
+              </Pressable>
+            </View>
           </>
         ) : null}
       </ScrollView>
@@ -207,4 +286,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   signOutText: { fontSize: 16, fontWeight: "700" },
+  dangerZone: {
+    marginTop: 28,
+    paddingTop: 20,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  dangerTitle: { fontSize: 15, fontWeight: "700", marginBottom: 8 },
+  dangerHint: { fontSize: 13, lineHeight: 19, marginBottom: 14 },
+  deleteBtn: {
+    alignSelf: "stretch",
+    paddingVertical: 14,
+    alignItems: "center",
+  },
+  deleteBtnText: { fontSize: 16, fontWeight: "700" },
 });

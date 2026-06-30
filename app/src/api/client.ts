@@ -528,6 +528,13 @@ export async function completePasswordReset(
   return session;
 }
 
+/** Apaga conta e dados no servidor (Apple — exclusão in-app). */
+export async function deleteMyAccount(): Promise<string> {
+  const { data } = await api.delete("me", { timeout: 30000 });
+  const body = unwrap<{ message?: string }>(data);
+  return body.message || "Conta excluída com sucesso.";
+}
+
 export type LegalDoc = "terms" | "privacy" | "refund";
 
 export async function fetchPlansCatalog(): Promise<{

@@ -61,8 +61,8 @@ export default function ForgotPasswordScreen() {
         <View style={styles.inner}>
           <Text style={[styles.logo, { color: colors.text }]}>Recuperar senha</Text>
           <Text style={[styles.sub, { color: colors.textMuted }]}>
-            Se já tem conta, enviamos um link para criar nova senha. Abra no telemóvel, guarde a
-            senha e use Entrar no app.
+            Se já tem conta, enviamos um link de contato@egoai.com.br para criar nova senha. Abra
+            no telemóvel (verifique também o spam), guarde a senha e use Entrar no app.
           </Text>
           <Text style={[styles.subNote, { color: colors.textMuted }]}>
             Se o cadastro falhou antes (erro vermelho), a conta pode não existir — use Criar conta.

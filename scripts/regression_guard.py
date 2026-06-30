@@ -41,6 +41,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "export async function purchaseCompanionEggColor",
             "export async function requestPasswordReset",
             "export async function completePasswordReset",
+            "export async function deleteMyAccount",
         ],
     ),
     (
@@ -219,6 +220,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             '@app.post("/api/v1/auth/forgot-password")',
             '@app.post("/api/v1/auth/reset-password")',
             '@app.get("/auth/reset-password")',
+            '@app.delete("/api/v1/me")',
             '@app.post("/api/v1/reminders")',
             "reminders_dismiss",
             '@app.delete("/api/v1/agenda/<agenda_id>")',
@@ -343,6 +345,14 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     (
         "ego_api/family_pilot.py",
         ["enrich_family_items", "family_event_title_from_item"],
+    ),
+    (
+        "ego_api/account_delete.py",
+        ["delete_user_account", "MSG_DELETE_OK"],
+    ),
+    (
+        "app/app/(main)/account.tsx",
+        ["Excluir minha conta", "deleteMyAccount"],
     ),
 ]
 

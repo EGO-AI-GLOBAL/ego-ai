@@ -173,10 +173,21 @@ def render_reset_password_page(*, api_base: str = "") -> tuple[str, int, dict[st
     h1 {{ margin: 0 0 8px; font-size: 1.35rem; text-align: center; }}
     p {{ margin: 0 0 14px; line-height: 1.5; color: #a8b4cc; font-size: 0.92rem; text-align: center; }}
     label {{ display: block; font-size: 0.82rem; color: #a8b4cc; margin: 12px 0 6px; }}
-    input {{
-      width: 100%; box-sizing: border-box; padding: 12px 14px; border-radius: 10px;
-      border: 1px solid #2a3a5c; background: #0A122A; color: #e8eef8; font-size: 1rem;
+    .pw-field {{
+      display: flex; align-items: center; width: 100%; box-sizing: border-box;
+      border-radius: 10px; border: 1px solid #2a3a5c; background: #0A122A;
     }}
+    .pw-input {{
+      flex: 1; min-width: 0; border: none; background: transparent;
+      padding: 12px 8px 12px 14px; color: #e8eef8; font-size: 1rem; outline: none;
+    }}
+    .pw-toggle {{
+      flex-shrink: 0; width: 44px; height: 44px; border: none; background: transparent;
+      cursor: pointer; color: #a8b4cc; display: flex; align-items: center; justify-content: center;
+      padding: 0; margin-right: 2px;
+    }}
+    .pw-toggle.visible {{ color: #22D3EE; }}
+    .pw-toggle svg {{ width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.8; }}
     .btn {{
       width: 100%; margin-top: 18px; padding: 14px; border: none; border-radius: 12px;
       background: #22D3EE; color: #0A122A; font-weight: 700; font-size: 1rem; cursor: pointer;
@@ -202,9 +213,19 @@ def render_reset_password_page(*, api_base: str = "") -> tuple[str, int, dict[st
       <p>Escolha uma senha com pelo menos 6 caracteres.</p>
       <form id="form">
         <label for="pw">Nova senha</label>
-        <input id="pw" type="password" autocomplete="new-password" minlength="6" required />
+        <div class="pw-field">
+          <input id="pw" class="pw-input" type="password" autocomplete="new-password" minlength="6" required />
+          <button type="button" class="pw-toggle" id="pw-toggle" aria-label="Mostrar senha" title="Mostrar senha">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
         <label for="pw2">Confirmar senha</label>
-        <input id="pw2" type="password" autocomplete="new-password" minlength="6" required />
+        <div class="pw-field">
+          <input id="pw2" class="pw-input" type="password" autocomplete="new-password" minlength="6" required />
+          <button type="button" class="pw-toggle" id="pw2-toggle" aria-label="Mostrar senha" title="Mostrar senha">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z"/><circle cx="12" cy="12" r="3"/></svg>
+          </button>
+        </div>
         <button class="btn" type="submit" id="btn">Guardar senha</button>
       </form>
       <p class="err" id="err" style="display:none"></p>
@@ -249,6 +270,22 @@ def render_reset_password_page(*, api_base: str = "") -> tuple[str, int, dict[st
           if (el) el.style.display = pid === id ? "block" : "none";
         }});
       }}
+
+      function bindPasswordToggle(btnId, inputId) {{
+        var btn = document.getElementById(btnId);
+        var input = document.getElementById(inputId);
+        if (!btn || !input) return;
+        btn.addEventListener("click", function () {{
+          var reveal = input.type === "password";
+          input.type = reveal ? "text" : "password";
+          btn.classList.toggle("visible", reveal);
+          btn.setAttribute("aria-label", reveal ? "Ocultar senha" : "Mostrar senha");
+          btn.setAttribute("title", reveal ? "Ocultar senha" : "Mostrar senha");
+        }});
+      }}
+
+      bindPasswordToggle("pw-toggle", "pw");
+      bindPasswordToggle("pw2-toggle", "pw2");
 
       parseTokens();
       if (tokens.access && tokens.refresh) {{

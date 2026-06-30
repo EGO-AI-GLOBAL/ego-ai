@@ -45,18 +45,80 @@ def signup_duplicate_phone_message(phone_norm: str) -> str:
     return duplicate_phone_message(phone_norm)
 
 
+_AUTH_ERROR_PT: tuple[tuple[str, str], ...] = (
+    (
+        "different from the old password",
+        "A nova senha tem de ser diferente da atual. Escolha outra.",
+    ),
+    (
+        "already registered",
+        "Este e-mail já está cadastrado. Use Entrar ou Esqueci a senha.",
+    ),
+    (
+        "user already exists",
+        "Este e-mail já está cadastrado. Use Entrar ou Esqueci a senha.",
+    ),
+    ("invalid login", "E-mail ou senha incorretos."),
+    ("invalid credentials", "E-mail ou senha incorretos."),
+    (
+        "invalid jwt",
+        "Link expirado ou inválido. Peça um novo e-mail em Esqueci a senha.",
+    ),
+    (
+        "token is invalid",
+        "Link expirado ou inválido. Peça um novo e-mail em Esqueci a senha.",
+    ),
+    (
+        "invalid grant",
+        "Link expirado ou inválido. Peça um novo e-mail em Esqueci a senha.",
+    ),
+    (
+        "expired",
+        "Link expirado ou inválido. Peça um novo e-mail em Esqueci a senha.",
+    ),
+    (
+        "password should be at least",
+        "A senha deve ter pelo menos 6 caracteres.",
+    ),
+    ("weak password", "A senha deve ter pelo menos 6 caracteres."),
+    (
+        "password is known to be weak",
+        "Escolha uma senha mais forte (letras, números e símbolos).",
+    ),
+    ("easy to guess", "Escolha uma senha mais forte (letras, números e símbolos)."),
+    (
+        "rate limit",
+        "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
+    ),
+    (
+        "too many requests",
+        "Muitas tentativas. Aguarde alguns minutos e tente novamente.",
+    ),
+    (
+        "email not confirmed",
+        "Confirme o e-mail antes de entrar. Verifique a caixa de entrada.",
+    ),
+    (
+        "user not found",
+        "Não encontramos conta com este e-mail.",
+    ),
+    (
+        "session not found",
+        "Sessão expirada. Entre de novo ou peça um novo link.",
+    ),
+    ("signup disabled", "Cadastro temporariamente indisponível. Tente mais tarde."),
+    ("invalid email", "E-mail inválido."),
+    ("email address is invalid", "E-mail inválido."),
+)
+
+
 def format_auth_error(exc: BaseException) -> str:
     msg = str(exc).strip()
     low = msg.lower()
-    if "already registered" in low or "user already exists" in low:
-        return "Este e-mail já está cadastrado. Use Entrar ou Esqueci a senha."
-    if "invalid login" in low or "invalid credentials" in low:
-        return "E-mail ou senha incorretos."
-    if "expired" in low or "invalid jwt" in low or "token is invalid" in low:
-        return "Link expirado ou inválido. Peça um novo e-mail em Esqueci a senha."
-    if "password should be at least" in low or "weak password" in low:
-        return "A senha deve ter pelo menos 6 caracteres."
-    return msg or "Erro de autenticação."
+    for needle, pt in _AUTH_ERROR_PT:
+        if needle in low:
+            return pt
+    return "Não foi possível concluir. Tente de novo."
 
 
 def _session_payload(res: object) -> dict[str, Any]:

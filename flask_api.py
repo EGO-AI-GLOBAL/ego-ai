@@ -966,6 +966,19 @@ def me():
     return _json_ok(services.me_payload(g.supabase, g.user_id))
 
 
+@app.delete("/api/v1/me")
+@require_auth
+@rate_limit(5, 3600, scope="user")
+def me_delete():
+    """Exclusão de conta in-app (Apple Guideline 5.1.1)."""
+    from ego_api.account_delete import MSG_DELETE_OK, delete_user_account
+
+    ok, err = delete_user_account(g.user_id)
+    if not ok:
+        return _json_error(err or "Não foi possível excluir a conta.", 400)
+    return _json_ok({"deleted": True, "message": MSG_DELETE_OK})
+
+
 @app.get("/api/v1/chat/messages")
 @require_auth
 def chat_list():
