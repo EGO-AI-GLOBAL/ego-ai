@@ -1,0 +1,17 @@
+EGO-AI 1.0.63 — nota para testadores (build 103 Android / iOS 52)
+==================================================================
+
+Olá! Correção principal: **voz no iPhone e Android**.
+
+🎤 VOZ — testem primeiro
+• Toque no microfone → fale 2–3 segundos
+• O botão **vira seta ↑** no mesmo sítio
+• Toque na seta para enviar
+
+(Herdado da 1.0.62: Bolso «Falar disso», Jardim streak, parabéns no chat.)
+
+Como atualizar
+• Android: https://play.google.com/apps/testing/com.egoai.app
+• iPhone TestFlight: https://testflight.apple.com/join/eNDKdFWF
+
+Obrigado!

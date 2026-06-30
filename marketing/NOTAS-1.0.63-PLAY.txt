@@ -1,0 +1,17 @@
+NOTAS VERSÃO 1.0.63 — TestFlight / Play (teste fechado)
+=====================================================
+iOS build 52 · Android versionCode 103
+
+CURTO (O que há de novo)
+------------------------
+Voz corrigida iOS e Android: toque no microfone, fale, o botão vira seta ↑ no mesmo sítio — toque na seta para enviar. Inclui Bolso e Monstrinhos da 1.0.62.
+
+O QUE TESTAR
+------------
+1. Atualizar para **1.0.63** (iOS build **52** · Android **103**)
+2. **Voz:** mic → falar 3 s → seta ↑ → avatar responde (iPhone e Android)
+3. Bolso «Falar disso» · Monstrinhos streak (herdado 1.0.62)
+
+TEXTO CURTO — Play / TestFlight
+--------------------------------
+1.0.63: voz corrigida (mic vira seta, iOS+Android). Bolso e Jardim da versão anterior.
