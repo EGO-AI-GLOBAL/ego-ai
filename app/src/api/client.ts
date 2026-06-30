@@ -872,10 +872,10 @@ function withVoiceSendTimeout<T>(promise: Promise<T>, label = "Envio de voz"): P
   ]);
 }
 
-/** Android: cópia para cache evita URI temporária inválida após stopAndUnloadAsync. */
+/** Cópia para cache evita URI temporária inválida após parar a gravação (iOS + Android). */
 async function stabilizeVoiceUri(uri: string): Promise<string> {
   const src = (uri || "").trim();
-  if (!src || Platform.OS !== "android") return src;
+  if (!src || Platform.OS === "web") return src;
   const dir = FileSystem.cacheDirectory;
   if (!dir) return src;
   const dest = `${dir}ego_voice_${Date.now()}.m4a`;
