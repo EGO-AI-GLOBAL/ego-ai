@@ -12,7 +12,6 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Switch,
   Text,
   View,
 } from "react-native";
@@ -88,7 +87,6 @@ import {
   markChatOnboardingDone,
 } from "@/storage/chatOnboarding";
 import { appendLocalAssistantMessage } from "@/storage/chatHistoryLocal";
-import { loadAutoPlayVoice, saveAutoPlayVoice } from "@/storage/chatPrefs";
 import { iosSafariMicHelpMessage } from "@/utils/webVoiceCapture";
 import {
   clearPdfContext,
@@ -145,7 +143,6 @@ function ChatScreenInner() {
   const [chatError, setChatError] = useState<string | null>(null);
   const [chatNotice, setChatNotice] = useState<string | null>(null);
   const [pendingChat, setPendingChat] = useState<ChatMessage[]>([]);
-  const [autoPlayVoice, setAutoPlayVoice] = useState(false);
   const [lastChatResult, setLastChatResult] = useState<SendChatResult | null>(null);
   const [scheduleBannerDismissed, setScheduleBannerDismissed] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);
@@ -182,10 +179,6 @@ function ChatScreenInner() {
   useEffect(() => {
     const id = requestAnimationFrame(() => setWidgetsReady(true));
     return () => cancelAnimationFrame(id);
-  }, []);
-
-  useEffect(() => {
-    void loadAutoPlayVoice().then(setAutoPlayVoice);
   }, []);
 
   useEffect(() => {
@@ -270,12 +263,6 @@ function ChatScreenInner() {
   } = useLocalChatHistory(userId, data.messages);
   const onboardingSeedRef = useRef(false);
   const micBusyRef = useRef(false);
-  const micStartingRef = useRef(false);
-  const micLastTapRef = useRef(0);
-  /** Bloqueia seta ↑ logo após o mic (Android: mesmo pixel, envio fantasma). */
-  const micSuppressSendUntilRef = useRef(0);
-  const voiceSendArmTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [voiceSendArmed, setVoiceSendArmed] = useState(false);
   const messagesScrollRef = useRef<ScrollView>(null);
   /** Se true, mantém o scroll no fim ao crescer o histórico (entrada no chat / nova msg). */
   const stickToBottomRef = useRef(true);
@@ -303,34 +290,6 @@ function ChatScreenInner() {
     void voice.stopPlayback();
     setLastChatResult(null);
   }, [persona.avatar_id, persona.voice_id, voice.stopPlayback]);
-
-  /** Seta ↑ só depois do 1.º toque no mic terminar — evita envio no mesmo gesto (Android + iOS). */
-  useEffect(() => {
-    if (!voice.isRecording && !voice.micSessionActive) {
-      setVoiceSendArmed(false);
-      micSuppressSendUntilRef.current = 0;
-      if (voiceSendArmTimerRef.current) {
-        clearTimeout(voiceSendArmTimerRef.current);
-        voiceSendArmTimerRef.current = null;
-      }
-      return;
-    }
-    if (voice.isRecording) {
-      setVoiceSendArmed(false);
-      micSuppressSendUntilRef.current = Date.now() + 750;
-      if (voiceSendArmTimerRef.current) clearTimeout(voiceSendArmTimerRef.current);
-      voiceSendArmTimerRef.current = setTimeout(() => {
-        setVoiceSendArmed(true);
-        voiceSendArmTimerRef.current = null;
-      }, 750);
-    }
-    return () => {
-      if (voiceSendArmTimerRef.current) {
-        clearTimeout(voiceSendArmTimerRef.current);
-        voiceSendArmTimerRef.current = null;
-      }
-    };
-  }, [voice.isRecording, voice.micSessionActive]);
 
   const profile = data.me?.profile as Record<string, unknown> | undefined;
 
@@ -630,8 +589,8 @@ function ChatScreenInner() {
       await markChatOnboardingDone(userId);
       stickToBottomRef.current = true;
       scrollMessagesToEnd(true);
-
-      setChatNotice("Leia a mensagem de boas-vindas acima. Toque em «Ouvir resposta» para ouvir.");
+      voice.unlockWebPlayback();
+      void voice.replayLastText(speech, persona.voice_id, persona.avatar_id);
     })();
   }, [
     localChatReady,
@@ -697,17 +656,12 @@ function ChatScreenInner() {
     }
   }, [scrollMessagesToEnd]);
 
-  const playVoice = async (
-    result: SendChatResult,
-    opts?: { manual?: boolean }
-  ) => {
+  /** Voz do avatar: foto parada → vídeo enquanto o TTS toca. Sem toggle. */
+  const playVoice = async (result: SendChatResult) => {
     setLastChatResult(result);
     voice.unlockWebPlayback();
-    if (!opts?.manual && !autoPlayVoice) {
-      return;
-    }
     await voice.stopPlayback();
-    setChatNotice("A preparar áudio…");
+    setChatNotice(null);
     setChatError(null);
     const err = await voice.playReplyAudio(
       result,
@@ -715,25 +669,7 @@ function ChatScreenInner() {
       persona.avatar_id
     );
     if (err) {
-      setChatNotice(null);
       setChatError(err);
-      return;
-    }
-    setChatNotice(null);
-  };
-
-  const onListenLastReply = async () => {
-    if (!lastChatResult?.reply?.trim()) return;
-    await voice.stopPlayback();
-    await playVoice(lastChatResult, { manual: true });
-  };
-
-  const onAutoPlayVoiceChange = (enabled: boolean) => {
-    setAutoPlayVoice(enabled);
-    void saveAutoPlayVoice(enabled);
-    if (!enabled) {
-      void voice.stopPlayback();
-      setChatNotice(null);
     }
   };
 
@@ -803,13 +739,12 @@ function ChatScreenInner() {
         "Se for contrato ou relatório, destaque datas, valores e obrigações relevantes.";
 
   const onMicPressIn = async () => {
-    if (sending || micBusyRef.current || micStartingRef.current) return;
+    if (sending || micBusyRef.current) return;
     if (!session) {
       setChatError("Sessão expirada. Faça login de novo para usar o microfone.");
       return;
     }
     if (micActive) return;
-    micStartingRef.current = true;
     setChatError(null);
     setChatNotice(null);
     try {
@@ -820,19 +755,25 @@ function ChatScreenInner() {
         setChatNotice("A ouvir… toque ↑ para enviar.");
       } else if (voice.webMicMode === "recorder") {
         setChatNotice("A gravar… toque na seta ↑ para enviar.");
-      } else {
-        setChatNotice("A gravar… toque na seta ↑ para enviar.");
       }
     } catch (e) {
       setChatError(e instanceof Error ? e.message : "Microfone indisponível.");
-    } finally {
-      micStartingRef.current = false;
     }
   };
 
   const onMicPressOut = async () => {
-    if (!micActive || micBusyRef.current || sending) return;
+    if (!micActive || micBusyRef.current) return;
+    if (!voice.isRecording) {
+      const ready = await voice.waitForRecording(2500);
+      if (!ready) {
+        await voice.cancelRecording();
+        setChatNotice(null);
+        setChatError("Microfone não iniciou. Toque no microfone, fale 2s e toque na seta ↑.");
+        return;
+      }
+    }
     micBusyRef.current = true;
+    voice.unlockWebPlayback();
     setChatError(null);
     setChatNotice("A ouvir o áudio…");
     setSending(true);
@@ -841,25 +782,6 @@ function ChatScreenInner() {
       { role: "assistant", content: "…" },
     ]);
     try {
-      if (!voice.isRecording) {
-        const ready = await voice.waitForRecording(2500);
-        if (!ready) {
-          await voice.cancelRecording();
-          setChatNotice(null);
-          setChatError("Microfone não iniciou. Toque no microfone, fale 2s e toque na seta ↑.");
-          setPendingChat([]);
-          return;
-        }
-      }
-      const elapsed = voice.getRecordingElapsedMs();
-      if (elapsed < 900) {
-        await voice.cancelRecording();
-        setChatNotice(null);
-        setChatError("Fale pelo menos 2 segundos e toque na seta ↑ para enviar.");
-        setPendingChat([]);
-        return;
-      }
-      voice.unlockWebPlayback();
       if (nightDumpMode) {
         setChatNotice("A processar desabafo…");
         const raw = await voice.stopRecordingRaw();
@@ -878,9 +800,7 @@ function ChatScreenInner() {
         setPendingChat([]);
         setNightDumpMode(false);
         finishNightDump(dump);
-        if (autoPlayVoice) {
-          await voice.replayLastText(reply, persona.voice_id, persona.avatar_id);
-        }
+        await voice.replayLastText(reply, persona.voice_id, persona.avatar_id);
         return;
       }
       const result = await voice.stopRecordingAndSend(false, historyForApi(), {
@@ -914,12 +834,15 @@ function ChatScreenInner() {
       );
       setPendingChat([]);
       setLastChatResult(result);
+      setSending(false);
       if (result.voice_engine === "openai_realtime") {
         setChatNotice("Resposta em voz reproduzida.");
-      } else {
-        void playVoice(result, { manual: true }).catch((e) => {
+      } else if (result.reply?.trim()) {
+        try {
+          await playVoice(result);
+        } catch (e) {
           setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
-        });
+        }
       }
     } catch (e) {
       await voice.cancelRecording();
@@ -938,7 +861,7 @@ function ChatScreenInner() {
   };
 
   const onMicPress = async () => {
-    if (sending || micBusyRef.current || micStartingRef.current) return;
+    if (sending || micBusyRef.current) return;
     if (!session) {
       setChatError("Sessão expirada. Faça login de novo para usar o microfone.");
       return;
@@ -954,15 +877,14 @@ function ChatScreenInner() {
       return;
     }
 
-    // Já a gravar: só lembrar a seta ↑ (nunca enviar com 2.º toque no microfone).
     if (micActive) {
-      setChatNotice("A gravar… toque na seta ↑ para enviar.");
+      if (voice.isRecording) {
+        await onMicPressOut();
+      } else {
+        setChatNotice("A preparar microfone… aguarde um instante.");
+      }
       return;
     }
-
-    const now = Date.now();
-    if (now - micLastTapRef.current < 500) return;
-    micLastTapRef.current = now;
 
     await onMicPressIn();
   };
@@ -1005,7 +927,7 @@ function ChatScreenInner() {
         await saveExchange(userLabel, result.reply);
         setPendingChat([]);
         setLastChatResult(result);
-        if (autoPlayVoice || opts?.forceVoice) {
+        if (opts?.forceVoice) {
           void playVoice(result).catch((e) => {
             setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
           });
@@ -1027,7 +949,6 @@ function ChatScreenInner() {
       session,
       micActive,
       onMicPressOut,
-      autoPlayVoice,
       applyChatResult,
       afterChatSaved,
       saveExchange,
@@ -1057,12 +978,8 @@ function ChatScreenInner() {
       ritualPendingRef.current = null;
       if (ritual === "evening") {
         startNightDump();
-        if (!autoPlayVoice) {
-          setAutoPlayVoice(true);
-          void saveAutoPlayVoice(true);
-        }
         const intro =
-          "Desabafo agora: segure o microfone ou escreva. Depois confirme na Agenda (Agendar / Excluir).";
+          "Desabafo agora: use o microfone ou escreva. Depois confirme na Agenda (Agendar / Excluir).";
         setChatNotice(intro);
         return;
       }
@@ -1077,10 +994,6 @@ function ChatScreenInner() {
         evening: "Desabafo",
       };
       const prompt = ritualChatPrompt(ritual, assistantName, persona.avatar_id);
-      if (ritual === "morning" && !autoPlayVoice) {
-        setAutoPlayVoice(true);
-        void saveAutoPlayVoice(true);
-      }
       await sendMessageText(prompt, labels[ritual], { forceVoice: ritual === "morning" });
     })();
   }, [
@@ -1089,17 +1002,11 @@ function ChatScreenInner() {
     sending,
     assistantName,
     sendMessageText,
-    autoPlayVoice,
     startNightDump,
   ]);
 
   const onSendText = async () => {
     if (voice.isRecording || voice.micSessionActive) {
-      if (sending || micBusyRef.current) return;
-      if (!voiceSendArmed || Date.now() < micSuppressSendUntilRef.current) {
-        setChatNotice("A gravar… aguarde a seta ↑ e fale pelo menos 2 segundos.");
-        return;
-      }
       await onMicPressOut();
       return;
     }
@@ -1143,9 +1050,7 @@ function ChatScreenInner() {
         setNightDumpMode(false);
         setPendingChat([]);
         finishNightDump(dump);
-        if (autoPlayVoice) {
-          await voice.replayLastText(reply, persona.voice_id, persona.avatar_id);
-        }
+        await voice.replayLastText(reply, persona.voice_id, persona.avatar_id);
       } catch (e) {
         setPendingChat([]);
         setChatNotice(null);
@@ -1195,7 +1100,7 @@ function ChatScreenInner() {
               isListening={
                 voice.isPhoneCall
                   ? voice.isUserSpeaking && !voice.isSpeaking && !voice.isAssistantThinking
-                  : micActive && !voice.isSpeaking
+                  : voice.isRecording && !voice.isSpeaking
               }
               isThinking={
                 (voice.isPhoneCall && voice.isAssistantThinking) ||
@@ -1216,19 +1121,6 @@ function ChatScreenInner() {
               onSaved={onPersonaSaved}
             />
           </ChatWidgetErrorBoundary>
-          <View style={styles.voiceControls}>
-            <View style={styles.voiceToggleRow}>
-              <Text style={[styles.voiceLabel, { color: colors.textMuted }]}>
-                Ouvir ao responder
-              </Text>
-              <Switch
-                value={autoPlayVoice}
-                onValueChange={onAutoPlayVoiceChange}
-                trackColor={{ true: colors.primaryLight, false: colors.border }}
-                thumbColor={autoPlayVoice ? colors.primary : "#e4e4e7"}
-              />
-            </View>
-          </View>
           {audioStatusLabel ? (
             <Text style={[styles.audioStatus, { color: colors.primary }]}>
               {audioStatusLabel}
@@ -1436,29 +1328,6 @@ function ChatScreenInner() {
                   Desabafo agora
                 </Text>
               </Pressable>
-              <Pressable
-                onPress={() => void onListenLastReply()}
-                disabled={!lastChatResult?.reply || voice.isPreparingAudio || sending}
-                style={({ pressed }) => [
-                  styles.actionChip,
-                  {
-                    borderColor: colors.primary,
-                    backgroundColor: colors.bgCard,
-                    opacity:
-                      !lastChatResult?.reply || voice.isPreparingAudio || sending
-                        ? 0.45
-                        : pressed
-                          ? 0.88
-                          : 1,
-                  },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel="Ouvir resposta do assistente"
-              >
-                <Text style={[styles.actionChipText, { color: colors.primary }]}>
-                  {voice.isPreparingAudio ? "A preparar…" : "Ouvir"}
-                </Text>
-              </Pressable>
             </View>
             {nightDumpMode ? (
               <View
@@ -1537,8 +1406,7 @@ function ChatScreenInner() {
             sending={sending || trialExpired}
             isRecording={voice.isRecording}
             micSessionActive={voice.micSessionActive}
-            voiceReady={voice.isRecording && voiceSendArmed && !trialExpired}
-            voiceSendArmed={voiceSendArmed}
+            voiceReady={voice.isRecording && !trialExpired}
             onMicPress={onMicPress}
             onPdfPress={() => onDocPress()}
             pdfLoading={pdfLoading}
@@ -1590,14 +1458,6 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     gap: 8,
   },
-  listenBtnInline: {
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    borderRadius: 999,
-    borderWidth: 1,
-    flexShrink: 0,
-  },
-  listenBtnInlineText: { fontSize: 12, fontWeight: "700" },
   actionChip: {
     paddingVertical: 8,
     paddingHorizontal: 14,
@@ -1622,18 +1482,6 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 12,
   },
-  voiceControls: {
-    width: "100%",
-    alignItems: "center",
-    gap: 8,
-    marginBottom: 4,
-  },
-  voiceToggleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 10,
-  },
   voiceActionsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1642,7 +1490,6 @@ const styles = StyleSheet.create({
     gap: 8,
     maxWidth: "100%",
   },
-  voiceLabel: { fontSize: 13, fontWeight: "500" },
   audioStatus: {
     fontSize: 12,
     fontWeight: "600",

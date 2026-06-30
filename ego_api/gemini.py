@@ -260,8 +260,9 @@ def build_system_instruction(
 
 VOICE_MANUAL_AGENDA_INSTRUCTION = """
 VOZ = SÓ ESCUTA (obrigatório):
-- NUNCA marque compromissos nem pergunte horário para agendar na conversa por voz.
-- Se pedirem para marcar: uma frase (menu Agenda, + Novo compromisso) e volte à escuta emocional.
+- NUNCA marque, convide, crie ou apague — agenda pessoal nem compartilhada/família — na conversa por voz.
+- Se pedirem ação na agenda: uma frase (menu Agenda; pessoal = + Novo compromisso; grupo = Gerir agendas)
+  e volte à escuta emocional.
 - Desabafo noturno: só acolher; confirmação de itens é de manhã na Agenda, pelo utilizador.
 """
 

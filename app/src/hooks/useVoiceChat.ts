@@ -183,7 +183,7 @@ function speakWithWebSpeech(
         } else {
           reject(
             new Error(
-              "Voz masculina indisponível no Safari. Toque em «Ouvir resposta» para usar o áudio do servidor."
+              "Voz masculina indisponível no Safari. O áudio da resposta será reproduzido pelo servidor."
             )
           );
           return;
@@ -572,6 +572,7 @@ export function useVoiceChat() {
         return "Resposta vazia.";
       }
 
+      setIsSpeaking(true);
       const speed = audioSpeedRef.current;
       const wantMale =
         resolvedVoice.startsWith("vm") || resolvedVoice.startsWith("pvm");
@@ -610,7 +611,7 @@ export function useVoiceChat() {
 
         if (isWeb && wantMale) {
           setIsSpeaking(false);
-          return `${fetchMsg} Toque em «Ouvir resposta» (áudio masculino do servidor).`;
+          return `${fetchMsg} Áudio masculino do servidor em uso.`;
         }
 
         try {
@@ -620,7 +621,7 @@ export function useVoiceChat() {
               : speakWithDeviceTts(reply, resolvedVoice, avatarId, speed)
           );
           if (isWeb) {
-            return "Toque em «Ouvir resposta» se não ouvir o som.";
+            return "Se não ouvir o som, verifique o volume do dispositivo.";
           }
           return result.tts_error
             ? `${result.tts_error} — voz do dispositivo.`
@@ -810,11 +811,6 @@ export function useVoiceChat() {
       recordingRef.current = null;
       setMicSessionActive(false);
       await safeStopNativeRecording(rec);
-      const uri = rec.getURI();
-      if (!uri) {
-        throw new Error("Gravação vazia.");
-      }
-      const audioMime = mimeFromUri(uri);
       const Audio = getExpoAudio();
       if (Audio) {
         await Audio.setAudioModeAsync({
@@ -824,13 +820,33 @@ export function useVoiceChat() {
           playThroughEarpieceAndroid: false,
         });
       }
-      // Android: JSON/base64 + fallbacks em sendChatVoiceFromUri (ficheiro completo após stop).
-      return await sendChatVoiceFromUri({
-        uri,
-        audioMime,
-        speak,
-        history: hist,
-      });
+      const uri = rec.getURI();
+      if (!uri) {
+        throw new Error("Gravação vazia.");
+      }
+      const audioMime = mimeFromUri(uri);
+      try {
+        return await sendChatVoiceFromUri({
+          uri,
+          audioMime,
+          speak,
+          history: hist,
+        });
+      } catch (multipartErr) {
+        const audioBase64 = await FileSystem.readAsStringAsync(uri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+        try {
+          return await sendChatVoiceMessage({
+            audioBase64,
+            audioMime,
+            speak,
+            history: hist,
+          });
+        } catch {
+          throw multipartErr;
+        }
+      }
     },
     [finishWebRecording]
   );

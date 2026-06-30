@@ -161,7 +161,7 @@ function NativeSpeakingVideo({
     }
   }, [speaking, videoReady, videoUri, loadError, syncPlayback]);
 
-  const showVideo = speaking && Boolean(videoUri) && videoReady && !loadError;
+  const showVideo = speaking && Boolean(videoUri) && !loadError;
 
   const onVideoReady = useCallback(() => {
     setVideoReady(true);
@@ -325,7 +325,7 @@ export function SpeakingAvatar({
       : speaking
         ? `${name} está falando…`
         : null;
-  const showVideo = speaking && Boolean(videoUri) && videoReady;
+  const showVideo = speaking && Boolean(videoUri) && !loadError;
   const frameBorderColor =
     thinking || listening || speaking ? colors.primarySoft : colors.border;
 

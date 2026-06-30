@@ -911,16 +911,22 @@ def process_chat_message(
                 "access": db.build_plan_access_payload(supabase, user_id, prof),
             }, None
 
-    # Chat sem agenda: pedido de marcação → redireciona à aba Agenda (sem LLM).
+    # Chat sem agenda: qualquer ação na agenda → redireciona à aba (sem LLM).
+    # «Como usar a agenda?» é tutorial — não confundir com pedido de marcação.
+    from ego_api.app_guide import (
+        looks_like_any_agenda_action_intent,
+        manual_agenda_redirect_reply,
+    )
+
     if (
         not chat_agenda
         and not casual
         and schedule_text
-        and cs.looks_like_schedule_intent(schedule_text)
+        and looks_like_any_agenda_action_intent(schedule_text)
     ):
-        from ego_api.app_guide import manual_agenda_redirect_reply
-
-        reply_redirect = manual_agenda_redirect_reply()
+        reply_redirect = manual_agenda_redirect_reply(
+            schedule_text, supabase=supabase, user_id=user_id
+        )
         mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
         cs.save_chat_schedule(supabase, user_id, prof, None)
         mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_redirect)

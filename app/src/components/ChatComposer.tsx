@@ -38,8 +38,6 @@ type Props = {
   onMicPressOut?: () => void;
   onMicPress?: () => void;
   voiceReady?: boolean;
-  /** true só depois do 1.º toque no mic terminar — evita seta no mesmo gesto (Android + iOS). */
-  voiceSendArmed?: boolean;
   error?: string | null;
   notice?: string | null;
   onPdfPress?: () => void;
@@ -107,7 +105,6 @@ export function ChatComposer({
   micSessionActive,
   onMicPress,
   voiceReady = true,
-  voiceSendArmed,
   error,
   notice,
   onPdfPress,
@@ -123,12 +120,10 @@ export function ChatComposer({
   const bottomPad = Math.max(insets.bottom, isWeb ? 12 : 8);
   const hasText = value.trim().length > 0;
   const voiceUiActive = Boolean(isRecording || micSessionActive);
-  const sendArmed = voiceSendArmed !== false;
-  const showSend = hasText || (voiceUiActive && sendArmed);
-  const showMic = !hasText && (!voiceUiActive || !sendArmed) && !sending;
-  /** Durante gravação: ↑ activo só quando sendArmed (evita envio fantasma no Android). */
-  const sendDisabled =
-    sending || (!voiceUiActive && !hasText) || (voiceUiActive && !sendArmed);
+  const showSend = hasText || voiceUiActive;
+  const showMic = !showSend && !sending;
+  /** Durante gravação: ↑ sempre activo (voiceReady só informativo). */
+  const sendDisabled = sending || (!voiceUiActive && !hasText);
 
   const onMicTap = () => {
     if (sending) return;
