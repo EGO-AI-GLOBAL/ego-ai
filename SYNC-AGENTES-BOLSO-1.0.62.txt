@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO — BUILD 1.0.62
 ====================================
 
-Estado: ✅ PRONTO — commit PENDING
+Estado: ✅ PRONTO — commit 773005d
 
 Zona: Bolso chat UX — «Falar disso», confetti missão, copy semanal
 Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
@@ -26,3 +26,7 @@ GIT CHECK
 BUILD
 -----
 Monstrinhos: PREPARAR-1.0.62.bat → GERAR-1.0.62.bat
+
+MENSAGEM
+--------
+✅ BOLSO PRONTO — 773005d — build 1.0.62
