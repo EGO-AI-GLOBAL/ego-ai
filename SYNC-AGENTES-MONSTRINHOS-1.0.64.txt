@@ -11,4 +11,4 @@ app.config.ts: 1.0.64 · Android 104 · iOS 53 (EAS autoIncrement)
 
 Scripts: PREPARAR / GERAR / AGUARDAR-1.0.64.bat · builds-1.0.64.ids.json
 
-GIT: (commit desta release)
+GIT: 44ebfe3
