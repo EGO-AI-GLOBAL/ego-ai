@@ -138,11 +138,11 @@ def queue_build(platform: str) -> str:
     )
     out = (proc.stdout or "") + "\n" + (proc.stderr or "")
     if proc.returncode != 0:
-        print(out)
+        _safe_print(out)
         raise SystemExit(proc.returncode)
     match = BUILD_ID_RE.search(out)
     if not match:
-        print(out)
+        _safe_print(out)
         raise SystemExit(f"Não achei build id no output {platform}")
     build_id = match.group(1)
     print(f"  {platform} -> {build_id}")
@@ -246,6 +246,11 @@ def main() -> int:
     w.add_argument("--android", help="Build ID Android")
     w.add_argument("--ids-file", help="Ficheiro com ios/android ids")
     w.add_argument("--poll", type=int, default=60)
+    w.add_argument(
+        "--ios-only",
+        action="store_true",
+        help="Espera ambos builds mas submete só iOS (TestFlight)",
+    )
 
     args = parser.parse_args()
 
@@ -277,6 +282,18 @@ def main() -> int:
         ios_id, android_id = load_ids(ids_path)
 
     wait_both(ios_id, android_id, poll_sec=args.poll)
+    if getattr(args, "ios_only", False):
+        print("Submetendo só iOS (TestFlight) — Android fica para depois do teste no iPhone.")
+        proc_ios = _run(
+            ["eas", "submit", "--platform", "ios", "--id", ios_id, "--non-interactive"]
+        )
+        if proc_ios.returncode != 0:
+            _safe_print(proc_ios.stdout or "")
+            print(proc_ios.stderr, file=sys.stderr)
+            raise SystemExit(proc_ios.returncode)
+        _safe_print(proc_ios.stdout or "")
+        print("Submit iOS concluído. Android: rode submit manual quando iPhone OK.")
+        return 0
     submit_pair(ios_id, android_id)
     return 0
 

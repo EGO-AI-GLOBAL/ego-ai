@@ -411,6 +411,7 @@ export function useVoiceChat() {
   const [isRecording, setIsRecording] = useState(false);
   const [micSessionActive, setMicSessionActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isPreparingAudio, setIsPreparingAudio] = useState(false);
   const [audioSpeed, setAudioSpeedState] = useState<AudioPlaybackSpeed>(1);
   const recordingRef = useRef<import("expo-av").Audio.Recording | null>(null);
   const webRecorderRef = useRef<WebRecorderState | null>(null);
@@ -512,11 +513,11 @@ export function useVoiceChat() {
         throw new Error("Áudio vazio.");
       }
       const rate = audioSpeedRef.current;
-      setIsSpeaking(true);
-      await stopPlayback({ keepSpeaking: true });
+      await stopPlayback();
       try {
         if (isWeb) {
           unlockWebAudioPlayback();
+          setIsSpeaking(true);
           try {
             await playWebBase64(b64, mime, rate, webAudioRef);
           } finally {
@@ -546,6 +547,7 @@ export function useVoiceChat() {
         const { sound } = await Audio.Sound.createAsync({ uri: path });
         soundRef.current = sound;
         await sound.setRateAsync(rate, true);
+        setIsSpeaking(true);
         await new Promise<void>((resolve, reject) => {
           const safety = setTimeout(() => resolve(), 120_000);
           sound.setOnPlaybackStatusUpdate((status) => {
@@ -581,7 +583,6 @@ export function useVoiceChat() {
         return "Resposta vazia.";
       }
 
-      setIsSpeaking(true);
       const speed = audioSpeedRef.current;
       const wantMale =
         resolvedVoice.startsWith("vm") || resolvedVoice.startsWith("pvm");
@@ -600,14 +601,25 @@ export function useVoiceChat() {
       };
 
       try {
+        if (await tryEmbeddedTts()) {
+          return null;
+        }
+      } catch {
+        /* segue para /tts */
+      }
+
+      setIsPreparingAudio(true);
+      try {
         const { audio_base64, mime } = await fetchTtsAudio(
           reply,
           resolvedVoice,
           avatarId
         );
+        setIsPreparingAudio(false);
         await playBase64Audio(audio_base64, mime || "audio/mpeg");
         return null;
       } catch (fetchErr) {
+        setIsPreparingAudio(false);
         const fetchMsg =
           fetchErr instanceof Error ? fetchErr.message : "Erro ao gerar áudio.";
         try {
@@ -955,7 +967,7 @@ export function useVoiceChat() {
     setAudioSpeed,
     webMicMode: isWeb ? webMicMode() : ("native" as const),
     isPhoneCall: false,
-    isPreparingAudio: false,
+    isPreparingAudio,
     isAssistantThinking: false,
     isUserSpeaking: false,
     activeVoiceMode: "recorder" as const,

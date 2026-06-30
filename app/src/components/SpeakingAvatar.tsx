@@ -315,7 +315,7 @@ export function SpeakingAvatar({
       : speaking
         ? `${name} está falando…`
         : null;
-  const showVideo = speaking && Boolean(videoUri) && !loadError;
+  const showVideo = speaking && Boolean(videoUri);
   const frameBorderColor =
     thinking || listening || speaking ? colors.primarySoft : colors.border;
 

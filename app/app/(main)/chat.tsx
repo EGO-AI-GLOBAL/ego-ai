@@ -271,7 +271,14 @@ function ChatScreenInner() {
   const keyboardBottomInset = keyboard.bottomInset;
   const keyboardOpen = keyboardHeight > 0;
   const micActive = voice.isRecording || voice.micSessionActive || voice.isPhoneCall;
-  const personaBusy = sending || micActive || voice.isSpeaking;
+  const personaBusy =
+    sending || micActive || voice.isSpeaking || voice.isPreparingAudio;
+  const showAvatarSection =
+    !keyboardOpen ||
+    sending ||
+    micActive ||
+    voice.isPreparingAudio ||
+    voice.isSpeaking;
   const audioStatusLabel = voice.isPhoneCall
     ? voice.isSpeaking
       ? "Em chamada — a falar…"
@@ -280,11 +287,13 @@ function ChatScreenInner() {
         : voice.isUserSpeaking
           ? "Em chamada — a ouvir…"
           : "Em chamada — fale quando quiser"
-    : voice.isPreparingAudio
-      ? "A preparar áudio…"
-      : voice.isSpeaking
-        ? "A falar…"
-        : null;
+    : sending
+      ? "A pensar…"
+      : voice.isPreparingAudio
+        ? "A preparar áudio…"
+        : voice.isSpeaking
+          ? "A falar…"
+          : null;
 
   useEffect(() => {
     void voice.stopPlayback();
@@ -1078,7 +1087,7 @@ function ChatScreenInner() {
 
   const chatBody = (
     <>
-        {!keyboardOpen ? (
+        {showAvatarSection ? (
         <View
           style={[
             styles.avatarSection,
@@ -1097,11 +1106,15 @@ function ChatScreenInner() {
               isListening={
                 voice.isPhoneCall
                   ? voice.isUserSpeaking && !voice.isSpeaking && !voice.isAssistantThinking
-                  : voice.isRecording && !voice.isSpeaking
+                  : (voice.isRecording || micActive) &&
+                    !voice.isSpeaking &&
+                    !voice.isPreparingAudio &&
+                    !sending
               }
               isThinking={
                 (voice.isPhoneCall && voice.isAssistantThinking) ||
-                (sending && pendingChat.some((m) => m.role === "assistant" && m.content === "…"))
+                voice.isPreparingAudio ||
+                (sending && !voice.isSpeaking && !voice.isPreparingAudio)
               }
               compact
               hideLabel
