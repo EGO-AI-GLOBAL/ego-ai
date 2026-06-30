@@ -832,20 +832,6 @@ function ChatScreenInner() {
 
   const onMicPressOut = async () => {
     if (!micActive || micBusyRef.current || sending) return;
-    if (!voice.isRecording) {
-      const ready = await voice.waitForRecording(2500);
-      if (!ready) {
-        await voice.cancelRecording();
-        setChatNotice(null);
-        setChatError("Microfone não iniciou. Toque no microfone, fale 2s e toque na seta ↑.");
-        return;
-      }
-    }
-    const elapsed = voice.getRecordingElapsedMs();
-    if (elapsed < 900) {
-      setChatNotice("A gravar… fale pelo menos 2 segundos e toque na seta ↑.");
-      return;
-    }
     micBusyRef.current = true;
     setChatError(null);
     setChatNotice("A ouvir o áudio…");
@@ -855,6 +841,24 @@ function ChatScreenInner() {
       { role: "assistant", content: "…" },
     ]);
     try {
+      if (!voice.isRecording) {
+        const ready = await voice.waitForRecording(2500);
+        if (!ready) {
+          await voice.cancelRecording();
+          setChatNotice(null);
+          setChatError("Microfone não iniciou. Toque no microfone, fale 2s e toque na seta ↑.");
+          setPendingChat([]);
+          return;
+        }
+      }
+      const elapsed = voice.getRecordingElapsedMs();
+      if (elapsed < 900) {
+        await voice.cancelRecording();
+        setChatNotice(null);
+        setChatError("Fale pelo menos 2 segundos e toque na seta ↑ para enviar.");
+        setPendingChat([]);
+        return;
+      }
       voice.unlockWebPlayback();
       if (nightDumpMode) {
         setChatNotice("A processar desabafo…");
@@ -910,14 +914,12 @@ function ChatScreenInner() {
       );
       setPendingChat([]);
       setLastChatResult(result);
-      if (autoPlayVoice && result.voice_engine !== "openai_realtime") {
-        void playVoice(result).catch((e) => {
-          setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
-        });
-      } else if (result.voice_engine === "openai_realtime") {
+      if (result.voice_engine === "openai_realtime") {
         setChatNotice("Resposta em voz reproduzida.");
       } else {
-        setChatNotice(null);
+        void playVoice(result, { manual: true }).catch((e) => {
+          setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
+        });
       }
     } catch (e) {
       await voice.cancelRecording();

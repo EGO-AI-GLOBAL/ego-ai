@@ -809,13 +809,12 @@ export function useVoiceChat() {
       setIsRecording(false);
       recordingRef.current = null;
       setMicSessionActive(false);
+      await safeStopNativeRecording(rec);
       const uri = rec.getURI();
       if (!uri) {
-        await safeStopNativeRecording(rec);
         throw new Error("Gravação vazia.");
       }
       const audioMime = mimeFromUri(uri);
-      await safeStopNativeRecording(rec);
       const Audio = getExpoAudio();
       if (Audio) {
         await Audio.setAudioModeAsync({
@@ -867,8 +866,8 @@ export function useVoiceChat() {
     setIsRecording(false);
     recordingRef.current = null;
     setMicSessionActive(false);
-    const uri = rec.getURI();
     await safeStopNativeRecording(rec);
+    const uri = rec.getURI();
     const Audio = getExpoAudio();
     if (Audio) {
       await Audio.setAudioModeAsync({

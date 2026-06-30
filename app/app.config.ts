@@ -17,7 +17,7 @@ if (isProd && apiUrl && !apiUrl.startsWith("https://")) {
 const config: ExpoConfig = {
   name: "Ego-IA",
   slug: "ego-ai",
-  version: "1.0.66",
+  version: "1.0.67",
   orientation: "portrait",
   scheme: "egoai",
   userInterfaceStyle: "automatic",
@@ -32,7 +32,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.egoai.app",
-    buildNumber: "55",
+    buildNumber: "56",
     entitlements: {
       "com.apple.security.application-groups": ["group.com.egoai.app.widget"],
     },
@@ -48,7 +48,7 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    versionCode: 106,
+    versionCode: 107,
     package: "com.egoai.app",
     adaptiveIcon: {
       /** Mesmo PNG do iOS — evita ícone minúsculo dentro do círculo no launcher. */

@@ -1,0 +1,12 @@
+NOTAS VERSÃO 1.0.67 — TestFlight / Play
+=======================================
+iOS build 56 · Android versionCode 107
+
+CURTO — «O que há de novo»
+--------------------------
+Voz corrigida: microfone → falar 2–3 s → seta ↑. O avatar responde em áudio. Correções iOS e Android.
+
+O QUE TESTAR
+------------
+1. Voz iPhone e Android (prioridade)
+2. Texto no chat

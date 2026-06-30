@@ -1,0 +1,6 @@
+EGO-AI 1.0.67 — pronto para build
+=================================
+1. git push origin main
+2. PREPARAR-1.0.67.bat
+3. GERAR-1.0.67.bat
+4. AGUARDAR-E-SUBMETER-1.0.67.bat

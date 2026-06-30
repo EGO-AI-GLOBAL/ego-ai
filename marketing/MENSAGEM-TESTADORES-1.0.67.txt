@@ -1,0 +1,11 @@
+EGO-AI 1.0.67 — VOZ CORRIGIDA
+==============================
+
+Atualize e teste a VOZ:
+• Mic → fale 2–3 s → seta ↑
+• O avatar deve responder em áudio
+
+Android: https://play.google.com/apps/testing/com.egoai.app
+iPhone: https://testflight.apple.com/join/eNDKdFWF
+
+Mande print se falhar. Obrigado!
