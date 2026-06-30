@@ -16,4 +16,4 @@ Antes de GERAR-1.0.62.bat:
 2. TESTAR-VOZ-USB-GRATIS.bat OK (utilizador)
 3. git push com pacote 1.0.62
 
-GIT: (aguarda commit utilizador)
+GIT: e65b701 (bolso chat wiring) + b168380/d60f26a (voz + monstrinhos)

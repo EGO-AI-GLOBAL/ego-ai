@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO — BUILD 1.0.62
 ====================================
 
-Estado: ✅ PRONTO — commit 773005d
+Estado: ✅ PRONTO — commit e65b701
 
 Zona: Bolso chat UX — «Falar disso», confetti missão, copy semanal
 Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
@@ -12,8 +12,8 @@ Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
 
 [x] buildBolsoTalkDraft.ts — draft pré-preenchido da missão
 [x] EgoDeBolsoChatCard — onTalkMission(draft) + celebrate → CompanionSprite
-[x] chat.tsx — setChatInput(draft) + aviso curto (commit pendente — wiring estava em falta)
-[x] chat.tsx — trackJourneyStep: missions_today subiu → bolsoCelebrate ~1.4s (commit pendente)
+[x] chat.tsx — setChatInput(draft) + aviso curto (e65b701)
+[x] chat.tsx — trackJourneyStep: missions_today subiu → bolsoCelebrate ~1.4s (e65b701)
 [x] CompanionWeeklyBar — copy «X/4 dias com 5/5 → +10 estrelas na loja de cores»
 [x] regression_guard.py — símbolos novos
 
