@@ -41,7 +41,7 @@ export function MoodGardenAndroidWidget({ snapshot }: Props) {
             style={{ fontSize: 11, color: "#15803D", marginTop: 6, fontWeight: "600" }}
           />
         ) : null}
-        {snapshot.atRisk ? (
+        {snapshot.atRisk && !snapshot.goalsLine.includes("risco") ? (
           <TextWidget
             text="Sequência em risco"
             style={{ fontSize: 11, color: "#B45309", marginTop: 4, fontWeight: "700" }}
