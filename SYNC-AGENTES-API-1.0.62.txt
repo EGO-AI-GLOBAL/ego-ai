@@ -1,0 +1,26 @@
+AGENTE API & SEGURANÇA — BUILD 1.0.62
+======================================
+Estado: ✅ PRONTO
+
+Release 1.0.62 — sem alteração API nesta release
+
+DIFF ego_api/ + flask_api.py: nenhum (herdado 1.0.61)
+
+PRODUÇÃO (/health) — verificado
+-------------------------------
+ok=true · maintenance=false
+api_build=2026-06-29-1.0.61-signup-auth-recovery
+password_reset_emails.via_brevo_api=true
+monitoring.sentry=true · play_integrity=monitor
+
+TESTES
+------
+[x] regression_guard.py OK
+[x] smoke_test_api.py OK
+
+NÃO TOCADO: auth core · Stripe · limites · EDGE_TTS · app.config.ts
+NÃO CORRI: GERAR / EAS
+
+GIT: (hash após push sync)
+
+✅ API PRONTO — sem alteração API nesta release — Railway OK
