@@ -1070,7 +1070,7 @@ async function sendChatVoiceBase64FromUri(opts: {
   });
 }
 
-/** Android: multipart nativo primeiro (fiável); JSON/base64 como fallback. iOS: nativo primeiro. */
+/** Android: JSON/base64 primeiro (axios + refresh); multipart nativo como fallback. iOS: nativo primeiro. */
 export async function sendChatVoiceFromUri(opts: {
   uri: string;
   audioMime?: string;
@@ -1085,15 +1085,15 @@ export async function sendChatVoiceFromUri(opts: {
 
   if (Platform.OS === "android") {
     try {
-      return await sendChatVoiceFileNative(opts);
-    } catch (nativeErr) {
+      return await sendChatVoiceBase64FromUri(opts);
+    } catch (jsonErr) {
       try {
-        return await sendChatVoiceBase64FromUri(opts);
+        return await sendChatVoiceFileNative(opts);
       } catch {
         try {
           return await sendChatVoiceFile(opts);
         } catch {
-          throw nativeErr;
+          throw jsonErr;
         }
       }
     }

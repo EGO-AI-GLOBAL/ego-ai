@@ -1,0 +1,17 @@
+EGO-AI 1.0.64 — nota para testadores
+======================================
+
+Olá! Correção da **voz** (iPhone e Android).
+
+🎤 VOZ — testem primeiro
+• Toque no microfone → fale 2–3 segundos
+• Toque na **seta ↑** (ou no microfone outra vez) para enviar
+• **Um toque só** na seta — não toquem várias vezes (evita loop)
+
+O que mudou vs 1.0.63: voltámos ao fluxo que já funcionava + trava no envio.
+
+Como atualizar
+• Android: https://play.google.com/apps/testing/com.egoai.app
+• iPhone TestFlight: https://testflight.apple.com/join/eNDKdFWF
+
+Obrigado!

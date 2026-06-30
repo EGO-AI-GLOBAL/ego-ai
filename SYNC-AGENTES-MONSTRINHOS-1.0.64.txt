@@ -1,0 +1,14 @@
+AGENTE MONSTRINHOS — RELEASE 1.0.64 (EAS)
+==========================================
+Estado: ✅ PRONTO — voz revert 1.0.61 + anti-loop
+
+Zona: voz iOS + Android
+• ChatComposer — UI mic/seta como 1.0.61 (dois botões)
+• chat.tsx — 2.º toque no mic envia; trava imediata ao enviar (sem loop)
+• client.ts — Android base64 primeiro (sessão axios)
+
+app.config.ts: 1.0.64 · Android 104 · iOS 53 (EAS autoIncrement)
+
+Scripts: PREPARAR / GERAR / AGUARDAR-1.0.64.bat · builds-1.0.64.ids.json
+
+GIT: (commit desta release)

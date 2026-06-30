@@ -38,8 +38,6 @@ type Props = {
   onMicPressOut?: () => void;
   onMicPress?: () => void;
   voiceReady?: boolean;
-  /** true só depois do 1.º toque terminar — evita seta no mesmo gesto (iOS + Android). */
-  voiceSendReady?: boolean;
   error?: string | null;
   notice?: string | null;
   onPdfPress?: () => void;
@@ -107,7 +105,6 @@ export function ChatComposer({
   micSessionActive,
   onMicPress,
   voiceReady = true,
-  voiceSendReady = false,
   error,
   notice,
   onPdfPress,
@@ -123,24 +120,10 @@ export function ChatComposer({
   const bottomPad = Math.max(insets.bottom, isWeb ? 12 : 8);
   const hasText = value.trim().length > 0;
   const voiceUiActive = Boolean(isRecording || micSessionActive);
-  const showArrow = hasText || (voiceUiActive && voiceSendReady);
+  const showSend = hasText || voiceUiActive;
+  const showMic = !showSend && !sending;
+  /** Durante gravação: ↑ sempre activo (voiceReady só informativo). */
   const sendDisabled = sending || (!voiceUiActive && !hasText);
-  /** Um único botão — mic vira seta no mesmo sítio, sem trocar Pressable (envio fantasma). */
-  const micGestureRef = useRef(false);
-
-  const onTrailingPress = () => {
-    if (sending) return;
-    if (showArrow) {
-      if (micGestureRef.current) {
-        micGestureRef.current = false;
-        return;
-      }
-      if (!sendDisabled) onSend();
-      return;
-    }
-    micGestureRef.current = false;
-    onMicTap();
-  };
 
   const onMicTap = () => {
     if (sending) return;
@@ -239,44 +222,38 @@ export function ChatComposer({
         <View style={styles.trailing}>
           {sending ? (
             <ActivityIndicator color={colors.primary} size="small" />
-          ) : (
+          ) : showSend ? (
             <Pressable
               style={[
                 styles.actionBtn,
-                showArrow || voiceUiActive ? styles.sendCircle : styles.micCircle,
-                {
-                  backgroundColor: showArrow
-                    ? colors.primary
-                    : voiceUiActive
-                      ? colors.primary
-                      : colors.micBg,
-                  borderColor: showArrow || voiceUiActive ? colors.primary : colors.micBg,
-                },
-                showArrow && sendDisabled && styles.actionDisabled,
+                styles.sendCircle,
+                { backgroundColor: colors.primary },
+                sendDisabled && styles.actionDisabled,
               ]}
-              onPressIn={() => {
-                if (!voiceUiActive && !hasText) micGestureRef.current = true;
-              }}
-              onPress={onTrailingPress}
-              disabled={sending || (showArrow && sendDisabled)}
+              onPress={onSend}
+              disabled={sendDisabled || sending}
               accessibilityRole="button"
               accessibilityLabel={
-                showArrow
-                  ? voiceUiActive
-                    ? "Enviar mensagem de voz"
-                    : "Enviar mensagem"
-                  : voiceUiActive
-                    ? "A gravar — aguarde a seta para enviar"
-                    : "Microfone — toque para gravar"
+                voiceUiActive ? "Enviar mensagem de voz" : "Enviar mensagem"
               }
             >
-              <Ionicons
-                name={showArrow ? "arrow-up" : "mic"}
-                size={showArrow ? 22 : 26}
-                color="#fff"
-              />
+              <Ionicons name="arrow-up" size={22} color="#fff" />
             </Pressable>
-          )}
+          ) : showMic ? (
+            <Pressable
+              style={[
+                styles.actionBtn,
+                styles.micCircle,
+                { backgroundColor: colors.micBg, borderColor: colors.micBg },
+              ]}
+              onPress={onMicTap}
+              disabled={sending}
+              accessibilityRole="button"
+              accessibilityLabel="Microfone — toque para falar"
+            >
+              <Ionicons name="mic" size={26} color="#fff" />
+            </Pressable>
+          ) : null}
         </View>
       </View>
       </View>
@@ -284,11 +261,9 @@ export function ChatComposer({
 
       {voiceUiActive ? (
         <Text style={[styles.recordingHint, { color: colors.primary }]}>
-          {!voiceSendReady
-            ? "A gravar… fale agora"
-            : voiceReady
-              ? "A gravar… toque na seta ↑ para enviar"
-              : "A preparar microfone…"}
+          {voiceReady
+            ? "A gravar… toque na seta ↑ para enviar"
+            : "A preparar microfone… toque na seta ↑ quando estiver pronto"}
         </Text>
       ) : null}
       {notice && !voiceUiActive ? (

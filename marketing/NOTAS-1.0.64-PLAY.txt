@@ -1,0 +1,17 @@
+NOTAS VERSÃO 1.0.64 — TestFlight / Play (teste fechado)
+=====================================================
+iOS build 55+ · Android versionCode 105+ (EAS autoIncrement)
+
+CURTO (O que há de novo — copiar TestFlight / Play)
+---------------------------------------------------
+Voz corrigida: fluxo original (microfone → falar → seta ↑ ou 2.º toque no mic). Corrige o loop ao enviar da 1.0.63. Inclui Bolso e Jardim da 1.0.62.
+
+O QUE TESTAR
+------------
+1. Atualizar para 1.0.64
+2. Mic → falar 3 s → seta ↑ (um toque só) → avatar responde sem loop
+3. (Opcional) 2.º toque no mic para enviar — como antes
+
+TEXTO WHATSAPP
+--------------
+Ver: marketing/MENSAGEM-TESTADORES-1.0.64.txt
