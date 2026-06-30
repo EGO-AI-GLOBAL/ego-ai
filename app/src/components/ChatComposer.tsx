@@ -38,6 +38,8 @@ type Props = {
   onMicPressOut?: () => void;
   onMicPress?: () => void;
   voiceReady?: boolean;
+  /** false nos primeiros ~750 ms de gravação — evita seta ↑ no mesmo sítio do mic (Android). */
+  voiceSendArmed?: boolean;
   error?: string | null;
   notice?: string | null;
   onPdfPress?: () => void;
@@ -105,6 +107,7 @@ export function ChatComposer({
   micSessionActive,
   onMicPress,
   voiceReady = true,
+  voiceSendArmed = true,
   error,
   notice,
   onPdfPress,
@@ -120,10 +123,11 @@ export function ChatComposer({
   const bottomPad = Math.max(insets.bottom, isWeb ? 12 : 8);
   const hasText = value.trim().length > 0;
   const voiceUiActive = Boolean(isRecording || micSessionActive);
-  const showSend = hasText || voiceUiActive;
-  const showMic = !showSend && !sending;
-  /** Durante gravação: ↑ sempre activo (voiceReady só informativo). */
-  const sendDisabled = sending || (!voiceUiActive && !hasText);
+  const sendArmed = voiceSendArmed !== false;
+  const showSend = hasText || (voiceUiActive && sendArmed);
+  const showMic = !hasText && (!voiceUiActive || !sendArmed) && !sending;
+  const sendDisabled =
+    sending || (!voiceUiActive && !hasText) || (voiceUiActive && !sendArmed);
 
   const onMicTap = () => {
     if (sending) return;
@@ -249,7 +253,7 @@ export function ChatComposer({
               onPress={onMicTap}
               disabled={sending}
               accessibilityRole="button"
-              accessibilityLabel="Microfone — toque para falar"
+              accessibilityLabel="Microfone — toque para gravar"
             >
               <Ionicons name="mic" size={26} color="#fff" />
             </Pressable>
@@ -261,9 +265,11 @@ export function ChatComposer({
 
       {voiceUiActive ? (
         <Text style={[styles.recordingHint, { color: colors.primary }]}>
-          {voiceReady
-            ? "A gravar… toque na seta ↑ para enviar"
-            : "A preparar microfone… toque na seta ↑ quando estiver pronto"}
+          {!sendArmed
+            ? "A gravar… fale agora"
+            : voiceReady
+              ? "A gravar… toque na seta ↑ para enviar"
+              : "A preparar microfone…"}
         </Text>
       ) : null}
       {notice && !voiceUiActive ? (

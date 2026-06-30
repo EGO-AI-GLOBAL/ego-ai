@@ -858,6 +858,45 @@ function normalizeVoiceMime(mime?: string): string {
   return mime || "audio/mp4";
 }
 
+const VOICE_SEND_TIMEOUT_MS = 90_000;
+
+function withVoiceSendTimeout<T>(promise: Promise<T>, label = "Envio de voz"): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(
+        () => reject(new Error(`${label} demorou demais. Tente de novo.`)),
+        VOICE_SEND_TIMEOUT_MS
+      );
+    }),
+  ]);
+}
+
+/** Android: cópia para cache evita URI temporária inválida após stopAndUnloadAsync. */
+async function stabilizeVoiceUri(uri: string): Promise<string> {
+  const src = (uri || "").trim();
+  if (!src || Platform.OS !== "android") return src;
+  const dir = FileSystem.cacheDirectory;
+  if (!dir) return src;
+  const dest = `${dir}ego_voice_${Date.now()}.m4a`;
+  try {
+    await FileSystem.copyAsync({ from: src, to: dest });
+    return dest;
+  } catch {
+    return src;
+  }
+}
+
+async function readVoiceBase64FromUri(uri: string): Promise<string> {
+  const stable = await stabilizeVoiceUri(uri);
+  return withVoiceSendTimeout(
+    FileSystem.readAsStringAsync(stable, {
+      encoding: FileSystem.EncodingType.Base64,
+    }),
+    "Leitura do áudio"
+  );
+}
+
 function voiceUploadAuthHeaders(): Record<string, string> {
   const session = getSession();
   const token = session?.access_token?.trim();
@@ -927,23 +966,26 @@ export async function sendChatVoiceFileNative(opts: {
   const audio_mime = normalizeVoiceMime(opts.audioMime);
   const base = API_V1.endsWith("/") ? API_V1 : `${API_V1}/`;
   const url = `${base}chat/messages`;
-  const res = await FileSystem.uploadAsync(url, uri, {
-    httpMethod: "POST",
-    uploadType: FileSystem.FileSystemUploadType.MULTIPART,
-    fieldName: "audio",
-    mimeType: audio_mime,
-    headers: await buildVoiceUploadHeaders(),
-    parameters: {
-      message: "",
-      audio_mime,
-      speak: opts.speak !== false ? "true" : "false",
-      history: JSON.stringify(opts.history ?? []),
-      ...voiceUploadAuthFormFields(),
-      ...Object.fromEntries(
-        Object.entries(deviceTimezonePayload()).map(([k, v]) => [k, String(v)])
-      ),
-    },
-  });
+  const uploadUri = await stabilizeVoiceUri(uri);
+  const res = await withVoiceSendTimeout(
+    FileSystem.uploadAsync(url, uploadUri, {
+      httpMethod: "POST",
+      uploadType: FileSystem.FileSystemUploadType.MULTIPART,
+      fieldName: "audio",
+      mimeType: audio_mime,
+      headers: await buildVoiceUploadHeaders(),
+      parameters: {
+        message: "",
+        audio_mime,
+        speak: opts.speak !== false ? "true" : "false",
+        history: JSON.stringify(opts.history ?? []),
+        ...voiceUploadAuthFormFields(),
+        ...Object.fromEntries(
+          Object.entries(deviceTimezonePayload()).map(([k, v]) => [k, String(v)])
+        ),
+      },
+    })
+  );
   if (res.status < 200 || res.status >= 300) {
     let detail = `Erro ${res.status} ao enviar áudio.`;
     try {
@@ -1019,9 +1061,7 @@ async function sendChatVoiceBase64FromUri(opts: {
   if (!uri) {
     throw new Error("Gravação vazia.");
   }
-  const audioBase64 = await FileSystem.readAsStringAsync(uri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
+  const audioBase64 = await readVoiceBase64FromUri(uri);
   return sendChatVoiceMessage({
     audioBase64,
     audioMime: opts.audioMime,
@@ -1030,7 +1070,7 @@ async function sendChatVoiceBase64FromUri(opts: {
   });
 }
 
-/** Android: JSON/base64 primeiro (axios + refresh); iOS: nativo primeiro. */
+/** Android: multipart nativo primeiro (fiável); JSON/base64 como fallback. iOS: nativo primeiro. */
 export async function sendChatVoiceFromUri(opts: {
   uri: string;
   audioMime?: string;
@@ -1045,15 +1085,15 @@ export async function sendChatVoiceFromUri(opts: {
 
   if (Platform.OS === "android") {
     try {
-      return await sendChatVoiceBase64FromUri(opts);
-    } catch (jsonErr) {
+      return await sendChatVoiceFileNative(opts);
+    } catch (nativeErr) {
       try {
-        return await sendChatVoiceFileNative(opts);
+        return await sendChatVoiceBase64FromUri(opts);
       } catch {
         try {
           return await sendChatVoiceFile(opts);
         } catch {
-          throw jsonErr;
+          throw nativeErr;
         }
       }
     }
@@ -1111,6 +1151,7 @@ export async function sendChatVoiceMessage(opts: {
   speak?: boolean;
   history?: ChatHistoryPayload;
 }): Promise<SendChatResult> {
+  await ensureFreshSessionForPost();
   const audioBase64 = (opts.audioBase64 || "").trim();
   if (!audioBase64 || audioBase64.length < 400) {
     throw new Error("Gravação demasiado curta. Fale pelo menos 2 segundos.");

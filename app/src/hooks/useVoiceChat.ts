@@ -437,6 +437,12 @@ export function useVoiceChat() {
     return isRecordingRef.current;
   }, []);
 
+  const getRecordingElapsedMs = useCallback((): number => {
+    const started = recordingStartedAtRef.current;
+    if (!started) return 0;
+    return Date.now() - started;
+  }, []);
+
   useEffect(() => {
     return () => {
       Speech.stop();
@@ -809,16 +815,6 @@ export function useVoiceChat() {
         throw new Error("Gravação vazia.");
       }
       const audioMime = mimeFromUri(uri);
-      let preReadBase64: string | null = null;
-      if (Platform.OS === "android") {
-        try {
-          preReadBase64 = await FileSystem.readAsStringAsync(uri, {
-            encoding: FileSystem.EncodingType.Base64,
-          });
-        } catch {
-          preReadBase64 = null;
-        }
-      }
       await safeStopNativeRecording(rec);
       const Audio = getExpoAudio();
       if (Audio) {
@@ -829,42 +825,13 @@ export function useVoiceChat() {
           playThroughEarpieceAndroid: false,
         });
       }
-      if (Platform.OS === "android" && preReadBase64 && preReadBase64.length >= 400) {
-        try {
-          return await sendChatVoiceMessage({
-            audioBase64: preReadBase64,
-            audioMime,
-            speak,
-            history: hist,
-          });
-        } catch {
-          /* segue upload nativo / fallbacks */
-        }
-      }
-      try {
-        return await sendChatVoiceFromUri({
-          uri,
-          audioMime,
-          speak,
-          history: hist,
-        });
-      } catch (multipartErr) {
-        const audioBase64 =
-          preReadBase64 ||
-          (await FileSystem.readAsStringAsync(uri, {
-            encoding: FileSystem.EncodingType.Base64,
-          }));
-        try {
-          return await sendChatVoiceMessage({
-            audioBase64,
-            audioMime,
-            speak,
-            history: hist,
-          });
-        } catch {
-          throw multipartErr;
-        }
-      }
+      // Android: JSON/base64 + fallbacks em sendChatVoiceFromUri (ficheiro completo após stop).
+      return await sendChatVoiceFromUri({
+        uri,
+        audioMime,
+        speak,
+        history: hist,
+      });
     },
     [finishWebRecording]
   );
@@ -964,6 +931,7 @@ export function useVoiceChat() {
     webUsesSpeechToText: false,
     startRecording,
     waitForRecording,
+    getRecordingElapsedMs,
     stopRecordingAndSend,
     stopRecordingRaw,
     cancelRecording,
