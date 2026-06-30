@@ -12,8 +12,8 @@ Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
 
 [x] buildBolsoTalkDraft.ts — draft pré-preenchido da missão
 [x] EgoDeBolsoChatCard — onTalkMission(draft) + celebrate → CompanionSprite
-[x] chat.tsx — setChatInput(draft) + aviso curto
-[x] chat.tsx — trackJourneyStep: missions_today subiu → bolsoCelebrate ~1.4s
+[x] chat.tsx — setChatInput(draft) + aviso curto (commit pendente — wiring estava em falta)
+[x] chat.tsx — trackJourneyStep: missions_today subiu → bolsoCelebrate ~1.4s (commit pendente)
 [x] CompanionWeeklyBar — copy «X/4 dias com 5/5 → +10 estrelas na loja de cores»
 [x] regression_guard.py — símbolos novos
 

@@ -161,6 +161,19 @@ function ChatScreenInner() {
   const [chatStreakDays, setChatStreakDays] = useState(0);
   const [dashboardSettled, setDashboardSettled] = useState(false);
   const [widgetsReady, setWidgetsReady] = useState(false);
+  const [bolsoCelebrate, setBolsoCelebrate] = useState(false);
+  const bolsoMissionsRef = useRef(data.wellness_journey?.missions_today ?? 0);
+  const bolsoCelebrateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    bolsoMissionsRef.current = data.wellness_journey?.missions_today ?? 0;
+  }, [data.wellness_journey?.missions_today]);
+
+  useEffect(() => {
+    return () => {
+      if (bolsoCelebrateTimerRef.current) clearTimeout(bolsoCelebrateTimerRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!loading) setDashboardSettled(true);
@@ -204,12 +217,26 @@ function ChatScreenInner() {
 
   const trackJourneyStep = useCallback(
     (step: "chat" | "voice") => {
+      const before = bolsoMissionsRef.current;
       void completeWellnessJourneyStep(step).then((j) => {
-        if (j) mergeWellnessJourney(j);
+        if (!j) return;
+        const after = j.missions_today ?? 0;
+        if (after > before) {
+          setBolsoCelebrate(true);
+          if (bolsoCelebrateTimerRef.current) clearTimeout(bolsoCelebrateTimerRef.current);
+          bolsoCelebrateTimerRef.current = setTimeout(() => setBolsoCelebrate(false), 1400);
+        }
+        mergeWellnessJourney(j);
       });
     },
     [mergeWellnessJourney]
   );
+
+  const onBolsoTalkMission = useCallback((draft: string) => {
+    setChatInput(draft);
+    setChatNotice("Missão no campo abaixo — envie ou edite antes de mandar.");
+    setChatError(null);
+  }, []);
 
   const finishNightDump = useCallback(
     (dump: { items?: { length: number }; comfort_reply?: string }) => {
@@ -1280,6 +1307,8 @@ function ChatScreenInner() {
                 colors={colors}
                 journey={data.wellness_journey}
                 onCareHint={setChatNotice}
+                onTalkMission={onBolsoTalkMission}
+                celebrate={bolsoCelebrate}
               />
             </ChatWidgetErrorBoundary>
           ) : null}
