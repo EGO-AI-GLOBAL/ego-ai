@@ -1,0 +1,21 @@
+AGENTE MONSTRINHOS — RELEASE 1.0.62 (EAS PRONTO)
+=================================================
+Estado: ✅ PRONTO — aguardo Release 4× ✅ (NÃO GERAR até USB voz OK)
+
+Zona: voz UI Android + streak Monstrinhos + toast dia completo
+• b168380 — mic+seta sem envio fantasma (voiceSendArmed 750ms)
+• d60f26a — mic e seta ↑ lado a lado; card «Faltam X missões · streak em risco»
+• moodGardenWidgetSnapshot goalsLine com streak
+• monsterChatNotice — queue no jardim / consume no chat ao voltar
+• app.config.ts — 1.0.62 · Android 101 · iOS 51 (EAS autoIncrement)
+
+Scripts EAS:
+• PREPARAR-1.0.62.bat
+• GERAR-1.0.62.bat (NÃO correr até Release ✅ + TESTAR-VOZ-USB-GRATIS.bat)
+• AGUARDAR-E-SUBMETER-1.0.62.bat
+• builds-1.0.62.ids.json
+
+Testes automáticos: onboarding_guard + regression_guard + smoke — OK
+Voz Android: PENDENTE teste USB utilizador — não afirmar «voz 100%»
+
+GIT: d60f26a (feature) · voz base b168380
