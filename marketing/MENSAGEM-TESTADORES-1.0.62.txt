@@ -1,0 +1,33 @@
+EGO-AI 1.0.62 — mensagem WhatsApp / grupo testadores
+======================================================
+
+ENVIAR DEPOIS da build 1.0.62 no TestFlight + Play (iOS 51 · Android 101)
+
+---
+
+VERSÃO CURTA (copiar)
+---------------------
+Oi pessoal! **Atualização 1.0.62** 🙏
+
+Foco desta versão:
+• **Voz Android** — microfone + seta de enviar (sem mensagem fantasma / sem enviar sozinho)
+• **Jardim (Monstrinhos):** loja 34 itens + missões com **surpresa do dia**
+• **EGO de Bolso:** card semanal + rotina de cuidado
+
+📲 **iPhone:** TestFlight → **1.0.62 (build 51)**
+🤖 **Android:** Play teste fechado → **1.0.62 (101)**
+   (Android: se não abrir, manda teu **Gmail** que eu libero na lista)
+
+✅ Testem (principalmente Android):
+1. Chat → **gravar voz** → só envia quando você tocar na **seta** → avatar responde
+2. Confirmar que **não** manda áudio sozinho ao soltar o mic
+3. **Jardim** → loja → itens da semana → missões do dia
+4. **Bolso** → ver card da semana / cuidar (se já ativou antes)
+5. Chat texto: avatar → «oi»
+
+Se falhar, mandem print com a **versão** no canto.
+
+Obrigado! 💜
+
+iPhone: https://testflight.apple.com/join/eNDKdFWF
+Android: https://play.google.com/apps/testing/com.egoai.app
