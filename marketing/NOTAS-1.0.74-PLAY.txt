@@ -1,0 +1,9 @@
+1.0.74 — teste fechado Android
+
+• Voz mais rápida no chat — áudio na mesma resposta (menos um pedido extra)
+• Diário de humor: histórico até 6 semanas (42 dias)
+• Nota curta por dia no jardim (gratidão ou desabafo rápido)
+• Botão «Falar com meu avatar» leva ao chat com resumo da semana
+• Strip de 7 dias no jardim + link «Ver histórico completo»
+
+Teste: Chat → mic com «Ouvir ao responder»; Jardim → check-in → Ver histórico.

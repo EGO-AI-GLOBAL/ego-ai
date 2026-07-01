@@ -466,6 +466,7 @@ export type DailyCareMoodJournalEntry = {
   mood: string;
   emoji: string;
   label: string;
+  note?: string;
 };
 
 export type DailyCareDecor = {

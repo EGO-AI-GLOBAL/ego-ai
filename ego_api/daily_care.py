@@ -83,6 +83,7 @@ SEEDS_ADVENTURE = 3
 SEEDS_ALL_GOALS_BONUS = 3
 SEED_HISTORY_MAX = 10
 MOOD_JOURNAL_MAX = 42
+JOURNAL_NOTE_MAX = 280
 
 DECOR_UNLOCKS: list[dict[str, str | int]] = [
     {"id": "flowers", "emoji": "🌷", "min_days": 1, "label": "Flores"},
@@ -229,16 +230,24 @@ def _seed_history_payload(raw: dict) -> list[dict]:
     return out
 
 
-def _append_mood_journal(raw: dict, date: str, mood: dict) -> None:
+def _append_mood_journal(raw: dict, date: str, mood: dict, note: str | None = None) -> None:
     hist = raw.get("mood_journal")
     if not isinstance(hist, list):
         hist = []
+    existing_note = ""
+    for h in hist:
+        if isinstance(h, dict) and str(h.get("date") or "") == date:
+            existing_note = str(h.get("note") or "").strip()
+            break
     entry = {
         "date": date,
         "mood": str(mood.get("key") or ""),
         "emoji": str(mood.get("emoji") or ""),
         "label": str(mood.get("label") or ""),
     }
+    final_note = note if note is not None else existing_note
+    if final_note:
+        entry["note"] = str(final_note).strip()[:JOURNAL_NOTE_MAX]
     hist = [h for h in hist if isinstance(h, dict) and str(h.get("date") or "") != date]
     hist.insert(0, entry)
     raw["mood_journal"] = hist[:MOOD_JOURNAL_MAX]
@@ -255,14 +264,16 @@ def _mood_journal_payload(raw: dict) -> list[dict]:
         date = str(h.get("date") or "").strip()
         if not date:
             continue
-        out.append(
-            {
-                "date": date,
-                "mood": str(h.get("mood") or ""),
-                "emoji": str(h.get("emoji") or ""),
-                "label": str(h.get("label") or ""),
-            }
-        )
+        row = {
+            "date": date,
+            "mood": str(h.get("mood") or ""),
+            "emoji": str(h.get("emoji") or ""),
+            "label": str(h.get("label") or ""),
+        }
+        note = str(h.get("note") or "").strip()
+        if note:
+            row["note"] = note[:JOURNAL_NOTE_MAX]
+        out.append(row)
     return out
 
 
@@ -514,6 +525,7 @@ def record_checkin(
     supabase: Client | None,
     user_id: str,
     mood_key: str,
+    note: str | None = None,
 ) -> dict:
     if not supabase or not user_id:
         return get_daily_care(supabase, user_id)
@@ -536,7 +548,7 @@ def record_checkin(
                 "last_mood_label": mood["label"],
             }
         )
-        _append_mood_journal(raw, today, mood)
+        _append_mood_journal(raw, today, mood, note=note)
     else:
         yesterday = _yesterday(today)
         if last == yesterday and current > 0:
@@ -559,7 +571,7 @@ def record_checkin(
                 "seeds": seeds,
             }
         )
-        _append_mood_journal(raw, today, mood)
+        _append_mood_journal(raw, today, mood, note=note)
         reset_daily_goals(raw)
 
     ui["daily_care"] = raw
@@ -582,6 +594,28 @@ def record_checkin(
     except Exception as exc:
         print(f"[EGO] daily_care journey step error: {exc}", flush=True)
 
+    return get_daily_care(supabase, user_id)
+
+
+def record_journal_note(
+    supabase: Client | None,
+    user_id: str,
+    note: str,
+) -> dict:
+    if not supabase or not user_id:
+        return get_daily_care(supabase, user_id)
+    today = _local_date_str()
+    prof = db.load_profile(supabase, user_id) or {}
+    ui = db._parse_ui_state(prof)  # noqa: SLF001
+    raw = dict(ui.get("daily_care") if isinstance(ui.get("daily_care"), dict) else {})
+    if str(raw.get("last_date") or "").strip() != today:
+        return get_daily_care(supabase, user_id)
+    mood_key = str(raw.get("last_mood") or "calm").strip() or "calm"
+    mood = _mood_by_key(mood_key)
+    cleaned = str(note or "").strip()[:JOURNAL_NOTE_MAX]
+    _append_mood_journal(raw, today, mood, note=cleaned)
+    ui["daily_care"] = raw
+    db.update_profile_fields(supabase, user_id, {"ui_state": ui})
     return get_daily_care(supabase, user_id)
 
 

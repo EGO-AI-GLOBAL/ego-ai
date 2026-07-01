@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-03-1.0.73-voice-performance",
+        "api_build": "2026-06-27-1.0.74-voice-journal",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -493,6 +493,12 @@ def health():
         from ego_api.plan_retention import plan_retention_status
 
         payload["plan_retention"] = plan_retention_status()
+    except Exception:
+        pass
+    try:
+        from ego_api.openai_realtime import is_available as realtime_available
+
+        payload["realtime"] = {"available": realtime_available()}
     except Exception:
         pass
     try:
@@ -1806,11 +1812,27 @@ def daily_care_checkin():
     mood = str(data.get("mood") or data.get("mood_key") or "").strip()[:16]
     if not mood:
         return _json_error("Informe o humor (mood).")
-    care = daily_care.record_checkin(g.supabase, g.user_id, mood)
+    note_raw = data.get("note")
+    note = str(note_raw).strip()[:280] if note_raw is not None else None
+    if note == "":
+        note = None
+    care = daily_care.record_checkin(g.supabase, g.user_id, mood, note=note)
     prof = db.load_profile(g.supabase, g.user_id) or {}
     tier, _ = db.user_plan_limits(prof)
     journey = wellness_journey.sync_streak_levels(g.supabase, g.user_id, plan_tier=tier)
     return _json_ok({"daily_care": care, "wellness_journey": journey})
+
+
+@app.post("/api/v1/daily-care/journal-note")
+@require_auth
+@rate_limit(12, 60, scope="user")
+def daily_care_journal_note():
+    from ego_api import daily_care
+
+    data = request.get_json(silent=True) or {}
+    note = str(data.get("note") or "")
+    care = daily_care.record_journal_note(g.supabase, g.user_id, note)
+    return _json_ok({"daily_care": care})
 
 
 @app.post("/api/v1/daily-care/goal")

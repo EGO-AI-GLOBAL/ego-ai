@@ -37,6 +37,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "confirmDelegationRequest",
             "respondEntreNosEvent",
             "submitDailyCareCheckin",
+            "submitDailyCareJournalNote",
             "completeWellnessJourneyStep",
             "export async function purchaseCompanionEggColor",
             "export async function requestPasswordReset",
@@ -54,7 +55,15 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/components/moodMonsters/MoodJournalWeek.tsx",
-        ["MoodJournalWeek", "Diário de humor"],
+        ["MoodJournalWeek", "Diário de humor", "Ver histórico completo"],
+    ),
+    (
+        "app/src/components/moodMonsters/MoodJournalHistory.tsx",
+        ["MoodJournalHistory", "Ainda sem entradas"],
+    ),
+    (
+        "app/app/(main)/mood-journal.tsx",
+        ["Diário de humor", "Falar com meu avatar sobre isso"],
     ),
     (
         "app/src/components/moodMonsters/MoodGardenWidgetCard.tsx",
@@ -245,6 +254,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "streaks_record_activity",
             "shopping_list_get",
             '@app.post("/api/v1/daily-care/checkin")',
+            '@app.post("/api/v1/daily-care/journal-note")',
             '@app.post("/api/v1/daily-care/goal")',
             '@app.post("/api/v1/daily-care/shop")',
             '@app.post("/api/v1/wellness-journey/step")',
@@ -259,7 +269,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/daily_care.py",
-        ["get_daily_care", "record_checkin", "record_goal", "purchase_shop_item", "CARE_MILESTONES", "shop_week_label", "mood_journal"],
+        ["get_daily_care", "record_checkin", "record_journal_note", "record_goal", "purchase_shop_item", "CARE_MILESTONES", "shop_week_label", "mood_journal"],
     ),
     (
         "ego_api/daily_care_missions.py",

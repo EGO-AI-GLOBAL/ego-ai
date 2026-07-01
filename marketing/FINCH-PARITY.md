@@ -35,7 +35,7 @@ Legenda: ❌ falta · 🟡 parcial · ✅ fechado (EGO, arte/textos próprios)
 
 | # | Área Finch | EGO | Estado | Fase alvo |
 |---|------------|-----|--------|-----------|
-| 16 | Diário / mood journal longo | Chat + night dump + **7 dias no jardim** | 🟡 | **Fase 9b 1.0.72:** strip diário; texto longo ainda no chat |
+| 16 | Diário / mood journal longo | Histórico 42d + nota curta + chat | ✅ | **Fase 9b 1.0.74:** strip 7d, ecrã completo, nota diária, desabafo no chat |
 | 17 | Quizzes de saúde mental | — | ❌ | 10+ |
 | 18 | Quotes / insights analytics | Resumo semanal Bolso | 🟡 | 11 |
 | 19 | Amigos / Tree Town social | — | ❌ | 12+ |

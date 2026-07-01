@@ -770,13 +770,30 @@ export async function purchaseCompanionEggColor(
   }
 }
 
-export async function submitDailyCareCheckin(moodKey: string): Promise<{
+export async function submitDailyCareCheckin(
+  moodKey: string,
+  note?: string
+): Promise<{
   daily_care: DailyCareInfo;
   wellness_journey?: WellnessJourney;
 } | null> {
   try {
-    const { data } = await api.post("daily-care/checkin", { mood: moodKey });
+    const payload: { mood: string; note?: string } = { mood: moodKey };
+    const trimmed = note?.trim();
+    if (trimmed) payload.note = trimmed;
+    const { data } = await api.post("daily-care/checkin", payload);
     const body = unwrap<{ daily_care: DailyCareInfo; wellness_journey?: WellnessJourney }>(data);
+    if (!body.daily_care) return null;
+    return body;
+  } catch {
+    return null;
+  }
+}
+
+export async function submitDailyCareJournalNote(note: string): Promise<{ daily_care: DailyCareInfo } | null> {
+  try {
+    const { data } = await api.post("daily-care/journal-note", { note: note.trim() });
+    const body = unwrap<{ daily_care: DailyCareInfo }>(data);
     if (!body.daily_care) return null;
     return body;
   } catch {
