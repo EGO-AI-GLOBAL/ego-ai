@@ -9,7 +9,7 @@ const STEP_HINT: Record<string, string> = {
   reminder: "Agenda → + Novo compromisso",
   night_dump: "Chat → Desabafo agora",
   draft_confirm: "Agenda → confirme item do desabafo",
-  invite: "Agenda → Entre Nós → Convidar pessoa",
+  invite: "Agenda → convide — missão fecha quando entrar com o mesmo e-mail ou telefone",
 };
 
 export function formatWellnessStepPendingLabel(step: WellnessJourneyStep): string {

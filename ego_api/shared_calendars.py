@@ -352,16 +352,58 @@ def _member_link_patch_for_calendar(
     *,
     phone_norm: str | None = None,
 ) -> dict[str, Any]:
-    """Entre Nós fica pendente até aceitar; outras agendas activam ao entrar."""
-    patch: dict[str, Any] = {"user_id": user_id}
+    """E-mail/telefone entrou no app → membro activo (missão Bolso credita ao convidador)."""
+    del admin, calendar_id  # reservado — todas as agendas activam ao ligar conta
+    patch: dict[str, Any] = {"user_id": user_id, "status": "active"}
     if phone_norm:
         patch["invited_phone"] = phone_norm
-    cal_name = _calendar_name_by_id(admin, calendar_id)
-    if is_entre_nos_calendar(cal_name):
-        patch["status"] = "pending"
-    else:
-        patch["status"] = "active"
     return patch
+
+
+def _load_member_row(admin, member_id: str) -> dict[str, Any] | None:
+    if not admin or not member_id:
+        return None
+    try:
+        res = (
+            admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+            .select("*")
+            .eq("id", member_id)
+            .limit(1)
+            .execute()
+        )
+        if res.data:
+            return res.data[0]
+    except Exception:
+        pass
+    return None
+
+
+def _finalize_invited_member_join(
+    admin,
+    *,
+    member_row: dict[str, Any],
+    joined_user_id: str,
+) -> None:
+    """Activa convite pendente e credita missão «invite» ao dono da agenda."""
+    member_id = str(member_row.get("id") or "")
+    cid = str(member_row.get("calendar_id") or "")
+    if not member_id or not cid or not joined_user_id:
+        return
+    patch: dict[str, Any] = {}
+    if str(member_row.get("user_id") or "") != joined_user_id:
+        patch["user_id"] = joined_user_id
+    if str(member_row.get("status") or "") != "active":
+        patch["status"] = "active"
+    if patch:
+        admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(patch).eq(
+            "id", member_id
+        ).execute()
+        refreshed = _load_member_row(admin, member_id)
+        if refreshed:
+            member_row = refreshed
+    _credit_inviter_shared_calendar_mission(
+        admin, cid, joined_user_id, member_row=member_row
+    )
 
 
 def _user_contact_keys(
@@ -437,7 +479,14 @@ def link_shared_memberships_for_user_phone(
                 current = str(row.get("user_id") or "")
                 status = str(row.get("status") or "")
                 cid = str(row.get("calendar_id") or "")
-                if current == user_id and status in ("active", "pending"):
+                if current == user_id and status == "active":
+                    continue
+                if current == user_id and status == "pending":
+                    full = _load_member_row(admin, rid)
+                    if full:
+                        _finalize_invited_member_join(
+                            admin, member_row=full, joined_user_id=user_id
+                        )
                     continue
                 patch = _member_link_patch_for_calendar(
                     admin, cid, user_id, phone_norm=phone_norm
@@ -446,6 +495,11 @@ def link_shared_memberships_for_user_phone(
                     patch
                 ).eq("id", rid).execute()
                 updated += 1
+                full = _load_member_row(admin, rid)
+                if full:
+                    _finalize_invited_member_join(
+                        admin, member_row=full, joined_user_id=user_id
+                    )
                 owner = _calendar_owner_id(admin, cid) if cid else ""
                 if patch.get("status") == "active" and cid and owner:
                     push_after_member_invited(
@@ -619,7 +673,7 @@ def _invitee_contact_matches_invite(
 ) -> bool:
     """Bate telefone OU e-mail do convite com o perfil de quem aceitou."""
     from ego_api import db
-    from ego_api.phone_utils import is_phone_invite_email, normalize_phone_br
+    from ego_api.phone_utils import is_phone_invite_email, normalize_phone_br, phone_invite_email_placeholder
 
     prof = db.load_profile(admin, joined_user_id) or {}
     user_email = str(prof.get("email") or "").strip().lower()
@@ -627,6 +681,13 @@ def _invitee_contact_matches_invite(
     invited_email = str(member_row.get("invited_email") or "").strip().lower()
     invited_phone = str(member_row.get("invited_phone") or "").strip()
     if invited_phone and user_phone and invited_phone == user_phone:
+        return True
+    if (
+        invited_email
+        and user_phone
+        and is_phone_invite_email(invited_email)
+        and invited_email == phone_invite_email_placeholder(user_phone).lower()
+    ):
         return True
     if (
         invited_email
@@ -677,7 +738,7 @@ def _credit_inviter_shared_calendar_mission(
     *,
     member_row: dict[str, Any] | None = None,
 ) -> None:
-    """EGO de Bolso: amigo novo aceitou convite (Entre Nós ou agenda de grupo)."""
+    """EGO de Bolso: convidado entrou com o e-mail/telefone do convite."""
     if not calendar_id or not joined_user_id:
         return
     if member_row is None:
@@ -687,9 +748,7 @@ def _credit_inviter_shared_calendar_mission(
     owner = _calendar_owner_id(admin, calendar_id)
     if not owner or owner == joined_user_id:
         return
-    if not _invitee_was_new_user_for_invite(
-        admin, owner, member_row, joined_user_id
-    ):
+    if not _invitee_contact_matches_invite(admin, member_row, joined_user_id):
         return
     try:
         from ego_api import db, wellness_journey
@@ -717,6 +776,76 @@ def _credit_inviter_shared_calendar_mission(
         print(f"[EGO] shared calendar invite mission error: {exc}", flush=True)
 
 
+def _resolve_joined_user_for_invite_row(member_row: dict[str, Any]) -> str:
+    """user_id já ligado ou conta existente com o e-mail/telefone do convite."""
+    uid = str(member_row.get("user_id") or "").strip()
+    if uid:
+        return uid
+    phone = str(member_row.get("invited_phone") or "").strip()
+    if phone:
+        found = resolve_user_id_by_phone(phone)
+        if found:
+            return found
+    email = str(member_row.get("invited_email") or "").strip().lower()
+    from ego_api.phone_utils import is_phone_invite_email
+
+    if email and not is_phone_invite_email(email):
+        found = resolve_user_id_by_email(email)
+        if found:
+            return found
+    return ""
+
+
+def reconcile_uncredited_invite_missions(
+    supabase: Client | None, owner_user_id: str
+) -> int:
+    """Convidado já entrou/cadastrou — recupera missão Bolso se ficou «convidado» pending."""
+    del supabase
+    if not owner_user_id:
+        return 0
+    admin = create_service_client()
+    if not admin:
+        return 0
+    fixed = 0
+    try:
+        cals = (
+            admin.table(SUPABASE_SHARED_CALENDARS_TABLE)
+            .select("id")
+            .eq("owner_user_id", owner_user_id)
+            .execute()
+        )
+        for cal in cals.data or []:
+            cid = str(cal.get("id") or "")
+            if not cid:
+                continue
+            mem = (
+                admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE)
+                .select("*")
+                .eq("calendar_id", cid)
+                .neq("role", "owner")
+                .execute()
+            )
+            for row in mem.data or []:
+                joined = _resolve_joined_user_for_invite_row(row)
+                if not joined or joined == owner_user_id:
+                    continue
+                if not _invitee_contact_matches_invite(admin, row, joined):
+                    continue
+                status = str(row.get("status") or "")
+                if status not in ("pending", "active"):
+                    continue
+                _finalize_invited_member_join(
+                    admin, member_row=row, joined_user_id=joined
+                )
+                fixed += 1
+    except Exception as exc:
+        print(
+            f"[EGO] reconcile invite missions error owner={owner_user_id}: {exc}",
+            flush=True,
+        )
+    return fixed
+
+
 def link_shared_memberships_for_user(
     supabase: Client | None, user_id: str, email: str, *, source: str = "login"
 ) -> int:
@@ -742,13 +871,25 @@ def link_shared_memberships_for_user(
             current = str(row.get("user_id") or "")
             status = str(row.get("status") or "")
             cid = str(row.get("calendar_id") or "")
-            if current == user_id and status in ("active", "pending"):
+            if current == user_id and status == "active":
+                continue
+            if current == user_id and status == "pending":
+                full = _load_member_row(admin, rid)
+                if full:
+                    _finalize_invited_member_join(
+                        admin, member_row=full, joined_user_id=user_id
+                    )
                 continue
             patch = _member_link_patch_for_calendar(admin, cid, user_id)
             admin.table(SUPABASE_SHARED_CALENDAR_MEMBERS_TABLE).update(patch).eq(
                 "id", rid
             ).execute()
             updated += 1
+            full = _load_member_row(admin, rid)
+            if full:
+                _finalize_invited_member_join(
+                    admin, member_row=full, joined_user_id=user_id
+                )
             owner = _calendar_owner_id(admin, cid) if cid else ""
             if patch.get("status") == "active" and cid and owner:
                 push_after_member_invited(
@@ -994,8 +1135,8 @@ def respond_member_invite(
             data = (refreshed.data or [row])[0]
             owner = _calendar_owner_id(admin, cid)
             if cid and owner:
-                _credit_inviter_shared_calendar_mission(
-                    admin, cid, user_id, member_row=data
+                _finalize_invited_member_join(
+                    admin, member_row=data, joined_user_id=user_id
                 )
                 push_after_member_invited(
                     cid, owner, {"user_id": user_id, "status": "active"}

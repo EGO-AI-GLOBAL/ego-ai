@@ -162,7 +162,16 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/utils/egoDeBolsoStepHints.ts",
-        ["formatWellnessPendingLine", "Monstrinhos"],
+        ["formatWellnessPendingLine", "Monstrinhos", "missão fecha quando entrar"],
+    ),
+    (
+        "ego_api/shared_calendars.py",
+        [
+            "_finalize_invited_member_join",
+            "_credit_inviter_shared_calendar_mission",
+            "reconcile_uncredited_invite_missions",
+            "link_shared_memberships_for_user",
+        ],
     ),
     (
         "app/src/utils/moodMonsterNotifications.ts",

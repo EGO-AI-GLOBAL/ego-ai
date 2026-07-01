@@ -302,8 +302,8 @@ JOURNEY_LEVELS: list[dict[str, Any]] = [
         "title": "Embaixador",
         "subtitle": "Mais um amigo novo",
         "emoji": "🌟",
-        "today_task": "Convide outro amigo pelo telefone (sem conta) — cumpre quando aceitar",
-        "why": "A cada 20 níveis você traz alguém novo — assim o app cresce de graça, 1 vira 2, 2 vira 4…",
+        "today_task": "Convide pelo e-mail ou telefone — missão fecha quando a pessoa entrar no app",
+        "why": "A cada 20 níveis você traz alguém novo — quando cadastrar com o mesmo contato, a missão completa.",
         "requirements": [{"type": "step", "key": "invite", "min": 1}],
         "share_challenge": "Nível 20/20 no EGO-AI 🌟 Embaixador do app",
         "plan_nudge": None,
@@ -357,10 +357,10 @@ def _invite_growth_level(n: int) -> dict[str, Any]:
         "title": "Trazer alguém" if n < 100 else f"Embaixador {n}",
         "subtitle": "Amigo novo aceita na Agenda",
         "emoji": "🤝" if n % 20 else "🌟",
-        "today_task": "Convide pelo telefone alguém sem conta — missão fecha quando aceitar",
+        "today_task": "Convide pelo e-mail ou telefone — missão fecha quando entrar no app",
         "why": (
-            "Missão de crescimento a cada 20 níveis: 1 amigo novo no app, "
-            "sem propaganda — só convite na Agenda."
+            "Missão de crescimento a cada 20 níveis: convide na Agenda; "
+            "quando a pessoa cadastrar com o mesmo e-mail ou telefone, você avança."
         ),
         "requirements": [{"type": "step", "key": "invite", "min": 1}],
         "share_challenge": f"Nível {n} 🤝 Convidei mais alguém pro EGO-AI — vem?",
@@ -660,7 +660,7 @@ WIRED_STEP_SOURCES: dict[str, str] = {
     "reminder": "Agenda → compromisso",
     "night_dump": "chat → Desabafo agora",
     "draft_confirm": "Agenda → confirmar desabafo",
-    "invite": "Agenda → telefone ou e-mail sem conta; amigo aceita",
+    "invite": "Agenda → e-mail ou telefone; missão fecha quando entrar no app",
 }
 
 
@@ -810,7 +810,7 @@ def _step_label(key: str, need: int) -> str:
         "reminder": "compromisso ou lembrete na Agenda",
         "night_dump": "desabafo noturno",
         "draft_confirm": "confirmar desabafo na Agenda",
-        "invite": "convidar pelo telefone (ou e-mail) sem conta — aceitar na Agenda",
+        "invite": "convidar na Agenda — missão fecha quando entrar com o mesmo e-mail ou telefone",
         "checkin": "check-in de hoje",
     }
     base = labels.get(key, key)
@@ -958,6 +958,12 @@ def build_journey_payload(
     plan_tier: str = "essential",
     clear_level_up: bool = False,
 ) -> dict[str, Any]:
+    try:
+        from ego_api import shared_calendars as sc
+
+        sc.reconcile_uncredited_invite_missions(supabase, user_id)
+    except Exception:
+        pass
     state = _load_state(supabase, user_id)
     streak_data = streak if streak is not None else get_streak(supabase, user_id)
     cap = _journey_cap(supabase)
