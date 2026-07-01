@@ -576,11 +576,10 @@ def process_chat_message(
             return None, "Gravação demasiado curta. Fale pelo menos 1 segundo."
         audio_mime = normalize_audio_mime(audio_mime, audio_bytes)
         if not user_display:
-            from ego_api import gemini as gmi
             from ego_api.db import VOICE_MESSAGE_MARKER
 
-            transcript = gmi.transcribe_voice_audio(audio_bytes, audio_mime)
-            user_display = (transcript or "").strip() or VOICE_MESSAGE_MARKER
+            # Gemini já ouve o áudio no generate_reply — STT separado duplicava ~10–20 s.
+            user_display = VOICE_MESSAGE_MARKER
     elif audio_b64:
         return None, (
             "Áudio inválido. Fale 2–3 segundos, toque na seta para enviar e tente outra vez."
@@ -970,6 +969,19 @@ def process_chat_message(
 
     if casual:
         agenda_ctx = ""
+    elif is_voice_msg:
+        if voice_fast_mode():
+            agenda_ctx = ""
+        elif not chat_agenda:
+            from ego_api.app_guide import app_guide_context_block
+
+            agenda_ctx = app_guide_context_block()
+        else:
+            agenda_ctx = db.build_agenda_context_for_llm(supabase, user_id)
+            agenda_ctx += cs.build_shared_calendars_context(supabase, user_id)
+            agenda_ctx += cs.build_schedule_wizard_context(
+                schedule, user_display, supabase, user_id
+            )
     elif not chat_agenda:
         from ego_api.app_guide import app_guide_context_block
 
@@ -981,21 +993,29 @@ def process_chat_message(
             schedule, user_display, supabase, user_id
         )
 
+    from ego_api.config import voice_fast_mode
     from ego_api.avatar_memory import memory_context_block
 
-    try:
-        agenda_ctx += memory_context_block(supabase, user_id, avatar_id)
-    except Exception:
-        pass
+    if not (is_voice_msg and voice_fast_mode()):
+        try:
+            agenda_ctx += memory_context_block(supabase, user_id, avatar_id)
+        except Exception:
+            pass
 
     from ego_api.bolso_chat import bolso_mission_prompt_block
 
-    try:
-        agenda_ctx += bolso_mission_prompt_block(supabase, user_id, plan_tier=tier)
-    except Exception:
-        pass
+    if not (is_voice_msg and voice_fast_mode()):
+        try:
+            agenda_ctx += bolso_mission_prompt_block(supabase, user_id, plan_tier=tier)
+        except Exception:
+            pass
 
-    lang, _conf = gemini.detect_language(user_display)
+    from ego_api.db import VOICE_MESSAGE_MARKER as _VOICE_MARKER
+
+    if is_voice_msg and user_display == _VOICE_MARKER:
+        lang = "pt-BR"
+    else:
+        lang, _conf = gemini.detect_language(user_display)
 
     if cs.looks_like_today_agenda_query(user_display):
         reply = cs.build_today_commitments_reply(supabase, user_id)
@@ -1470,7 +1490,7 @@ def process_chat_message(
         }
         if voice_transcript:
             payload["user_transcript"] = voice_transcript
-        # Áudio inline atrasa o texto no telemóvel; o app pede TTS depois (/tts ou playVoice).
+        # Voz: nunca TTS inline — devolve texto rápido; app pede /tts (avatar) em paralelo.
         from ego_api.config import read_env
 
         inline_tts = read_env("EGO_CHAT_INLINE_TTS", "0").lower() in (
@@ -1479,7 +1499,12 @@ def process_chat_message(
             "yes",
             "sim",
         )
-        if inline_tts and speak_reply_effective and reply_clean.strip():
+        if (
+            inline_tts
+            and speak_reply_effective
+            and reply_clean.strip()
+            and not is_voice_msg
+        ):
             from ego_api import tts
             from ego_api.persona import resolve_tts_voice
 
