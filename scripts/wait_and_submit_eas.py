@@ -76,6 +76,18 @@ def build_status(build_id: str) -> str:
     return str(data.get("status") or "UNKNOWN").upper()
 
 
+def wait_ios(ios_id: str, poll_sec: int = 60) -> None:
+    print(f"Aguardando iOS {ios_id}...")
+    while True:
+        ios = build_status(ios_id)
+        print(f"  iOS={ios}")
+        if ios == "FINISHED":
+            return
+        if ios in {"ERRORED", "CANCELED"}:
+            raise SystemExit(f"Build iOS falhou: {ios}")
+        time.sleep(poll_sec)
+
+
 def wait_both(
     ios_id: str, android_id: str, poll_sec: int = 60, *, ios_only: bool = False
 ) -> None:
@@ -180,6 +192,12 @@ def load_ids_android_queue(path: Path) -> str:
     """iOS opcional (vazio = sem build iOS nesta release)."""
     data = json.loads(path.read_text(encoding="utf-8"))
     return str(data.get("ios") or "").strip()
+
+
+def load_ids_ios_queue(path: Path) -> str:
+    """Android opcional (preserva ID Play já enfileirado)."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return str(data.get("android") or "").strip()
 
 
 def wait_android(android_id: str, poll_sec: int = 60) -> None:
@@ -299,6 +317,10 @@ def main() -> int:
     qa.add_argument("--ids-file", help="Onde gravar os build IDs (default: builds-VERSION.ids.json)")
     qa.add_argument("--skip-sync", action="store_true", help="Não rodar sync-check")
 
+    qi = sub.add_parser("queue-ios", help="Enfileira só iOS e grava IDs (preserva Android)")
+    qi.add_argument("--ids-file", help="Onde gravar os build IDs (default: builds-VERSION.ids.json)")
+    qi.add_argument("--skip-sync", action="store_true", help="Não rodar sync-check")
+
     args = parser.parse_args()
 
     if args.cmd == "sync-check":
@@ -336,6 +358,21 @@ def main() -> int:
         print(f"  ou: python scripts/wait_and_submit_eas.py wait-submit --android-only --ids-file {ids_path}")
         return 0
 
+    if args.cmd == "queue-ios":
+        if not args.skip_sync:
+            sync_check()
+        android_id = ""
+        if ids_path.is_file():
+            android_id = load_ids_ios_queue(ids_path)
+        ios_id = queue_build("ios")
+        save_ids(ids_path, ios_id, android_id, version=version)
+        print()
+        print(f"Versão {version} — só iOS enfileirado.")
+        print("Próximo passo:")
+        print(f"  AGUARDAR-IOS-{version}.bat")
+        print(f"  ou: python scripts/wait_and_submit_eas.py wait-submit --ios-only --ids-file {ids_path}")
+        return 0
+
     ios_id = args.ios
     android_id = args.android
     if getattr(args, "android_only", False):
@@ -350,14 +387,16 @@ def main() -> int:
         submit_android(android_id)
         return 0
 
-    if not ios_id or not android_id:
-        if not ids_path.is_file():
-            raise SystemExit(f"Ficheiro não existe: {ids_path} — rode GERAR-E-SUBMETER-JUNTO.bat primeiro")
-        ios_id, android_id = load_ids(ids_path)
-
-    wait_both(ios_id, android_id, poll_sec=args.poll, ios_only=getattr(args, "ios_only", False))
     if getattr(args, "ios_only", False):
-        print("Submetendo só iOS (TestFlight) — Android fica para depois do teste no iPhone.")
+        if not ios_id:
+            if not ids_path.is_file():
+                raise SystemExit(f"Ficheiro não existe: {ids_path}")
+            data = json.loads(ids_path.read_text(encoding="utf-8"))
+            ios_id = str(data.get("ios") or "").strip()
+        if not ios_id:
+            raise SystemExit("iOS build ID em falta — rode GERAR-IOS primeiro")
+        wait_ios(ios_id, poll_sec=args.poll)
+        print("Submetendo iOS (TestFlight / App Store)...")
         proc_ios = _run(
             ["eas", "submit", "--platform", "ios", "--id", ios_id, "--non-interactive"]
         )
@@ -366,8 +405,15 @@ def main() -> int:
             print(proc_ios.stderr, file=sys.stderr)
             raise SystemExit(proc_ios.returncode)
         _safe_print(proc_ios.stdout or "")
-        print("Submit iOS concluído. Android: rode submit manual quando iPhone OK.")
+        print("Submit iOS concluído. App Store Connect: escolher build e enviar para revisão.")
         return 0
+
+    if not ios_id or not android_id:
+        if not ids_path.is_file():
+            raise SystemExit(f"Ficheiro não existe: {ids_path} — rode GERAR-E-SUBMETER-JUNTO.bat primeiro")
+        ios_id, android_id = load_ids(ids_path)
+
+    wait_both(ios_id, android_id, poll_sec=args.poll, ios_only=False)
     submit_pair(ios_id, android_id)
     return 0
 

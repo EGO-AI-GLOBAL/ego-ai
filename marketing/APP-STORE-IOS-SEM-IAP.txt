@@ -10,7 +10,7 @@ EGO-AI on iOS is a free app. We do not use StoreKit and we do not sell subscript
 In this build we removed all in-app purchase flows on iOS:
 - No "Subscribe" / "Assinar" buttons that open payment
 - No external checkout links from the app
-- The Plans screen is informational only (plan comparison)
+- The Plans screen shows only the user's current plan (no purchase buttons or prices)
 - Users who already have an active subscription on our service can sign in with the same email and access their plan (multiplatform account)
 
 We are not submitting IAP products because paid plans are not sold inside the iOS app.
@@ -28,5 +28,5 @@ Thank you.
 Checklist App Store Connect (antes de reenviar):
 [ ] Monetização → In-App Purchases: nenhum produto pendente (apagar rascunhos se existirem)
 [ ] App Information: não dizer "in-app purchase" na descrição
-[ ] Novo binary iOS build 59+ (1.0.72) com código iosAppStoreBilling
+[ ] Novo binary iOS build 60 (1.0.72) com código iosAppStoreBilling
 [ ] App Review Information: conta demo + notas acima

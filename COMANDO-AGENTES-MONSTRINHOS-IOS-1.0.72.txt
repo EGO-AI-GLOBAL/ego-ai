@@ -20,11 +20,8 @@ Release 1.0.72 — build iOS App Store (sem IAP).
 1. git pull — confirmar diff iosAppStoreBilling + chat/plans/account
 2. python scripts/regression_guard.py
 3. PREPARAR-1.0.72.bat
-4. eas build --platform ios --profile production
-   (ou GERAR-1.0.72.bat só iOS se script existir)
-5. App Store Connect: apagar IAP em rascunho se houver
-6. Resubmit build 60 com notas em marketing/APP-STORE-IOS-SEM-IAP.txt
-7. Conta demo para revisor Apple (login + trial ou conta paga)
+4. GERAR-IOS-1.0.72.bat  (ou queue-ios — já pode estar enfileirado)
+5. AGUARDAR-IOS-1.0.72.bat — submit TestFlight quando FINISHED
 
 NÃO reactivar Stripe no iOS depois de aprovado.
 

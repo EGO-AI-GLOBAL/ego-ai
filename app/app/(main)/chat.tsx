@@ -1323,57 +1323,59 @@ function ChatScreenInner() {
                   : "Espere até 00:00 para usar de novo ou entre com uma conta que já tenha plano ativo."}
               </Text>
               {allowsInAppPlanPurchase() ? (
-              <View style={styles.limitActions}>
-                {planOffers.map((offer) => (
-                  <Pressable
-                    key={offer.id}
-                    onPress={() => openCheckout(offer.url)}
-                    style={({ pressed }) => [
-                      styles.planCard,
-                      {
-                        backgroundColor: offer.highlight ? colors.primary : colors.bg,
-                        borderColor: offer.highlight ? colors.primary : colors.border,
-                        opacity: pressed ? 0.9 : 1,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.planTag,
-                        {
-                          color: offer.highlight ? "#fff" : colors.primary,
-                          backgroundColor: offer.highlight
-                            ? "rgba(255,255,255,0.22)"
-                            : colors.primaryLight,
-                        },
-                      ]}
-                    >
-                      {offer.tag}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.planName,
-                        { color: offer.highlight ? "#fff" : colors.text },
-                      ]}
-                    >
-                      {offer.label}
-                    </Text>
-                    <Text
-                      style={[
-                        styles.limitBtnText,
-                        { color: offer.highlight ? "#fff" : colors.primary },
-                      ]}
-                    >
-                      {offer.cta}
+                <>
+                  <View style={styles.limitActions}>
+                    {planOffers.map((offer) => (
+                      <Pressable
+                        key={offer.id}
+                        onPress={() => openCheckout(offer.url)}
+                        style={({ pressed }) => [
+                          styles.planCard,
+                          {
+                            backgroundColor: offer.highlight ? colors.primary : colors.bg,
+                            borderColor: offer.highlight ? colors.primary : colors.border,
+                            opacity: pressed ? 0.9 : 1,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.planTag,
+                            {
+                              color: offer.highlight ? "#fff" : colors.primary,
+                              backgroundColor: offer.highlight
+                                ? "rgba(255,255,255,0.22)"
+                                : colors.primaryLight,
+                            },
+                          ]}
+                        >
+                          {offer.tag}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.planName,
+                            { color: offer.highlight ? "#fff" : colors.text },
+                          ]}
+                        >
+                          {offer.label}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.limitBtnText,
+                            { color: offer.highlight ? "#fff" : colors.primary },
+                          ]}
+                        >
+                          {offer.cta}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <Pressable onPress={() => void router.push("/(main)/plans")}>
+                    <Text style={[styles.allPlansLink, { color: colors.primary }]}>
+                      Ver todos os planos
                     </Text>
                   </Pressable>
-                ))}
-              </View>
-              <Pressable onPress={() => void router.push("/(main)/plans")}>
-                <Text style={[styles.allPlansLink, { color: colors.primary }]}>
-                  Ver todos os planos
-                </Text>
-              </Pressable>
+                </>
               ) : null}
             </View>
           ) : null}
