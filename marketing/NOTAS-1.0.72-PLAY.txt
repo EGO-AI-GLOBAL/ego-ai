@@ -1,0 +1,7 @@
+1.0.72 — teste fechado Android
+
+• Correção do microfone: gravação de voz sem tela branca
+• Monstrinhos: diário de humor com histórico de 7 dias no jardim
+• Chat: interface mais limpa — removido botão «Ouvir» duplicado (use «Ouvir ao responder» no topo)
+
+Teste: abrir chat → microfone → falar → resposta. Jardim → ver strip dos últimos 7 dias de humor.

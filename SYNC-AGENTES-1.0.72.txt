@@ -1,0 +1,13 @@
+SYNC MESTRE — RELEASE 1.0.72
+=============================
+Android: build hoje (só Android)
+iOS: código pronto — EAS iOS após App Store
+
+| Agente      | Ficheiro sync                    | Estado        |
+|-------------|----------------------------------|---------------|
+| Monstrinhos | SYNC-AGENTES-MONSTRINHOS-1.0.72  | ✅ PRONTO f17a678 |
+| Bolso       | SYNC-AGENTES-BOLSO-1.0.72        | ✅ PRONTO     |
+| API         | (mood_journal — redeploy Railway)| ⚠️ deploy API |
+| Marketing   | NOTAS + MENSAGEM 1.0.72          | ✅ textos     |
+
+Build: GERAR-ANDROID-1.0.72.bat → AGUARDAR-ANDROID-1.0.72.bat

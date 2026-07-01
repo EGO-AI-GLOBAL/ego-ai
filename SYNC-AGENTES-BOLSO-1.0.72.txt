@@ -1,0 +1,8 @@
+AGENTE BOLSO — RELEASE 1.0.72
+==============================
+Estado: ✅ PRONTO
+
+Zona: chat UI
+• app/app/(main)/chat.tsx — removido botão «Ouvir» (mantém switch «Ouvir ao responder»)
+
+GIT: (após push deste commit)

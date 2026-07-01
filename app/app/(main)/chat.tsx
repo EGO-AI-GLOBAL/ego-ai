@@ -605,7 +605,7 @@ function ChatScreenInner() {
       await markChatOnboardingDone(userId);
       stickToBottomRef.current = true;
       scrollMessagesToEnd(true);
-      setChatNotice("Leia a mensagem de boas-vindas acima. Toque em «Ouvir» para ouvir.");
+      setChatNotice("Leia a mensagem de boas-vindas acima. Ligue «Ouvir ao responder» para ouvir.");
     })();
   }, [
     localChatReady,
@@ -671,14 +671,11 @@ function ChatScreenInner() {
     }
   }, [scrollMessagesToEnd]);
 
-  /** Voz do avatar: toggle «Ouvir ao responder» ou botão «Ouvir». */
-  const playVoice = async (
-    result: SendChatResult,
-    opts?: { manual?: boolean }
-  ) => {
+  /** Voz do avatar: toggle «Ouvir ao responder». */
+  const playVoice = async (result: SendChatResult) => {
     setLastChatResult(result);
     voice.unlockWebPlayback();
-    if (!opts?.manual && !autoPlayVoice) {
+    if (!autoPlayVoice) {
       return;
     }
     await voice.stopPlayback();
@@ -692,12 +689,6 @@ function ChatScreenInner() {
     if (err) {
       setChatError(err);
     }
-  };
-
-  const onListenLastReply = async () => {
-    if (!lastChatResult?.reply?.trim()) return;
-    await voice.stopPlayback();
-    await playVoice(lastChatResult, { manual: true });
   };
 
   const onAutoPlayVoiceChange = (enabled: boolean) => {
@@ -842,7 +833,7 @@ function ChatScreenInner() {
         if (autoPlayVoice) {
           void voice.replayLastText(reply, persona.voice_id, persona.avatar_id);
         } else {
-          setChatNotice("Resposta pronta. Toque em «Ouvir» para ouvir.");
+          setChatNotice("Resposta pronta. Ligue «Ouvir ao responder» para ouvir.");
         }
         return;
       }
@@ -882,7 +873,7 @@ function ChatScreenInner() {
       } else if (result.reply?.trim() && autoPlayVoice) {
         voiceToPlay = result;
       } else if (result.reply?.trim()) {
-        setChatNotice("Resposta pronta. Toque em «Ouvir» para ouvir.");
+        setChatNotice("Resposta pronta. Ligue «Ouvir ao responder» para ouvir.");
       }
     } catch (e) {
       await voice.cancelRecording();
@@ -1394,29 +1385,6 @@ function ChatScreenInner() {
                   ]}
                 >
                   Desabafo agora
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={() => void onListenLastReply()}
-                disabled={!lastChatResult?.reply || voice.isPreparingAudio || sending}
-                style={({ pressed }) => [
-                  styles.actionChip,
-                  {
-                    borderColor: colors.primary,
-                    backgroundColor: colors.bgCard,
-                    opacity:
-                      !lastChatResult?.reply || voice.isPreparingAudio || sending
-                        ? 0.45
-                        : pressed
-                          ? 0.88
-                          : 1,
-                  },
-                ]}
-                accessibilityRole="button"
-                accessibilityLabel="Ouvir resposta do assistente"
-              >
-                <Text style={[styles.actionChipText, { color: colors.primary }]}>
-                  {voice.isPreparingAudio ? "A preparar…" : "Ouvir"}
                 </Text>
               </Pressable>
             </View>

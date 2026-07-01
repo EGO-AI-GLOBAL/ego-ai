@@ -1,0 +1,63 @@
+EGO-AI — RELEASE 1.0.72 (Android hoje · iOS pronto no código)
+================================================================
+Objetivo: uma subida no main — build EAS **só Android**. iPhone aguarda resposta da App Store; código já no main para iOS depois.
+
+Versão: 1.0.72 · iOS build 58 · Android versionCode 109
+Inclui: fix mic Android (1.0.71) + diário humor 7 dias (Monstrinhos) + remover botão «Ouvir» no chat (Bolso)
+
+──────────────────────────────────────────────────────────────
+ORDEM HOJE
+──────────────────────────────────────────────────────────────
+1. API — Railway redeploy (mood_journal no check-in) — ANTES ou com o build
+2. Bolso — commit remover «Ouvir» + SYNC ✅
+3. Monstrinhos — confirmar SYNC ✅ (já 1.0.72 no main)
+4. PREPARAR-1.0.72.bat → GERAR-ANDROID-1.0.72.bat
+5. AGUARDAR-ANDROID-1.0.72.bat (ou upload manual .aab Play teste fechado)
+6. iOS: NÃO correr EAS hoje — quando Apple aprovar: GERAR-1.0.72.bat (iOS)
+
+──────────────────────────────────────────────────────────────
+COLAR NO CHAT BOLSO (este agente / chat voz+chat)
+──────────────────────────────────────────────────────────────
+Release 1.0.72 — fechar diff Bolso/chat.
+
+OBRIGATÓRIO:
+1. app/app/(main)/chat.tsx — remover botão «Ouvir» ao lado de «Desabafo agora» (manter switch «Ouvir ao responder»)
+2. regression_guard + smoke_test_api
+3. git commit + push origin main
+4. SYNC-AGENTES-BOLSO-1.0.72.txt → ✅ PRONTO + hash
+
+NÃO: app.config · GERAR/EAS · auth/voz estável.
+Resposta: ✅ BOLSO PRONTO — commit ___ — ficheiros: chat.tsx
+
+──────────────────────────────────────────────────────────────
+COLAR NO CHAT MONSTRINHOS
+──────────────────────────────────────────────────────────────
+Release 1.0.72 — Android só hoje.
+
+JÁ NO MAIN (f17a678): Fase 9b mood journal · app.config 1.0.72 · scripts PREPARAR/GERAR.
+
+HOJE:
+1. git pull — confirmar Bolso pushou chat (sem «Ouvir»)
+2. Railway: redeploy API (daily_care mood_journal)
+3. PREPARAR-1.0.72.bat
+4. GERAR-ANDROID-1.0.72.bat  ← só Android, NÃO GERAR-1.0.72.bat completo
+5. AGUARDAR-ANDROID-1.0.72.bat ou upload manual Play
+6. SYNC-AGENTES-MONSTRINHOS-1.0.72.txt → ✅ PRONTO + hash final
+
+iOS: código pronto; build EAS iOS só após OK da App Store.
+NÃO usar eas submit --latest.
+Resposta: ✅ MONSTRINHOS PRONTO — Android build ___ — Play ___
+
+──────────────────────────────────────────────────────────────
+COMANDO ÚNICO (Monstrinhos, após Bolso ✅ push)
+──────────────────────────────────────────────────────────────
+PREPARAR-1.0.72.bat
+GERAR-ANDROID-1.0.72.bat
+AGUARDAR-ANDROID-1.0.72.bat
+
+──────────────────────────────────────────────────────────────
+NOTAS PLAY (resumo)
+──────────────────────────────────────────────────────────────
+• Correção microfone Android (sem tela branca ao gravar)
+• Diário de humor — 7 dias no jardim dos Monstrinhos
+• Chat: só «Desabafo agora» + toggle «Ouvir ao responder»

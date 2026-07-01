@@ -176,6 +176,37 @@ def load_ids(path: Path) -> tuple[str, str]:
     return ios, android
 
 
+def load_ids_android_queue(path: Path) -> str:
+    """iOS opcional (vazio = sem build iOS nesta release)."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return str(data.get("ios") or "").strip()
+
+
+def wait_android(android_id: str, poll_sec: int = 60) -> None:
+    print(f"Aguardando Android {android_id}...")
+    while True:
+        android = build_status(android_id)
+        print(f"  Android={android}")
+        if android == "FINISHED":
+            return
+        if android in {"ERRORED", "CANCELED"}:
+            raise SystemExit(f"Build Android falhou: {android}")
+        time.sleep(poll_sec)
+
+
+def submit_android(android_id: str) -> None:
+    print("Submetendo Android (Play)...")
+    proc_and = _run(
+        ["eas", "submit", "--platform", "android", "--id", android_id, "--non-interactive"]
+    )
+    if proc_and.returncode != 0:
+        _safe_print(proc_and.stdout or "")
+        print(proc_and.stderr, file=sys.stderr)
+        raise SystemExit(proc_and.returncode)
+    _safe_print(proc_and.stdout or "")
+    print("Submit Android concluído.")
+
+
 def sync_check() -> None:
     """Garante que todos os agentes já fundiram no main antes de build."""
     print("=== Sync check (todos os agentes) ===")
@@ -258,6 +289,15 @@ def main() -> int:
         action="store_true",
         help="Espera ambos builds mas submete só iOS (TestFlight)",
     )
+    w.add_argument(
+        "--android-only",
+        action="store_true",
+        help="Espera e submete só Android (Play) — iOS fica para depois",
+    )
+
+    qa = sub.add_parser("queue-android", help="Enfileira só Android e grava IDs")
+    qa.add_argument("--ids-file", help="Onde gravar os build IDs (default: builds-VERSION.ids.json)")
+    qa.add_argument("--skip-sync", action="store_true", help="Não rodar sync-check")
 
     args = parser.parse_args()
 
@@ -281,8 +321,35 @@ def main() -> int:
         print(f"  ou: python scripts/wait_and_submit_eas.py wait-submit --ids-file {ids_path}")
         return 0
 
+    if args.cmd == "queue-android":
+        if not args.skip_sync:
+            sync_check()
+        ios_id = ""
+        if ids_path.is_file():
+            ios_id = load_ids_android_queue(ids_path)
+        android_id = queue_build("android")
+        save_ids(ids_path, ios_id, android_id, version=version)
+        print()
+        print(f"Versão {version} — só Android enfileirado.")
+        print("Próximo passo:")
+        print(f"  AGUARDAR-ANDROID-{version}.bat")
+        print(f"  ou: python scripts/wait_and_submit_eas.py wait-submit --android-only --ids-file {ids_path}")
+        return 0
+
     ios_id = args.ios
     android_id = args.android
+    if getattr(args, "android_only", False):
+        if not android_id:
+            if not ids_path.is_file():
+                raise SystemExit(f"Ficheiro não existe: {ids_path}")
+            data = json.loads(ids_path.read_text(encoding="utf-8"))
+            android_id = str(data.get("android") or "").strip()
+        if not android_id:
+            raise SystemExit("Android build ID em falta — rode GERAR-ANDROID primeiro")
+        wait_android(android_id, poll_sec=args.poll)
+        submit_android(android_id)
+        return 0
+
     if not ios_id or not android_id:
         if not ids_path.is_file():
             raise SystemExit(f"Ficheiro não existe: {ids_path} — rode GERAR-E-SUBMETER-JUNTO.bat primeiro")
