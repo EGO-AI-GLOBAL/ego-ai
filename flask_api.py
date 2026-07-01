@@ -490,6 +490,12 @@ def health():
     except Exception:
         pass
     try:
+        from ego_api.plan_retention import plan_retention_status
+
+        payload["plan_retention"] = plan_retention_status()
+    except Exception:
+        pass
+    try:
         from ego_api.play_integrity import status_payload
 
         payload["play_integrity"] = status_payload()
@@ -724,6 +730,21 @@ def admin_cron_ego_de_bolso_care():
     else:
         return _json_error("slot inválido — use morning, care ou all.", 400)
     return _json_ok({"ok": True, "slot": slot, "stats": stats})
+
+
+@app.post("/api/v1/admin/cron/plan-retention")
+@require_admin
+def admin_cron_plan_retention():
+    """E-mail + push: trial 3 dias antes, trial expirado (varredura). Limite diário via chat."""
+    from ego_api.plan_retention import process_plan_retention_cron
+
+    data = request.get_json(silent=True) or {}
+    try:
+        limit = int(data.get("limit") or request.args.get("limit") or 150)
+    except (TypeError, ValueError):
+        return _json_error("limit deve ser número.", 400)
+    stats = process_plan_retention_cron(limit=min(300, max(1, limit)))
+    return _json_ok({"ok": True, "stats": stats})
 
 
 @app.post("/api/v1/admin/referrals/partners")
@@ -1974,9 +1995,11 @@ def auth_logout():
 
 from ego_api.signup_emails import start_background_jobs as start_signup_background_jobs
 from ego_api.ego_de_bolso_push import start_background_jobs as start_ego_bolso_push_jobs
+from ego_api.plan_retention import start_background_jobs as start_plan_retention_jobs
 
 start_signup_background_jobs()
 start_ego_bolso_push_jobs()
+start_plan_retention_jobs()
 
 
 if __name__ == "__main__":

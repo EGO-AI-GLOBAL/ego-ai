@@ -32,11 +32,11 @@ import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 import {
   checkoutUrlForTier,
-  LAUNCH_CHECKOUT_FALLBACK,
   launchCheckoutUrl,
   teamCheckoutUrl,
   withCheckoutUserRef,
 } from "@/utils/planCheckout";
+import { allowsInAppPlanPurchase, IOS_PLANS_SCREEN_NOTE } from "@/utils/iosAppStoreBilling";
 
 const MARKET_TITLE: Record<MonthlyMarket, string> = {
   br: "Brasil (R$) — mensal",
@@ -73,7 +73,11 @@ export default function PlansScreen() {
   useFocusEffect(
     useCallback(() => {
       void refresh();
-      void loadCatalog();
+      if (allowsInAppPlanPurchase()) {
+        void loadCatalog();
+      } else {
+        setCatalogLoading(false);
+      }
     }, [refresh, loadCatalog])
   );
 
@@ -88,6 +92,7 @@ export default function PlansScreen() {
   const essentialPlan = catalog.find((p) => p.tier === "essential");
 
   const onSubscribe = async (busyKey: string, url: string) => {
+    if (!allowsInAppPlanPurchase()) return;
     setOpeningKey(busyKey);
     const checkoutUrl = withCheckoutUserRef(url, userId);
     if (!checkoutUrl) {
@@ -135,17 +140,17 @@ export default function PlansScreen() {
 
   /** Cupom parceiro: esconde EGO Lançamento e mostra benefício 10% na 1ª compra. */
   const showLaunchCard =
+    allowsInAppPlanPurchase() &&
     !referralActive &&
     (launchOffer != null || isLaunchCampaignActive()) &&
     Boolean(
       launchCheckoutUrl(checkout) ||
-        launchOffer?.checkout_url?.trim() ||
-        (!referralActive && LAUNCH_CHECKOUT_FALLBACK)
+        launchOffer?.checkout_url?.trim()
     );
   const launchUrl = showLaunchCard
     ? launchCheckoutUrl(checkout) ||
       launchOffer?.checkout_url?.trim() ||
-      LAUNCH_CHECKOUT_FALLBACK
+      null
     : null;
   const launchIntroMonths =
     launchOffer?.intro_months ?? LAUNCH_OFFER_INTRO_MONTHS;
@@ -207,7 +212,9 @@ export default function PlansScreen() {
         priceOverride="Grátis"
         footnote={
           currentTier !== "essential"
-            ? "Assinatura mensal: cancele no Stripe para voltar ao grátis."
+            ? allowsInAppPlanPurchase()
+              ? "Assinatura mensal: cancele no Stripe para voltar ao grátis."
+              : "Plano ativo nesta conta."
             : undefined
         }
       />
@@ -239,8 +246,9 @@ export default function PlansScreen() {
           {tagline}
         </Text>
         <Text style={[styles.referralFoot, { color: colors.textMuted }]}>
-          Escolha Conexão, Premium ou Total abaixo. O desconto aplica uma vez no checkout.
-          Plano EGO Lançamento não aparece para cupom de parceiro.
+          {allowsInAppPlanPurchase()
+            ? "Escolha Conexão, Premium ou Total abaixo. O desconto aplica uma vez no checkout. Plano EGO Lançamento não aparece para cupom de parceiro."
+            : "Cupom parceiro válido na sua conta. Compra de planos não está disponível neste app iOS."}
         </Text>
       </View>
     );
@@ -340,7 +348,14 @@ export default function PlansScreen() {
   };
 
   return (
-    <ScreenShell title="Planos" subtitle="Mensal · todos os planos · pode mudar quando quiser">
+    <ScreenShell
+      title={allowsInAppPlanPurchase() ? "Planos" : "Seu plano"}
+      subtitle={
+        allowsInAppPlanPurchase()
+          ? "Mensal · todos os planos · pode mudar quando quiser"
+          : "App gratuito · sem venda de planos no iPhone"
+      }
+    >
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
@@ -366,6 +381,17 @@ export default function PlansScreen() {
 
         {!busy ? (
           <>
+            {!allowsInAppPlanPurchase() ? (
+              <View
+                style={[
+                  styles.iosNoteBox,
+                  { backgroundColor: colors.primaryTint, borderColor: colors.primary },
+                ]}
+              >
+                <Text style={[styles.iosNoteText, { color: colors.text }]}>{IOS_PLANS_SCREEN_NOTE}</Text>
+              </View>
+            ) : null}
+
             <View
               style={[
                 styles.currentBox,
@@ -381,13 +407,15 @@ export default function PlansScreen() {
               <Text style={[styles.currentHint, { color: colors.textMuted }]}>
                 {currentTier === "essential"
                   ? `Grátis · ${formatMonthlyPrice(0)}`
-                  : "Assinatura mensal · você pode mudar de plano abaixo a qualquer momento"}
+                  : allowsInAppPlanPurchase()
+                    ? "Assinatura mensal · você pode mudar de plano abaixo a qualquer momento"
+                    : "Plano ativo nesta conta"}
               </Text>
             </View>
 
-            {renderReferralOffer()}
+            {allowsInAppPlanPurchase() ? renderReferralOffer() : null}
 
-            {showLaunchCard && launchUrl ? (
+            {allowsInAppPlanPurchase() && showLaunchCard && launchUrl ? (
               <>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
                   EGO Lançamento — R$ 10,94
@@ -400,33 +428,37 @@ export default function PlansScreen() {
               </>
             ) : null}
 
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {MARKET_TITLE.br} — individual
-            </Text>
-            <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-              Todos os planos aparecem para todos. Ordem: do mais barato ao mais caro.
-              Pagamento mensal — pode mudar de plano quando quiser.
-            </Text>
-            {renderEssentialBr()}
-            {renderIndividual("br")}
+            {allowsInAppPlanPurchase() ? (
+              <>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  {MARKET_TITLE.br} — individual
+                </Text>
+                <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
+                  Todos os planos aparecem para todos. Ordem: do mais barato ao mais caro.
+                  Pagamento mensal — pode mudar de plano quando quiser.
+                </Text>
+                {renderEssentialBr()}
+                {renderIndividual("br")}
 
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {MARKET_TITLE.br} — equipes (agenda compartilhada)
-            </Text>
-            <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-              Planos para várias pessoas · ordenados por preço.
-            </Text>
-            {renderTeam("br")}
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  {MARKET_TITLE.br} — equipes (agenda compartilhada)
+                </Text>
+                <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
+                  Planos para várias pessoas · ordenados por preço.
+                </Text>
+                {renderTeam("br")}
 
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {MARKET_TITLE.int} — individual
-            </Text>
-            {renderIndividual("int")}
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  {MARKET_TITLE.int} — individual
+                </Text>
+                {renderIndividual("int")}
 
-            <Text style={[styles.sectionTitle, { color: colors.text }]}>
-              {MARKET_TITLE.int} — teams
-            </Text>
-            {renderTeam("int")}
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  {MARKET_TITLE.int} — teams
+                </Text>
+                {renderTeam("int")}
+              </>
+            ) : null}
           </>
         ) : null}
       </ScrollView>
@@ -465,6 +497,13 @@ const styles = StyleSheet.create({
   },
   referralTitle: { fontSize: 15, fontWeight: "800", marginBottom: 6 },
   referralFoot: { fontSize: 12, lineHeight: 17, marginTop: 8 },
+  iosNoteBox: {
+    borderRadius: 14,
+    borderWidth: 1.5,
+    padding: 14,
+    marginBottom: 16,
+  },
+  iosNoteText: { fontSize: 13, lineHeight: 19 },
   errorBanner: { marginBottom: 16 },
   error: { fontSize: 14 },
   link: { fontSize: 14, marginTop: 8, fontWeight: "600" },

@@ -325,6 +325,11 @@ def main() -> None:
     )
     cfg_path.write_text(json.dumps(cfg, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
 
+    # Página /planos — checkout Stripe (e-mails retenção + iOS sem IAP no app)
+    planos_src = SRC_LANDING / "planos"
+    if planos_src.is_dir():
+        copy_tree_files(planos_src, OUT / "planos")
+
     (OUT / ".htaccess").write_text(
         """# UOL / Apache — site estático EGO-AI
 DirectoryIndex index.html
@@ -371,8 +376,9 @@ Options -Indexes
         (d / "index.html").write_text(content, encoding="utf-8")
 
     if modo == "testadores":
-        print(f"OK {OUT} — landing completa + 2 botões Android/iPhone")
+        print(f"OK {OUT} — landing completa + 2 botões Android/iPhone + /planos/")
         print("  https://egoai.com.br — funcoes do app + privacidade/termos")
+        print("  https://egoai.com.br/planos/ — checkout Stripe (mesmo e-mail do app)")
     elif modo == "construcao":
         print(f"OK {OUT} — modo EM CONSTRUÇÃO (index.html)")
         print("  Site completo guardado em index-completo.html (troque quando estiver pronto)")

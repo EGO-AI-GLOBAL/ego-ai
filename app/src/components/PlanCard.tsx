@@ -6,7 +6,10 @@ import {
   PLAN_TAGLINES,
   planFeatureLines,
 } from "@/constants/plans";
-import type { AppColors } from "@/theme/colors";
+import {
+  allowsInAppPlanPurchase,
+  IOS_PLAN_CARD_NOTE,
+} from "@/utils/iosAppStoreBilling";
 
 type Props = {
   colors: AppColors;
@@ -40,7 +43,8 @@ export function PlanCard({
   footnote,
 }: Props) {
   const features = planFeatureLines(plan);
-  const canSubscribe = !isCurrent && Boolean(checkoutUrl);
+  const iosReadOnly = !allowsInAppPlanPurchase() && !isCurrent && plan.tier !== "essential";
+  const canSubscribe = !isCurrent && Boolean(checkoutUrl) && !iosReadOnly;
   const ctaLabel = subscribeLabel || "Assinar";
 
   return (
@@ -86,6 +90,10 @@ export function PlanCard({
           {footnote ? (
             <Text style={[styles.footnote, { color: colors.textMuted }]}>{footnote}</Text>
           ) : null}
+        </View>
+      ) : iosReadOnly ? (
+        <View style={[styles.statusPill, { backgroundColor: colors.bg }]}>
+          <Text style={[styles.statusText, { color: colors.textMuted }]}>{IOS_PLAN_CARD_NOTE}</Text>
         </View>
       ) : (
         <Pressable

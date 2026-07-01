@@ -1,0 +1,28 @@
+EGO-AI — WhatsApp automático = FASE 2 (não agora)
+==================================================
+
+DECISÃO: não aumentar custo nesta release.
+
+AGORA (retenção / conversão):
+- E-mail automático — Brevo (já em uso)
+- Push automático — Expo (grátis no tier actual)
+- Link planos no e-mail → https://egoai.com.br/planos
+
+FORA DE SCOPE ATÉ FASE 2:
+- WhatsApp automático (trial, limite, expirado)
+- Meta WhatsApp Business API / Twilio / templates pagos
+- Cron ou webhook que envie WA sem o utilizador tocar
+
+CONTINUA GRÁTIS (não mexer):
+- Botão «partilhar no WhatsApp» no app (Monstrinhos, EGO de Bolso, Entre Nós)
+- Mensagens manuais do Iury para grupo de testadores (marketing)
+- Campo telefone no cadastro (convites Entre Nós)
+
+API: plan_retention.py → whatsapp: "not_configured" (manter assim)
+
+Quando for FASE 2, avaliar:
+- Custo por mensagem Meta (~R$ por conversa)
+- Opt-in explícito + número verificado
+- Alternativa: só WA para quem já tem telefone no perfil E pediu lembrete
+
+Agentes: NÃO implementar WA automático na API sem pedido explícito do utilizador.

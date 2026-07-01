@@ -550,6 +550,9 @@ def process_chat_message(
     tier, limits = db.user_plan_limits(prof)
     ok_access, status = db.check_access(supabase, user_id)
     if not ok_access:
+        from ego_api.plan_retention import on_trial_access_denied
+
+        on_trial_access_denied(user_id)
         return None, _access_expired_message(supabase, user_id)
 
     ok_tok, msg_tok, used_tok, lim_tok = db.check_token_allowance(supabase, user_id, prof)
@@ -592,10 +595,16 @@ def process_chat_message(
     if is_voice_msg:
         ok_voice, _voice_used = db.daily_voice_messages_ok(supabase, user_id, limits)
         if not ok_voice:
+            from ego_api.plan_retention import on_daily_limit_hit
+
+            on_daily_limit_hit(user_id)
             return None, _daily_limit_message(supabase, user_id)
     else:
         ok_txt, _txt_used = db.daily_text_messages_ok(supabase, user_id, limits)
         if not ok_txt:
+            from ego_api.plan_retention import on_daily_limit_hit
+
+            on_daily_limit_hit(user_id)
             return None, _daily_limit_message(supabase, user_id)
 
     # Não bloquear mensagem de voz/texto por limite TTS — o áudio da resposta é opcional.

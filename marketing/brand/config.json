@@ -29,10 +29,12 @@
     "warn": "#EAB308"
   },
   "stripe": {
-    "connection": "https://buy.stripe.com/5kQ6oJfeC3mWeq4cJA4ow00",
+    "connection": "https://buy.stripe.com/dRm5kFaYmbTs5TydNE4ow0M",
     "premium": "https://buy.stripe.com/14A7sNgiG6z8chWgZQ4ow02",
     "total": "https://buy.stripe.com/5kQeVf6I60aK95K6lc4ow03",
-    "intConnection": "https://buy.stripe.com/00w3cx9UibTs0ze24W4ow04"
+    "intConnection": "https://buy.stripe.com/00w3cx9UibTs0ze24W4ow04",
+    "intPremium": "https://buy.stripe.com/5kQbJ3eay7Dc81G7pg4ow06",
+    "intTotal": "https://buy.stripe.com/eVqfZjaYm8Hg4Pu9xo4ow0L"
   },
   "utm": {
     "landingDefault": "utm_source=landing&utm_medium=web&utm_campaign=egoai",

@@ -1,0 +1,23 @@
+SYNC — AGENTE MARKETING — 1.0.72 — SITE PLANOS
+==============================================
+Estado: ⏳ PENDENTE
+
+Tarefa: publicar /planos/ no egoai.com.br (Stripe + texto iOS mesmo e-mail)
+
+Ficheiros:
+- marketing/landing/planos/index.html
+- marketing/landing/planos/planos-brand.js
+- marketing/landing/testadores.html
+- marketing/landing/index.html
+- marketing/brand/config.json
+- scripts/build_site_publico.py
+- COMANDO-AGENTES-MARKETING-SITE-PLANOS.txt
+
+Comando: ver COMANDO-AGENTES-MARKETING-SITE-PLANOS.txt
+
+Commit: ___
+
+✅ PRONTO quando:
+- site https://egoai.com.br/planos/ no ar
+- 3 botões Stripe OK
+- push main feito

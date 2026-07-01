@@ -287,6 +287,16 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ],
     ),
     (
+        "ego_api/plan_retention.py",
+        [
+            "process_plan_retention_cron",
+            "on_trial_access_denied",
+            "on_daily_limit_hit",
+            "deliver_plan_retention",
+            "plans_checkout_url",
+        ],
+    ),
+    (
         "ego_api/bolso_chat.py",
         ["bolso_mission_prompt_block", "try_mission_complete_push"],
     ),

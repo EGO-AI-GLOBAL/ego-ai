@@ -18,6 +18,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { checkoutUrlForTier } from "@/utils/planCheckout";
+import { allowsInAppPlanPurchase, IOS_CHAT_BLOCKED_PLACEHOLDER, IOS_DAILY_LIMIT_ALERT, IOS_TRIAL_END_ALERT } from "@/utils/iosAppStoreBilling";
 import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText, completeWellnessJourneyStep } from "@/api/client";
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { AppGradientBackground } from "@/components/AppGradientBackground";
@@ -502,13 +503,20 @@ function ChatScreenInner() {
 
   const onNightDumpPress = useCallback(() => {
     if (trialExpired) {
-      Alert.alert("Teste encerrado", "Assine um plano para continuar o desabafo e o chat.");
+      Alert.alert(
+        "Teste encerrado",
+        allowsInAppPlanPurchase()
+          ? "Assine um plano para continuar o desabafo e o chat."
+          : IOS_TRIAL_END_ALERT
+      );
       return;
     }
     if (isDailyLimitReached) {
       Alert.alert(
         "Limite diário",
-        "O desabafo usa a mesma cota do chat. Espere até 00:00 ou assine um plano para continuar."
+        allowsInAppPlanPurchase()
+          ? "O desabafo usa a mesma cota do chat. Espere até 00:00 ou assine um plano para continuar."
+          : IOS_DAILY_LIMIT_ALERT
       );
       return;
     }
@@ -552,6 +560,7 @@ function ChatScreenInner() {
   ].filter((p) => Boolean(p.url));
 
   const openCheckout = (url: string | null) => {
+    if (!allowsInAppPlanPurchase()) return;
     if (url) {
       void Linking.openURL(url);
       return;
@@ -925,7 +934,12 @@ function ChatScreenInner() {
     async (text: string, userLabel: string, opts?: { forceVoice?: boolean }) => {
       if (sending || !session || !text.trim()) return;
       if (trialExpired) {
-        Alert.alert("Teste encerrado", "Assine um plano para continuar conversando com seu assistente.");
+        Alert.alert(
+          "Teste encerrado",
+          allowsInAppPlanPurchase()
+            ? "Assine um plano para continuar conversando com seu assistente."
+            : IOS_TRIAL_END_ALERT
+        );
         return;
       }
       if (micActive) {
@@ -1057,13 +1071,20 @@ function ChatScreenInner() {
         return;
       }
       if (trialExpired) {
-        Alert.alert("Teste encerrado", "Assine um plano para continuar o desabafo e o chat.");
+        Alert.alert(
+          "Teste encerrado",
+          allowsInAppPlanPurchase()
+            ? "Assine um plano para continuar o desabafo e o chat."
+            : IOS_TRIAL_END_ALERT
+        );
         return;
       }
       if (isDailyLimitReached) {
         Alert.alert(
           "Limite diário",
-          "O desabafo usa a mesma cota do chat. Espere até 00:00 ou assine um plano para continuar."
+          allowsInAppPlanPurchase()
+            ? "O desabafo usa a mesma cota do chat. Espere até 00:00 ou assine um plano para continuar."
+            : IOS_DAILY_LIMIT_ALERT
         );
         return;
       }
@@ -1297,8 +1318,11 @@ function ChatScreenInner() {
                 Limite diário atingido
               </Text>
               <Text style={[styles.limitSub, { color: colors.textMuted }]}>
-                Assine um plano mensal para continuar ou espere até 00:00 para usar de novo.
+                {allowsInAppPlanPurchase()
+                  ? "Assine um plano mensal para continuar ou espere até 00:00 para usar de novo."
+                  : "Espere até 00:00 para usar de novo ou entre com uma conta que já tenha plano ativo."}
               </Text>
+              {allowsInAppPlanPurchase() ? (
               <View style={styles.limitActions}>
                 {planOffers.map((offer) => (
                   <Pressable
@@ -1350,6 +1374,7 @@ function ChatScreenInner() {
                   Ver todos os planos
                 </Text>
               </Pressable>
+              ) : null}
             </View>
           ) : null}
         </ScrollView>
@@ -1457,7 +1482,9 @@ function ChatScreenInner() {
             onSend={onSendText}
             placeholder={
               trialExpired
-                ? "Assine um plano para continuar…"
+                ? allowsInAppPlanPurchase()
+                  ? "Assine um plano para continuar…"
+                  : IOS_CHAT_BLOCKED_PLACEHOLDER
                 : nightDumpMode
                 ? "Escreva o desabafo e toque enviar…"
                 : composerPlaceholder

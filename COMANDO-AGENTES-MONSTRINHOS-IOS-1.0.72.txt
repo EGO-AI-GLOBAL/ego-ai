@@ -1,0 +1,47 @@
+EGO-AI — iOS APP STORE 1.0.72 (sem IAP / sem Stripe no app)
+==========================================================
+Objetivo: binary novo para reenviar à Apple após rejeição Guideline 2.1(b).
+
+O QUE MUDOU NO APP (iPhone):
+- Zero checkout Stripe / Linking.openURL para planos
+- Menu sem item «Planos»
+- Ecrã planos: só «Seu plano» + nota (sem preços nem catálogo)
+- Sem botões «Assinar», «Fazer upgrade», «Ver planos»
+- Trial/limite: mensagens neutras («mesmo e-mail se já tem acesso»)
+- iOS buildNumber: 60
+
+ANDROID: inalterado — continua com compra via Stripe no app.
+
+──────────────────────────────────────────────────────────────
+COLAR NO CHAT MONSTRINHOS (build iOS)
+──────────────────────────────────────────────────────────────
+Release 1.0.72 — build iOS App Store (sem IAP).
+
+1. git pull — confirmar diff iosAppStoreBilling + chat/plans/account
+2. python scripts/regression_guard.py
+3. PREPARAR-1.0.72.bat
+4. eas build --platform ios --profile production
+   (ou GERAR-1.0.72.bat só iOS se script existir)
+5. App Store Connect: apagar IAP em rascunho se houver
+6. Resubmit build 60 com notas em marketing/APP-STORE-IOS-SEM-IAP.txt
+7. Conta demo para revisor Apple (login + trial ou conta paga)
+
+NÃO reactivar Stripe no iOS depois de aprovado.
+
+──────────────────────────────────────────────────────────────
+RESPOSTA À APPLE (resumo)
+──────────────────────────────────────────────────────────────
+- App gratuito com trial 20 dias
+- Não vende subscrições digitais no app iOS
+- Sem links externos de pagamento
+- Utilizadores com plano usam o mesmo e-mail (multiplataforma)
+- Ver marketing/APP-STORE-IOS-SEM-IAP.txt texto completo
+
+──────────────────────────────────────────────────────────────
+TESTAR NO IPHONE ANTES DE SUBMETER
+──────────────────────────────────────────────────────────────
+[ ] Menu lateral: sem «Planos»
+[ ] Conta: sem botão «Fazer upgrade»
+[ ] Chat trial expirado: sem botões Assinar Conexão/Premium/Total
+[ ] Planos (URL directa): só plano actual, sem preços
+[ ] Nenhum link abre buy.stripe.com

@@ -1,0 +1,85 @@
+EGO-AI — COMANDO AGENTE MARKETING — SITE PLANOS ATUALIZADO (1.0.72)
+====================================================================
+Objetivo: publicar https://egoai.com.br/planos/ com preços e Stripe alinhados ao app.
+Usado por: e-mails automáticos de retenção (API) · utilizadores iPhone (compra só no site).
+
+──────────────────────────────────────────────────────────────
+COLAR NO CHAT MARKETING (copy-paste)
+──────────────────────────────────────────────────────────────
+Zona MARKETING — site planos 1.0.72.
+
+CONTEXTO:
+- API e e-mails apontam para https://egoai.com.br/planos
+- iOS não vende no app → utilizador assina AQUI com o MESMO e-mail do cadastro
+- Android pode assinar no app ou no site
+- Trial: 20 dias grátis no app
+
+JÁ PREPARADO NO REPO (git pull):
+- marketing/landing/planos/index.html — página checkout
+- marketing/landing/planos/planos-brand.js — links Stripe + UTM
+- marketing/brand/config.json — URLs Stripe iguais ao app
+- marketing/landing/testadores.html — botão «Ver planos e assinar»
+- scripts/build_site_publico.py — gera pasta planos/ no site-publico/
+
+TAREFAS (só marketing — NÃO tocar app/ nem ego_api/):
+
+1. git pull origin main
+
+2. Confirmar preços em marketing/landing/planos/index.html:
+   Conexão R$ 29,90 · Premium R$ 49,90 · Total R$ 99,90
+
+3. Confirmar Stripe em marketing/brand/config.json (BR):
+   connection: https://buy.stripe.com/dRm5kFaYmbTs5TydNE4ow0M
+   premium:    https://buy.stripe.com/14A7sNgiG6z8chWgZQ4ow02
+   total:      https://buy.stripe.com/5kQeVf6I60aK95K6lc4ow03
+
+4. Gerar site local:
+   cd "raiz do projeto"
+   python scripts/build_site_publico.py --modo testadores
+
+5. Verificar em site-publico/:
+   - planos/index.html existe
+   - brand/config.json existe
+   - Abrir planos/index.html no browser (file://) — 3 botões Assinar abrem Stripe
+
+6. Subir para UOL (FTP):
+   SUBIR-SITE-FTP-AUTOMATICO.bat
+   OU: enviar TODO site-publico/ para public_html/
+
+7. Testar ao vivo:
+   https://egoai.com.br/planos/
+   https://egoai.com.br/ — secção Planos → link «Ver planos e assinar»
+   Clicar Conexão/Premium/Total → página Stripe abre
+
+8. regression_guard (só se mexeu em marketing/scripts):
+   python scripts/regression_guard.py
+
+9. git commit + push origin main (só ficheiros marketing/ e scripts/build_site_publico.py se alterou)
+
+10. SYNC-AGENTES-MARKETING-1.0.72.txt → ✅ PRONTO + hash commit
+
+PROIBIDO: GERAR-*.bat · eas build · app.config.ts · ego_api/
+
+Resposta final:
+✅ MARKETING PRONTO — commit ___ — site https://egoai.com.br/planos/ no ar
+
+──────────────────────────────────────────────────────────────
+COMANDO RÁPIDO (PowerShell, na raiz)
+──────────────────────────────────────────────────────────────
+python scripts/build_site_publico.py --modo testadores
+SUBIR-SITE-FTP-AUTOMATICO.bat
+
+──────────────────────────────────────────────────────────────
+CHECKLIST PÓS-UPLOAD
+──────────────────────────────────────────────────────────────
+[ ] https://egoai.com.br/planos/ abre (não 404)
+[ ] Texto «mesmo e-mail do app» visível (iPhone)
+[ ] 3 links Stripe funcionam
+[ ] Home tem botão para /planos/
+[ ] Railway EGO_APP_PLANS_URL=https://egoai.com.br/planos (pedir API se ainda não)
+
+──────────────────────────────────────────────────────────────
+NOTA iOS APP STORE
+──────────────────────────────────────────────────────────────
+O site é a única via de compra no iPhone. Não voltar a meter checkout Stripe
+dentro do app iOS após aprovação Apple (Guideline 3.1.3).

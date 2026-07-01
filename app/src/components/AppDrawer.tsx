@@ -21,7 +21,7 @@ import { useDashboard } from "@/hooks/useDashboard";
 import { useAuth } from "@/context/AuthContext";
 import { useDrawer } from "@/context/DrawerContext";
 import { EgoLogo } from "@/components/EgoLogo";
-import { useColors } from "@/theme/ThemeContext";
+import { allowsInAppPlanPurchase, showsPlansNavigation } from "@/utils/iosAppStoreBilling";
 
 const DRAWER_WIDTH = Math.min(Dimensions.get("window").width * 0.82, 300);
 
@@ -163,7 +163,7 @@ export function AppDrawer() {
             bounces={false}
             keyboardShouldPersistTaps="handled"
           >
-            {NAV.map((item) => (
+            {(showsPlansNavigation() ? NAV : NAV.filter((item) => item.href !== "/(main)/plans")).map((item) => (
               <Pressable
                 key={item.label}
                 style={({ pressed }) => [

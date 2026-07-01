@@ -22,6 +22,7 @@ import { accountPersona } from "@/constants/personas";
 import { isProductionApiOk } from "@/constants/config";
 import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
+import { allowsInAppPlanPurchase } from "@/utils/iosAppStoreBilling";
 import { useColors } from "@/theme/ThemeContext";
 import { getInstalledAppVersion } from "@/utils/appVersion";
 
@@ -51,7 +52,9 @@ export default function AccountScreen() {
 
   const onDeleteAccountPress = () => {
     const subHint = hasPaidPlan
-      ? "\n\nTem plano pago: cancele a assinatura em Planos ou no portal Stripe antes de excluir."
+      ? allowsInAppPlanPurchase()
+        ? "\n\nTem plano pago: cancele a assinatura em Planos ou no portal Stripe antes de excluir."
+        : "\n\nTem plano pago: cancele a assinatura onde assinou antes de excluir a conta."
       : "";
     Alert.alert(
       "Excluir minha conta?",
@@ -162,20 +165,22 @@ export default function AccountScreen() {
               onSaved={refresh}
             />
 
-            <Pressable
-              onPress={() => router.push("/(main)/plans")}
-              style={({ pressed }) => [
-                styles.upgradeBtn,
-                {
-                  backgroundColor: colors.primary,
-                  opacity: pressed ? 0.9 : 1,
-                },
-              ]}
-            >
-              <Text style={styles.upgradeBtnText}>
-                {data.access?.is_pro ? "Ver planos" : "Fazer upgrade"}
-              </Text>
-            </Pressable>
+            {allowsInAppPlanPurchase() ? (
+              <Pressable
+                onPress={() => router.push("/(main)/plans")}
+                style={({ pressed }) => [
+                  styles.upgradeBtn,
+                  {
+                    backgroundColor: colors.primary,
+                    opacity: pressed ? 0.9 : 1,
+                  },
+                ]}
+              >
+                <Text style={styles.upgradeBtnText}>
+                  {data.access?.is_pro ? "Ver planos" : "Fazer upgrade"}
+                </Text>
+              </Pressable>
+            ) : null}
 
             <View style={[styles.row, { borderColor: colors.border }]}>
               <Text style={[styles.rowLabel, { color: colors.textMuted }]}>Lembretes</Text>

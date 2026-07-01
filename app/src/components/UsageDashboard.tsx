@@ -2,6 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { AccessInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import { allowsInAppPlanPurchase } from "@/utils/iosAppStoreBilling";
 import {
   buildUsageMetrics,
   primaryTokenPercent,
@@ -100,7 +101,9 @@ export function UsageDashboard({ colors, access, expanded = false }: Props) {
           </View>
           {!ok ? (
             <Text style={[styles.alert, { color: colors.danger }]}>
-              Limite mensal atingido. Faça upgrade ou aguarde o próximo mês.
+              {allowsInAppPlanPurchase()
+                ? "Limite mensal atingido. Faça upgrade ou aguarde o próximo mês."
+                : "Limite mensal atingido. Aguarde o próximo mês ou entre com uma conta com acesso ativo."}
             </Text>
           ) : tokenPct >= 75 ? (
             <Text style={[styles.alert, { color: colors.warning }]}>

@@ -2,6 +2,7 @@ import type { AccessInfo } from "@/api/types";
 import type { DailyCareInfo } from "@/api/types";
 import type { StreakInfo } from "@/api/types";
 import type { WellnessJourney } from "@/api/types";
+import { allowsInAppPlanPurchase } from "@/utils/iosAppStoreBilling";
 
 /** Dias restantes do trial (null = não é trial ou já é plano pago). */
 export function parseTrialDaysRemaining(access: AccessInfo | null | undefined): number | null {
@@ -45,6 +46,10 @@ export function buildTrialExpiredMessage(
       `${emoji} Seu ${stage} chegou ao nível ${journeyLevel}/${journey?.max_level ?? 500} — não deixe ele parar no ovo.`
     );
   }
-  parts.push("Assine Conexão e continue cuidando do seu progresso.");
+  parts.push(
+    allowsInAppPlanPurchase()
+      ? "Assine Conexão e continue cuidando do seu progresso."
+      : "Entre com o mesmo e-mail se já tiver plano ativo na sua conta."
+  );
   return parts.join(" ");
 }

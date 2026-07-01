@@ -32,7 +32,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.egoai.app",
-    buildNumber: "58",
+    buildNumber: "60",
     entitlements: {
       "com.apple.security.application-groups": ["group.com.egoai.app.widget"],
     },

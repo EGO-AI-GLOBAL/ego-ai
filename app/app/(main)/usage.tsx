@@ -14,6 +14,7 @@ import { ScreenShell } from "@/components/ScreenShell";
 import { UsageDashboard } from "@/components/UsageDashboard";
 import { useDashboard } from "@/hooks/useDashboard";
 import { loadLocalChatHistory } from "@/storage/chatHistoryLocal";
+import { allowsInAppPlanPurchase } from "@/utils/iosAppStoreBilling";
 import { useColors } from "@/theme/ThemeContext";
 import { primaryTokenPercent } from "@/utils/usageStats";
 
@@ -94,7 +95,7 @@ export default function UsageScreen() {
               </Text>
             ) : null}
 
-            {pct >= 75 ? (
+            {allowsInAppPlanPurchase() && pct >= 75 ? (
               <Pressable
                 onPress={() => router.push("/(main)/plans")}
                 style={({ pressed }) => [

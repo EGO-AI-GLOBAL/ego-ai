@@ -3,6 +3,7 @@ import React from "react";
 import { Pressable, StyleSheet, Text, View, type DimensionValue } from "react-native";
 import type { AccessInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import { allowsInAppPlanPurchase } from "@/utils/iosAppStoreBilling";
 import { primaryTokenPercent, usageLevel } from "@/utils/usageStats";
 import type { DayProgress } from "@/utils/dayProgress";
 import { periodGreeting } from "@/utils/dayProgress";
@@ -34,10 +35,13 @@ function EnergyBar({ colors, access }: { colors: AppColors; access: AccessInfo |
   const blocked = !access.is_test_total && (access.monthly_tokens_ok === false || atCap);
   const fillWidth = `${Math.max(atCap ? 100 : pct, pct > 0 ? 4 : 0)}%` as DimensionValue;
   const low = pct >= 80 && !access.is_test_total;
+  const onEnergyPress = allowsInAppPlanPurchase()
+    ? () => router.push("/(main)/plans")
+    : () => router.push("/(main)/usage");
 
   return (
     <Pressable
-      onPress={() => router.push("/(main)/plans")}
+      onPress={onEnergyPress}
       style={({ pressed }) => [styles.energyRow, { opacity: pressed ? 0.88 : 1 }]}
       accessibilityRole="button"
       accessibilityLabel={`Energia do plano ${atCap ? 100 : pct} por cento`}
@@ -48,7 +52,7 @@ function EnergyBar({ colors, access }: { colors: AppColors; access: AccessInfo |
       </View>
       {low || blocked ? (
         <Text style={[styles.recharge, { color: blocked ? colors.danger : colors.primary }]}>
-          {blocked ? "Recarregar" : "Recarregar"}
+          {allowsInAppPlanPurchase() ? "Recarregar" : "Ver uso"}
         </Text>
       ) : (
         <Text style={[styles.energyPct, { color: colors.textMuted }]}>{atCap ? 100 : pct}%</Text>

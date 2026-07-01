@@ -1,4 +1,5 @@
 import type { AccessInfo } from "@/api/types";
+import { allowsInAppPlanPurchase } from "@/utils/iosAppStoreBilling";
 
 /** Deixa claro quando o bloqueio é Google Gemini vs limite do plano EGO. */
 export function enrichChatError(
@@ -20,7 +21,9 @@ export function enrichChatError(
   }
   return (
     `${msg}\n\n` +
-    `Plano atual no app: ${plan}. Se aparecer «limite mensal de tokens» ou 100% na barra de uso, ` +
-    `aí sim é o plano EGO — faça upgrade em Planos.`
+    `Plano atual no app: ${plan}.` +
+    (allowsInAppPlanPurchase()
+      ? " Se aparecer «limite mensal de tokens» ou 100% na barra de uso, faça upgrade em Planos."
+      : " Se aparecer limite mensal de tokens, aguarde o próximo mês ou entre com uma conta com acesso ativo.")
   );
 }

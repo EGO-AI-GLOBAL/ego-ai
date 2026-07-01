@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { AccessInfo, DailyCareInfo, StreakInfo, WellnessJourney } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { buildTrialExpiredMessage, isTrialExpired } from "@/utils/trialAccess";
+import { allowsInAppPlanPurchase } from "@/utils/iosAppStoreBilling";
 
 type PlanOffer = {
   id: string;
@@ -42,34 +43,40 @@ export function TrialExpiredBanner({
     <View style={[styles.wrap, { borderColor: colors.danger, backgroundColor: colors.bgCard }]}>
       <Text style={[styles.title, { color: colors.danger }]}>Teste grátis encerrado</Text>
       <Text style={[styles.body, { color: colors.text }]}>{message}</Text>
-      <View style={styles.actions}>
-        {planOffers.map((offer) => (
-          <Pressable
-            key={offer.id}
-            onPress={() => onOpenCheckout(offer.url)}
-            style={[
-              styles.planBtn,
-              {
-                backgroundColor: offer.highlight ? colors.primary : colors.bg,
-                borderColor: offer.highlight ? colors.primary : colors.border,
-              },
-            ]}
-          >
-            <Text style={[styles.planTag, { color: offer.highlight ? "#fff" : colors.primary }]}>
-              {offer.tag}
-            </Text>
-            <Text style={[styles.planName, { color: offer.highlight ? "#fff" : colors.text }]}>
-              {offer.label}
-            </Text>
-            <Text style={[styles.planCta, { color: offer.highlight ? "#fff" : colors.primary }]}>
-              {offer.cta}
+      {allowsInAppPlanPurchase() ? (
+        <>
+          <View style={styles.actions}>
+            {planOffers.map((offer) => (
+              <Pressable
+                key={offer.id}
+                onPress={() => onOpenCheckout(offer.url)}
+                style={[
+                  styles.planBtn,
+                  {
+                    backgroundColor: offer.highlight ? colors.primary : colors.bg,
+                    borderColor: offer.highlight ? colors.primary : colors.border,
+                  },
+                ]}
+              >
+                <Text style={[styles.planTag, { color: offer.highlight ? "#fff" : colors.primary }]}>
+                  {offer.tag}
+                </Text>
+                <Text style={[styles.planName, { color: offer.highlight ? "#fff" : colors.text }]}>
+                  {offer.label}
+                </Text>
+                <Text style={[styles.planCta, { color: offer.highlight ? "#fff" : colors.primary }]}>
+                  {offer.cta}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <Pressable onPress={() => router.push("/(main)/plans")} style={styles.allPlans}>
+            <Text style={[styles.allPlansText, { color: colors.textMuted }]}>
+              Comparar todos os planos
             </Text>
           </Pressable>
-        ))}
-      </View>
-      <Pressable onPress={() => router.push("/(main)/plans")} style={styles.allPlans}>
-        <Text style={[styles.allPlansText, { color: colors.textMuted }]}>Comparar todos os planos</Text>
-      </Pressable>
+        </>
+      ) : null}
     </View>
   );
 }

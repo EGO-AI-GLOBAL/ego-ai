@@ -15,6 +15,7 @@ import {
   egoDeBolsoMissionsComplete,
 } from "@/utils/egoDeBolsoCompanionMood";
 import { companionNeedsNameSetup } from "@/utils/egoDeBolsoCompanionName";
+import { allowsInAppPlanPurchase } from "@/utils/iosAppStoreBilling";
 import { PocketCompanionShareModal } from "./PocketCompanionShareModal";
 
 type Props = {
@@ -146,7 +147,7 @@ export function WellnessJourneyCard({ colors, journey, onJourneyUpdate, access }
           </Text>
         ) : null}
 
-        {journey.plan_nudge ? (
+        {journey.plan_nudge && allowsInAppPlanPurchase() ? (
           <Pressable onPress={() => router.push("/(main)/plans")} style={styles.nudge}>
             <Text style={[styles.nudgeText, { color: colors.primary }]}>
               💡 {journey.plan_nudge} — Ver planos

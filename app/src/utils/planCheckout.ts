@@ -4,16 +4,23 @@ import {
   type TeamPlanTier,
   type TeamSeatCount,
 } from "@/constants/teamStripeCheckout";
+import { allowsInAppPlanPurchase } from "@/utils/iosAppStoreBilling";
 
 export type CheckoutMarket = "br" | "int";
 
 export const LAUNCH_CHECKOUT_FALLBACK =
   "https://buy.stripe.com/aFa6oJc2q3mW81G7pg4ow0P";
 
+function gateCheckoutUrl(url: string | null | undefined): string | null {
+  if (!allowsInAppPlanPurchase()) return null;
+  const trimmed = (url || "").trim();
+  return trimmed || null;
+}
+
 export function launchCheckoutUrl(
   links: StripeCheckoutLinks | null | undefined
 ): string | null {
-  return links?.launch_url?.trim() || LAUNCH_CHECKOUT_FALLBACK;
+  return gateCheckoutUrl(links?.launch_url?.trim() || LAUNCH_CHECKOUT_FALLBACK);
 }
 
 /** Stripe precisa do user id para activar o plano após pagamento (webhook). */
@@ -21,7 +28,7 @@ export function withCheckoutUserRef(
   url: string | null | undefined,
   userId: string
 ): string | null {
-  const base = (url || "").trim();
+  const base = gateCheckoutUrl(url);
   if (!base) return null;
   const uid = (userId || "").trim();
   if (!uid) return base;
@@ -55,32 +62,32 @@ export function checkoutUrlForTier(
 ): string | null {
   if (tier === "essential") return null;
   const fallback = FALLBACK_CHECKOUT_URLS[market][tier] ?? null;
-  if (!links) return fallback;
+  if (!links) return gateCheckoutUrl(fallback);
   if (market === "int") {
     switch (tier) {
       case "connection":
-        return links.int_connection_url || fallback;
+        return gateCheckoutUrl(links.int_connection_url || fallback);
       case "premium":
-        return links.int_premium_url || fallback;
+        return gateCheckoutUrl(links.int_premium_url || fallback);
       case "total":
-        return links.int_total_url || fallback;
+        return gateCheckoutUrl(links.int_total_url || fallback);
       case "enterprise":
-        return links.int_enterprise_url || fallback;
+        return gateCheckoutUrl(links.int_enterprise_url || fallback);
       default:
-        return fallback;
+        return gateCheckoutUrl(fallback);
     }
   }
   switch (tier) {
     case "connection":
-      return links.connection_url || links.monthly_url || fallback;
+      return gateCheckoutUrl(links.connection_url || links.monthly_url || fallback);
     case "premium":
-      return links.premium_url || fallback;
+      return gateCheckoutUrl(links.premium_url || fallback);
     case "total":
-      return links.total_url || fallback;
+      return gateCheckoutUrl(links.total_url || fallback);
     case "enterprise":
-      return links.enterprise_url || fallback;
+      return gateCheckoutUrl(links.enterprise_url || fallback);
     default:
-      return fallback;
+      return gateCheckoutUrl(fallback);
   }
 }
 
@@ -92,5 +99,5 @@ export function teamCheckoutUrl(
 ): string | null {
   const fallback = TEAM_CHECKOUT_FALLBACK[market][tier][seats] ?? null;
   const fromApi = links?.team?.[market]?.[tier]?.[String(seats)];
-  return fromApi || fallback;
+  return gateCheckoutUrl(fromApi || fallback);
 }
