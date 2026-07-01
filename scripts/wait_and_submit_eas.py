@@ -76,16 +76,23 @@ def build_status(build_id: str) -> str:
     return str(data.get("status") or "UNKNOWN").upper()
 
 
-def wait_both(ios_id: str, android_id: str, poll_sec: int = 60) -> None:
+def wait_both(
+    ios_id: str, android_id: str, poll_sec: int = 60, *, ios_only: bool = False
+) -> None:
     print(f"Aguardando iOS {ios_id} + Android {android_id}...")
     while True:
         ios = build_status(ios_id)
         android = build_status(android_id)
         print(f"  iOS={ios}  Android={android}")
-        if ios == "FINISHED" and android == "FINISHED":
-            print("Ambos FINISHED.")
+        if ios == "FINISHED" and (android == "FINISHED" or (ios_only and android == "ERRORED")):
+            if ios_only and android == "ERRORED":
+                print("iOS FINISHED; Android ERRORED — segue só TestFlight.")
+            else:
+                print("Ambos FINISHED.")
             return
-        if ios in {"ERRORED", "CANCELED"} or android in {"ERRORED", "CANCELED"}:
+        if ios in {"ERRORED", "CANCELED"}:
+            raise SystemExit(f"Build falhou: iOS={ios} Android={android}")
+        if not ios_only and android in {"ERRORED", "CANCELED"}:
             raise SystemExit(f"Build falhou: iOS={ios} Android={android}")
         time.sleep(poll_sec)
 
@@ -281,7 +288,7 @@ def main() -> int:
             raise SystemExit(f"Ficheiro não existe: {ids_path} — rode GERAR-E-SUBMETER-JUNTO.bat primeiro")
         ios_id, android_id = load_ids(ids_path)
 
-    wait_both(ios_id, android_id, poll_sec=args.poll)
+    wait_both(ios_id, android_id, poll_sec=args.poll, ios_only=getattr(args, "ios_only", False))
     if getattr(args, "ios_only", False):
         print("Submetendo só iOS (TestFlight) — Android fica para depois do teste no iPhone.")
         proc_ios = _run(

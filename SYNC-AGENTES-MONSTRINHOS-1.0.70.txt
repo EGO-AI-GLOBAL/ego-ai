@@ -1,0 +1,13 @@
+AGENTE MONSTRINHOS — RELEASE 1.0.70 (EAS)
+==========================================
+Estado: ✅ PRONTO — voz + toggle Ouvir restaurado
+
+Zona: chat voz iOS + Android
+• Restaurado switch «Ouvir ao responder» + botão «Ouvir»
+• Spinner para quando texto chega; TTS/vídeo depois (não trava UI)
+• isPreparingAudio + avatar visível (fix 1.0.69 mantido)
+• Mic/seta no mesmo sítio (sem voiceSendArmed)
+
+app.config.ts: 1.0.70
+
+GIT: (após commit)
