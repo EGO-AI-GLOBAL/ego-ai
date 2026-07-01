@@ -498,7 +498,6 @@ def health():
     try:
         from ego_api.config import (
             chat_defer_tts_on_voice,
-            read_env,
             voice_fast_mode,
         )
 
