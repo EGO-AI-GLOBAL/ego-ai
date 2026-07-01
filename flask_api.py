@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-06-29-1.0.61-signup-auth-recovery",
+        "api_build": "2026-07-03-1.0.73-voice-performance",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -501,6 +501,12 @@ def health():
         payload["play_integrity"] = status_payload()
     except Exception:
         pass
+    try:
+        from ego_api import openai_realtime
+
+        payload["realtime"] = {"available": openai_realtime.is_available()}
+    except Exception:
+        payload["realtime"] = {"available": False}
     include_details = os.getenv("EGO_HEALTH_DETAILS", "").lower() in ("1", "true", "yes")
     if include_details:
         payload["checks"].update(
@@ -1107,6 +1113,138 @@ def chat_send():
             except Exception:
                 pass
         return _json_error(friendly_api_error(exc, context="chat"), 500)
+
+
+@app.get("/api/v1/voice/realtime/status")
+@require_auth
+def voice_realtime_status():
+    from ego_api import openai_realtime
+    from ego_api.config import (
+        openai_realtime_model,
+        openai_realtime_phone_fast,
+        openai_realtime_use_webrtc,
+    )
+
+    return _json_ok(
+        {
+            "available": openai_realtime.is_available(),
+            "model": openai_realtime_model(),
+            "webrtc": openai_realtime_use_webrtc(),
+            "profile": "turbo" if openai_realtime_phone_fast() else "natural",
+            "phone_fast": openai_realtime_phone_fast(),
+        }
+    )
+
+
+@app.post("/api/v1/voice/realtime/client-secret")
+@require_auth
+@rate_limit(30, 60, scope="user")
+def voice_realtime_client_secret():
+    from ego_api import openai_realtime
+    from ego_api.chat_local import parse_client_history
+    from ego_api.integrity_guard import evaluate_request_integrity
+
+    allow, reason, blocked = evaluate_request_integrity()
+    if blocked:
+        return _json_error(
+            "App não verificado. Instale pela Play Store oficial e actualize.",
+            403,
+        )
+    if not openai_realtime.is_available():
+        return _json_error("OpenAI Realtime não configurado no servidor.", 503)
+
+    data = request.get_json(silent=True) or {}
+    client_history = parse_client_history(data.get("history"))
+    mode = str(data.get("mode") or "push").strip().lower()
+    phone_call = mode in ("call", "phone", "telefone", "chamada")
+    avatar_id, _ = services.ensure_persona_normalized(g.supabase, g.user_id)
+    payload, err = openai_realtime.prepare_session_for_user(
+        g.user_id,
+        avatar_id,
+        client_history=client_history,
+        phone_call=phone_call,
+    )
+    if err:
+        return _json_error(err, 502)
+    print("[EGO] voice/realtime: client secret OK", flush=True)
+    return _json_ok(payload)
+
+
+@app.post("/api/v1/voice/realtime/webrtc")
+@require_auth
+@rate_limit(30, 60, scope="user")
+def voice_realtime_webrtc():
+    """WebRTC SDP answer — latência mínima (OpenAI /v1/realtime/calls)."""
+    from ego_api import openai_realtime
+    from ego_api.chat_local import parse_client_history
+    from ego_api.integrity_guard import evaluate_request_integrity
+
+    allow, reason, blocked = evaluate_request_integrity()
+    if blocked:
+        return _json_error(
+            "App não verificado. Instale pela Play Store oficial e actualize.",
+            403,
+        )
+    if not openai_realtime.is_available():
+        return _json_error("OpenAI Realtime não configurado no servidor.", 503)
+
+    sdp_offer = ""
+    client_history: list[dict] = []
+    if request.content_type and "multipart" in request.content_type:
+        sdp_offer = str(request.form.get("sdp") or "")
+        client_history = parse_client_history(request.form.get("history"))
+    else:
+        sdp_offer = request.get_data(as_text=True) or ""
+        if request.is_json:
+            data = request.get_json(silent=True) or {}
+            sdp_offer = str(data.get("sdp") or sdp_offer)
+            client_history = parse_client_history(data.get("history"))
+
+    avatar_id, _ = services.ensure_persona_normalized(g.supabase, g.user_id)
+    answer, err = openai_realtime.prepare_webrtc_for_user(
+        g.user_id,
+        avatar_id,
+        sdp_offer,
+        client_history=client_history,
+    )
+    if err:
+        return _json_error(err, 502)
+    print("[EGO] voice/realtime: WebRTC SDP OK", flush=True)
+    return answer, 200, {"Content-Type": "application/sdp"}
+
+
+@app.post("/api/v1/voice/realtime/finish")
+@require_auth
+@rate_limit(30, 60, scope="user")
+def voice_realtime_finish():
+    from ego_api.chat_local import parse_client_history
+    from ego_api.integrity_guard import evaluate_request_integrity
+
+    allow, reason, blocked = evaluate_request_integrity()
+    if blocked:
+        return _json_error(
+            "App não verificado. Instale pela Play Store oficial e actualize.",
+            403,
+        )
+
+    data = request.get_json(silent=True) or {}
+    speak_reply = bool(data.get("speak"))
+    user_message = str(data.get("user_message") or data.get("user_transcript") or "")
+    assistant_reply = str(data.get("assistant_reply") or data.get("reply") or "")
+    client_history = parse_client_history(data.get("history"))
+
+    result, err = services.process_realtime_voice_turn(
+        g.supabase,
+        g.user_id,
+        user_message=user_message,
+        assistant_reply=assistant_reply,
+        speak_reply=speak_reply,
+        client_history=client_history,
+    )
+    if err:
+        return _json_error(err, 402 if "Limite" in err or "expirado" in err.lower() else 400)
+    print("[EGO] voice/realtime: turno guardado", flush=True)
+    return _json_ok(result)
 
 
 @app.post("/api/v1/tts")

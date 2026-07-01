@@ -1524,6 +1524,163 @@ def process_chat_message(
         }, None
 
 
+def process_realtime_voice_turn(
+    supabase: Client | None,
+    user_id: str,
+    *,
+    user_message: str,
+    assistant_reply: str,
+    speak_reply: bool = False,
+    client_history: list[dict] | None = None,
+) -> tuple[dict | None, str | None]:
+    """Persiste turno de voz feito via OpenAI Realtime (sem Gemini)."""
+    sess = get_session()
+    if not sess or sess.user_id != user_id:
+        return None, "Sessão inválida."
+
+    prof = db.refresh_test_total_quota(
+        supabase, user_id, db.load_profile(supabase, user_id) or {}
+    )
+    tier, limits = db.user_plan_limits(prof)
+    ok_access, status = db.check_access(supabase, user_id)
+    if not ok_access:
+        from ego_api.plan_retention import on_trial_access_denied
+
+        on_trial_access_denied(user_id)
+        return None, _access_expired_message(supabase, user_id)
+
+    ok_tok, msg_tok, used_tok, lim_tok = db.check_token_allowance(supabase, user_id, prof)
+    if not ok_tok:
+        return None, f"{msg_tok} Uso: {used_tok:,}/{lim_tok:,}."
+
+    ok_voice, _voice_used = db.daily_voice_messages_ok(supabase, user_id, limits, prof)
+    if not ok_voice:
+        from ego_api.plan_retention import on_daily_limit_hit
+
+        on_daily_limit_hit(user_id)
+        return None, _daily_limit_message(supabase, user_id)
+
+    if speak_reply:
+        ok_tts, _tts_used = db.daily_tts_ok(supabase, user_id, limits, prof)
+        if not ok_tts:
+            from ego_api.plan_retention import on_daily_limit_hit
+
+            on_daily_limit_hit(user_id)
+            return None, _daily_limit_message(supabase, user_id)
+
+    from ego_api.db import VOICE_MESSAGE_MARKER
+
+    user_display = (user_message or "").strip()
+    if not user_display:
+        user_display = VOICE_MESSAGE_MARKER
+
+    reply = (assistant_reply or "").strip()
+    if not reply:
+        return None, "Resposta vazia do assistente de voz."
+
+    from ego_api.chat_local import local_history_active
+    from ego_api.config import chat_local_history_enabled
+
+    use_local = local_history_active(client_history)
+    lang = "pt-BR"
+
+    import uuid
+
+    local_ids = use_local or chat_local_history_enabled()
+    if local_ids:
+        mid_u = str(uuid.uuid4())
+    else:
+        mid_u = db.save_chat_message(supabase, user_id, "user", user_display)
+
+    warnings: list[str] = []
+    reminders_saved: list[dict] = []
+    agenda_saved: list[dict] = []
+
+    reply_clean, rem_items = gemini.extract_reminders(reply)
+    rem_cap = enforce_reminder_limit(supabase, user_id, prof)
+    for it in rem_items:
+        if rem_cap:
+            warnings.append(rem_cap)
+            break
+        ok, err, row = db.insert_reminder(
+            supabase,
+            user_id,
+            title=str(it.get("title") or "Lembrete"),
+            scheduled_at=it.get("scheduled_at"),
+            announce=str(it.get("announce") or it.get("title") or ""),
+        )
+        if ok and row:
+            reminders_saved.append(row)
+        elif err:
+            warnings.append(f"Lembrete: {err}")
+
+    reply_clean, ag_items = gemini.extract_agenda_markers(reply_clean)
+    ag_cap = enforce_agenda_limit(supabase, user_id, prof)
+    for it in ag_items:
+        if ag_cap:
+            warnings.append(ag_cap)
+            break
+        ok, err, row = db.insert_agenda(
+            supabase,
+            user_id,
+            titulo=str(it.get("titulo") or it.get("title") or ""),
+            horario=it.get("horario") or it.get("time"),
+            dias_da_semana=str(
+                it.get("dias_da_semana") or it.get("dias") or it.get("weekdays") or ""
+            ),
+        )
+        if ok and row:
+            agenda_saved.append(row)
+        elif err:
+            warnings.append(f"Agenda: {err}")
+
+    if local_ids:
+        mid_a = str(uuid.uuid4())
+        db.increment_daily_message_usage(supabase, user_id, is_voice=True)
+    else:
+        mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_clean)
+    tok_n = gemini.count_tokens_approx(user_display, reply_clean)
+    db.add_tokens_used(supabase, user_id, tok_n, prof)
+
+    payload: dict = {
+        "reply": reply_clean,
+        "user_message_id": mid_u,
+        "assistant_message_id": mid_a,
+        "language": lang,
+        "warnings": warnings,
+        "reminders_saved": reminders_saved,
+        "agenda_saved": agenda_saved,
+        "chat_local_history": local_ids,
+        "voice_engine": "openai_realtime",
+    }
+    if user_display and user_display != VOICE_MESSAGE_MARKER:
+        payload["user_transcript"] = user_display
+
+    if speak_reply and reply_clean.strip():
+        from ego_api.config import chat_defer_tts_on_voice
+        from ego_api.persona import resolve_tts_voice
+
+        avatar_id, voice_id = ensure_persona_normalized(supabase, user_id)
+        resolved_voice = resolve_tts_voice(voice_id, avatar_id)
+        payload["tts_voice_id"] = resolved_voice
+        if chat_defer_tts_on_voice():
+            payload["tts_deferred"] = True
+        else:
+            from ego_api import tts
+
+            mp3 = tts.synthesize_speech_mp3(reply_clean, resolved_voice, avatar_id)
+            if mp3:
+                db.increment_daily_tts(supabase, user_id)
+                payload["tts_audio_base64"] = base64.b64encode(mp3).decode("ascii")
+                payload["tts_mime"] = "audio/mpeg"
+            else:
+                payload["tts_error"] = (
+                    "Áudio indisponível. No servidor: pip install edge-tts"
+                )
+
+    return payload, None
+
+
 def enforce_agenda_limit(
     supabase: Client | None, user_id: str, profile: dict | None = None
 ) -> str | None:
