@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO — BUILD 1.0.73
 ====================================
 
-Estado: ✅ PRONTO — commit PENDING
+Estado: ✅ PRONTO — commit 9d6b033
 
 Zona: missão convite Entre Nós — zero fricção (cadastro/login = missão OK)
 Regra: NÃO correr GERAR/EAS · NÃO mudar app.config.ts
@@ -39,4 +39,4 @@ Monstrinhos: PREPARAR-1.0.73.bat → GERAR-1.0.73.bat
 
 MENSAGEM
 --------
-✅ BOLSO PRONTO — PENDING — build 1.0.73
+✅ BOLSO PRONTO — 9d6b033 — build 1.0.73
