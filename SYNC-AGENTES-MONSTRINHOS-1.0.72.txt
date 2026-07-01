@@ -1,0 +1,14 @@
+AGENTE MONSTRINHOS — RELEASE 1.0.72 (EAS PRONTO)
+=================================================
+Estado: ✅ PRONTO — aguardo API deploy mood_journal + GERAR
+
+Zona: Fase 9b — diário de humor (item FINCH #16 parcial)
+• ego_api/daily_care.py — mood_journal no check-in (42 dias)
+• MoodJournalWeek.tsx — strip 7 dias no jardim + insight
+• app.config.ts — 1.0.72 · Android 109 · iOS 58
+
+Depende: Railway redeploy API (mood_journal só após deploy)
+
+Scripts: PREPARAR/GERAR/AGUARDAR-1.0.72.bat · builds-1.0.72.ids.json
+
+GIT: f17a678
