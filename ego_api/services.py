@@ -623,7 +623,7 @@ def process_chat_message(
             speak_reply=speak_reply,
             client_history=client_history,
         )
-        if fast_err and fast_err != "__use_full_path__":
+        if fast_err:
             return None, fast_err
         if fast_payload:
             return fast_payload, None

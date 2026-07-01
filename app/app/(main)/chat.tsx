@@ -146,7 +146,7 @@ function ChatScreenInner() {
   const [chatError, setChatError] = useState<string | null>(null);
   const [chatNotice, setChatNotice] = useState<string | null>(null);
   const [pendingChat, setPendingChat] = useState<ChatMessage[]>([]);
-  const [autoPlayVoice, setAutoPlayVoice] = useState(false);
+  const [autoPlayVoice, setAutoPlayVoice] = useState(true);
   const [lastChatResult, setLastChatResult] = useState<SendChatResult | null>(null);
   const [scheduleBannerDismissed, setScheduleBannerDismissed] = useState(false);
   const [pdfLoading, setPdfLoading] = useState(false);

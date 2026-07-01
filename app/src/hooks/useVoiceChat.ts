@@ -630,16 +630,7 @@ export function useVoiceChat() {
           return null;
         }
       } catch {
-        /* segue para TTS */
-      }
-
-      // Celular: voz do sistema imediata (~0s após texto); avatar fala já.
-      if (!isWeb) {
-        setIsPreparingAudio(false);
-        await withSpeaking(setIsSpeaking, () =>
-          speakWithDeviceTts(reply, resolvedVoice, avatarId, speed)
-        );
-        return null;
+        /* segue para /tts */
       }
 
       setIsPreparingAudio(true);

@@ -2,7 +2,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AUTO_PLAY_VOICE_KEY = "ego_auto_play_voice";
 
-/** Por defeito: texto primeiro; o utilizador toca para ouvir (mais rápido). */
+/** Por defeito: ouvir ao responder (voz do avatar). */
 export async function loadAutoPlayVoice(): Promise<boolean> {
   try {
     const raw = await AsyncStorage.getItem(AUTO_PLAY_VOICE_KEY);
@@ -11,7 +11,7 @@ export async function loadAutoPlayVoice(): Promise<boolean> {
   } catch {
     /* ignore */
   }
-  return false;
+  return true;
 }
 
 export async function saveAutoPlayVoice(enabled: boolean): Promise<void> {

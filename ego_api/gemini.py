@@ -73,8 +73,8 @@ PERSONALIDADE:
 """
 
 VOICE_REPLY_INSTRUCTION = (
-    "O utilizador enviou mensagem de VOZ. Responda em 2 a 4 frases curtas, diretas e naturais "
-    "para ouvir em voz alta. Evite listas longas, markdown e parágrafos grandes."
+    "Mensagem de VOZ. Responda em NO MÁXIMO 2 frases curtas, tom natural para ouvir em voz alta. "
+    "Sem listas, markdown ou textão."
 )
 
 REMINDER_LLM_INSTRUCTION = reminder_llm_instruction_block()
