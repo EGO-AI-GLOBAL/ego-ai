@@ -1,0 +1,16 @@
+SYNC MESTRE — RELEASE 1.0.74 — VOZ RÁPIDA + DIÁRIO HUMOR
+==========================================================
+
+| Agente      | Ficheiro                            | Estado |
+|-------------|-------------------------------------|--------|
+| API         | SYNC-AGENTES-API-1.0.74.txt         | ✅     |
+| Bolso       | SYNC-AGENTES-BOLSO-1.0.74.txt       | ✅     |
+| Marketing   | SYNC-AGENTES-MARKETING-1.0.74.txt   | ✅     |
+| Monstrinhos | SYNC-AGENTES-MONSTRINHOS-1.0.74.txt | ✅     |
+
+Versão: 1.0.74 · Android versionCode 111 · iOS buildNumber 61
+
+Sequência:
+  1. DEPLOY-API-1.0.74.bat (Railway vars + redeploy)
+  2. PREPARAR-1.0.74.bat
+  3. GERAR-1.0.74.bat → AGUARDAR-E-SUBMETER-1.0.74.bat

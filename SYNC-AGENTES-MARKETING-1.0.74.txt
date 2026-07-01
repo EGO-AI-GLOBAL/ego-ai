@@ -1,0 +1,8 @@
+AGENTE MARKETING — RELEASE 1.0.74
+==================================
+
+Estado: ✅ PRONTO
+
+• marketing/NOTAS-1.0.74-PLAY.txt — voz + diário humor
+• marketing/NOTAS-1.0.74-APP-STORE.txt — mesma mensagem iOS
+• Site /planos/ — já no ar

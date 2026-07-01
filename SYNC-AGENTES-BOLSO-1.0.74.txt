@@ -1,0 +1,12 @@
+AGENTE EGO DE BOLSO — BUILD 1.0.74
+===================================
+
+Estado: ✅ PRONTO — herdado 1.0.73 (commit 9d6b033)
+
+Zona: convite Entre Nós + voz rápida no chat (Bolso)
+
+• useVoiceChat — speak=true, TTS inline, chamada ao vivo (web)
+• chat.tsx — autoPlayVoice no mic, botão chamada, warmup
+• NÃO correr GERAR/EAS
+
+Build: Monstrinhos → PREPARAR-1.0.74.bat → GERAR-1.0.74.bat

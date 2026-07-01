@@ -8,6 +8,7 @@ import {
   sendChatVoiceFromUri,
   sendChatVoiceMessage,
 } from "@/api/client";
+import { isRealtimeVoiceAvailable } from "@/api/realtimeVoice";
 import type { ChatHistoryPayload, SendChatResult } from "@/api/types";
 import type { AudioPlaybackSpeed } from "@/constants/audioSpeed";
 import { resolveSpeechVoiceId } from "@/constants/personas";
@@ -19,8 +20,21 @@ import {
   webMicUnavailableMessage,
   iosSafariMicHelpMessage,
 } from "@/utils/webVoiceCapture";
+import { RealtimePhoneCall, warmupPhoneCall } from "@/utils/openaiRealtimeCall";
 
 const isWeb = Platform.OS === ("web" as typeof Platform.OS);
+
+function deviceSupportsLiveCall(): boolean {
+  if (isWeb) return true;
+  try {
+    const mod = require("@/utils/openaiRealtimeWebRTC.native") as {
+      isNativeWebRtcAvailable?: () => boolean;
+    };
+    return Boolean(mod.isNativeWebRtcAvailable?.());
+  } catch {
+    return false;
+  }
+}
 
 type WebRecorderState = {
   recorder: MediaRecorder;
@@ -412,6 +426,11 @@ export function useVoiceChat() {
   const [micSessionActive, setMicSessionActive] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isPreparingAudio, setIsPreparingAudio] = useState(false);
+  const [isPhoneCall, setIsPhoneCall] = useState(false);
+  const [isAssistantThinking, setIsAssistantThinking] = useState(false);
+  const [isUserSpeaking, setIsUserSpeaking] = useState(false);
+  const [realtimeAvailable, setRealtimeAvailable] = useState(false);
+  const phoneCallRef = useRef<RealtimePhoneCall | null>(null);
   const [audioSpeed, setAudioSpeedState] = useState<AudioPlaybackSpeed>(1);
   const recordingRef = useRef<import("expo-av").Audio.Recording | null>(null);
   const webRecorderRef = useRef<WebRecorderState | null>(null);
@@ -428,6 +447,12 @@ export function useVoiceChat() {
   useEffect(() => {
     isRecordingRef.current = isRecording;
   }, [isRecording]);
+
+  useEffect(() => {
+    void isRealtimeVoiceAvailable().then(setRealtimeAvailable);
+  }, []);
+
+  const liveCallSupported = realtimeAvailable && deviceSupportsLiveCall();
 
   const waitForRecording = useCallback(async (timeoutMs = 800): Promise<boolean> => {
     const deadline = Date.now() + timeoutMs;
@@ -953,6 +978,59 @@ export function useVoiceChat() {
     await safeStopNativeRecording(rec);
   }, []);
 
+  const endPhoneCall = useCallback(() => {
+    phoneCallRef.current?.end();
+    phoneCallRef.current = null;
+    setIsPhoneCall(false);
+    setIsAssistantThinking(false);
+    setIsUserSpeaking(false);
+    setIsSpeaking(false);
+  }, []);
+
+  const startPhoneCall = useCallback(
+    async (
+      history: ChatHistoryPayload,
+      callbacks: {
+        onTurnComplete?: (user: string, assistant: string) => void;
+        onError?: (message: string) => void;
+      }
+    ) => {
+      await stopPlayback();
+      await cancelRecording();
+      const call = new RealtimePhoneCall();
+      phoneCallRef.current = call;
+      setIsPhoneCall(true);
+      try {
+        await call.start(history, {
+          onUserSpeechStart: () => setIsUserSpeaking(true),
+          onUserSpeechStop: () => setIsUserSpeaking(false),
+          onThinkingChange: setIsAssistantThinking,
+          onSpeakingChange: (on) => {
+            setIsSpeaking(on);
+            if (on) setIsAssistantThinking(false);
+          },
+          onTurnComplete: (user, assistant) => {
+            callbacks.onTurnComplete?.(user, assistant);
+          },
+          onError: (msg) => {
+            callbacks.onError?.(msg);
+            endPhoneCall();
+          },
+        });
+      } catch (e) {
+        endPhoneCall();
+        throw e;
+      }
+    },
+    [stopPlayback, cancelRecording, endPhoneCall]
+  );
+
+  useEffect(() => {
+    return () => {
+      endPhoneCall();
+    };
+  }, [endPhoneCall]);
+
   const replayLastText = useCallback(
     async (text: string, voiceId?: string, avatarId?: string) =>
       playReplyAudio({ reply: text }, voiceId, avatarId),
@@ -966,11 +1044,12 @@ export function useVoiceChat() {
     audioSpeed,
     setAudioSpeed,
     webMicMode: isWeb ? webMicMode() : ("native" as const),
-    isPhoneCall: false,
+    isPhoneCall,
     isPreparingAudio,
-    isAssistantThinking: false,
-    isUserSpeaking: false,
-    activeVoiceMode: "recorder" as const,
+    isAssistantThinking,
+    isUserSpeaking,
+    liveCallSupported,
+    activeVoiceMode: isPhoneCall ? ("realtime" as const) : ("recorder" as const),
     webUsesSpeechToText: false,
     startRecording,
     waitForRecording,
@@ -978,6 +1057,9 @@ export function useVoiceChat() {
     stopRecordingAndSend,
     stopRecordingRaw,
     cancelRecording,
+    startPhoneCall,
+    endPhoneCall,
+    warmupPhoneCall,
     playReplyAudio,
     replayLastText,
     stopPlayback,

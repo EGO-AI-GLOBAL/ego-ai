@@ -1,0 +1,14 @@
+AGENTE API — RELEASE 1.0.74
+===========================
+
+Estado: ✅ PRONTO
+
+Zona: flask_api.py rotas voice/realtime + journal-note + api_build 1.0.74
+
+• GET/POST /api/v1/voice/realtime/* (status, client-secret, webrtc, finish)
+• EGO_CHAT_INLINE_TTS=1 — áudio na mesma resposta do chat/voz
+• ego_api/daily_care.py — journal-note + nota no check-in
+• api_build: 2026-06-27-1.0.74-voice-journal
+• RAILWAY-VARS-1.0.74.txt · DEPLOY-API-1.0.74.bat
+
+Deploy: DEPLOY-API-1.0.74.bat antes do GERAR

@@ -637,6 +637,9 @@ function ChatScreenInner() {
       if (localChatReady && chatMessages.length > 0) {
         scrollMessagesToEnd(false);
       }
+      if (voice.liveCallSupported && session && !trialExpired) {
+        void voice.warmupPhoneCall(historyForApi());
+      }
       if (userId) {
         void consumeMonsterChatNotice().then((monster) => {
           if (monster) {
@@ -648,7 +651,17 @@ function ChatScreenInner() {
           });
         });
       }
-    }, [localChatReady, chatMessages.length, scrollMessagesToEnd, userId])
+    }, [
+      localChatReady,
+      chatMessages.length,
+      scrollMessagesToEnd,
+      userId,
+      voice.liveCallSupported,
+      voice.warmupPhoneCall,
+      session,
+      trialExpired,
+      historyForApi,
+    ])
   );
 
   useEffect(() => {
@@ -774,6 +787,35 @@ function ChatScreenInner() {
         "Use tópicos curtos: assunto principal, pontos importantes e conclusão. " +
         "Se for contrato ou relatório, destaque datas, valores e obrigações relevantes.";
 
+  const onTogglePhoneCall = useCallback(async () => {
+    if (!session || trialExpired || sending) return;
+    if (voice.isPhoneCall) {
+      voice.endPhoneCall();
+      setChatNotice(null);
+      return;
+    }
+    setChatError(null);
+    setChatNotice("A ligar chamada ao vivo…");
+    try {
+      await voice.startPhoneCall(historyForApi(), {
+        onTurnComplete: (user, assistant) => {
+          const userLabel = user.trim() || "Voz";
+          setPendingChat([
+            { role: "user", content: userLabel },
+            { role: "assistant", content: assistant },
+          ]);
+          void saveExchange(userLabel, assistant, { userWasVoice: true });
+          setPendingChat([]);
+        },
+        onError: (msg) => setChatError(msg),
+      });
+      setChatNotice("Em chamada — fale naturalmente.");
+    } catch (e) {
+      setChatError(e instanceof Error ? e.message : "Chamada indisponível.");
+      setChatNotice(null);
+    }
+  }, [session, trialExpired, sending, voice, historyForApi, saveExchange]);
+
   const onMicPressIn = async () => {
     if (sending || micBusyRef.current) return;
     if (!session) {
@@ -846,7 +888,7 @@ function ChatScreenInner() {
         }
         return;
       }
-      const result = await voice.stopRecordingAndSend(false, historyForApi(), {
+      const result = await voice.stopRecordingAndSend(autoPlayVoice, historyForApi(), {
         onDelta: (_chunk, full) => {
           setChatNotice("A responder…");
           setPendingChat([
@@ -861,29 +903,30 @@ function ChatScreenInner() {
         { role: "assistant", content: result.reply },
       ]);
       applyChatResult(result, userLabel);
-      await afterChatSaved(result, userLabel);
+      void afterChatSaved(result, userLabel);
       if (userId) {
         void recordAvatarChat(userId, persona.avatar_id);
         void recordChatStreakDay(userId).then(setChatStreakDays);
       }
       trackJourneyStep("voice");
-      if (result.voice_engine === "openai_realtime") {
-        setChatNotice("A responder…");
+      setLastChatResult(result);
+      if (result.reply?.trim() && autoPlayVoice && result.voice_engine !== "openai_realtime") {
+        if (result.tts_audio_base64?.trim()) {
+          void playVoice(result).catch((e) => {
+            setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
+          });
+        } else {
+          voiceToPlay = result;
+        }
+      } else if (result.reply?.trim() && !autoPlayVoice) {
+        setChatNotice("Resposta pronta. Ligue «Ouvir ao responder» para ouvir.");
       }
-      await saveExchange(
+      void saveExchange(
         result.user_transcript?.trim() || "",
         result.reply,
         { userWasVoice: !result.user_transcript?.trim() }
       );
       setPendingChat([]);
-      setLastChatResult(result);
-      if (result.voice_engine === "openai_realtime") {
-        setChatNotice("Resposta em voz reproduzida.");
-      } else if (result.reply?.trim() && autoPlayVoice) {
-        voiceToPlay = result;
-      } else if (result.reply?.trim()) {
-        setChatNotice("Resposta pronta. Ligue «Ouvir ao responder» para ouvir.");
-      }
     } catch (e) {
       await voice.cancelRecording();
       setChatError(
@@ -1200,6 +1243,23 @@ function ChatScreenInner() {
                 thumbColor={autoPlayVoice ? colors.primary : "#e4e4e7"}
               />
             </View>
+            {voice.liveCallSupported ? (
+              <Pressable
+                onPress={() => void onTogglePhoneCall()}
+                disabled={sending || trialExpired}
+                style={[
+                  styles.phoneCallBtn,
+                  {
+                    backgroundColor: voice.isPhoneCall ? colors.danger : colors.primary,
+                    opacity: sending || trialExpired ? 0.5 : 1,
+                  },
+                ]}
+              >
+                <Text style={styles.phoneCallBtnText}>
+                  {voice.isPhoneCall ? "Encerrar chamada" : "Chamada ao vivo"}
+                </Text>
+              </Pressable>
+            ) : null}
           </View>
           {audioStatusLabel ? (
             <Text style={[styles.audioStatus, { color: colors.primary }]}>
@@ -1591,6 +1651,16 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   voiceLabel: { fontSize: 13, fontWeight: "500" },
+  phoneCallBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  phoneCallBtnText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "600",
+  },
   audioStatus: {
     fontSize: 12,
     fontWeight: "600",

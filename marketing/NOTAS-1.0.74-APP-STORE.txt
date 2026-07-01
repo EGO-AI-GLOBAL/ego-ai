@@ -1,0 +1,8 @@
+1.0.74 — melhorias de voz e diário de humor
+
+• Conversa por voz mais rápida — resposta de áudio junto com o texto (menos espera)
+• Modo «Chamada ao vivo» no chat web (quando disponível)
+• Diário de humor: histórico até 6 semanas (42 dias) e nota curta por dia no jardim
+• Botão «Falar com meu avatar» com resumo da semana
+
+Teste: Chat → microfone com «Ouvir ao responder» ligado; Jardim → histórico completo.
