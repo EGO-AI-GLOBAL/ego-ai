@@ -10,4 +10,4 @@ Zona: chat voz iOS + Android
 
 app.config.ts: 1.0.70
 
-GIT: (após commit)
+GIT: 7f3ffb0
