@@ -1,6 +1,6 @@
 SYNC — AGENTE MARKETING — 1.0.72 — SITE PLANOS
 ==============================================
-Estado: ⏳ PENDENTE
+Estado: ⏳ FTP PENDENTE (código + build OK — site ainda 404 até upload UOL)
 
 Tarefa: publicar /planos/ no egoai.com.br (Stripe + texto iOS mesmo e-mail)
 
@@ -13,11 +13,16 @@ Ficheiros:
 - scripts/build_site_publico.py
 - COMANDO-AGENTES-MARKETING-SITE-PLANOS.txt
 
-Comando: ver COMANDO-AGENTES-MARKETING-SITE-PLANOS.txt
+Preços: Conexão R$ 29,90 · Premium R$ 49,90 · Total R$ 99,90
+Stripe BR: dRm5kFaYmbTs5TydNE4ow0M · 14A7sNgiG6z8chWgZQ4ow02 · 5kQeVf6I60aK95K6lc4ow03
 
-Commit: ___
+Build: python scripts/build_site_publico.py --modo testadores → site-publico/planos/ OK
+Upload: SUBIR-SITE-FTP-AUTOMATICO.bat (precisa uol-ftp.env local)
+
+Commit: 7fe54b7
+Push main: ✅
 
 ✅ PRONTO quando:
-- site https://egoai.com.br/planos/ no ar
-- 3 botões Stripe OK
-- push main feito
+- site https://egoai.com.br/planos/ no ar (hoje 404 — falta FTP)
+- 3 botões Stripe OK ao vivo
+- push main feito ✅
