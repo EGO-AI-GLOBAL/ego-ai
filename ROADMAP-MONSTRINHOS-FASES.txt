@@ -32,7 +32,9 @@ Fases 7+  = paridade funcional real — ver marketing/FINCH-PARITY.md.
 
 | **9a Widget nativo** (home iOS/Android) | 1.0.60 | ✅ código |
 
-| 9+ Journal, eventos sazonais, social | — | planeado |
+| **9b Journal humor** (7 dias no jardim) | 1.0.72 | ✅ código |
+
+| 9+ Eventos sazonais, social | — | planeado |
 
 
 

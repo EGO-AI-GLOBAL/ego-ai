@@ -9,6 +9,7 @@ import { DailyCareShareModal } from "./DailyCareShareModal";
 import { MoodAdventureBanner } from "./moodMonsters/MoodAdventureBanner";
 import { MoodDailyGoals } from "./moodMonsters/MoodDailyGoals";
 import { MoodGoalsCompleteBurst } from "./moodMonsters/MoodGoalsCompleteBurst";
+import { MoodJournalWeek } from "./moodMonsters/MoodJournalWeek";
 import { MoodMonsterScene } from "./moodMonsters/MoodMonsterScene";
 import { MoodSeedShop } from "./moodMonsters/MoodSeedShop";
 import { SocialFollowBar } from "./SocialFollowBar";
@@ -145,6 +146,8 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
           celebrate={celebrate}
           previewMood={hoverMood}
         />
+
+        <MoodJournalWeek colors={colors} entries={care.mood_journal} />
 
         {care.adventure?.active || care.adventure?.collected ? (
           <MoodAdventureBanner colors={colors} adventure={care.adventure} />

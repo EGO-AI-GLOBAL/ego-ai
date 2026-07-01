@@ -82,6 +82,7 @@ SEEDS_GRATITUDE = 2
 SEEDS_ADVENTURE = 3
 SEEDS_ALL_GOALS_BONUS = 3
 SEED_HISTORY_MAX = 10
+MOOD_JOURNAL_MAX = 42
 
 DECOR_UNLOCKS: list[dict[str, str | int]] = [
     {"id": "flowers", "emoji": "🌷", "min_days": 1, "label": "Flores"},
@@ -223,6 +224,43 @@ def _seed_history_payload(raw: dict) -> list[dict]:
                 "amount": int(h.get("amount") or 0),
                 "label": str(h.get("label") or ""),
                 "date": str(h.get("date") or ""),
+            }
+        )
+    return out
+
+
+def _append_mood_journal(raw: dict, date: str, mood: dict) -> None:
+    hist = raw.get("mood_journal")
+    if not isinstance(hist, list):
+        hist = []
+    entry = {
+        "date": date,
+        "mood": str(mood.get("key") or ""),
+        "emoji": str(mood.get("emoji") or ""),
+        "label": str(mood.get("label") or ""),
+    }
+    hist = [h for h in hist if isinstance(h, dict) and str(h.get("date") or "") != date]
+    hist.insert(0, entry)
+    raw["mood_journal"] = hist[:MOOD_JOURNAL_MAX]
+
+
+def _mood_journal_payload(raw: dict) -> list[dict]:
+    hist = raw.get("mood_journal")
+    if not isinstance(hist, list):
+        return []
+    out: list[dict] = []
+    for h in hist[:MOOD_JOURNAL_MAX]:
+        if not isinstance(h, dict):
+            continue
+        date = str(h.get("date") or "").strip()
+        if not date:
+            continue
+        out.append(
+            {
+                "date": date,
+                "mood": str(h.get("mood") or ""),
+                "emoji": str(h.get("emoji") or ""),
+                "label": str(h.get("label") or ""),
             }
         )
     return out
@@ -448,6 +486,7 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
         "shop_base_complete": shop_payload["shop_base_complete"],
         "shop_rotating_available": shop_payload["shop_rotating_available"],
         "seed_history": _seed_history_payload(raw),
+        "mood_journal": _mood_journal_payload(raw),
         "all_goals_done": all_done,
         "all_goals_bonus": SEEDS_ALL_GOALS_BONUS,
     }
@@ -497,6 +536,7 @@ def record_checkin(
                 "last_mood_label": mood["label"],
             }
         )
+        _append_mood_journal(raw, today, mood)
     else:
         yesterday = _yesterday(today)
         if last == yesterday and current > 0:
@@ -519,6 +559,7 @@ def record_checkin(
                 "seeds": seeds,
             }
         )
+        _append_mood_journal(raw, today, mood)
         reset_daily_goals(raw)
 
     ui["daily_care"] = raw

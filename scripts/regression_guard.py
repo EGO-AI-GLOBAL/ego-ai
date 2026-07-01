@@ -53,6 +53,10 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["MoodGardenAmbient", "cloud"],
     ),
     (
+        "app/src/components/moodMonsters/MoodJournalWeek.tsx",
+        ["MoodJournalWeek", "Diário de humor"],
+    ),
+    (
         "app/src/components/moodMonsters/MoodGardenWidgetCard.tsx",
         ["MoodGardenWidgetCard", "if (!care?.question) return null", "useMemo", "streak em risco"],
     ),
@@ -246,7 +250,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/daily_care.py",
-        ["get_daily_care", "record_checkin", "record_goal", "purchase_shop_item", "CARE_MILESTONES", "shop_week_label"],
+        ["get_daily_care", "record_checkin", "record_goal", "purchase_shop_item", "CARE_MILESTONES", "shop_week_label", "mood_journal"],
     ),
     (
         "ego_api/daily_care_missions.py",

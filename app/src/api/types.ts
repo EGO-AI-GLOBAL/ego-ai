@@ -431,6 +431,7 @@ export type DailyCareInfo = {
   shop_base_complete?: boolean;
   shop_rotating_available?: number;
   seed_history?: DailyCareSeedHistoryEntry[];
+  mood_journal?: DailyCareMoodJournalEntry[];
   all_goals_done?: boolean;
   all_goals_bonus?: number;
   goals_bonus_granted?: boolean;
@@ -458,6 +459,13 @@ export type DailyCareSeedHistoryEntry = {
   amount: number;
   label: string;
   date: string;
+};
+
+export type DailyCareMoodJournalEntry = {
+  date: string;
+  mood: string;
+  emoji: string;
+  label: string;
 };
 
 export type DailyCareDecor = {

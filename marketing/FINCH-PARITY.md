@@ -35,7 +35,7 @@ Legenda: ❌ falta · 🟡 parcial · ✅ fechado (EGO, arte/textos próprios)
 
 | # | Área Finch | EGO | Estado | Fase alvo |
 |---|------------|-----|--------|-----------|
-| 16 | Diário / mood journal longo | Chat + night dump | 🟡 | integrar tag humor |
+| 16 | Diário / mood journal longo | Chat + night dump + **7 dias no jardim** | 🟡 | **Fase 9b 1.0.72:** strip diário; texto longo ainda no chat |
 | 17 | Quizzes de saúde mental | — | ❌ | 10+ |
 | 18 | Quotes / insights analytics | Resumo semanal Bolso | 🟡 | 11 |
 | 19 | Amigos / Tree Town social | — | ❌ | 12+ |
@@ -65,7 +65,8 @@ Legenda: ❌ falta · 🟡 parcial · ✅ fechado (EGO, arte/textos próprios)
 | **7** | Loja 30+ itens + rotação semanal + sink pós-base | ✅ **1.0.58** |
 | **8** | Missões pool 20+ + 1 surpresa/dia | ✅ **1.0.59** |
 | **9a Widget nativo** (home iOS/Android) | 1.0.60 | ✅ código |
-| 9+ Journal, eventos sazonais, social | planeado |
+| **9b Journal humor** (7 dias no jardim) | 1.0.72 | ✅ código |
+| 9+ Eventos sazonais, social | planeado |
 
 ---
 
