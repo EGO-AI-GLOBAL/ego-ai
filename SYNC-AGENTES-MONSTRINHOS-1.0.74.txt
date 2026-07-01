@@ -30,7 +30,7 @@ Antes do build:
 
 
 
-GIT Monstrinhos: (commit após push)
+GIT Monstrinhos: cf5748b
 
 Build Android: ___
 
