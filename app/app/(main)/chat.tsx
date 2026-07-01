@@ -902,13 +902,6 @@ function ChatScreenInner() {
         { role: "user", content: userLabel },
         { role: "assistant", content: result.reply },
       ]);
-      applyChatResult(result, userLabel);
-      void afterChatSaved(result, userLabel);
-      if (userId) {
-        void recordAvatarChat(userId, persona.avatar_id);
-        void recordChatStreakDay(userId).then(setChatStreakDays);
-      }
-      trackJourneyStep("voice");
       setLastChatResult(result);
       if (result.reply?.trim() && autoPlayVoice && result.voice_engine !== "openai_realtime") {
         if (result.tts_audio_base64?.trim()) {
@@ -921,6 +914,13 @@ function ChatScreenInner() {
       } else if (result.reply?.trim() && !autoPlayVoice) {
         setChatNotice("Resposta pronta. Ligue «Ouvir ao responder» para ouvir.");
       }
+      applyChatResult(result, userLabel);
+      void afterChatSaved(result, userLabel);
+      if (userId) {
+        void recordAvatarChat(userId, persona.avatar_id);
+        void recordChatStreakDay(userId).then(setChatStreakDays);
+      }
+      trackJourneyStep("voice");
       void saveExchange(
         result.user_transcript?.trim() || "",
         result.reply,

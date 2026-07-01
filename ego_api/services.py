@@ -612,6 +612,22 @@ def process_chat_message(
         ok_tts, _tts_used = db.daily_tts_ok(supabase, user_id, limits, prof)
         speak_reply_effective = ok_tts
 
+    if is_voice_msg and audio_bytes:
+        from ego_api.voice_fast import process_voice_message_fast
+
+        fast_payload, fast_err = process_voice_message_fast(
+            supabase,
+            user_id,
+            audio_bytes=audio_bytes,
+            audio_mime=audio_mime or "audio/mp4",
+            speak_reply=speak_reply,
+            client_history=client_history,
+        )
+        if fast_err and fast_err != "__use_full_path__":
+            return None, fast_err
+        if fast_payload:
+            return fast_payload, None
+
     casual = _is_casual_chat_message(user_display) and not audio_bytes
     client_hist = _history_from_client(client_history)
     if client_hist:

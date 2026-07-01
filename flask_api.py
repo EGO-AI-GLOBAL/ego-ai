@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-01-1.0.74-voice-latency",
+        "api_build": "2026-07-02-1.0.75-voice-fast-v2",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -495,6 +495,21 @@ def health():
         payload["plan_retention"] = plan_retention_status()
     except Exception:
         pass
+    try:
+        from ego_api.config import (
+            chat_defer_tts_on_voice,
+            read_env,
+            voice_fast_mode,
+        )
+
+        payload["voice"] = {
+            "fast_path": voice_fast_mode(),
+            "defer_tts_on_voice": chat_defer_tts_on_voice(),
+            "inline_tts": read_env("EGO_CHAT_INLINE_TTS", "0").lower()
+            in ("1", "true", "yes", "sim"),
+        }
+    except Exception:
+        payload["voice"] = {"fast_path": False}
     try:
         from ego_api.openai_realtime import is_available as realtime_available
 
