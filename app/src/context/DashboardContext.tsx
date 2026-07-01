@@ -153,7 +153,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     try {
       let dashboard = await fetchDashboard();
-      const uid = resolveUserId(session, dashboard.me?.user_id);
+      const uid = resolveUserId(getSession(), dashboard.me?.user_id);
       const localChoice = uid ? await getLocalPersonaChoice(uid) : null;
       if (localChoice) {
         const persona = accountPersona(localChoice);
@@ -229,7 +229,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar dados.";
-      const uid = resolveUserId(session);
+      const uid = resolveUserId(getSession());
       if (uid) {
         const local = await getLocalPersonaChoice(uid);
         if (local) {
@@ -255,7 +255,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         setError(msg);
       }
     }
-  }, [enabled, session]);
+  }, [enabled]);
 
   useEffect(() => {
     if (!enabled) {
