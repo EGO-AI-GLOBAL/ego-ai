@@ -1,16 +1,9 @@
-# Railway — VOZ RÁPIDA (obrigatório redeploy após push)
-# Confirmar em /health:
-#   api_build=2026-07-02-1.0.75-voice-fast-v2
-#   voice.fast_path=true
-#   voice.defer_tts_on_voice=true
+# Railway — Gemini Fast + Edge TTS (SEM Realtime)
+# Ver RAILWAY-VARS-GEMINI-FAST.txt (fonte actual)
 
+EGO_OPENAI_REALTIME=0
 EGO_VOICE_FAST=1
+EGO_GEMINI_FLASH_ONLY=1
+EGO_VOICE_MAX_TOKENS=128
 EGO_CHAT_DEFER_TTS_ON_VOICE=1
 EGO_CHAT_INLINE_TTS=0
-EGO_OPENAI_REALTIME=1
-EGO_REALTIME_PHONE_FAST=1
-
-# Manter (não apagar):
-# EGO_LATEST_APP_VERSION=1.0.74
-# EGO_MAINTENANCE=0
-# OPENAI_API_KEY, GEMINI_API_KEY, SUPABASE_*

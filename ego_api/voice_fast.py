@@ -56,8 +56,11 @@ def process_voice_message_fast(
         on_daily_limit_hit(user_id)
         return None, _daily_limit_message(supabase, user_id)
 
+    from ego_api.config import chat_defer_tts_on_voice
+
+    defer_tts = chat_defer_tts_on_voice()
     speak_effective = False
-    if speak_reply:
+    if speak_reply and not defer_tts:
         ok_tts, _tts_used = db.daily_tts_ok(supabase, user_id, limits, prof)
         if not ok_tts:
             from ego_api.plan_retention import on_daily_limit_hit
@@ -114,7 +117,9 @@ def process_voice_message_fast(
         "voice_engine": "gemini_fast",
     }
 
-    if speak_effective:
+    if defer_tts and speak_reply:
+        payload["tts_deferred"] = True
+    elif speak_effective:
         from ego_api import tts
 
         resolved_voice = resolve_tts_voice(voice_id, avatar_id)
