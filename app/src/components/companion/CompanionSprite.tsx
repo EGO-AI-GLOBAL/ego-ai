@@ -139,9 +139,8 @@ export function CompanionSprite({
   eggColor,
 }: Props) {
   const s = (stage as CompanionStage) || "egg";
-  const eggPalette = resolveEggPalette(eggColor);
-  const palette =
-    s === "egg" ? eggPalette : (STAGE_PALETTE[s] ?? STAGE_PALETTE.egg);
+  // Cor comprada na loja aplica-se em todos os estágios (ovo → adulto), não só no ovo.
+  const palette = resolveEggPalette(eggColor);
   const wobble = useRef(new Animated.Value(0)).current;
   const pulse = useRef(new Animated.Value(0)).current;
   const floatY = useRef(new Animated.Value(0)).current;
