@@ -333,11 +333,12 @@ def voice_fast_mode() -> bool:
 
 
 def voice_max_output_tokens() -> int:
-    raw = read_env("EGO_VOICE_MAX_TOKENS", "200")
+    """Respostas de voz curtas — Railway EGO_VOICE_MAX_TOKENS=64 para ~5–6 s."""
+    raw = read_env("EGO_VOICE_MAX_TOKENS", "96")
     try:
-        return max(96, min(420, int(raw)))
+        return max(64, min(420, int(raw)))
     except ValueError:
-        return 200
+        return 96
 
 
 def voice_stream_enabled() -> bool:

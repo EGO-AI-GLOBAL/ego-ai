@@ -1,24 +1,22 @@
-AGENTE MONSTRINHOS — RELEASE 1.0.73
-===================================
-Estado: ✅ PREP PRONTO — aguardo API + Bolso + Marketing para GERAR
-
-Zona Monstrinhos (só build):
-• app.config.ts — 1.0.73 · Android versionCode 110 · iOS EAS autoIncrement
-• Scripts: PREPARAR / GERAR / AGUARDAR-1.0.73.bat · GERAR-ANDROID-1.0.73.bat
-• builds-1.0.73.ids.json (placeholder)
-
-Feature 1.0.73 (outros agentes):
-• API — voice/realtime + TTS inline + api_build 1.0.73
-• Bolso — chamada WebRTC + voz mais rápida no chat
-• Marketing — NOTAS-1.0.73-*.txt
-
-NÃO correr GERAR até 4× ✅ em SYNC-AGENTES-1.0.73.txt
-
-Sequência:
-1. DEPLOY-API-1.0.73.bat (Railway)
-2. PREPARAR-1.0.73.bat
-3. GERAR-1.0.73.bat → AGUARDAR-E-SUBMETER-1.0.73.bat
-
-GIT Monstrinhos (prep): ___
-Build Android: ___
-Build iOS: ___
+AGENTE MONSTRINHOS — RELEASE 1.0.73
+===================================
+Estado: ✅ PRONTO — 4/4 agentes OK · pode GERAR amanhã
+
+Zona Monstrinhos (build):
+• app.config.ts — 1.0.73 · Android versionCode 110 · iOS EAS autoIncrement
+• Scripts: PREPARAR / GERAR / AGUARDAR-1.0.73.bat · GERAR-ANDROID-1.0.73.bat
+• builds-1.0.73.ids.json (placeholder)
+
+Feature 1.0.73:
+• API — voice perf inline + defer DB + max_tokens 64
+• App — performance chat + multipart Android (6161d22)
+• Bolso — convite Entre Nós (9d6b033)
+• Marketing — NOTAS-1.0.73-*.txt
+
+Sequência amanhã:
+1. PREPARAR-1.0.73.bat
+2. GERAR-1.0.73.bat → AGUARDAR-E-SUBMETER-1.0.73.bat
+
+GIT Monstrinhos: ___COMMIT___
+Build Android: ___
+Build iOS: ___

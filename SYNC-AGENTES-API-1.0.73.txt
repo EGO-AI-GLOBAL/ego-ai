@@ -1,15 +1,15 @@
-AGENTE API — RELEASE 1.0.73
-===========================
-Estado: ✅ PRONTO
-
-Zona: flask_api.py rotas voice/realtime + vars Railway + api_build 1.0.73
-
-Entregue:
-• GET/POST /api/v1/voice/realtime/* (status, client-secret, webrtc, finish)
-• services.process_realtime_voice_turn — persistência turno + TTS inline
-• /health → realtime.available
-• api_build: 2026-07-03-1.0.73-voice-performance
-• RAILWAY-VARS-1.0.73.txt (documentado)
-• regression_guard + smoke_test_api OK
-
-GIT: ___
+AGENTE API — RELEASE 1.0.73
+===========================
+Estado: ✅ PRONTO
+
+Zona: voice perf + EGO_VOICE_MAX_TOKENS=64
+
+Entregue:
+• voice_fast.py — TTS inline + persistência em background
+• config.voice_max_output_tokens — mínimo 64 (Railway EGO_VOICE_MAX_TOKENS=64)
+• /health → voice.max_tokens
+• api_build: 2026-07-01-voice-tokens-64
+• RAILWAY-VARS-1.0.73.txt (EGO_VOICE_MAX_TOKENS=64)
+• regression_guard + smoke_test_api OK
+
+GIT: ___COMMIT___

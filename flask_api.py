@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-01-voice-perf-inline-defer-db",
+        "api_build": "2026-07-01-voice-tokens-64",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -499,6 +499,7 @@ def health():
         from ego_api.config import (
             chat_defer_tts_on_voice,
             voice_fast_mode,
+            voice_max_output_tokens,
         )
 
         payload["voice"] = {
@@ -506,6 +507,7 @@ def health():
             "defer_tts_on_voice": chat_defer_tts_on_voice(),
             "inline_tts": read_env("EGO_CHAT_INLINE_TTS", "0").lower()
             in ("1", "true", "yes", "sim"),
+            "max_tokens": voice_max_output_tokens(),
         }
     except Exception:
         payload["voice"] = {"fast_path": False}
