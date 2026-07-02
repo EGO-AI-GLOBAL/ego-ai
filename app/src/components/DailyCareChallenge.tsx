@@ -4,6 +4,7 @@ import * as Haptics from "expo-haptics";
 import { submitDailyCareCheckin } from "@/api/client";
 import type { DailyCareInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import { resolveMoodLabel } from "@/constants/moodMonsters";
 import { queueMonsterChatNotice } from "@/utils/monsterChatNotice";
 import { DailyCareShareModal } from "./DailyCareShareModal";
 import { MoodAdventureBanner } from "./moodMonsters/MoodAdventureBanner";
@@ -115,8 +116,7 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
 
   const days = care.current ?? 0;
   const borderColor = care.at_risk ? colors.warning : colors.primary;
-  const todayMood = (care.moods ?? []).find((m) => m.key === care.last_mood);
-  const todayLabel = todayMood?.label ?? care.last_mood_label;
+  const todayLabel = resolveMoodLabel(care.moods, care.last_mood, care.last_mood_label);
 
   return (
     <>
@@ -148,7 +148,7 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
           previewMood={hoverMood}
         />
 
-        <MoodJournalWeek colors={colors} entries={care.mood_journal} />
+        <MoodJournalWeek colors={colors} entries={care.mood_journal} moods={care.moods} />
 
         <MoodJournalTodayNote colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
 

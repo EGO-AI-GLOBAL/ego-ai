@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import threading
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -22,6 +23,30 @@ from ego_api.services import (
     _history_from_client,
     _safe_plan_access_payload,
 )
+
+
+def _persist_voice_turn_background(
+    supabase: Client | None,
+    user_id: str,
+    reply_clean: str,
+    prof: dict,
+    *,
+    increment_tts: bool,
+) -> None:
+    """Grava histórico/tokens após responder — não bloqueia TTS nem o HTTP."""
+
+    def _run() -> None:
+        try:
+            db.save_chat_message(supabase, user_id, "user", VOICE_MESSAGE_MARKER)
+            db.save_chat_message(supabase, user_id, "assistant", reply_clean)
+            tok_n = gemini.count_tokens_approx(VOICE_MESSAGE_MARKER, reply_clean)
+            db.add_tokens_used(supabase, user_id, tok_n, prof)
+            if increment_tts:
+                db.increment_daily_tts(supabase, user_id)
+        except Exception as exc:
+            print(f"[EGO] voice_fast persist error user={user_id}: {exc}", flush=True)
+
+    threading.Thread(target=_run, daemon=True).start()
 
 
 def process_voice_message_fast(
@@ -97,16 +122,8 @@ def process_voice_message_fast(
     if not reply_clean:
         return None, "Resposta vazia do assistente."
 
-    mid_u = db.save_chat_message(supabase, user_id, "user", VOICE_MESSAGE_MARKER)
-    mid_a = db.save_chat_message(supabase, user_id, "assistant", reply_clean)
-    tok_n = gemini.count_tokens_approx(VOICE_MESSAGE_MARKER, reply_clean)
-    db.add_tokens_used(supabase, user_id, tok_n, prof)
-    prof = db.load_profile(supabase, user_id) or prof
-
     payload: dict = {
         "reply": reply_clean,
-        "user_message_id": mid_u,
-        "assistant_message_id": mid_a,
         "language": "pt-BR",
         "warnings": [],
         "reminders_saved": [],
@@ -119,6 +136,7 @@ def process_voice_message_fast(
         "voice_engine": "gemini_fast",
     }
 
+    tts_increment = False
     if defer_tts and speak_reply:
         payload["tts_deferred"] = True
     elif speak_effective:
@@ -128,10 +146,18 @@ def process_voice_message_fast(
         mp3 = tts.synthesize_speech_mp3(reply_clean, resolved_voice, avatar_id)
         payload["tts_voice_id"] = resolved_voice
         if mp3:
-            db.increment_daily_tts(supabase, user_id)
+            tts_increment = True
             payload["tts_audio_base64"] = base64.b64encode(mp3).decode("ascii")
             payload["tts_mime"] = "audio/mpeg"
         else:
             payload["tts_error"] = "Áudio indisponível no servidor."
+
+    _persist_voice_turn_background(
+        supabase,
+        user_id,
+        reply_clean,
+        prof,
+        increment_tts=tts_increment,
+    )
 
     return payload, None

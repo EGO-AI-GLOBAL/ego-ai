@@ -28,12 +28,18 @@ export function formatJournalDatePt(dateIso: string): string {
   return `${wd}, ${day} ${mon}`;
 }
 
-export function moodJournalTopLabel(entries: DailyCareMoodJournalEntry[], maxDays: number): string {
+import { resolveMoodLabel } from "@/constants/moodMonsters";
+
+export function moodJournalTopLabel(
+  entries: DailyCareMoodJournalEntry[],
+  maxDays: number,
+  moods?: { key: string; label: string }[]
+): string {
   const slice = entries.slice(0, maxDays);
   if (!slice.length) return "";
   const counts: Record<string, number> = {};
   for (const e of slice) {
-    const k = (e.label || e.mood || "").trim();
+    const k = resolveMoodLabel(moods, e.mood, e.label || e.mood).trim();
     if (!k) continue;
     counts[k] = (counts[k] ?? 0) + 1;
   }

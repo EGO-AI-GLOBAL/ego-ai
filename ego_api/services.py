@@ -1940,7 +1940,7 @@ def _daily_care_bootstrap(supabase, user_id: str) -> dict:  # noqa: ANN001
 def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
     """Um único payload para o painel (evita vários GET no cliente)."""
     from ego_api import delegation_db, habits_db, streaks
-    from ego_api.config import gemini_api_key, supabase_anon_key, supabase_url
+    from ego_api.config import chat_local_history_enabled, gemini_api_key, supabase_anon_key, supabase_url
 
     access = _bootstrap_section(
         "access",
@@ -2001,8 +2001,12 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
         "pending_calendar_invites": _list_pending_calendar_invites_safe(
             supabase, user_id
         ),
-        "messages": _bootstrap_section(
-            "messages", lambda: db.load_chat_history(supabase, user_id), []
+        "messages": (
+            []
+            if chat_local_history_enabled()
+            else _bootstrap_section(
+                "messages", lambda: db.load_chat_history(supabase, user_id), []
+            )
         ),
     }
 

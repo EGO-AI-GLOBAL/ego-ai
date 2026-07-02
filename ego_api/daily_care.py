@@ -264,11 +264,13 @@ def _mood_journal_payload(raw: dict) -> list[dict]:
         date = str(h.get("date") or "").strip()
         if not date:
             continue
+        mood_key = str(h.get("mood") or "").strip()
+        mood = _mood_by_key(mood_key) if mood_key else None
         row = {
             "date": date,
-            "mood": str(h.get("mood") or ""),
-            "emoji": str(h.get("emoji") or ""),
-            "label": str(h.get("label") or ""),
+            "mood": mood_key,
+            "emoji": mood["emoji"] if mood else str(h.get("emoji") or ""),
+            "label": mood["label"] if mood else str(h.get("label") or ""),
         }
         note = str(h.get("note") or "").strip()
         if note:

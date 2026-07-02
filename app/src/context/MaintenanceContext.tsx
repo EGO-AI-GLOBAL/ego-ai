@@ -21,7 +21,7 @@ type MaintenanceContextValue = {
 
 const MaintenanceContext = createContext<MaintenanceContextValue | null>(null);
 
-const POLL_MS = 25_000;
+const POLL_MS = 60_000;
 
 export function MaintenanceProvider({ children }: { children: React.ReactNode }) {
   const [showBanner, setShowBanner] = useState(false);

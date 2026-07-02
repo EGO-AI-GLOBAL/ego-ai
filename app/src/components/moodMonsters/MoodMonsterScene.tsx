@@ -2,7 +2,7 @@ import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import type { DailyCareInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
-import { moodKeyOrDefault } from "@/constants/moodMonsters";
+import { moodKeyOrDefault, resolveMoodLabel } from "@/constants/moodMonsters";
 import { MoodGardenScene } from "./MoodGardenScene";
 import { MoodMonsterIllustration } from "./MoodMonsterIllustration";
 
@@ -18,10 +18,11 @@ export function MoodMonsterScene({ colors, care, celebrate = false, previewMood 
   const moodKey = previewMood ?? (care.checked_today ? care.last_mood : undefined);
   const displayKey = moodKeyOrDefault(moodKey);
   const moodMeta = (care.moods ?? []).find((m) => m.key === displayKey);
+  const displayLabel = resolveMoodLabel(care.moods, displayKey, moodMeta?.label);
   const line =
     care.monster_line ||
     (care.checked_today
-      ? `${moodMeta?.label ?? "Monstrinho"} está no jardim hoje.`
+      ? `${displayLabel} está no jardim hoje.`
       : "Quem vai aparecer no jardim hoje?");
 
   return (
@@ -36,7 +37,7 @@ export function MoodMonsterScene({ colors, care, celebrate = false, previewMood 
       atRisk={care.at_risk}
     >
       <MoodMonsterIllustration moodKey={displayKey} size={116} celebrate={celebrate} />
-      <Text style={styles.name}>{moodMeta?.label ?? "Monstrinho"}</Text>
+      <Text style={styles.name}>{displayLabel}</Text>
       <Text style={[styles.line, { color: colors.text }]}>{line}</Text>
       {care.daily_mission ? (
         <View style={[styles.mission, { backgroundColor: "rgba(255,255,255,0.45)" }]}>

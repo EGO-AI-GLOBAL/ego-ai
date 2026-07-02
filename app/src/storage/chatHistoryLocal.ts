@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { ChatMessage } from "@/api/types";
 
-const MAX_STORED_MESSAGES = 200;
+const MAX_STORED_MESSAGES = 50;
 const VOICE_LABEL = "Mensagem de voz";
 const STORAGE_PREFIX = "ego_chat_history_v1_";
 
@@ -140,7 +140,7 @@ export async function clearLocalChatHistory(userId: string): Promise<void> {
 /** Últimos turnos para contexto da IA (sem a mensagem atual). */
 export function buildApiHistoryContext(
   messages: ChatMessage[],
-  maxTurns = 16
+  maxTurns = 8
 ): { role: "user" | "assistant"; content: string }[] {
   const out: { role: "user" | "assistant"; content: string }[] = [];
   for (const m of messages) {

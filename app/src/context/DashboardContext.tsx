@@ -66,7 +66,12 @@ const empty: DashboardData = {
 type RefreshOptions = {
   /** Evita expo-notifications após chat (agenda compartilhada costuma crashar no Android). */
   skipNotifications?: boolean;
+  /** Carga inicial: adia syncs pesados para o chat abrir mais rápido. */
+  deferNotifications?: boolean;
 };
+
+const DEFER_BACKGROUND_SYNC_MS = 2000;
+const TOKEN_ESTIMATE_MSG_CAP = 50;
 
 type DashboardContextValue = {
   data: DashboardData;
@@ -183,10 +188,14 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       }
       if (uid && dashboard.access) {
         const msgs = await loadLocalChatHistory(uid).catch(() => []);
+        const recent =
+          msgs.length > TOKEN_ESTIMATE_MSG_CAP
+            ? msgs.slice(-TOKEN_ESTIMATE_MSG_CAP)
+            : msgs;
         let est = 0;
-        for (let i = 0; i < msgs.length; i++) {
-          const m = msgs[i];
-          const prev = i > 0 ? msgs[i - 1] : null;
+        for (let i = 0; i < recent.length; i++) {
+          const m = recent[i];
+          const prev = i > 0 ? recent[i - 1] : null;
           if (m.role === "assistant" && prev?.role === "user") {
             est += estimateTokenDelta(prev.content || "", m.content || "");
           }
@@ -216,16 +225,23 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         setError(null);
       }
       if (!options?.skipNotifications) {
-        void syncReminderLocalNotifications(dashboard.reminders).catch(() => {});
-        const shared = dashboard.shared_calendars ?? [];
-        void registerExpoPushToken();
-        void notifyNewSharedEventsFromOthers(shared, uid).catch(() => {});
-        void syncSharedCalendarLocalNotifications(shared).catch(() => {});
-        void syncDailyCheckInNotification().catch(() => {});
-        void syncEgoDeBolsoCareNotification(dashboard.wellness_journey).catch(() => {});
-        void syncEgoDeBolsoHomeWidget(dashboard.wellness_journey).catch(() => {});
-        void syncMoodMonsterNotifications(dashboard.daily_care).catch(() => {});
-        void syncMoodGardenHomeWidget(dashboard.daily_care).catch(() => {});
+        const runBackgroundSyncs = () => {
+          void syncReminderLocalNotifications(dashboard.reminders).catch(() => {});
+          const shared = dashboard.shared_calendars ?? [];
+          void registerExpoPushToken();
+          void notifyNewSharedEventsFromOthers(shared, uid).catch(() => {});
+          void syncSharedCalendarLocalNotifications(shared).catch(() => {});
+          void syncDailyCheckInNotification().catch(() => {});
+          void syncEgoDeBolsoCareNotification(dashboard.wellness_journey).catch(() => {});
+          void syncEgoDeBolsoHomeWidget(dashboard.wellness_journey).catch(() => {});
+          void syncMoodMonsterNotifications(dashboard.daily_care).catch(() => {});
+          void syncMoodGardenHomeWidget(dashboard.daily_care).catch(() => {});
+        };
+        if (options?.deferNotifications) {
+          setTimeout(runBackgroundSyncs, DEFER_BACKGROUND_SYNC_MS);
+        } else {
+          runBackgroundSyncs();
+        }
       }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar dados.";
@@ -267,7 +283,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     setLoading(true);
-    load().finally(() => setLoading(false));
+    load({ deferNotifications: true }).finally(() => setLoading(false));
   }, [enabled, load]);
 
   const refresh = useCallback(async (options?: RefreshOptions) => {

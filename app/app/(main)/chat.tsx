@@ -278,7 +278,7 @@ function ChatScreenInner() {
   const keyboardHeight = keyboard.height;
   const keyboardBottomInset = keyboard.bottomInset;
   const keyboardOpen = keyboardHeight > 0;
-  const micActive = voice.isRecording || voice.micSessionActive || voice.isPhoneCall;
+  const micActive = voice.isRecording || voice.micSessionActive;
   const personaBusy =
     sending || micActive || voice.isSpeaking || voice.isPreparingAudio;
   const showAvatarSection =
@@ -287,21 +287,13 @@ function ChatScreenInner() {
     micActive ||
     voice.isPreparingAudio ||
     voice.isSpeaking;
-  const audioStatusLabel = voice.isPhoneCall
-    ? voice.isSpeaking
-      ? "Em chamada — a falar…"
-      : voice.isAssistantThinking
-        ? "Em chamada — a pensar…"
-        : voice.isUserSpeaking
-          ? "Em chamada — a ouvir…"
-          : "Em chamada — fale quando quiser"
-    : sending
-      ? "A pensar…"
-      : voice.isPreparingAudio
-        ? "A preparar áudio…"
-        : voice.isSpeaking
-          ? "A falar…"
-          : null;
+  const audioStatusLabel = sending
+    ? "A pensar…"
+    : voice.isPreparingAudio
+      ? "A preparar áudio…"
+      : voice.isSpeaking
+        ? "A falar…"
+        : null;
 
   useEffect(() => {
     void voice.stopPlayback();
@@ -475,19 +467,13 @@ function ChatScreenInner() {
     profileName.trim().toLowerCase() === emailAlias;
   const who = !nameLooksLikeEmailAlias && profileName ? profileName : "você";
   const displayWho = !nameLooksLikeEmailAlias && profileName ? profileName.trim() : undefined;
-  const avatarSubtitle = voice.isPhoneCall
-    ? voice.isAssistantThinking
-      ? `${assistantName} está pensando…`
-      : voice.isUserSpeaking
-        ? `${assistantName} está ouvindo…`
-        : `Conversa com ${assistantName} — fale quando quiser.`
-    : voice.isSpeaking
-      ? `${assistantName} está falando…`
-      : micActive
-        ? `${assistantName} está ouvindo…`
-        : chatStreakSubtitle(chatStreakDays, assistantName) ??
-          streakAvatarSubtitle(data.streak, assistantName) ??
-          `${assistantName} · pronto para ajudar`;
+  const avatarSubtitle = voice.isSpeaking
+    ? `${assistantName} está falando…`
+    : micActive
+      ? `${assistantName} está ouvindo…`
+      : chatStreakSubtitle(chatStreakDays, assistantName) ??
+        streakAvatarSubtitle(data.streak, assistantName) ??
+        `${assistantName} · pronto para ajudar`;
   const checkout = data.me?.stripe_checkout;
   const access = data.access;
   const userPlanTier = access?.plan_tier || "essential";
@@ -637,9 +623,6 @@ function ChatScreenInner() {
       if (localChatReady && chatMessages.length > 0) {
         scrollMessagesToEnd(false);
       }
-      if (voice.liveCallSupported && session && !trialExpired) {
-        void voice.warmupPhoneCall(historyForApi());
-      }
       if (userId) {
         void consumeMonsterChatNotice().then((monster) => {
           if (monster) {
@@ -656,11 +639,6 @@ function ChatScreenInner() {
       chatMessages.length,
       scrollMessagesToEnd,
       userId,
-      voice.liveCallSupported,
-      voice.warmupPhoneCall,
-      session,
-      trialExpired,
-      historyForApi,
     ])
   );
 
@@ -787,35 +765,6 @@ function ChatScreenInner() {
         "Use tópicos curtos: assunto principal, pontos importantes e conclusão. " +
         "Se for contrato ou relatório, destaque datas, valores e obrigações relevantes.";
 
-  const onTogglePhoneCall = useCallback(async () => {
-    if (!session || trialExpired || sending) return;
-    if (voice.isPhoneCall) {
-      voice.endPhoneCall();
-      setChatNotice(null);
-      return;
-    }
-    setChatError(null);
-    setChatNotice("A ligar chamada ao vivo…");
-    try {
-      await voice.startPhoneCall(historyForApi(), {
-        onTurnComplete: (user, assistant) => {
-          const userLabel = user.trim() || "Voz";
-          setPendingChat([
-            { role: "user", content: userLabel },
-            { role: "assistant", content: assistant },
-          ]);
-          void saveExchange(userLabel, assistant, { userWasVoice: true });
-          setPendingChat([]);
-        },
-        onError: (msg) => setChatError(msg),
-      });
-      setChatNotice("Em chamada — fale naturalmente.");
-    } catch (e) {
-      setChatError(e instanceof Error ? e.message : "Chamada indisponível.");
-      setChatNotice(null);
-    }
-  }, [session, trialExpired, sending, voice, historyForApi, saveExchange]);
-
   const onMicPressIn = async () => {
     if (sending || micBusyRef.current) return;
     if (!session) {
@@ -861,6 +810,7 @@ function ChatScreenInner() {
       { role: "assistant", content: "…" },
     ]);
     let voiceToPlay: SendChatResult | null = null;
+    let voiceResultAccess = false;
     try {
       if (nightDumpMode) {
         setChatNotice("A processar desabafo…");
@@ -897,6 +847,7 @@ function ChatScreenInner() {
           ]);
         },
       });
+      voiceResultAccess = Boolean(result.access);
       const userLabel = result.user_transcript?.trim() || "Voz";
       setPendingChat([
         { role: "user", content: userLabel },
@@ -938,7 +889,9 @@ function ChatScreenInner() {
       setPendingChat([]);
     } finally {
       micBusyRef.current = false;
-      void refreshAccess();
+      if (!voiceResultAccess) {
+        void refreshAccess();
+      }
       setSending(false);
     }
     if (voiceToPlay) {
@@ -952,10 +905,6 @@ function ChatScreenInner() {
     if (sending || micBusyRef.current) return;
     if (!session) {
       setChatError("Sessão expirada. Faça login de novo para usar o microfone.");
-      return;
-    }
-    if (voice.isPhoneCall) {
-      setChatNotice("Use «Encerrar chamada» para sair do modo telefone.");
       return;
     }
 
@@ -1000,14 +949,22 @@ function ChatScreenInner() {
       ]);
       scrollMessagesToEnd(true);
       setSending(true);
+      let chatResultAccess = false;
       try {
-        const result = await sendChatMessage(text, false, historyForApi());
+        const wantVoice = autoPlayVoice || Boolean(opts?.forceVoice);
+        const result = await sendChatMessage(text, wantVoice, historyForApi());
+        chatResultAccess = Boolean(result.access);
         setPendingChat([
           { role: "user", content: userLabel },
           { role: "assistant", content: result.reply },
         ]);
         applyChatResult(result, userLabel);
-        await afterChatSaved(result, userLabel);
+        if (wantVoice && result.tts_audio_base64?.trim()) {
+          void playVoice(result).catch((e) => {
+            setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
+          });
+        }
+        void afterChatSaved(result, userLabel);
         if (userId) {
           void recordAvatarChat(userId, persona.avatar_id);
           void recordChatStreakDay(userId).then(setChatStreakDays);
@@ -1016,12 +973,11 @@ function ChatScreenInner() {
         await saveExchange(userLabel, result.reply);
         setPendingChat([]);
         setLastChatResult(result);
-        const wantVoice = autoPlayVoice || Boolean(opts?.forceVoice);
-        if (wantVoice) {
+        if (wantVoice && !result.tts_audio_base64?.trim()) {
           void playVoice(result).catch((e) => {
             setChatError(e instanceof Error ? e.message : "Erro ao reproduzir áudio.");
           });
-        } else {
+        } else if (!wantVoice) {
           setChatNotice(null);
         }
       } catch (e) {
@@ -1030,7 +986,9 @@ function ChatScreenInner() {
           enrichChatError(e instanceof Error ? e.message : "Erro ao enviar.", data.access)
         );
       } finally {
-        void refreshAccess();
+        if (!chatResultAccess) {
+          void refreshAccess();
+        }
         setSending(false);
       }
     },
@@ -1204,15 +1162,12 @@ function ChatScreenInner() {
               subtitle={avatarSubtitle}
               isSpeaking={voice.isSpeaking}
               isListening={
-                voice.isPhoneCall
-                  ? voice.isUserSpeaking && !voice.isSpeaking && !voice.isAssistantThinking
-                  : (voice.isRecording || micActive) &&
-                    !voice.isSpeaking &&
-                    !voice.isPreparingAudio &&
-                    !sending
+                (voice.isRecording || micActive) &&
+                !voice.isSpeaking &&
+                !voice.isPreparingAudio &&
+                !sending
               }
               isThinking={
-                (voice.isPhoneCall && voice.isAssistantThinking) ||
                 voice.isPreparingAudio ||
                 (sending && !voice.isSpeaking && !voice.isPreparingAudio)
               }
@@ -1243,23 +1198,6 @@ function ChatScreenInner() {
                 thumbColor={autoPlayVoice ? colors.primary : "#e4e4e7"}
               />
             </View>
-            {voice.liveCallSupported ? (
-              <Pressable
-                onPress={() => void onTogglePhoneCall()}
-                disabled={sending || trialExpired}
-                style={[
-                  styles.phoneCallBtn,
-                  {
-                    backgroundColor: voice.isPhoneCall ? colors.danger : colors.primary,
-                    opacity: sending || trialExpired ? 0.5 : 1,
-                  },
-                ]}
-              >
-                <Text style={styles.phoneCallBtnText}>
-                  {voice.isPhoneCall ? "Encerrar chamada" : "Chamada ao vivo"}
-                </Text>
-              </Pressable>
-            ) : null}
           </View>
           {audioStatusLabel ? (
             <Text style={[styles.audioStatus, { color: colors.primary }]}>
@@ -1651,16 +1589,6 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   voiceLabel: { fontSize: 13, fontWeight: "500" },
-  phoneCallBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
-  },
-  phoneCallBtnText: {
-    color: "#fff",
-    fontSize: 13,
-    fontWeight: "600",
-  },
   audioStatus: {
     fontSize: 12,
     fontWeight: "600",

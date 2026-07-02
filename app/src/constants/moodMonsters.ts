@@ -107,6 +107,30 @@ export function moodKeyOrDefault(key?: string): MoodKey {
   return "ok";
 }
 
+/** Rótulos antigos (Bem/Peso…) → nomes actuais dos monstrinhos. */
+const LEGACY_MOOD_LABELS: Record<string, string> = {
+  Bem: "Sol",
+  Peso: "Nublina",
+  Ansiosa: "Agita",
+  Ok: "Neutro",
+  Leve: "Brisa",
+};
+
+export function resolveMoodLabel(
+  moods: { key: string; label: string }[] | undefined,
+  moodKey?: string,
+  fallback?: string
+): string {
+  const k = (moodKey || "").trim();
+  if (k && moods?.length) {
+    const found = moods.find((m) => m.key === k);
+    if (found?.label?.trim()) return found.label.trim();
+  }
+  const fb = (fallback || "").trim();
+  if (fb && LEGACY_MOOD_LABELS[fb]) return LEGACY_MOOD_LABELS[fb];
+  return fb || "Monstrinho";
+}
+
 export function gardenStageFromDays(days: number): number {
   if (days >= 30) return 5;
   if (days >= 14) return 4;
