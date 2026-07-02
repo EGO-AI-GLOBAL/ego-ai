@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import base64
+from typing import TYPE_CHECKING
 
-from supabase import Client
+if TYPE_CHECKING:
+    from ego_supabase import Client
 
 from ego_api import db, gemini
 from ego_api.db import VOICE_MESSAGE_MARKER
