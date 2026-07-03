@@ -1,0 +1,10 @@
+EGO-AI 1.0.76 — PLAY STORE (Android)
+=====================================
+Build: 1.0.76 · versionCode 120 (EAS)
+
+O que há de novo (PT-BR):
+• Melhorias de estabilidade
+• Android continua com planos via Stripe (sem alteração IAP)
+
+Notas internas:
+• IAP é só iOS; Android inalterado nesta release.

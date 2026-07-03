@@ -1,0 +1,35 @@
+AGENTE MONSTRINHOS — RELEASE 1.0.76
+
+===================================
+
+Estado: ✅ PRONTO — pacote build IAP iOS
+
+Zona Monstrinhos:
+
+• app.config.ts — 1.0.76 · Android versionCode 120 · iOS buildNumber 62
+
+• IAP iOS: react-native-iap + Planos + API /billing/apple/verify
+
+• Scripts: PREPARAR / GERAR / AGUARDAR-1.0.76.bat
+
+• Connect: Conexao R$39,90 · Premium R$69,90 · Total R$129,90
+
+
+
+Antes do build:
+
+1. Railway: APPLE_IAP_SHARED_SECRET ✅
+
+2. PREPARAR-1.0.76.bat
+
+3. GERAR-1.0.76.bat → AGUARDAR-E-SUBMETER-1.0.76.bat
+
+4. Connect → versao 1.0.76 → Compras dentro do app → 3 assinaturas → submeter
+
+
+
+GIT Monstrinhos: (preencher apos commit deste pacote)
+
+Build Android: (apos GERAR)
+
+Build iOS: (apos GERAR)

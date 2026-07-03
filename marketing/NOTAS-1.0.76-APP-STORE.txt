@@ -1,0 +1,38 @@
+EGO-AI 1.0.76 — SUBMETER À APP STORE (iOS) — COM IAP
+======================================================
+Build EAS: 1.0.76
+
+ORDEM (App Store Connect)
+-------------------------
+1. Apps → EGO-AI → App Store → versão **1.0.76**
+2. Compilação → build **1.0.76** (novo, com IAP no código)
+3. **Compras dentro do app e assinaturas** → marcar:
+   - com.egoai.app.sub.connection.monthly (EGO Conexão)
+   - com.egoai.app.sub.premium.monthly (EGO Premium)
+   - com.egoai.app.sub.total.monthly (EGO Total)
+4. Colar «O que há de novo» (abaixo)
+5. App Review Notes → conta demo + como testar IAP (abaixo)
+6. Enviar para revisão (app + 3 assinaturas juntos)
+
+────────────────────────────────────────────────────────────
+O QUE HÁ DE NOVO (PT-BR)
+────────────────────────────────────────────────────────────
+• Assinaturas mensais dentro do app (Conexão, Premium, Total)
+• Compra e restauração via App Store (In-App Purchase)
+• Melhorias de estabilidade
+
+(NÃO mencionar: Stripe, site mais barato, comprar fora do app)
+
+────────────────────────────────────────────────────────────
+APP REVIEW — NOTES (inglês)
+────────────────────────────────────────────────────────────
+This version adds In-App Purchase subscriptions (EGO Conexão, Premium, Total).
+Path: open app → Planos → select plan → purchase via StoreKit.
+Restore: Planos → Restaurar compras.
+Sandbox: create account in app signup or use Apple sandbox tester.
+Demo: [DEMO_EMAIL] / [DEMO_PASSWORD]
+
+Product IDs:
+- com.egoai.app.sub.connection.monthly
+- com.egoai.app.sub.premium.monthly
+- com.egoai.app.sub.total.monthly
