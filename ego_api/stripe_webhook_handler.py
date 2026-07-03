@@ -75,40 +75,7 @@ def _resolve_tier_from_session(session: dict) -> str:
     return PLAN_CONNECTION
 
 
-def _apply_plan(
-    supabase: Client, user_id: str, tier: str, *, team_seats: int | None = None
-) -> dict:
-    tier = normalize_plan_tier(tier)
-    paid = tier != PLAN_ESSENTIAL
-    payload: dict = {"plan_tier": tier, "is_pro": paid}
-    if team_seats:
-        row = (
-            supabase.table("profiles")
-            .select("ui_state")
-            .eq("id", user_id)
-            .limit(1)
-            .execute()
-        )
-        ui = {}
-        if row.data:
-            raw = row.data[0].get("ui_state")
-            if isinstance(raw, dict):
-                ui = dict(raw)
-            elif isinstance(raw, str) and raw.strip():
-                try:
-                    ui = json.loads(raw)
-                except json.JSONDecodeError:
-                    ui = {}
-        ui["team_seats"] = int(team_seats)
-        ui["plan_type"] = "team"
-        payload["ui_state"] = ui
-    (
-        supabase.table("profiles")
-        .update(payload)
-        .eq("id", user_id)
-        .execute()
-    )
-    return {"plan_tier": tier, "is_pro": paid, "team_seats": team_seats}
+from ego_api.plan_grant import apply_plan_to_profile
 
 
 def handle_stripe_webhook_payload(
@@ -200,7 +167,7 @@ def _process_stripe_event(event: dict) -> dict:
             return {"ok": True, "ignored": "sem user_id"}
         try:
             supabase = get_supabase_admin()
-            result = _apply_plan(supabase, str(user_id), PLAN_ESSENTIAL)
+            result = apply_plan_to_profile(supabase, str(user_id), PLAN_ESSENTIAL)
         except Exception:  # noqa: BLE001
             raise StripeWebhookError(500, "Falha ao rebaixar perfil.")
         return {"ok": True, "user_id": user_id, **result}
@@ -217,7 +184,7 @@ def _process_stripe_event(event: dict) -> dict:
             return {"ok": True, "ignored": status or "sem alteração"}
         try:
             supabase = get_supabase_admin()
-            result = _apply_plan(supabase, str(user_id), tier)
+            result = apply_plan_to_profile(supabase, str(user_id), tier)
         except Exception:  # noqa: BLE001
             raise StripeWebhookError(500, "Falha ao atualizar perfil.")
         return {"ok": True, "user_id": user_id, **result}
@@ -254,7 +221,9 @@ def _process_stripe_event(event: dict) -> dict:
                 )
             except Exception:
                 pass
-        result = _apply_plan(supabase, str(user_id), tier, team_seats=team_seats)
+        result = apply_plan_to_profile(
+            supabase, str(user_id), tier, team_seats=team_seats
+        )
         commission = None
         try:
             from ego_api.referrals import record_first_payment_commission

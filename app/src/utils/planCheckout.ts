@@ -4,7 +4,7 @@ import {
   type TeamPlanTier,
   type TeamSeatCount,
 } from "@/constants/teamStripeCheckout";
-import { allowsInAppPlanPurchase } from "@/utils/iosAppStoreBilling";
+import { usesStripeCheckout } from "@/utils/iosAppStoreBilling";
 
 export type CheckoutMarket = "br" | "int";
 
@@ -12,7 +12,7 @@ export const LAUNCH_CHECKOUT_FALLBACK =
   "https://buy.stripe.com/aFa6oJc2q3mW81G7pg4ow0P";
 
 function gateCheckoutUrl(url: string | null | undefined): string | null {
-  if (!allowsInAppPlanPurchase()) return null;
+  if (!usesStripeCheckout()) return null;
   const trimmed = (url || "").trim();
   return trimmed || null;
 }

@@ -6,10 +6,6 @@ import {
   PLAN_TAGLINES,
   planFeatureLines,
 } from "@/constants/plans";
-import {
-  allowsInAppPlanPurchase,
-  IOS_PLAN_CARD_NOTE,
-} from "@/utils/iosAppStoreBilling";
 
 type Props = {
   colors: AppColors;
@@ -25,6 +21,9 @@ type Props = {
   badgeLabel?: string;
   /** Texto do botão (ex.: «Mudar para este plano»). */
   subscribeLabel?: string;
+  /** Compra via In-App Purchase (iOS) — ignora checkoutUrl. */
+  purchaseViaIap?: boolean;
+  onIapPurchase?: (tier: PlanTier) => void;
   /** Nota sob o plano atual (ex.: cancelar para voltar ao grátis). */
   footnote?: string;
 };
@@ -41,10 +40,15 @@ export function PlanCard({
   badgeLabel,
   subscribeLabel,
   footnote,
+  purchaseViaIap,
+  onIapPurchase,
 }: Props) {
   const features = planFeatureLines(plan);
-  const iosReadOnly = !allowsInAppPlanPurchase() && !isCurrent && plan.tier !== "essential";
-  const canSubscribe = !isCurrent && Boolean(checkoutUrl) && !iosReadOnly;
+  const canSubscribeIap =
+    purchaseViaIap && !isCurrent && plan.tier !== "essential" && Boolean(onIapPurchase);
+  const canSubscribeStripe =
+    !purchaseViaIap && !isCurrent && Boolean(checkoutUrl);
+  const canSubscribe = canSubscribeIap || canSubscribeStripe;
   const ctaLabel = subscribeLabel || "Assinar";
 
   return (
@@ -91,14 +95,16 @@ export function PlanCard({
             <Text style={[styles.footnote, { color: colors.textMuted }]}>{footnote}</Text>
           ) : null}
         </View>
-      ) : iosReadOnly ? (
-        <View style={[styles.statusPill, { backgroundColor: colors.bg }]}>
-          <Text style={[styles.statusText, { color: colors.textMuted }]}>{IOS_PLAN_CARD_NOTE}</Text>
-        </View>
       ) : (
         <Pressable
           disabled={!canSubscribe || busy}
-          onPress={() => checkoutUrl && onSubscribe(plan.tier, checkoutUrl)}
+          onPress={() => {
+            if (canSubscribeIap && onIapPurchase) {
+              onIapPurchase(plan.tier);
+              return;
+            }
+            if (checkoutUrl) onSubscribe(plan.tier, checkoutUrl);
+          }}
           style={({ pressed }) => [
             styles.cta,
             {

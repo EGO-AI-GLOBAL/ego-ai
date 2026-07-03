@@ -135,6 +135,7 @@ const config: ExpoConfig = {
       },
     ],
     "./plugins/withXcode26FmtFix",
+    "react-native-iap",
   ],
   experiments: {
     typedRoutes: true,

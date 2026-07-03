@@ -36,7 +36,8 @@ import {
   teamCheckoutUrl,
   withCheckoutUserRef,
 } from "@/utils/planCheckout";
-import { allowsInAppPlanPurchase, IOS_PLANS_SCREEN_NOTE } from "@/utils/iosAppStoreBilling";
+import { allowsInAppPlanPurchase, IOS_SUBSCRIPTION_LEGAL, usesAppleIap, usesStripeCheckout } from "@/utils/iosAppStoreBilling";
+import { iosIapCatalog, useIosIap } from "@/hooks/useIosIap";
 
 const MARKET_TITLE: Record<MonthlyMarket, string> = {
   br: "Brasil (R$) — mensal",
@@ -51,6 +52,9 @@ export default function PlansScreen() {
   const [referralOffer, setReferralOffer] = useState<ReferralPlanOffer | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [openingKey, setOpeningKey] = useState<string | null>(null);
+  const iap = useIosIap(() => {
+    void refresh();
+  });
 
   const currentTier = (data.access?.plan_tier || "essential") as PlanTier;
   const checkout = data.me?.stripe_checkout;
@@ -73,11 +77,7 @@ export default function PlansScreen() {
   useFocusEffect(
     useCallback(() => {
       void refresh();
-      if (allowsInAppPlanPurchase()) {
-        void loadCatalog();
-      } else {
-        setCatalogLoading(false);
-      }
+      void loadCatalog();
     }, [refresh, loadCatalog])
   );
 
@@ -91,8 +91,49 @@ export default function PlansScreen() {
 
   const essentialPlan = catalog.find((p) => p.tier === "essential");
 
+  const onIapSubscribe = async (
+    tier: Exclude<PlanTier, "essential" | "enterprise">,
+    busyKey: string
+  ) => {
+    setOpeningKey(busyKey);
+    try {
+      await iap.purchaseTier(tier);
+    } finally {
+      setOpeningKey(null);
+    }
+  };
+
+  const renderIosIapPlans = () =>
+    iosIapCatalog().map((offer) => {
+      const key = `iap-${offer.tier}`;
+      return (
+        <PlanCard
+          key={key}
+          colors={colors}
+          plan={{
+            tier: offer.tier,
+            label: offer.label,
+            price_brl: offer.priceBrl,
+            limits: limitsByTier.get(offer.tier) ?? fallbackLimitsForTier(offer.tier),
+          }}
+          isCurrent={currentTier === offer.tier}
+          highlighted={offer.tier === "premium"}
+          checkoutUrl={null}
+          onSubscribe={() => {}}
+          purchaseViaIap
+          onIapPurchase={(tier) => {
+            if (tier === "essential" || tier === "enterprise") return;
+            void onIapSubscribe(tier, key);
+          }}
+          busy={iap.busy || openingKey === key}
+          priceOverride={formatMonthlyPrice(offer.priceBrl)}
+          subscribeLabel={subscribeLabelForTier(offer.tier, currentTier)}
+        />
+      );
+    });
+
   const onSubscribe = async (busyKey: string, url: string) => {
-    if (!allowsInAppPlanPurchase()) return;
+    if (!usesStripeCheckout()) return;
     setOpeningKey(busyKey);
     const checkoutUrl = withCheckoutUserRef(url, userId);
     if (!checkoutUrl) {
@@ -140,7 +181,7 @@ export default function PlansScreen() {
 
   /** Cupom parceiro: esconde EGO Lançamento e mostra benefício 10% na 1ª compra. */
   const showLaunchCard =
-    allowsInAppPlanPurchase() &&
+    usesStripeCheckout() &&
     !referralActive &&
     (launchOffer != null || isLaunchCampaignActive()) &&
     Boolean(
@@ -349,11 +390,11 @@ export default function PlansScreen() {
 
   return (
     <ScreenShell
-      title={allowsInAppPlanPurchase() ? "Planos" : "Seu plano"}
+      title={usesAppleIap() ? "Planos" : "Planos"}
       subtitle={
-        allowsInAppPlanPurchase()
-          ? "Mensal · todos os planos · pode mudar quando quiser"
-          : "App gratuito · sem venda de planos no iPhone"
+        usesAppleIap()
+          ? "Assinatura mensal · compra na App Store"
+          : "Mensal · todos os planos · pode mudar quando quiser"
       }
     >
       <ScrollView
@@ -381,17 +422,6 @@ export default function PlansScreen() {
 
         {!busy ? (
           <>
-            {!allowsInAppPlanPurchase() ? (
-              <View
-                style={[
-                  styles.iosNoteBox,
-                  { backgroundColor: colors.primaryTint, borderColor: colors.primary },
-                ]}
-              >
-                <Text style={[styles.iosNoteText, { color: colors.text }]}>{IOS_PLANS_SCREEN_NOTE}</Text>
-              </View>
-            ) : null}
-
             <View
               style={[
                 styles.currentBox,
@@ -407,29 +437,61 @@ export default function PlansScreen() {
               <Text style={[styles.currentHint, { color: colors.textMuted }]}>
                 {currentTier === "essential"
                   ? `Grátis · ${formatMonthlyPrice(0)}`
-                  : allowsInAppPlanPurchase()
-                    ? "Assinatura mensal · você pode mudar de plano abaixo a qualquer momento"
-                    : "Plano ativo nesta conta"}
+                  : usesAppleIap()
+                    ? "Assinatura mensal · App Store"
+                    : "Assinatura mensal · você pode mudar de plano abaixo a qualquer momento"}
               </Text>
             </View>
 
-            {allowsInAppPlanPurchase() ? renderReferralOffer() : null}
-
-            {allowsInAppPlanPurchase() && showLaunchCard && launchUrl ? (
+            {usesAppleIap() ? (
               <>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  EGO Lançamento — R$ 10,94
+                  Assinaturas mensais
                 </Text>
                 <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-                  Oferta promocional para todos (mesmo no plano Total ou Premium). Limites do
-                  EGO Conexão · válida por {launchIntroMonths} meses.
+                  Pagamento via App Store (In-App Purchase). Pode mudar de plano quando quiser.
                 </Text>
-                {renderLaunchOffer()}
+                {renderEssentialBr()}
+                {renderIosIapPlans()}
+                <Pressable
+                  disabled={iap.busy}
+                  onPress={() => void iap.restorePurchases()}
+                  style={({ pressed }) => [
+                    styles.restoreBtn,
+                    {
+                      borderColor: colors.border,
+                      backgroundColor: colors.bgCard,
+                      opacity: pressed ? 0.88 : 1,
+                    },
+                  ]}
+                >
+                  <Text style={[styles.restoreText, { color: colors.primary }]}>
+                    Restaurar compras
+                  </Text>
+                </Pressable>
+                <Text style={[styles.legalFoot, { color: colors.textMuted }]}>
+                  {IOS_SUBSCRIPTION_LEGAL}
+                </Text>
               </>
             ) : null}
 
-            {allowsInAppPlanPurchase() ? (
+            {usesStripeCheckout() ? (
               <>
+                {renderReferralOffer()}
+
+                {showLaunchCard && launchUrl ? (
+                  <>
+                    <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                      EGO Lançamento — R$ 10,94
+                    </Text>
+                    <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
+                      Oferta promocional para todos (mesmo no plano Total ou Premium). Limites do
+                      EGO Conexão · válida por {launchIntroMonths} meses.
+                    </Text>
+                    {renderLaunchOffer()}
+                  </>
+                ) : null}
+
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
                   {MARKET_TITLE.br} — individual
                 </Text>
@@ -497,13 +559,15 @@ const styles = StyleSheet.create({
   },
   referralTitle: { fontSize: 15, fontWeight: "800", marginBottom: 6 },
   referralFoot: { fontSize: 12, lineHeight: 17, marginTop: 8 },
-  iosNoteBox: {
-    borderRadius: 14,
-    borderWidth: 1.5,
-    padding: 14,
-    marginBottom: 16,
+  restoreBtn: {
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginBottom: 12,
   },
-  iosNoteText: { fontSize: 13, lineHeight: 19 },
+  restoreText: { fontSize: 15, fontWeight: "700" },
+  legalFoot: { fontSize: 11, lineHeight: 16, marginBottom: 8 },
   errorBanner: { marginBottom: 16 },
   error: { fontSize: 14 },
   link: { fontSize: 14, marginTop: 8, fontWeight: "600" },

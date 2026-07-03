@@ -537,6 +537,20 @@ export async function deleteMyAccount(): Promise<string> {
 
 export type LegalDoc = "terms" | "privacy" | "refund";
 
+export async function verifyAppleIapPurchase(payload: {
+  receipt_data: string;
+  product_id: string;
+  transaction_id?: string;
+}): Promise<{ plan_tier: string; product_id?: string }> {
+  const { data } = await api.post("billing/apple/verify", payload, { timeout: 30000 });
+  const body = unwrap<{
+    plan_tier: string;
+    product_id?: string;
+    ok?: boolean;
+  }>(data);
+  return { plan_tier: body.plan_tier, product_id: body.product_id };
+}
+
 export async function fetchPlansCatalog(): Promise<{
   plans: PlanCatalogItem[];
   launchOffer: LaunchPlanOffer | null;

@@ -1028,6 +1028,34 @@ def me_delete():
     return _json_ok({"deleted": True, "message": MSG_DELETE_OK})
 
 
+@app.post("/api/v1/billing/apple/verify")
+@require_auth
+@rate_limit(12, 60, scope="user")
+def billing_apple_verify():
+    """Valida recibo Apple IAP e activa plano no perfil."""
+    from ego_api.apple_iap import AppleIapError, verify_and_grant_plan
+    from ego_api.stripe_webhook_handler import get_supabase_admin
+
+    data = request.get_json(silent=True) or {}
+    receipt = str(data.get("receipt_data") or data.get("receipt") or "").strip()
+    product_id = str(data.get("product_id") or "").strip() or None
+    transaction_id = str(data.get("transaction_id") or "").strip() or None
+    try:
+        supabase = get_supabase_admin()
+        result = verify_and_grant_plan(
+            supabase,
+            g.user_id,
+            receipt_data=receipt,
+            product_id=product_id,
+            transaction_id=transaction_id,
+        )
+    except AppleIapError as exc:
+        return _json_error(str(exc), exc.status_code)
+    except Exception as exc:  # noqa: BLE001
+        return _json_error(str(exc)[:200], 500)
+    return _json_ok(result)
+
+
 @app.get("/api/v1/chat/messages")
 @require_auth
 def chat_list():

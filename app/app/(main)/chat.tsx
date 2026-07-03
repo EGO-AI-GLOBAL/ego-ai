@@ -18,7 +18,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { checkoutUrlForTier } from "@/utils/planCheckout";
-import { allowsInAppPlanPurchase, IOS_CHAT_BLOCKED_PLACEHOLDER, IOS_DAILY_LIMIT_ALERT, IOS_TRIAL_END_ALERT } from "@/utils/iosAppStoreBilling";
+import { allowsInAppPlanPurchase, IOS_CHAT_BLOCKED_PLACEHOLDER, IOS_TRIAL_END_ALERT, IOS_DAILY_LIMIT_ALERT, usesAppleIap } from "@/utils/iosAppStoreBilling";
+import { IAP_PRODUCTS } from "@/constants/iapProducts";
 import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText, completeWellnessJourneyStep } from "@/api/client";
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { AppGradientBackground } from "@/components/AppGradientBackground";
@@ -518,40 +519,52 @@ function ChatScreenInner() {
     return `${url}${sep}client_reference_id=${encodeURIComponent(userId)}`;
   };
 
-  const planOffers = [
-    {
-      id: "connection",
-      label: "Conexão",
-      cta: "Assinar Conexão",
-      tag: "Entrada",
-      highlight: false,
-      url: withUserRef(checkoutUrlForTier("connection", checkout, "br")),
-    },
-    {
-      id: "premium",
-      label: "Premium",
-      cta: "Assinar Premium",
-      tag: "Mais escolhido",
-      highlight: true,
-      url: withUserRef(checkoutUrlForTier("premium", checkout, "br")),
-    },
-    {
-      id: "total",
-      label: "Total",
-      cta: "Assinar Total",
-      tag: "Sem limites",
-      highlight: false,
-      url: withUserRef(checkoutUrlForTier("total", checkout, "br")),
-    },
-  ].filter((p) => Boolean(p.url));
+  const planOffers = usesAppleIap()
+    ? IAP_PRODUCTS.map((p) => ({
+        id: p.tier,
+        label: p.label.replace(/^EGO\s+/i, ""),
+        cta: `Assinar ${p.label.replace(/^EGO\s+/i, "")}`,
+        tag: p.tier === "premium" ? "Mais escolhido" : p.tier === "total" ? "Sem limites" : "Entrada",
+        highlight: p.tier === "premium",
+        url: null as string | null,
+      }))
+    : [
+        {
+          id: "connection",
+          label: "Conexão",
+          cta: "Assinar Conexão",
+          tag: "Entrada",
+          highlight: false,
+          url: withUserRef(checkoutUrlForTier("connection", checkout, "br")),
+        },
+        {
+          id: "premium",
+          label: "Premium",
+          cta: "Assinar Premium",
+          tag: "Mais escolhido",
+          highlight: true,
+          url: withUserRef(checkoutUrlForTier("premium", checkout, "br")),
+        },
+        {
+          id: "total",
+          label: "Total",
+          cta: "Assinar Total",
+          tag: "Sem limites",
+          highlight: false,
+          url: withUserRef(checkoutUrlForTier("total", checkout, "br")),
+        },
+      ].filter((p) => Boolean(p.url));
 
   const openCheckout = (url: string | null) => {
-    if (!allowsInAppPlanPurchase()) return;
-    if (url) {
-      void Linking.openURL(url);
+    if (usesAppleIap()) {
+      void router.push("/(main)/plans");
       return;
     }
-    void router.push("/(main)/plans");
+    if (!url) {
+      void router.push("/(main)/plans");
+      return;
+    }
+    void Linking.openURL(url);
   };
 
   const chatMessages: ChatMessage[] = [...localMessages, ...pendingChat];
