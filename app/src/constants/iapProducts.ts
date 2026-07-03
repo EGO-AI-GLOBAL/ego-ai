@@ -20,6 +20,12 @@ export type IapProduct = {
 
 export const IOS_SUBSCRIPTION_GROUP = "EGO-AI Planos";
 
+/** Oferta introdutória na assinatura Conexão (App Store Connect → Oferta introdutória). */
+export const IOS_LAUNCH_CONNECTION_PRODUCT_ID = "com.egoai.app.sub.connection.monthly";
+export const IOS_LAUNCH_INTRO_MONTHS = 6;
+export const IOS_LAUNCH_INTRO_PRICE_BRL = 19.9;
+export const IOS_LAUNCH_REGULAR_PRICE_BRL = 39.9;
+
 export const IAP_PRODUCTS: IapProduct[] = [
   {
     productId: "com.egoai.app.sub.connection.monthly",

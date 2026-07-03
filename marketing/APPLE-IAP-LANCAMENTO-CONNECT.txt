@@ -1,0 +1,37 @@
+APPLE — OFERTA INTRODUTÓRIA EGO CONEXÃO (LANÇAMENTO iOS)
+=========================================================
+
+Fazer no App Store Connect ANTES da build 1.0.77 (ou quando submeter de novo).
+
+Assinatura: com.egoai.app.sub.connection.monthly (EGO Conexão)
+Grupo: EGO-AI Planos
+
+PASSO A PASSO
+-------------
+1. App Store Connect → Apps → EGO-AI → Assinaturas
+2. Grupo "EGO-AI Planos" → assinatura **EGO Conexão**
+3. Menu **Ofertas introdutórias** (Introductory Offers) → **+**
+4. Configurar:
+   - Tipo: **Pagar conforme o uso** / Pay as you go (mensal)
+   - Duração: **6 meses**
+   - Preço: **R$ 19,90** (escolher o tier mais próximo na tabela Apple)
+   - Elegibilidade: **Novos assinantes** (padrão Apple)
+5. Guardar e enviar com a próxima versão do app (1.0.77)
+
+PREÇO NORMAL (já configurado)
+-----------------------------
+- Depois dos 6 meses: **R$ 39,90/mês** (preço base da Conexão no iOS +30%)
+- Renovação automática até o utilizador cancelar em Ajustes → Apple ID → Assinaturas
+
+NO APP (código já no GitHub)
+----------------------------
+- Cartão EGO Conexão mostra selo **Lançamento · 6 meses**
+- Preço lido da App Store quando disponível (fallback R$ 19,90)
+- Só aparece para conta **Essencial** (nunca assinou) e sem cupom parceiro
+- Sem menção a Stripe no iOS
+
+NOTAS PARA REVISÃO APPLE
+------------------------
+- Pagamento 100% In-App Purchase
+- Oferta introdutória configurada no Connect na mesma assinatura Conexão
+- Restaurar compras no ecrã Planos

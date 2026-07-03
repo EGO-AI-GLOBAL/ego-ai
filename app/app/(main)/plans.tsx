@@ -52,9 +52,21 @@ export default function PlansScreen() {
   const [referralOffer, setReferralOffer] = useState<ReferralPlanOffer | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [openingKey, setOpeningKey] = useState<string | null>(null);
+
+  const referralActive =
+    referralOffer?.active === true ||
+    data.access?.referral_offer?.active === true ||
+    data.access?.referral_benefit?.active === true;
+
+  const showIosLaunchOffer =
+    usesAppleIap() &&
+    !referralActive &&
+    isLaunchCampaignActive() &&
+    (data.access?.plan_tier || "essential") === "essential";
+
   const iap = useIosIap(() => {
     void refresh();
-  });
+  }, { showLaunchOffer: showIosLaunchOffer });
 
   const currentTier = (data.access?.plan_tier || "essential") as PlanTier;
   const checkout = data.me?.stripe_checkout;
@@ -106,6 +118,7 @@ export default function PlansScreen() {
   const renderIosIapPlans = () =>
     iosIapCatalog().map((offer) => {
       const key = `iap-${offer.tier}`;
+      const display = iap.productDisplay[offer.tier];
       return (
         <PlanCard
           key={key}
@@ -117,7 +130,12 @@ export default function PlansScreen() {
             limits: limitsByTier.get(offer.tier) ?? fallbackLimitsForTier(offer.tier),
           }}
           isCurrent={currentTier === offer.tier}
-          highlighted={offer.tier === "premium"}
+          highlighted={
+            offer.tier === "connection"
+              ? Boolean(display?.highlighted)
+              : offer.tier === "premium"
+          }
+          badgeLabel={display?.badgeLabel}
           checkoutUrl={null}
           onSubscribe={() => {}}
           purchaseViaIap
@@ -126,8 +144,9 @@ export default function PlansScreen() {
             void onIapSubscribe(tier, key);
           }}
           busy={iap.busy || openingKey === key}
-          priceOverride={formatMonthlyPrice(offer.priceBrl)}
+          priceOverride={display?.priceLine ?? formatMonthlyPrice(offer.priceBrl)}
           subscribeLabel={subscribeLabelForTier(offer.tier, currentTier)}
+          footnote={display?.footnote}
         />
       );
     });
@@ -173,11 +192,6 @@ export default function PlansScreen() {
 
   const busy = loading || catalogLoading;
   const showErrorBanner = Boolean(error);
-
-  const referralActive =
-    referralOffer?.active === true ||
-    data.access?.referral_offer?.active === true ||
-    data.access?.referral_benefit?.active === true;
 
   /** Cupom parceiro: esconde EGO Lançamento e mostra benefício 10% na 1ª compra. */
   const showLaunchCard =
@@ -253,9 +267,11 @@ export default function PlansScreen() {
         priceOverride="Grátis"
         footnote={
           currentTier !== "essential"
-            ? allowsInAppPlanPurchase()
-              ? "Assinatura mensal: cancele no Stripe para voltar ao grátis."
-              : "Plano ativo nesta conta."
+            ? usesAppleIap()
+              ? "Para voltar ao grátis, cancele em Ajustes → Apple ID → Assinaturas."
+              : allowsInAppPlanPurchase()
+                ? "Assinatura mensal: cancele no Stripe para voltar ao grátis."
+                : "Plano ativo nesta conta."
             : undefined
         }
       />
@@ -449,7 +465,9 @@ export default function PlansScreen() {
                   Assinaturas mensais
                 </Text>
                 <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-                  Pagamento via App Store (In-App Purchase). Pode mudar de plano quando quiser.
+                  {showIosLaunchOffer
+                    ? `EGO Conexão com oferta de lançamento na App Store: R$ 19,90/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses (quem nunca assinou), depois R$ 39,90/mês. Renovação automática até cancelar.`
+                    : "Pagamento via App Store (In-App Purchase). Pode mudar de plano quando quiser."}
                 </Text>
                 {renderEssentialBr()}
                 {renderIosIapPlans()}

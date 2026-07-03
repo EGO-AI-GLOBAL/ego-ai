@@ -6,26 +6,40 @@ import {
   IAP_PRODUCT_IDS,
   IAP_PRODUCTS,
   iapProductForTier,
+  type IapProduct,
 } from "@/constants/iapProducts";
 import { usesAppleIap } from "@/utils/iosAppStoreBilling";
+import {
+  buildIosIapCardDisplay,
+  type IosIapCardDisplay,
+  type IosStoreSubscription,
+} from "@/utils/iosIapPricing";
 
 type IapModule = typeof import("react-native-iap");
 
 export type IosIapState = {
   ready: boolean;
   busy: boolean;
+  productDisplay: Partial<Record<IapProduct["tier"], IosIapCardDisplay>>;
   purchaseTier: (tier: Exclude<PlanTier, "essential" | "enterprise">) => Promise<void>;
   restorePurchases: () => Promise<void>;
 };
 
 const noopAsync = async () => {};
 
-export function useIosIap(onActivated?: () => void): IosIapState {
+export function useIosIap(
+  onActivated?: () => void,
+  options?: { showLaunchOffer?: boolean }
+): IosIapState {
   const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [productDisplay, setProductDisplay] = useState<
+    Partial<Record<IapProduct["tier"], IosIapCardDisplay>>
+  >({});
   const iapRef = useRef<IapModule | null>(null);
   const purchaseInFlight = useRef(false);
   const onActivatedRef = useRef(onActivated);
+  const showLaunchOffer = options?.showLaunchOffer === true;
   onActivatedRef.current = onActivated;
 
   const confirmPurchase = useCallback(
@@ -71,10 +85,35 @@ export function useIosIap(onActivated?: () => void): IosIapState {
         if (cancelled) return;
         iapRef.current = iap;
         await iap.initConnection();
-        await iap.fetchProducts({ skus: IAP_PRODUCT_IDS, type: "subs" });
-        if (!cancelled) setReady(true);
+        const products = await iap.fetchProducts({ skus: IAP_PRODUCT_IDS, type: "subs" });
+        const byId = new Map<string, IosStoreSubscription>();
+        for (const item of products || []) {
+          const id = String(item.productId || "").trim();
+          if (id) byId.set(id, item as IosStoreSubscription);
+        }
+        const display: Partial<Record<IapProduct["tier"], IosIapCardDisplay>> = {};
+        for (const product of IAP_PRODUCTS) {
+          display[product.tier] = buildIosIapCardDisplay(
+            product,
+            byId.get(product.productId),
+            { showLaunchOffer: showLaunchOffer && product.tier === "connection" }
+          );
+        }
+        if (!cancelled) {
+          setProductDisplay(display);
+          setReady(true);
+        }
       } catch {
-        if (!cancelled) setReady(false);
+        if (!cancelled) {
+          const display: Partial<Record<IapProduct["tier"], IosIapCardDisplay>> = {};
+          for (const product of IAP_PRODUCTS) {
+            display[product.tier] = buildIosIapCardDisplay(product, null, {
+              showLaunchOffer: showLaunchOffer && product.tier === "connection",
+            });
+          }
+          setProductDisplay(display);
+          setReady(false);
+        }
       }
     };
 
@@ -113,7 +152,7 @@ export function useIosIap(onActivated?: () => void): IosIapState {
       iapRef.current = null;
       if (iap) void iap.endConnection();
     };
-  }, [confirmPurchase]);
+  }, [confirmPurchase, showLaunchOffer]);
 
   const purchaseTier = useCallback(
     async (tier: Exclude<PlanTier, "essential" | "enterprise">) => {
@@ -173,12 +212,13 @@ export function useIosIap(onActivated?: () => void): IosIapState {
     return {
       ready: false,
       busy: false,
+      productDisplay: {},
       purchaseTier: noopAsync as IosIapState["purchaseTier"],
       restorePurchases: noopAsync,
     };
   }
 
-  return { ready, busy, purchaseTier, restorePurchases };
+  return { ready, busy, productDisplay, purchaseTier, restorePurchases };
 }
 
 export function iosIapCatalog() {

@@ -95,6 +95,10 @@ export function PlanCard({
             <Text style={[styles.footnote, { color: colors.textMuted }]}>{footnote}</Text>
           ) : null}
         </View>
+      ) : plan.tier === "essential" ? (
+        <View style={[styles.statusPill, { backgroundColor: colors.userBubble }]}>
+          <Text style={[styles.statusText, { color: colors.text }]}>Plano grátis</Text>
+        </View>
       ) : (
         <Pressable
           disabled={!canSubscribe || busy}
