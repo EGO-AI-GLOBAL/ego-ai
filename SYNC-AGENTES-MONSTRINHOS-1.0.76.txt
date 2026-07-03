@@ -28,7 +28,7 @@ Antes do build:
 
 
 
-GIT Monstrinhos: (preencher apos commit deste pacote)
+GIT Monstrinhos: 9f0af68
 
 Build Android: (apos GERAR)
 
