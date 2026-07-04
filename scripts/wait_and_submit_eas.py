@@ -70,10 +70,16 @@ def ids_file_for_version(version: str | None = None) -> Path:
 
 def build_status(build_id: str) -> str:
     proc = _run(["eas", "build:view", build_id, "--json"])
+    out = (proc.stdout or "").strip()
+    if out:
+        try:
+            data = json.loads(out)
+            return str(data.get("status") or "UNKNOWN").upper()
+        except json.JSONDecodeError:
+            pass
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or "eas build:view falhou")
-    data = json.loads(proc.stdout)
-    return str(data.get("status") or "UNKNOWN").upper()
+    raise RuntimeError("eas build:view sem JSON de status")
 
 
 def wait_ios(ios_id: str, poll_sec: int = 60) -> None:
