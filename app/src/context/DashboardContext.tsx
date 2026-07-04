@@ -12,7 +12,7 @@ import type { AccessInfo } from "@/api/types";
 import { loadLocalChatHistory } from "@/storage/chatHistoryLocal";
 import { estimateTokenDelta } from "@/utils/usageStats";
 import { resolveUserId } from "@/utils/resolveUserId";
-import type { DashboardData, SendChatResult, WellnessJourney, DailyCareInfo } from "@/api/types";
+import type { DashboardData, SendChatResult, WellnessJourney, DailyCareInfo, PausaEgoInfo } from "@/api/types";
 import { chatResultChangedData, mergeChatIntoDashboard } from "@/utils/mergeChatDashboard";
 import { accountPersona } from "@/constants/personas";
 import { useAuth } from "@/context/AuthContext";
@@ -26,8 +26,6 @@ import {
   syncSharedCalendarLocalNotifications,
 } from "@/utils/sharedCalendarNotifications";
 import { syncDailyCheckInNotification } from "@/utils/dailyCheckInNotification";
-import { syncEgoDeBolsoCareNotification } from "@/utils/egoDeBolsoNotifications";
-import { syncEgoDeBolsoHomeWidget } from "@/widgets/syncEgoDeBolsoHomeWidget";
 import {
   cancelMoodMonsterNotifications,
   syncMoodMonsterNotifications,
@@ -57,6 +55,7 @@ const empty: DashboardData = {
   delegation_requests: [],
   streak: { current: 0, longest: 0, active_today: false, at_risk: false },
   wellness_journey: undefined,
+  pausa_ego: undefined,
   daily_care: undefined,
   shared_calendars: [],
   pending_calendar_invites: [],
@@ -88,6 +87,7 @@ type DashboardContextValue = {
   mergeProfilePhone: (phone: string) => void;
   /** Atualiza jornada de bem-estar após passo concluído. */
   mergeWellnessJourney: (journey: WellnessJourney) => void;
+  mergePausaEgo: (pausa: PausaEgoInfo) => void;
   mergeDailyCare: (care: DailyCareInfo, journey?: WellnessJourney) => void;
   /** true se o servidor ou o telemóvel já registou escolha de assistente */
   personaGateOk: boolean;
@@ -232,8 +232,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           void notifyNewSharedEventsFromOthers(shared, uid).catch(() => {});
           void syncSharedCalendarLocalNotifications(shared).catch(() => {});
           void syncDailyCheckInNotification().catch(() => {});
-          void syncEgoDeBolsoCareNotification(dashboard.wellness_journey).catch(() => {});
-          void syncEgoDeBolsoHomeWidget(dashboard.wellness_journey).catch(() => {});
           void syncMoodMonsterNotifications(dashboard.daily_care).catch(() => {});
           void syncMoodGardenHomeWidget(dashboard.daily_care).catch(() => {});
         };
@@ -331,8 +329,10 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   const mergeWellnessJourney = useCallback((journey: WellnessJourney) => {
     setData((prev) => ({ ...prev, wellness_journey: journey }));
-    void syncEgoDeBolsoCareNotification(journey).catch(() => {});
-    void syncEgoDeBolsoHomeWidget(journey).catch(() => {});
+  }, []);
+
+  const mergePausaEgo = useCallback((pausa: PausaEgoInfo) => {
+    setData((prev) => ({ ...prev, pausa_ego: pausa }));
   }, []);
 
   const mergeDailyCare = useCallback((care: DailyCareInfo, journey?: WellnessJourney) => {
@@ -343,7 +343,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }));
     void syncMoodMonsterNotifications(care).catch(() => {});
     void syncMoodGardenHomeWidget(care).catch(() => {});
-    if (journey) void syncEgoDeBolsoHomeWidget(journey).catch(() => {});
   }, []);
 
   const setPersona = useCallback(async (avatarId: string, voiceId: string) => {
@@ -426,6 +425,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       setPersona,
       mergeProfilePhone,
       mergeWellnessJourney,
+      mergePausaEgo,
       mergeDailyCare,
       personaGateOk,
     }),
@@ -440,6 +440,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       setPersona,
       mergeProfilePhone,
       mergeWellnessJourney,
+      mergePausaEgo,
       mergeDailyCare,
       personaGateOk,
     ]

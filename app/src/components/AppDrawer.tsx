@@ -40,9 +40,9 @@ const NAV: NavItem[] = [
     caption: "1 toque/dia · ranking · Stories",
   },
   {
-    label: "EGO de Bolso 🥚",
+    label: "PAUSA EGO 🌬️",
     href: "/(main)/wellness-journey",
-    caption: "Níveis estilo anos 90",
+    caption: "Respirar · SOS · sequência 🔥",
   },
   { label: "Agenda", href: "/(main)/agenda", caption: "Lembretes e hábitos" },
   { label: "Uso", href: "/(main)/usage", caption: "Limite do plano (%)" },

@@ -1,5 +1,5 @@
-import { useFocusEffect } from "expo-router";
-import React, { useCallback } from "react";
+import { router, useFocusEffect } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -7,15 +7,35 @@ import {
   StyleSheet,
   Text,
 } from "react-native";
+import { completePausaEgoSession } from "@/api/client";
+import type { PausaEgoInfo } from "@/api/types";
+import { PausaEgoScreen } from "@/components/PausaEgoScreen";
 import { ScreenShell } from "@/components/ScreenShell";
-import { WellnessJourneyCard } from "@/components/WellnessJourneyCard";
+import { findAvatarInCatalog } from "@/constants/avatarCatalog";
+import { accountPersona, isMaleAvatar } from "@/constants/personas";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 
-/** EGO de Bolso — níveis longos de bem-estar no app. */
+function defaultPausa(): PausaEgoInfo {
+  return {
+    streak_current: 0,
+    streak_longest: 0,
+    today_done: false,
+    total_sessions: 0,
+    moment_key: "morning",
+    moment_emoji: "🌅",
+    moment_title: "Manhã",
+    moment_prompt: "Antes do dia: solte os ombros e respire com calma.",
+    share_line: "Minha PAUSA EGO de hoje 🌬️",
+    week_dots: [],
+  };
+}
+
+/** PAUSA EGO — alívio de stress/ansiedade (substitui ecrã EGO de Bolso). */
 export default function WellnessJourneyScreen() {
   const colors = useColors();
-  const { data, loading, refreshing, error, refresh, mergeWellnessJourney } = useDashboard();
+  const { data, loading, refreshing, error, refresh, mergePausaEgo } = useDashboard();
+  const [busy, setBusy] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -23,8 +43,29 @@ export default function WellnessJourneyScreen() {
     }, [refresh])
   );
 
+  const persona = accountPersona(data.me?.persona);
+  const assistantName =
+    findAvatarInCatalog(persona.avatar_id)?.shortName ??
+    (isMaleAvatar(persona.avatar_id) ? "Leo" : "Luna");
+  const pausa = data.pausa_ego ?? defaultPausa();
+
+  const onComplete = useCallback(
+    (kind: "breath60" | "sos") => {
+      setBusy(true);
+      void completePausaEgoSession(kind).then((next) => {
+        setBusy(false);
+        if (next) mergePausaEgo(next);
+      });
+    },
+    [mergePausaEgo]
+  );
+
+  const onSosTalk = useCallback((draft: string) => {
+    router.push({ pathname: "/(main)/chat", params: { draft } });
+  }, []);
+
   return (
-    <ScreenShell title="EGO de Bolso" subtitle="Níveis de bem-estar no seu ritmo">
+    <ScreenShell title="PAUSA EGO" subtitle="2 minutos de calma com seu avatar">
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
@@ -34,22 +75,16 @@ export default function WellnessJourneyScreen() {
         {loading && !refreshing ? (
           <ActivityIndicator color={colors.primary} style={{ marginTop: 24 }} />
         ) : null}
-        {error ? (
-          <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
-        ) : null}
+        {error ? <Text style={[styles.error, { color: colors.danger }]}>{error}</Text> : null}
+        {busy ? <ActivityIndicator color={colors.primary} style={{ marginBottom: 8 }} /> : null}
         {!loading || refreshing ? (
-          <>
-            <Text style={[styles.lead, { color: colors.textMuted }]}>
-              Use o chat, a agenda e o desabafo para evoluir seu EGO de Bolso. Cada nível tem uma
-              tarefa clara.
-            </Text>
-            <WellnessJourneyCard
-              colors={colors}
-              journey={data.wellness_journey}
-              access={data.access}
-              onJourneyUpdate={mergeWellnessJourney}
-            />
-          </>
+          <PausaEgoScreen
+            colors={colors}
+            pausa={pausa}
+            assistantName={assistantName}
+            onComplete={onComplete}
+            onSosTalk={onSosTalk}
+          />
         ) : null}
       </ScrollView>
     </ScreenShell>
@@ -58,6 +93,5 @@ export default function WellnessJourneyScreen() {
 
 const styles = StyleSheet.create({
   scroll: { padding: 16, paddingBottom: 32 },
-  lead: { fontSize: 14, lineHeight: 20, marginBottom: 12 },
   error: { marginBottom: 12, fontSize: 14 },
 });

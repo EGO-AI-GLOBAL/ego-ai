@@ -259,6 +259,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             '@app.post("/api/v1/daily-care/shop")',
             '@app.post("/api/v1/wellness-journey/step")',
             '@app.post("/api/v1/wellness-journey/shop")',
+            '@app.post("/api/v1/pausa-ego/complete")',
             "admin_cron_ego_de_bolso_care",
             '@app.get("/go")',
         ],
@@ -290,6 +291,10 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     (
         "ego_api/companion_weekly.py",
         ["build_weekly_payload", "touch_weekly_day_complete", "try_award_weekly_bonus", "STARS_WEEKLY_BONUS", "WEEK_DAYS_GOAL"],
+    ),
+    (
+        "ego_api/pausa_ego.py",
+        ["get_pausa", "complete_session", "default_payload", "MOMENTS"],
     ),
     (
         "ego_api/ego_de_bolso_push.py",

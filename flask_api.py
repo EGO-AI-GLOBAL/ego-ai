@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-01-voice-tokens-64",
+        "api_build": "2026-07-04-pausa-ego",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1844,6 +1844,18 @@ def wellness_journey_shop():
     tier, _ = db.user_plan_limits(prof)
     journey = purchase_egg_color(g.supabase, g.user_id, color, plan_tier=tier)
     return _json_ok({"wellness_journey": journey})
+
+
+@app.post("/api/v1/pausa-ego/complete")
+@require_auth
+@rate_limit(24, 60, scope="user")
+def pausa_ego_complete():
+    from ego_api import pausa_ego
+
+    data = request.get_json(silent=True) or {}
+    kind = str(data.get("kind") or "breath60").strip()[:16]
+    pausa = pausa_ego.complete_session(g.supabase, g.user_id, kind=kind)
+    return _json_ok({"pausa_ego": pausa})
 
 
 @app.post("/api/v1/daily-care/checkin")

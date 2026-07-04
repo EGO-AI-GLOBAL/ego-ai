@@ -387,6 +387,26 @@ export type WellnessJourney = {
   weekly_challenge?: WeeklyChallenge;
 };
 
+export type PausaEgoWeekDot = {
+  date: string;
+  done: boolean;
+  today: boolean;
+};
+
+export type PausaEgoInfo = {
+  streak_current: number;
+  streak_longest: number;
+  today_done: boolean;
+  total_sessions: number;
+  moment_key: string;
+  moment_emoji: string;
+  moment_title: string;
+  moment_prompt: string;
+  share_line: string;
+  week_dots: PausaEgoWeekDot[];
+  last_kind?: string | null;
+};
+
 export type DailyCareMood = {
   key: string;
   emoji: string;
@@ -544,6 +564,7 @@ export type DashboardData = {
   delegation_requests?: DelegationRequest[];
   streak?: StreakInfo;
   wellness_journey?: WellnessJourney;
+  pausa_ego?: PausaEgoInfo;
   daily_care?: DailyCareInfo;
   shared_calendars?: SharedCalendar[];
   pending_calendar_invites?: PendingCalendarInvite[];

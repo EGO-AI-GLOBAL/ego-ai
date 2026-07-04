@@ -26,6 +26,7 @@ import type {
   ShoppingListItem,
   StreakInfo,
   WellnessJourney,
+  PausaEgoInfo,
   DailyCareInfo,
 } from "./types";
 
@@ -779,6 +780,18 @@ export async function purchaseCompanionEggColor(
     const { data } = await api.post("wellness-journey/shop", { color: colorId });
     const body = unwrap<{ wellness_journey: WellnessJourney }>(data);
     return body.wellness_journey ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function completePausaEgoSession(
+  kind: "breath60" | "sos" = "breath60"
+): Promise<PausaEgoInfo | null> {
+  try {
+    const { data } = await api.post("pausa-ego/complete", { kind });
+    const body = unwrap<{ pausa_ego: PausaEgoInfo }>(data);
+    return body.pausa_ego ?? null;
   } catch {
     return null;
   }

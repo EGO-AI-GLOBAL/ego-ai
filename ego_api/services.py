@@ -1892,6 +1892,18 @@ def _wellness_journey_bootstrap(supabase, user_id: str) -> dict:  # noqa: ANN001
     return journey
 
 
+def _pausa_ego_default() -> dict:
+    from ego_api.pausa_ego import default_payload
+
+    return default_payload()
+
+
+def _pausa_ego_bootstrap(supabase, user_id: str) -> dict:  # noqa: ANN001
+    from ego_api import pausa_ego
+
+    return pausa_ego.get_pausa(supabase, user_id)
+
+
 def _daily_care_default() -> dict:
     from ego_api.daily_care import MOODS, question_for_today
 
@@ -1991,6 +2003,11 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
             "wellness_journey",
             lambda: _wellness_journey_bootstrap(supabase, user_id),
             _wellness_journey_default(),
+        ),
+        "pausa_ego": _bootstrap_section(
+            "pausa_ego",
+            lambda: _pausa_ego_bootstrap(supabase, user_id),
+            _pausa_ego_default(),
         ),
         "daily_care": _bootstrap_section(
             "daily_care",

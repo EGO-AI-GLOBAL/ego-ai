@@ -1,6 +1,6 @@
 import * as DocumentPicker from "expo-document-picker";
 import * as ImagePicker from "expo-image-picker";
-import { router, useFocusEffect } from "expo-router";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { checkoutUrlForTier } from "@/utils/planCheckout";
 import { allowsInAppPlanPurchase, IOS_CHAT_BLOCKED_PLACEHOLDER, IOS_TRIAL_END_ALERT, IOS_DAILY_LIMIT_ALERT, usesAppleIap } from "@/utils/iosAppStoreBilling";
 import { IAP_PRODUCTS } from "@/constants/iapProducts";
-import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText, completeWellnessJourneyStep } from "@/api/client";
+import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText, completeWellnessJourneyStep, completePausaEgoSession } from "@/api/client";
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { AppGradientBackground } from "@/components/AppGradientBackground";
 import { ChatComposer } from "@/components/ChatComposer";
@@ -32,7 +32,7 @@ import {
   extractScheduleBannerItems,
 } from "@/components/ChatScheduleBanner";
 import { ChatDayStrip } from "@/components/ChatDayStrip";
-import { EgoDeBolsoChatCard } from "@/components/EgoDeBolsoChatCard";
+import { PausaEgoChatCard } from "@/components/PausaEgoChatCard";
 import { MoodGardenWidgetCard } from "@/components/moodMonsters/MoodGardenWidgetCard";
 import { ScreenShell } from "@/components/ScreenShell";
 import { PersonaPicker } from "@/components/PersonaPicker";
@@ -119,8 +119,9 @@ function ChatScreenInner() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
-  const { data, loading, refreshing, error, refresh, refreshAccess, setPersona, mergeChatResult, mergeWellnessJourney } =
+  const { data, loading, refreshing, error, refresh, refreshAccess, setPersona, mergeChatResult, mergeWellnessJourney, mergePausaEgo } =
     useDashboard();
+  const params = useLocalSearchParams<{ draft?: string }>();
   const userId = data.me?.user_id?.trim() ?? session?.user?.id?.trim() ?? "";
 
   const onPersonaSaved = useCallback(
@@ -163,9 +164,9 @@ function ChatScreenInner() {
   const [chatStreakDays, setChatStreakDays] = useState(0);
   const [dashboardSettled, setDashboardSettled] = useState(false);
   const [widgetsReady, setWidgetsReady] = useState(false);
-  const [bolsoCelebrate, setBolsoCelebrate] = useState(false);
+  const [pausaCelebrate, setPausaCelebrate] = useState(false);
+  const pausaCelebrateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bolsoMissionsRef = useRef(data.wellness_journey?.missions_today ?? 0);
-  const bolsoCelebrateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     bolsoMissionsRef.current = data.wellness_journey?.missions_today ?? 0;
@@ -173,9 +174,16 @@ function ChatScreenInner() {
 
   useEffect(() => {
     return () => {
-      if (bolsoCelebrateTimerRef.current) clearTimeout(bolsoCelebrateTimerRef.current);
+      if (pausaCelebrateTimerRef.current) clearTimeout(pausaCelebrateTimerRef.current);
     };
   }, []);
+
+  useEffect(() => {
+    const draft = typeof params.draft === "string" ? params.draft.trim() : "";
+    if (!draft) return;
+    setChatInput(draft);
+    setChatNotice("PAUSA — envie ou edite a mensagem abaixo.");
+  }, [params.draft]);
 
   useEffect(() => {
     if (!loading) setDashboardSettled(true);
@@ -219,26 +227,33 @@ function ChatScreenInner() {
 
   const trackJourneyStep = useCallback(
     (step: "chat" | "voice") => {
-      const before = bolsoMissionsRef.current;
       void completeWellnessJourneyStep(step).then((j) => {
         if (!j) return;
-        const after = j.missions_today ?? 0;
-        if (after > before) {
-          setBolsoCelebrate(true);
-          if (bolsoCelebrateTimerRef.current) clearTimeout(bolsoCelebrateTimerRef.current);
-          bolsoCelebrateTimerRef.current = setTimeout(() => setBolsoCelebrate(false), 1400);
-        }
+        bolsoMissionsRef.current = j.missions_today ?? 0;
         mergeWellnessJourney(j);
       });
     },
     [mergeWellnessJourney]
   );
 
-  const onBolsoTalkMission = useCallback((draft: string) => {
+  const onPausaSosTalk = useCallback((draft: string) => {
     setChatInput(draft);
-    setChatNotice("Missão no campo abaixo — envie ou edite antes de mandar.");
+    setChatNotice("PAUSA — envie ou edite a mensagem abaixo.");
     setChatError(null);
   }, []);
+
+  const onPausaComplete = useCallback(
+    (kind: "breath60" | "sos") => {
+      void completePausaEgoSession(kind).then((next) => {
+        if (!next) return;
+        setPausaCelebrate(true);
+        if (pausaCelebrateTimerRef.current) clearTimeout(pausaCelebrateTimerRef.current);
+        pausaCelebrateTimerRef.current = setTimeout(() => setPausaCelebrate(false), 1400);
+        mergePausaEgo(next);
+      });
+    },
+    [mergePausaEgo]
+  );
 
   const finishNightDump = useCallback(
     (dump: { items?: { length: number }; comfort_reply?: string }) => {
@@ -1291,13 +1306,14 @@ function ChatScreenInner() {
           ) : null}
 
           {showChatWidgets ? (
-            <ChatWidgetErrorBoundary name="ego-bolso">
-              <EgoDeBolsoChatCard
+            <ChatWidgetErrorBoundary name="pausa-ego">
+              <PausaEgoChatCard
                 colors={colors}
-                journey={data.wellness_journey}
-                onCareHint={setChatNotice}
-                onTalkMission={onBolsoTalkMission}
-                celebrate={bolsoCelebrate}
+                pausa={data.pausa_ego}
+                assistantName={assistantName}
+                onComplete={onPausaComplete}
+                onSosTalk={onPausaSosTalk}
+                celebrate={pausaCelebrate}
               />
             </ChatWidgetErrorBoundary>
           ) : null}
