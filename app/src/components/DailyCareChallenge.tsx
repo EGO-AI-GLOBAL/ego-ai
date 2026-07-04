@@ -14,6 +14,9 @@ import { MoodJournalTodayNote } from "./moodMonsters/MoodJournalTodayNote";
 import { MoodJournalWeek } from "./moodMonsters/MoodJournalWeek";
 import { MoodMonsterScene } from "./moodMonsters/MoodMonsterScene";
 import { MoodSeedShop } from "./moodMonsters/MoodSeedShop";
+import { MoodSocialInviteCard } from "./moodMonsters/MoodSocialInviteCard";
+import { MoodWeeklyQuizCard } from "./moodMonsters/MoodWeeklyQuizCard";
+import { SeasonalEventBanner } from "./moodMonsters/SeasonalEventBanner";
 import { SocialFollowBar } from "./SocialFollowBar";
 
 type Props = {
@@ -141,6 +144,8 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
           ) : null}
         </View>
 
+        <SeasonalEventBanner colors={colors} event={care.seasonal_event} />
+
         <MoodMonsterScene
           colors={colors}
           care={care}
@@ -170,6 +175,14 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
             void queueMonsterChatNotice(msg);
           }}
         />
+
+        <MoodWeeklyQuizCard
+          colors={colors}
+          quiz={care.weekly_quiz}
+          onUpdate={(next) => onUpdate(next)}
+        />
+
+        <MoodSocialInviteCard colors={colors} invite={care.social_invite} />
 
         <MoodSeedShop colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
 

@@ -8,17 +8,19 @@ type Props = {
   colors: AppColors;
   pausa: PausaEgoInfo;
   assistantName: string;
-  onComplete: (kind: "breath60" | "sos") => void;
+  onComplete: (kind: "breath60" | "breath120" | "sos") => void;
   onSosTalk?: (draft: string) => void;
 };
 
 export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSosTalk }: Props) {
   const [breathOpen, setBreathOpen] = useState(false);
-  const sessionKindRef = useRef<"breath60" | "sos">("breath60");
+  const [breathDuration, setBreathDuration] = useState(60);
+  const sessionKindRef = useRef<"breath60" | "breath120" | "sos">("breath60");
   const streak = pausa.streak_current ?? 0;
 
-  const openBreath = (kind: "breath60" | "sos") => {
+  const openBreath = (kind: "breath60" | "breath120" | "sos") => {
     sessionKindRef.current = kind;
+    setBreathDuration(kind === "breath120" ? 120 : 60);
     if (kind === "sos") {
       onSosTalk?.(
         `Estou passando mal agora e preciso de um momento. ${assistantName}, pode me guiar com calma?`
@@ -77,6 +79,15 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
       </Pressable>
 
       <Pressable
+        onPress={() => openBreath("breath120")}
+        style={[styles.secondaryBtn, { borderColor: colors.primary, backgroundColor: colors.primaryTint }]}
+      >
+        <Text style={[styles.secondaryBtnText, { color: colors.primary }]}>
+          Sessão longa — 2 min 🌬️
+        </Text>
+      </Pressable>
+
+      <Pressable
         onPress={() => openBreath("sos")}
         style={[styles.sosBtn, { borderColor: colors.primary, backgroundColor: colors.bgCard }]}
       >
@@ -105,6 +116,7 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
         colors={colors}
         visible={breathOpen}
         assistantName={assistantName}
+        durationSeconds={breathDuration}
         onClose={() => setBreathOpen(false)}
         onComplete={finishBreath}
       />
@@ -139,6 +151,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   primaryBtnText: { color: "#fff", fontWeight: "900", fontSize: 16 },
+  secondaryBtn: {
+    borderRadius: 14,
+    borderWidth: 1.5,
+    paddingVertical: 14,
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  secondaryBtnText: { fontWeight: "800", fontSize: 15 },
   sosBtn: {
     borderRadius: 14,
     borderWidth: 1.5,

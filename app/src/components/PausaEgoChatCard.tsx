@@ -9,7 +9,7 @@ type Props = {
   colors: AppColors;
   pausa?: PausaEgoInfo | null;
   assistantName: string;
-  onComplete: (kind: "breath60" | "sos") => void;
+  onComplete: (kind: "breath60" | "breath120" | "sos") => void;
   onSosTalk?: (draft: string) => void;
   celebrate?: boolean;
 };
@@ -39,7 +39,8 @@ export function PausaEgoChatCard({
   celebrate = false,
 }: Props) {
   const [breathOpen, setBreathOpen] = useState(false);
-  const sessionKindRef = useRef<"breath60" | "sos">("breath60");
+  const [breathDuration, setBreathDuration] = useState(60);
+  const sessionKindRef = useRef<"breath60" | "breath120" | "sos">("breath60");
   const info = pausa ?? defaultPausa();
   const streak = info.streak_current ?? 0;
   const highlight = !info.today_done;
@@ -53,8 +54,9 @@ export function PausaEgoChatCard({
     return "2 minutos de calma — comece hoje";
   }, [info.today_done, streak]);
 
-  const openBreath = (kind: "breath60" | "sos") => {
+  const openBreath = (kind: "breath60" | "breath120" | "sos") => {
     sessionKindRef.current = kind;
+    setBreathDuration(kind === "breath120" ? 120 : 60);
     if (kind === "sos") {
       onSosTalk?.(
         `Estou passando mal agora e preciso de um momento. ${assistantName}, pode me guiar com calma?`
@@ -110,9 +112,15 @@ export function PausaEgoChatCard({
         <View style={styles.actions}>
           <Pressable
             onPress={() => openBreath("breath60")}
-            style={[styles.btn, { backgroundColor: colors.primary, flex: 1.3 }]}
+            style={[styles.btn, { backgroundColor: colors.primary, flex: 1 }]}
           >
-            <Text style={styles.btnText}>Respirar 60s</Text>
+            <Text style={styles.btnText}>60s</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => openBreath("breath120")}
+            style={[styles.btn, { backgroundColor: colors.primaryLight, flex: 1 }]}
+          >
+            <Text style={styles.btnText}>2 min</Text>
           </Pressable>
           <Pressable
             onPress={() => openBreath("sos")}
@@ -120,19 +128,17 @@ export function PausaEgoChatCard({
           >
             <Text style={[styles.btnOutlineText, { color: colors.primary }]}>Estou mal</Text>
           </Pressable>
-          <Pressable
-            onPress={onShare}
-            style={[styles.btnOutline, { borderColor: colors.primary }]}
-          >
-            <Text style={[styles.btnOutlineText, { color: colors.primary }]}>Postar</Text>
-          </Pressable>
         </View>
+        <Pressable onPress={onShare} style={styles.shareLink}>
+          <Text style={[styles.shareLinkText, { color: colors.primaryLight }]}>Compartilhar sequência</Text>
+        </Pressable>
       </View>
 
       <PausaBreathSession
         colors={colors}
         visible={breathOpen}
         assistantName={assistantName}
+        durationSeconds={breathDuration}
         onClose={() => setBreathOpen(false)}
         onComplete={finishBreath}
       />
@@ -178,4 +184,6 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   btnOutlineText: { fontWeight: "800", fontSize: 12 },
+  shareLink: { marginTop: 8, alignItems: "center" },
+  shareLinkText: { fontSize: 11, fontWeight: "700" },
 });

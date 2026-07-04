@@ -1,0 +1,12 @@
+EGO-AI 1.0.77 — SUBMETER (iOS + Play)
+======================================
+
+O QUE HÁ DE NOVO (PT-BR)
+------------------------
+• PAUSA EGO v2 — sessão 2 min + ritmo suave (vibração) + momento madrugada
+• Monstrinhos Fase 10 — evento sazonal, quiz semanal (+5🌰), convidar amigos
+• Visual premium — chat composer flutuante vidro, bolhas refinadas
+• Correção chat — sem missões EGO de Bolso ao enviar mensagem
+• Play Integrity enforce (API) — APK clonado bloqueado
+
+Build: iOS 75 · Android 122

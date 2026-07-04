@@ -270,7 +270,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/daily_care.py",
-        ["get_daily_care", "record_checkin", "record_journal_note", "record_goal", "purchase_shop_item", "CARE_MILESTONES", "shop_week_label", "mood_journal"],
+        ["get_daily_care", "record_checkin", "record_journal_note", "record_goal", "purchase_shop_item", "award_quiz_seeds", "CARE_MILESTONES", "shop_week_label", "mood_journal"],
     ),
     (
         "ego_api/daily_care_missions.py",
@@ -294,7 +294,19 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/pausa_ego.py",
-        ["get_pausa", "complete_session", "default_payload", "MOMENTS", "bolso_replaced_by_pausa", "pausa_chat_prompt_block"],
+        ["get_pausa", "complete_session", "default_payload", "MOMENTS", "bolso_replaced_by_pausa", "pausa_chat_prompt_block", "breath_duration_seconds", "BREATH_DURATIONS"],
+    ),
+    (
+        "ego_api/seasonal_events.py",
+        ["get_active_event"],
+    ),
+    (
+        "ego_api/mood_quiz.py",
+        ["get_quiz", "submit_answer", "QUIZ_SEED_REWARD"],
+    ),
+    (
+        "ego_api/mood_social.py",
+        ["invite_payload"],
     ),
     (
         "ego_api/ego_de_bolso_push.py",

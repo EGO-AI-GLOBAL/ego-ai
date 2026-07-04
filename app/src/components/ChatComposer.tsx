@@ -136,9 +136,18 @@ export function ChatComposer({
       style={[
         styles.outer,
         {
-          borderTopColor: colors.border,
-          backgroundColor: colors.bg,
+          borderTopColor: colors.glassBorder,
+          backgroundColor: colors.glassBg,
           paddingBottom: bottomPad + 10,
+          marginHorizontal: 8,
+          marginBottom: 4,
+          borderRadius: 20,
+          borderWidth: 1,
+          shadowColor: colors.glowCyan,
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.12,
+          shadowRadius: 12,
+          elevation: 8,
         },
       ]}
     >
@@ -268,8 +277,7 @@ export function ChatComposer({
 const styles = StyleSheet.create({
   outer: {
     flexShrink: 0,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingTop: 10,
   },
   composerRow: {

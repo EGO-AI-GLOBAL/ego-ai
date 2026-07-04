@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-04-pausa-no-bolso",
+        "api_build": "2026-07-04-1.0.77-pack",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1856,6 +1856,27 @@ def pausa_ego_complete():
     kind = str(data.get("kind") or "breath60").strip()[:16]
     pausa = pausa_ego.complete_session(g.supabase, g.user_id, kind=kind)
     return _json_ok({"pausa_ego": pausa})
+
+
+@app.post("/api/v1/daily-care/quiz")
+@require_auth
+@rate_limit(8, 60, scope="user")
+def daily_care_quiz():
+    from ego_api import mood_quiz
+
+    data = request.get_json(silent=True) or {}
+    answer = str(data.get("answer") or data.get("answer_key") or "").strip()[:16]
+    if not answer:
+        return _json_error("Informe a resposta (answer).")
+    result = mood_quiz.submit_answer(g.supabase, g.user_id, answer_key=answer)
+    if not result.get("ok"):
+        return _json_error(str(result.get("error") or "Resposta inválida."))
+    body: dict = {"weekly_quiz": result.get("weekly_quiz")}
+    if result.get("daily_care"):
+        body["daily_care"] = result["daily_care"]
+    if result.get("seeds_awarded"):
+        body["seeds_awarded"] = result["seeds_awarded"]
+    return _json_ok(body)
 
 
 @app.post("/api/v1/daily-care/checkin")

@@ -4,13 +4,13 @@ import {
   Modal,
   Pressable,
   StyleSheet,
+  Switch,
   Text,
   View,
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import type { AppColors } from "@/theme/colors";
 
-const SESSION_SECONDS = 60;
 const PHASE_SECONDS = 4;
 
 type Phase = "inhale" | "exhale";
@@ -19,6 +19,7 @@ type Props = {
   colors: AppColors;
   visible: boolean;
   assistantName: string;
+  durationSeconds?: number;
   onClose: () => void;
   onComplete: () => void;
 };
@@ -27,12 +28,15 @@ export function PausaBreathSession({
   colors,
   visible,
   assistantName,
+  durationSeconds = 60,
   onClose,
   onComplete,
 }: Props) {
-  const [secondsLeft, setSecondsLeft] = useState(SESSION_SECONDS);
+  const total = Math.max(30, Math.min(180, durationSeconds));
+  const [secondsLeft, setSecondsLeft] = useState(total);
   const [phase, setPhase] = useState<Phase>("inhale");
   const [phaseCount, setPhaseCount] = useState(PHASE_SECONDS);
+  const [ambientOn, setAmbientOn] = useState(true);
   const scale = useRef(new Animated.Value(0.72)).current;
   const finishedRef = useRef(false);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -41,13 +45,14 @@ export function PausaBreathSession({
     if (!visible) {
       if (tickRef.current) clearInterval(tickRef.current);
       finishedRef.current = false;
-      setSecondsLeft(SESSION_SECONDS);
+      setSecondsLeft(total);
       setPhase("inhale");
       setPhaseCount(PHASE_SECONDS);
       scale.setValue(0.72);
       return;
     }
 
+    setSecondsLeft(total);
     finishedRef.current = false;
     tickRef.current = setInterval(() => {
       setSecondsLeft((prev) => {
@@ -64,7 +69,13 @@ export function PausaBreathSession({
       });
       setPhaseCount((prev) => {
         if (prev <= 1) {
-          setPhase((p) => (p === "inhale" ? "exhale" : "inhale"));
+          setPhase((p) => {
+            const next = p === "inhale" ? "exhale" : "inhale";
+            if (ambientOn) {
+              void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            }
+            return next;
+          });
           return PHASE_SECONDS;
         }
         return prev - 1;
@@ -74,7 +85,7 @@ export function PausaBreathSession({
     return () => {
       if (tickRef.current) clearInterval(tickRef.current);
     };
-  }, [visible, onComplete, scale]);
+  }, [visible, onComplete, scale, total, ambientOn]);
 
   useEffect(() => {
     if (!visible) return;
@@ -86,6 +97,7 @@ export function PausaBreathSession({
   }, [phase, visible, scale]);
 
   const phaseLabel = phase === "inhale" ? "Inspire…" : "Expire…";
+  const titleSec = total >= 120 ? "2 minutos" : "60 segundos";
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
@@ -93,11 +105,23 @@ export function PausaBreathSession({
         <View style={[styles.card, { backgroundColor: colors.bgCard, borderColor: colors.primary }]}>
           <Text style={[styles.badge, { color: colors.primary }]}>PAUSA EGO 🌬️</Text>
           <Text style={[styles.title, { color: colors.text }]}>
-            60 segundos com {assistantName}
+            {titleSec} com {assistantName}
           </Text>
           <Text style={[styles.sub, { color: colors.textMuted }]}>
             Respiração 4–4 · solte os ombros
           </Text>
+
+          <View style={styles.ambientRow}>
+            <Text style={[styles.ambientLabel, { color: colors.textMuted }]}>
+              Ritmo suave (vibração)
+            </Text>
+            <Switch
+              value={ambientOn}
+              onValueChange={setAmbientOn}
+              trackColor={{ false: colors.border, true: colors.primarySoft }}
+              thumbColor={ambientOn ? colors.primary : colors.textMuted}
+            />
+          </View>
 
           <View style={styles.circleWrap}>
             <Animated.View
@@ -162,10 +186,19 @@ const styles = StyleSheet.create({
     marginTop: 4,
     textAlign: "center",
   },
+  ambientRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    width: "100%",
+    marginTop: 14,
+    paddingHorizontal: 4,
+  },
+  ambientLabel: { fontSize: 12, fontWeight: "600" },
   circleWrap: {
     width: 200,
     height: 200,
-    marginVertical: 24,
+    marginVertical: 20,
     alignItems: "center",
     justifyContent: "center",
   },

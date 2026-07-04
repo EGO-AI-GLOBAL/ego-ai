@@ -506,7 +506,34 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
     congrats = _avatar_congrats_line(supabase, user_id, raw, today)
     if congrats:
         payload["avatar_congrats"] = congrats
+    try:
+        from ego_api import mood_quiz, mood_social, seasonal_events
+
+        event = seasonal_events.get_active_event()
+        if event:
+            payload["seasonal_event"] = event
+        payload["weekly_quiz"] = mood_quiz.get_quiz(supabase, user_id)
+        payload["social_invite"] = mood_social.invite_payload(supabase, user_id)
+    except Exception:
+        pass
     return payload
+
+
+def award_quiz_seeds(
+    supabase: Client | None, user_id: str, *, amount: int = 5
+) -> dict:
+    """Recompensa sementes pelo quiz semanal (Fase 10)."""
+    if not supabase or not user_id:
+        return get_daily_care(supabase, user_id)
+    prof = db.load_profile(supabase, user_id) or {}
+    ui = db._parse_ui_state(prof)  # noqa: SLF001
+    raw = _load_raw(supabase, user_id)
+    reward = max(0, int(amount))
+    raw["seeds"] = int(raw.get("seeds") or 0) + reward
+    _append_seed_history(raw, "quiz", reward, "Quiz semanal")
+    ui["daily_care"] = raw
+    db.update_profile_fields(supabase, user_id, {"ui_state": ui})
+    return get_daily_care(supabase, user_id)
 
 
 def _share_hook(current: int, checked_today: bool, ranking: dict) -> str:

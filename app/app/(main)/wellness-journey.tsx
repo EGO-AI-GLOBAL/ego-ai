@@ -50,7 +50,7 @@ export default function WellnessJourneyScreen() {
   const pausa = data.pausa_ego ?? defaultPausa();
 
   const onComplete = useCallback(
-    (kind: "breath60" | "sos") => {
+    (kind: "breath60" | "breath120" | "sos") => {
       setBusy(true);
       void completePausaEgoSession(kind).then((next) => {
         setBusy(false);

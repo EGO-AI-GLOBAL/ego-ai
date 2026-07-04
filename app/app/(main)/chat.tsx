@@ -227,7 +227,7 @@ function ChatScreenInner() {
   }, []);
 
   const onPausaComplete = useCallback(
-    (kind: "breath60" | "sos") => {
+    (kind: "breath60" | "breath120" | "sos") => {
       void completePausaEgoSession(kind).then((next) => {
         if (!next) return;
         setPausaCelebrate(true);

@@ -28,6 +28,7 @@ import type {
   WellnessJourney,
   PausaEgoInfo,
   DailyCareInfo,
+  DailyCareWeeklyQuiz,
 } from "./types";
 
 const STORAGE_KEY = "ego_auth_session";
@@ -786,12 +787,27 @@ export async function purchaseCompanionEggColor(
 }
 
 export async function completePausaEgoSession(
-  kind: "breath60" | "sos" = "breath60"
+  kind: "breath60" | "breath120" | "sos" = "breath60"
 ): Promise<PausaEgoInfo | null> {
   try {
     const { data } = await api.post("pausa-ego/complete", { kind });
     const body = unwrap<{ pausa_ego: PausaEgoInfo }>(data);
     return body.pausa_ego ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function submitDailyCareQuiz(
+  answerKey: string
+): Promise<{ daily_care?: DailyCareInfo; weekly_quiz?: DailyCareWeeklyQuiz } | null> {
+  try {
+    const { data } = await api.post("daily-care/quiz", { answer: answerKey });
+    const body = unwrap<{
+      daily_care?: DailyCareInfo;
+      weekly_quiz?: DailyCareWeeklyQuiz;
+    }>(data);
+    return body;
   } catch {
     return null;
   }

@@ -393,6 +393,40 @@ export type PausaEgoWeekDot = {
   today: boolean;
 };
 
+export type DailyCareSeasonalEvent = {
+  key: string;
+  emoji: string;
+  title: string;
+  tagline: string;
+  bonus_seeds: number;
+  decor_emoji?: string;
+  ends_at?: string;
+  active?: boolean;
+};
+
+export type DailyCareQuizOption = {
+  key: string;
+  label: string;
+  emoji: string;
+};
+
+export type DailyCareWeeklyQuiz = {
+  week_key: string;
+  quiz_id: string;
+  question: string;
+  options: DailyCareQuizOption[];
+  reward_seeds: number;
+  done: boolean;
+  answer_key?: string | null;
+};
+
+export type DailyCareSocialInvite = {
+  title: string;
+  emoji: string;
+  message: string;
+  share_hook: string;
+};
+
 export type PausaEgoInfo = {
   streak_current: number;
   streak_longest: number;
@@ -456,6 +490,9 @@ export type DailyCareInfo = {
   all_goals_bonus?: number;
   goals_bonus_granted?: boolean;
   avatar_congrats?: string;
+  seasonal_event?: DailyCareSeasonalEvent | null;
+  weekly_quiz?: DailyCareWeeklyQuiz | null;
+  social_invite?: DailyCareSocialInvite | null;
 };
 
 export type DailyCareShopItem = {

@@ -39,10 +39,17 @@ MOMENTS: list[dict[str, str]] = [
         "title": "Noite",
         "prompt": "Desacelere — 60s de calma com seu avatar.",
     },
+    {
+        "key": "late_night",
+        "emoji": "🌌",
+        "title": "Madrugada",
+        "prompt": "Ansiedade de madrugada? 60s aqui — você não está só.",
+    },
 ]
 
 RECENT_DAYS_MAX = 7
-VALID_KINDS = frozenset({"breath60", "sos"})
+VALID_KINDS = frozenset({"breath60", "breath120", "sos"})
+BREATH_DURATIONS: dict[str, int] = {"breath60": 60, "breath120": 120, "sos": 60}
 
 
 def bolso_replaced_by_pausa() -> bool:
@@ -86,6 +93,8 @@ def _yesterday(local_date: str) -> str:
 
 
 def _moment_for_hour(hour: int) -> dict[str, str]:
+    if hour >= 22 or hour < 5:
+        return MOMENTS[4]
     if hour < 11:
         return MOMENTS[0]
     if hour < 14:
@@ -93,6 +102,10 @@ def _moment_for_hour(hour: int) -> dict[str, str]:
     if hour < 18:
         return MOMENTS[2]
     return MOMENTS[3]
+
+
+def breath_duration_seconds(kind: str) -> int:
+    return BREATH_DURATIONS.get(str(kind or "breath60").strip(), 60)
 
 
 def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
