@@ -320,6 +320,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             "companion_needs_care",
             "MORNING_HOUR",
             "CARE_HOUR",
+            "_bolso_push_suppressed",
         ],
     ),
     (

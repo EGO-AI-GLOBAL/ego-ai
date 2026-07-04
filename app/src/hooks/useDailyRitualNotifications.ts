@@ -47,24 +47,10 @@ function handleNotificationData(data: unknown): void {
     return;
   }
   if (type === "ego_de_bolso") {
-    const screen =
-      data && typeof data === "object" ? (data as { screen?: string }).screen : "";
-    if (screen === "agenda") {
-      router.push("/(main)/agenda");
-      return;
-    }
-    if (screen === "daily-care") {
-      router.push("/(main)/daily-care");
-      return;
-    }
-    if (screen === "chat") {
-      router.push("/(main)/chat");
-      return;
-    }
     router.push("/(main)/wellness-journey");
     return;
   }
-    if (
+  if (
     type === "delegation_request" ||
     type === "entre_nos_invite" ||
     type === "entre_nos_response" ||

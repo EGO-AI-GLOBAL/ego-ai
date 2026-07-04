@@ -34,6 +34,8 @@ MISSION_PUSH_DATE_KEY = "ego_de_bolso_mission_push_date"
 
 
 def ego_de_bolso_push_enabled() -> bool:
+    if _bolso_push_suppressed():
+        return False
     return read_env("EGO_BOLSO_PUSH_ENABLED", "1").lower() not in (
         "0",
         "false",
@@ -42,13 +44,25 @@ def ego_de_bolso_push_enabled() -> bool:
     )
 
 
+def _bolso_push_suppressed() -> bool:
+    """PAUSA EGO substitui Bolso — não enviar push de missões/ovo."""
+    try:
+        from ego_api.pausa_ego import bolso_replaced_by_pausa
+
+        return bolso_replaced_by_pausa()
+    except Exception:
+        return False
+
+
 def ego_de_bolso_push_status() -> dict[str, Any]:
+    paused = _bolso_push_suppressed()
     return {
         "enabled": ego_de_bolso_push_enabled(),
+        "paused_by_pausa_ego": paused,
         "morning_hour_local": MORNING_HOUR,
         "care_hour_local": CARE_HOUR,
         "max_pushes_per_day": 2,
-        "mission_push_on_complete": True,
+        "mission_push_on_complete": not paused,
     }
 
 
@@ -319,6 +333,9 @@ def _process_push_slot(
     if not ego_de_bolso_push_enabled():
         stats["skipped"] = 1
         return stats
+    if _bolso_push_suppressed():
+        stats["skipped"] = 1
+        return stats
 
     svc = create_service_client()
     if not svc:
@@ -461,6 +478,8 @@ def maybe_send_mission_complete_push(
     plan_tier: str = "essential",
 ) -> bool:
     """Push ao completar missão — «[Avatar] viu que você cuidou do bolso»."""
+    if _bolso_push_suppressed():
+        return False
     if not ego_de_bolso_push_enabled() or not supabase or not user_id:
         return False
 

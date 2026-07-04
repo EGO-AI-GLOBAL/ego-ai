@@ -30,6 +30,7 @@ import {
   cancelMoodMonsterNotifications,
   syncMoodMonsterNotifications,
 } from "@/utils/moodMonsterNotifications";
+import { cancelEgoDeBolsoCareNotification } from "@/utils/egoDeBolsoNotifications";
 import { syncMoodGardenHomeWidget } from "@/widgets/syncMoodGardenHomeWidget";
 import { saveStreakCache } from "@/storage/streakCache";
 import {
@@ -232,6 +233,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           void notifyNewSharedEventsFromOthers(shared, uid).catch(() => {});
           void syncSharedCalendarLocalNotifications(shared).catch(() => {});
           void syncDailyCheckInNotification().catch(() => {});
+          void cancelEgoDeBolsoCareNotification();
           void syncMoodMonsterNotifications(dashboard.daily_care).catch(() => {});
           void syncMoodGardenHomeWidget(dashboard.daily_care).catch(() => {});
         };
