@@ -32,7 +32,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.egoai.app",
-    buildNumber: "62",
+    buildNumber: "74",
     entitlements: {
       "com.apple.security.application-groups": ["group.com.egoai.app.widget"],
     },
@@ -48,7 +48,7 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    versionCode: 120,
+    versionCode: 121,
     package: "com.egoai.app",
     adaptiveIcon: {
       /** Mesmo PNG do iOS — evita ícone minúsculo dentro do círculo no launcher. */
