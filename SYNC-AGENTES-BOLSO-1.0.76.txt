@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO — PAUSA EGO (substitui UI Bolso)
 ====================================================
 
-Estado: ✅ PRONTO — commit pendente push
+Estado: ✅ PRONTO — commit 8147e4b
 
 Zona: PAUSA EGO MVP (cartão chat + ecrã wellness-journey + API)
 
