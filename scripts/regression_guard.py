@@ -294,7 +294,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/pausa_ego.py",
-        ["get_pausa", "complete_session", "default_payload", "MOMENTS"],
+        ["get_pausa", "complete_session", "default_payload", "MOMENTS", "bolso_replaced_by_pausa", "pausa_chat_prompt_block"],
     ),
     (
         "ego_api/ego_de_bolso_push.py",

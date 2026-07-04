@@ -1049,6 +1049,10 @@ def record_step(
     plan_tier: str = "essential",
 ) -> dict[str, Any]:
     """Regista passo da jornada (pode repetir contagens no mesmo nível)."""
+    from ego_api.pausa_ego import bolso_replaced_by_pausa
+
+    if bolso_replaced_by_pausa():
+        return get_journey(supabase, user_id, plan_tier=plan_tier)
     if not supabase or not user_id:
         return get_journey(supabase, user_id, plan_tier=plan_tier)
     key = _STEP_ALIASES.get(str(step_key or "").strip(), str(step_key or "").strip()[:32])
@@ -1090,6 +1094,10 @@ def sync_streak_levels(
     supabase: Client | None, user_id: str, *, plan_tier: str = "essential"
 ) -> dict[str, Any]:
     """Avança níveis que dependem só da sequência (sem novo passo)."""
+    from ego_api.pausa_ego import bolso_replaced_by_pausa
+
+    if bolso_replaced_by_pausa():
+        return get_journey(supabase, user_id, plan_tier=plan_tier)
     if not supabase or not user_id:
         return get_journey(supabase, user_id, plan_tier=plan_tier)
     state = _load_state(supabase, user_id)

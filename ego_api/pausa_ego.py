@@ -45,6 +45,20 @@ RECENT_DAYS_MAX = 7
 VALID_KINDS = frozenset({"breath60", "sos"})
 
 
+def bolso_replaced_by_pausa() -> bool:
+    """UI Bolso substituída por PAUSA EGO — não avançar missões nem prompt de bolso."""
+    return True
+
+
+def pausa_chat_prompt_block() -> str:
+    return (
+        "\n\nPAUSA EGO (use com leveza — máx. 1 frase se couber):\n"
+        "- Se o utilizador mencionar ansiedade, stress, pressão ou «estou mal», "
+        "valide com empatia e convide à PAUSA (respirar 60s no cartão PAUSA ou menu PAUSA EGO).\n"
+        "- Não mencione EGO de Bolso, missões, ovo, níveis ou Tamagotchi.\n"
+    )
+
+
 def _local_date_str() -> str:
     sess = get_session()
     if sess:

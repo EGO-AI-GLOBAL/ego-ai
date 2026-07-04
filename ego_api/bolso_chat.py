@@ -16,6 +16,10 @@ def bolso_mission_prompt_block(
     supabase: Client | None, user_id: str, *, plan_tier: str = "essential"
 ) -> str:
     """Injeta no system prompt quando há missões pendentes no bolso."""
+    from ego_api.pausa_ego import bolso_replaced_by_pausa, pausa_chat_prompt_block
+
+    if bolso_replaced_by_pausa():
+        return pausa_chat_prompt_block()
     if not supabase or not user_id:
         return ""
     try:
@@ -63,6 +67,10 @@ def try_mission_complete_push(
     plan_tier: str = "essential",
 ) -> None:
     """Push imediato ao completar missão (avatar + bolso)."""
+    from ego_api.pausa_ego import bolso_replaced_by_pausa
+
+    if bolso_replaced_by_pausa():
+        return
     if not supabase or not user_id:
         return
     from ego_api.ego_de_bolso_push import maybe_send_mission_complete_push

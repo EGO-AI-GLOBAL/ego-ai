@@ -20,7 +20,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { checkoutUrlForTier } from "@/utils/planCheckout";
 import { allowsInAppPlanPurchase, IOS_CHAT_BLOCKED_PLACEHOLDER, IOS_TRIAL_END_ALERT, IOS_DAILY_LIMIT_ALERT, usesAppleIap } from "@/utils/iosAppStoreBilling";
 import { IAP_PRODUCTS } from "@/constants/iapProducts";
-import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText, completeWellnessJourneyStep, completePausaEgoSession } from "@/api/client";
+import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText, completePausaEgoSession } from "@/api/client";
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { AppGradientBackground } from "@/components/AppGradientBackground";
 import { ChatComposer } from "@/components/ChatComposer";
@@ -119,7 +119,7 @@ function ChatScreenInner() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { session } = useAuth();
-  const { data, loading, refreshing, error, refresh, refreshAccess, setPersona, mergeChatResult, mergeWellnessJourney, mergePausaEgo } =
+  const { data, loading, refreshing, error, refresh, refreshAccess, setPersona, mergeChatResult, mergePausaEgo } =
     useDashboard();
   const params = useLocalSearchParams<{ draft?: string }>();
   const userId = data.me?.user_id?.trim() ?? session?.user?.id?.trim() ?? "";
@@ -166,11 +166,6 @@ function ChatScreenInner() {
   const [widgetsReady, setWidgetsReady] = useState(false);
   const [pausaCelebrate, setPausaCelebrate] = useState(false);
   const pausaCelebrateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const bolsoMissionsRef = useRef(data.wellness_journey?.missions_today ?? 0);
-
-  useEffect(() => {
-    bolsoMissionsRef.current = data.wellness_journey?.missions_today ?? 0;
-  }, [data.wellness_journey?.missions_today]);
 
   useEffect(() => {
     return () => {
@@ -224,17 +219,6 @@ function ChatScreenInner() {
     findAvatarInCatalog(persona.avatar_id)?.shortName ??
     (isMaleAvatar(persona.avatar_id) ? "Leo" : "Luna");
   const voice = useVoiceChat();
-
-  const trackJourneyStep = useCallback(
-    (step: "chat" | "voice") => {
-      void completeWellnessJourneyStep(step).then((j) => {
-        if (!j) return;
-        bolsoMissionsRef.current = j.missions_today ?? 0;
-        mergeWellnessJourney(j);
-      });
-    },
-    [mergeWellnessJourney]
-  );
 
   const onPausaSosTalk = useCallback((draft: string) => {
     setChatInput(draft);
@@ -899,7 +883,6 @@ function ChatScreenInner() {
         void recordAvatarChat(userId, persona.avatar_id);
         void recordChatStreakDay(userId).then(setChatStreakDays);
       }
-      trackJourneyStep("voice");
       void saveExchange(
         result.user_transcript?.trim() || "",
         result.reply,
@@ -997,7 +980,6 @@ function ChatScreenInner() {
           void recordAvatarChat(userId, persona.avatar_id);
           void recordChatStreakDay(userId).then(setChatStreakDays);
         }
-        trackJourneyStep("chat");
         await saveExchange(userLabel, result.reply);
         setPendingChat([]);
         setLastChatResult(result);
@@ -1037,7 +1019,6 @@ function ChatScreenInner() {
       userId,
       persona.avatar_id,
       persona.voice_id,
-      trackJourneyStep,
       trialExpired,
     ]
   );
