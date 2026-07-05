@@ -50,7 +50,7 @@ export default function WellnessJourneyScreen() {
   const pausa = data.pausa_ego ?? defaultPausa();
 
   const onComplete = useCallback(
-    (kind: "breath60" | "breath120" | "sos") => {
+    (kind: string) => {
       setBusy(true);
       void completePausaEgoSession(kind).then((next) => {
         setBusy(false);
@@ -65,7 +65,7 @@ export default function WellnessJourneyScreen() {
   }, []);
 
   return (
-    <ScreenShell title="PAUSA EGO" subtitle="2 minutos de calma com seu avatar">
+    <ScreenShell title="PAUSA EGO" subtitle="1 min · casa, escritório ou onde estiver">
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={

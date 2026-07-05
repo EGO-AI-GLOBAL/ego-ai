@@ -141,10 +141,7 @@ api.interceptors.request.use(async (config) => {
   const h = config.headers as Record<string, string>;
   h["X-EGO-Platform"] = Platform.OS;
   if (routeNeedsIntegrity(config.url, config.method)) {
-    const token = await Promise.race([
-      getPlayIntegrityToken(),
-      new Promise<null>((resolve) => setTimeout(() => resolve(null), 800)),
-    ]);
+    const token = await getPlayIntegrityToken();
     if (token) {
       h["X-Play-Integrity"] = token;
     }
@@ -787,7 +784,7 @@ export async function purchaseCompanionEggColor(
 }
 
 export async function completePausaEgoSession(
-  kind: "breath60" | "breath120" | "sos" = "breath60"
+  kind: string = "breath44"
 ): Promise<PausaEgoInfo | null> {
   try {
     const { data } = await api.post("pausa-ego/complete", { kind });
@@ -1022,10 +1019,7 @@ async function ensureFreshSessionForPost(): Promise<void> {
 async function buildVoiceUploadHeaders(): Promise<Record<string, string>> {
   const headers = voiceUploadAuthHeaders();
   headers["X-EGO-Platform"] = Platform.OS;
-  const integrity = await Promise.race([
-    getPlayIntegrityToken(),
-    new Promise<null>((resolve) => setTimeout(() => resolve(null), 800)),
-  ]);
+  const integrity = await getPlayIntegrityToken();
   if (integrity) {
     headers["X-Play-Integrity"] = integrity;
   }

@@ -297,6 +297,31 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
         ["get_pausa", "complete_session", "default_payload", "MOMENTS", "bolso_replaced_by_pausa", "pausa_chat_prompt_block", "breath_duration_seconds", "BREATH_DURATIONS"],
     ),
     (
+        "ego_api/pausa_exercises.py",
+        [
+            "pick_daily_exercise",
+            "pick_tomorrow_teaser",
+            "plan_benefits_payload",
+            "exercises_for_tier",
+            "exercise_catalog_size",
+            "is_valid_session_kind",
+            "ANYWHERE_LINE",
+        ],
+    ),
+    (
+        "ego_api/pausa_push.py",
+        [
+            "process_pausa_morning_pushes",
+            "process_pausa_evening_pushes",
+            "process_pausa_pushes",
+            "morning_notification_copy",
+            "evening_notification_copy",
+            "pausa_push_enabled",
+            "MORNING_HOUR",
+            "EVENING_HOUR",
+        ],
+    ),
+    (
         "ego_api/seasonal_events.py",
         ["get_active_event"],
     ),

@@ -46,7 +46,7 @@ function handleNotificationData(data: unknown): void {
     router.push("/(main)/daily-care");
     return;
   }
-  if (type === "ego_de_bolso") {
+  if (type === "pausa_ego" || type === "ego_de_bolso") {
     router.push("/(main)/wellness-journey");
     return;
   }

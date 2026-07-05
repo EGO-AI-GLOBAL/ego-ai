@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-04-pausa-no-bolso-push",
+        "api_build": "2026-07-05-pausa-exercises-push",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -487,6 +487,12 @@ def health():
         from ego_api.ego_de_bolso_push import ego_de_bolso_push_status
 
         payload["ego_de_bolso_push"] = ego_de_bolso_push_status()
+    except Exception:
+        pass
+    try:
+        from ego_api.pausa_push import pausa_push_status
+
+        payload["pausa_push"] = pausa_push_status()
     except Exception:
         pass
     try:
@@ -757,6 +763,39 @@ def admin_cron_ego_de_bolso_care():
         stats = process_ego_de_bolso_pushes(limit=capped, force=force)
     else:
         return _json_error("slot inválido — use morning, care ou all.", 400)
+    return _json_ok({"ok": True, "slot": slot, "stats": stats})
+
+
+@app.post("/api/v1/admin/cron/pausa-ego-push")
+@require_admin
+def admin_cron_pausa_ego_push():
+    """Push 10h/18h (fuso do aparelho): PAUSA EGO quando ainda não fez hoje."""
+    from ego_api.pausa_push import (
+        process_pausa_evening_pushes,
+        process_pausa_morning_pushes,
+        process_pausa_pushes,
+    )
+
+    data = request.get_json(silent=True) or {}
+    try:
+        limit = int(data.get("limit") or request.args.get("limit") or 200)
+    except (TypeError, ValueError):
+        return _json_error("limit deve ser número.", 400)
+    force = str(data.get("force") or request.args.get("force") or "").lower() in (
+        "1",
+        "true",
+        "yes",
+    )
+    slot = str(data.get("slot") or request.args.get("slot") or "all").strip().lower()
+    capped = min(500, max(1, limit))
+    if slot == "morning":
+        stats = process_pausa_morning_pushes(limit=capped, force=force)
+    elif slot in ("evening", "care", "18h"):
+        stats = process_pausa_evening_pushes(limit=capped, force=force)
+    elif slot == "all":
+        stats = process_pausa_pushes(limit=capped, force=force)
+    else:
+        return _json_error("slot inválido — use morning, evening ou all.", 400)
     return _json_ok({"ok": True, "slot": slot, "stats": stats})
 
 
@@ -1072,8 +1111,10 @@ def chat_send():
     allow, reason, blocked = evaluate_request_integrity()
     if blocked:
         return _json_error(
-            "App não verificado. Instale pela Play Store oficial e actualize.",
+            "App não verificado. Instale pela Play Store (teste interno) e actualize.",
             403,
+            integrity_reason=reason,
+            play_store_url="https://play.google.com/apps/testing/com.egoai.app",
         )
     message = ""
     audio_b64 = None
@@ -1197,8 +1238,10 @@ def voice_realtime_client_secret():
     allow, reason, blocked = evaluate_request_integrity()
     if blocked:
         return _json_error(
-            "App não verificado. Instale pela Play Store oficial e actualize.",
+            "App não verificado. Instale pela Play Store (teste interno) e actualize.",
             403,
+            integrity_reason=reason,
+            play_store_url="https://play.google.com/apps/testing/com.egoai.app",
         )
     if not openai_realtime.is_available():
         return _json_error("OpenAI Realtime não configurado no servidor.", 503)
@@ -1232,8 +1275,10 @@ def voice_realtime_webrtc():
     allow, reason, blocked = evaluate_request_integrity()
     if blocked:
         return _json_error(
-            "App não verificado. Instale pela Play Store oficial e actualize.",
+            "App não verificado. Instale pela Play Store (teste interno) e actualize.",
             403,
+            integrity_reason=reason,
+            play_store_url="https://play.google.com/apps/testing/com.egoai.app",
         )
     if not openai_realtime.is_available():
         return _json_error("OpenAI Realtime não configurado no servidor.", 503)
@@ -1273,8 +1318,10 @@ def voice_realtime_finish():
     allow, reason, blocked = evaluate_request_integrity()
     if blocked:
         return _json_error(
-            "App não verificado. Instale pela Play Store oficial e actualize.",
+            "App não verificado. Instale pela Play Store (teste interno) e actualize.",
             403,
+            integrity_reason=reason,
+            play_store_url="https://play.google.com/apps/testing/com.egoai.app",
         )
 
     data = request.get_json(silent=True) or {}
@@ -1307,8 +1354,10 @@ def tts_speak():
     allow, reason, blocked = evaluate_request_integrity()
     if blocked:
         return _json_error(
-            "App não verificado. Instale pela Play Store oficial e actualize.",
+            "App não verificado. Instale pela Play Store (teste interno) e actualize.",
             403,
+            integrity_reason=reason,
+            play_store_url="https://play.google.com/apps/testing/com.egoai.app",
         )
     import base64
 
@@ -1587,8 +1636,10 @@ def night_dump_submit():
     allow, reason, blocked = evaluate_request_integrity()
     if blocked:
         return _json_error(
-            "App não verificado. Instale pela Play Store oficial e actualize.",
+            "App não verificado. Instale pela Play Store (teste interno) e actualize.",
             403,
+            integrity_reason=reason,
+            play_store_url="https://play.google.com/apps/testing/com.egoai.app",
         )
     from ego_api import night_dump
     from ego_api.api_errors import friendly_api_error
@@ -2232,10 +2283,12 @@ def auth_logout():
 
 from ego_api.signup_emails import start_background_jobs as start_signup_background_jobs
 from ego_api.ego_de_bolso_push import start_background_jobs as start_ego_bolso_push_jobs
+from ego_api.pausa_push import start_background_jobs as start_pausa_push_jobs
 from ego_api.plan_retention import start_background_jobs as start_plan_retention_jobs
 
 start_signup_background_jobs()
 start_ego_bolso_push_jobs()
+start_pausa_push_jobs()
 start_plan_retention_jobs()
 
 

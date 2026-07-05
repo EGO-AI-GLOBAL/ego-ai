@@ -2197,6 +2197,8 @@ UI_STATE_SERVER_ONLY_KEYS = frozenset(
         "monthly_tokens_used",
         "ego_de_bolso_push_date",
         "ego_de_bolso_push_morning_date",
+        "pausa_ego_push_morning_date",
+        "pausa_ego_push_evening_date",
         "ego_de_bolso_mission_push_count",
         "ego_de_bolso_mission_push_date",
         "monthly_tokens_period",

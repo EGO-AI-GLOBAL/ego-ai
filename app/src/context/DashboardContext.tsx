@@ -30,6 +30,10 @@ import {
   cancelMoodMonsterNotifications,
   syncMoodMonsterNotifications,
 } from "@/utils/moodMonsterNotifications";
+import {
+  cancelPausaLocalNotifications,
+  syncPausaLocalNotifications,
+} from "@/utils/pausaLocalNotifications";
 import { cancelEgoDeBolsoCareNotification } from "@/utils/egoDeBolsoNotifications";
 import { syncMoodGardenHomeWidget } from "@/widgets/syncMoodGardenHomeWidget";
 import { saveStreakCache } from "@/storage/streakCache";
@@ -150,6 +154,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       setPersonaLocalOk(false);
       void cancelAllReminderLocalNotifications();
       void cancelMoodMonsterNotifications();
+      void cancelPausaLocalNotifications();
       return;
     }
     if (!getSession()?.access_token?.trim()) {
@@ -235,6 +240,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           void syncDailyCheckInNotification().catch(() => {});
           void cancelEgoDeBolsoCareNotification();
           void syncMoodMonsterNotifications(dashboard.daily_care).catch(() => {});
+          void syncPausaLocalNotifications(dashboard.pausa_ego).catch(() => {});
           void syncMoodGardenHomeWidget(dashboard.daily_care).catch(() => {});
         };
         if (options?.deferNotifications) {
@@ -280,6 +286,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       setPersonaLocalOk(false);
       void cancelAllReminderLocalNotifications();
       void cancelMoodMonsterNotifications();
+      void cancelPausaLocalNotifications();
       return;
     }
     setLoading(true);
@@ -335,6 +342,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
 
   const mergePausaEgo = useCallback((pausa: PausaEgoInfo) => {
     setData((prev) => ({ ...prev, pausa_ego: pausa }));
+    void syncPausaLocalNotifications(pausa).catch(() => {});
   }, []);
 
   const mergeDailyCare = useCallback((care: DailyCareInfo, journey?: WellnessJourney) => {

@@ -2,12 +2,23 @@ import type { AccessInfo } from "@/api/types";
 import { allowsInAppPlanPurchase } from "@/utils/iosAppStoreBilling";
 
 /** Deixa claro quando o bloqueio é Google Gemini vs limite do plano EGO. */
+const PLAY_INTERNAL_TEST_URL =
+  "https://play.google.com/apps/testing/com.egoai.app";
+
 export function enrichChatError(
   message: string,
   access: AccessInfo | null | undefined
 ): string {
   const msg = message.trim();
   if (!msg) return msg;
+  if (/app não verificado|play store|integridade do app|integrity/i.test(msg)) {
+    return (
+      `${msg}\n\n` +
+      `Testadores Android: instale só pelo link oficial da Play (teste interno):\n` +
+      `${PLAY_INTERNAL_TEST_URL}\n\n` +
+      `Se já instalou por aí, feche o app, abra de novo e tente «Oi» por texto.`
+    );
+  }
   if (!/gemini|cota da api google/i.test(msg)) return msg;
 
   const plan = access?.plan_label || access?.plan_tier || "Essencial";

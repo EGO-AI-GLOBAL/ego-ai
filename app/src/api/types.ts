@@ -427,6 +427,37 @@ export type DailyCareSocialInvite = {
   share_hook: string;
 };
 
+export type PausaExerciseStep = {
+  text: string;
+  seconds: number;
+};
+
+export type PausaDailyExercise = {
+  key: string;
+  emoji: string;
+  title: string;
+  subtitle: string;
+  duration_seconds: number;
+  mode: "breath" | "steps";
+  focus?: string;
+  mood_boosted?: boolean;
+  anywhere_friendly?: boolean;
+  breath_inhale?: number;
+  breath_exhale?: number;
+  steps?: PausaExerciseStep[];
+};
+
+export type PausaPlanBenefit = {
+  plan_tier: string;
+  plan_label: string;
+  headline: string;
+  detail: string;
+  techniques_unlocked: number;
+  techniques_total: number;
+  upgrade_tier?: string | null;
+  upgrade_hint?: string;
+};
+
 export type PausaEgoInfo = {
   streak_current: number;
   streak_longest: number;
@@ -439,6 +470,11 @@ export type PausaEgoInfo = {
   share_line: string;
   week_dots: PausaEgoWeekDot[];
   last_kind?: string | null;
+  daily_exercise?: PausaDailyExercise;
+  plan_benefit?: PausaPlanBenefit;
+  tomorrow_teaser?: { emoji: string; title: string };
+  anywhere_line?: string;
+  retention_line?: string;
 };
 
 export type DailyCareMood = {

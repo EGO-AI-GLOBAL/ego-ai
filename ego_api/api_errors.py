@@ -63,6 +63,21 @@ def friendly_api_error(exc: BaseException | str, *, context: str = "") -> str:
         return raw[:500]
 
     if any(
+        x in low
+        for x in (
+            "token_missing",
+            "play integrity",
+            "integrity",
+            "app não verificado",
+            "app nao verificado",
+        )
+    ):
+        return (
+            "App não verificado pelo Google Play. "
+            "Testadores: instale pelo link de teste interno da Play Store e actualize o app."
+        )
+
+    if any(
         marker in raw
         for marker in (
             "Data/hora",

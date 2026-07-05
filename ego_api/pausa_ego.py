@@ -52,6 +52,28 @@ VALID_KINDS = frozenset({"breath60", "breath120", "sos"})
 BREATH_DURATIONS: dict[str, int] = {"breath60": 60, "breath120": 120, "sos": 60}
 
 
+def _profile_mood_key(supabase: Client | None, user_id: str) -> str:
+    if not supabase or not user_id:
+        return ""
+    prof = db.load_profile(supabase, user_id) or {}
+    ui = db._parse_ui_state(prof)  # noqa: SLF001
+    dc = ui.get("daily_care")
+    if isinstance(dc, dict):
+        return str(dc.get("last_mood") or "").strip().lower()
+    return ""
+
+
+def _profile_plan_tier(supabase: Client | None, user_id: str) -> str:
+    from ego_api.plans import resolve_plan_tier
+
+    if not supabase or not user_id:
+        from ego_api.plans import PLAN_ESSENTIAL
+
+        return PLAN_ESSENTIAL
+    prof = db.load_profile(supabase, user_id) or {}
+    return resolve_plan_tier(prof)
+
+
 def bolso_replaced_by_pausa() -> bool:
     """UI Bolso substituída por PAUSA EGO — não avançar missões nem prompt de bolso."""
     return True
@@ -141,6 +163,7 @@ def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
         "total_sessions": total_sessions,
         "recent_dates": clean_recent[-RECENT_DAYS_MAX:],
         "last_kind": str(raw.get("last_kind") or "").strip()[:16],
+        "last_exercise_key": str(raw.get("last_exercise_key") or "").strip()[:16],
     }
 
 
@@ -158,6 +181,7 @@ def _save_state(
         "total_sessions": max(0, int(state.get("total_sessions") or 0)),
         "recent_dates": list(state.get("recent_dates") or [])[-RECENT_DAYS_MAX:],
         "last_kind": str(state.get("last_kind") or "").strip()[:16],
+        "last_exercise_key": str(state.get("last_exercise_key") or "").strip()[:16],
     }
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})
 
@@ -176,15 +200,48 @@ def _week_dots(recent_dates: list[str], today: str) -> list[dict[str, Any]]:
 
 
 def get_pausa(supabase: Client | None, user_id: str) -> dict[str, Any]:
+    from ego_api.pausa_exercises import (
+        ANYWHERE_LINE,
+        pick_daily_exercise,
+        pick_tomorrow_teaser,
+        plan_benefits_payload,
+    )
+
     state = _load_state(supabase, user_id)
     today = _local_date_str()
     moment = _moment_for_hour(_local_hour())
     streak = int(state["streak_current"] or 0)
     today_done = state["streak_last_date"] == today
+    tier = _profile_plan_tier(supabase, user_id)
+    mood_key = _profile_mood_key(supabase, user_id)
+    avoid = str(state.get("last_exercise_key") or "").strip() or None
+    daily = pick_daily_exercise(
+        user_id=user_id or "anon",
+        local_date=today,
+        tier=tier,
+        mood_key=mood_key,
+        avoid_key=avoid,
+    )
+    tomorrow = pick_tomorrow_teaser(
+        user_id=user_id or "anon",
+        local_date=today,
+        tier=tier,
+        mood_key=mood_key,
+        today_key=str(daily.get("key") or ""),
+    )
     share_line = (
-        f"Hoje cuidei de mim 🔥 {streak} dias seguidos"
+        f"Hoje cuidei de mim 🔥 {streak} dias — {daily.get('title', 'PAUSA')}"
         if streak >= 2
-        else "Minha PAUSA EGO de hoje 🌬️"
+        else f"PAUSA de hoje: {daily.get('title', 'calma')} 🌬️"
+    )
+    retention_line = (
+        f"Amanhã: {tomorrow.get('emoji', '🌬️')} {tomorrow.get('title', 'nova técnica')}"
+        if not today_done
+        else (
+            f"Amanhã: {tomorrow.get('emoji', '🌬️')} {tomorrow.get('title', 'nova técnica')}"
+            if streak >= 1
+            else "Volte amanhã — técnica diferente esperando você"
+        )
     )
     return {
         "streak_current": streak,
@@ -198,6 +255,11 @@ def get_pausa(supabase: Client | None, user_id: str) -> dict[str, Any]:
         "share_line": share_line,
         "week_dots": _week_dots(state["recent_dates"], today),
         "last_kind": state.get("last_kind") or None,
+        "daily_exercise": daily,
+        "plan_benefit": plan_benefits_payload(tier),
+        "tomorrow_teaser": tomorrow,
+        "anywhere_line": ANYWHERE_LINE,
+        "retention_line": retention_line,
     }
 
 
@@ -209,9 +271,14 @@ def complete_session(
 ) -> dict[str, Any]:
     if not supabase or not user_id:
         return get_pausa(supabase, user_id)
+    from ego_api.pausa_exercises import get_exercise_by_key, is_valid_session_kind
+
     session_kind = str(kind or "breath60").strip()[:16]
-    if session_kind not in VALID_KINDS:
+    if not is_valid_session_kind(session_kind):
         session_kind = "breath60"
+    exercise_key = session_kind if get_exercise_by_key(session_kind) else ""
+    if session_kind in VALID_KINDS:
+        exercise_key = exercise_key or session_kind
     today = _local_date_str()
     state = _load_state(supabase, user_id)
     last = str(state.get("streak_last_date") or "").strip()
@@ -233,6 +300,7 @@ def complete_session(
             "total_sessions": int(state.get("total_sessions") or 0) + 1,
             "recent_dates": recent[-RECENT_DAYS_MAX:],
             "last_kind": session_kind,
+            "last_exercise_key": exercise_key or session_kind,
         }
     )
     _save_state(supabase, user_id, state)
@@ -240,8 +308,27 @@ def complete_session(
 
 
 def default_payload() -> dict[str, Any]:
+    from ego_api.pausa_exercises import (
+        ANYWHERE_LINE,
+        pick_daily_exercise,
+        pick_tomorrow_teaser,
+        plan_benefits_payload,
+    )
+    from ego_api.plans import PLAN_ESSENTIAL
+
     moment = _moment_for_hour(_local_hour())
     today = _local_date_str()
+    daily = pick_daily_exercise(
+        user_id="default",
+        local_date=today,
+        tier=PLAN_ESSENTIAL,
+    )
+    tomorrow = pick_tomorrow_teaser(
+        user_id="default",
+        local_date=today,
+        tier=PLAN_ESSENTIAL,
+        today_key=str(daily.get("key") or ""),
+    )
     return {
         "streak_current": 0,
         "streak_longest": 0,
@@ -251,7 +338,12 @@ def default_payload() -> dict[str, Any]:
         "moment_emoji": moment["emoji"],
         "moment_title": moment["title"],
         "moment_prompt": moment["prompt"],
-        "share_line": "Minha PAUSA EGO de hoje 🌬️",
+        "share_line": f"PAUSA de hoje: {daily.get('title', 'calma')} 🌬️",
         "week_dots": _week_dots([], today),
         "last_kind": None,
+        "daily_exercise": daily,
+        "plan_benefit": plan_benefits_payload(PLAN_ESSENTIAL),
+        "tomorrow_teaser": tomorrow,
+        "anywhere_line": ANYWHERE_LINE,
+        "retention_line": f"Amanhã: {tomorrow.get('emoji', '🌬️')} {tomorrow.get('title', 'nova técnica')}",
     }

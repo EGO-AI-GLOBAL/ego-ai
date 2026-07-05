@@ -20,6 +20,10 @@ type Props = {
   visible: boolean;
   assistantName: string;
   durationSeconds?: number;
+  title?: string;
+  subtitle?: string;
+  inhaleSeconds?: number;
+  exhaleSeconds?: number;
   onClose: () => void;
   onComplete: () => void;
 };
@@ -29,13 +33,19 @@ export function PausaBreathSession({
   visible,
   assistantName,
   durationSeconds = 60,
+  title,
+  subtitle,
+  inhaleSeconds = 4,
+  exhaleSeconds = 4,
   onClose,
   onComplete,
 }: Props) {
   const total = Math.max(30, Math.min(180, durationSeconds));
+  const phaseDur = Math.max(3, Math.min(8, inhaleSeconds));
+  const exhaleDur = Math.max(3, Math.min(10, exhaleSeconds));
   const [secondsLeft, setSecondsLeft] = useState(total);
   const [phase, setPhase] = useState<Phase>("inhale");
-  const [phaseCount, setPhaseCount] = useState(PHASE_SECONDS);
+  const [phaseCount, setPhaseCount] = useState(phaseDur);
   const [ambientOn, setAmbientOn] = useState(true);
   const scale = useRef(new Animated.Value(0.72)).current;
   const finishedRef = useRef(false);
@@ -47,7 +57,7 @@ export function PausaBreathSession({
       finishedRef.current = false;
       setSecondsLeft(total);
       setPhase("inhale");
-      setPhaseCount(PHASE_SECONDS);
+      setPhaseCount(phaseDur);
       scale.setValue(0.72);
       return;
     }
@@ -69,14 +79,16 @@ export function PausaBreathSession({
       });
       setPhaseCount((prev) => {
         if (prev <= 1) {
+          let nextDur = phaseDur;
           setPhase((p) => {
-            const next = p === "inhale" ? "exhale" : "inhale";
+            const np = p === "inhale" ? "exhale" : "inhale";
+            nextDur = np === "inhale" ? phaseDur : exhaleDur;
             if (ambientOn) {
               void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }
-            return next;
+            return np;
           });
-          return PHASE_SECONDS;
+          return nextDur;
         }
         return prev - 1;
       });
@@ -85,19 +97,20 @@ export function PausaBreathSession({
     return () => {
       if (tickRef.current) clearInterval(tickRef.current);
     };
-  }, [visible, onComplete, scale, total, ambientOn]);
+  }, [visible, onComplete, scale, total, ambientOn, phaseDur, exhaleDur]);
 
   useEffect(() => {
     if (!visible) return;
     Animated.timing(scale, {
       toValue: phase === "inhale" ? 1 : 0.72,
-      duration: PHASE_SECONDS * 1000,
+      duration: (phase === "inhale" ? phaseDur : exhaleDur) * 1000,
       useNativeDriver: true,
     }).start();
-  }, [phase, visible, scale]);
+  }, [phase, visible, scale, phaseDur, exhaleDur]);
 
   const phaseLabel = phase === "inhale" ? "Inspire…" : "Expire…";
-  const titleSec = total >= 120 ? "2 minutos" : "60 segundos";
+  const titleSec = title || (total >= 120 ? "2 minutos" : "60 segundos");
+  const subLine = subtitle || `Respiração ${phaseDur}–${exhaleDur} · solte os ombros`;
 
   return (
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
@@ -105,15 +118,13 @@ export function PausaBreathSession({
         <View style={[styles.card, { backgroundColor: colors.bgCard, borderColor: colors.primary }]}>
           <Text style={[styles.badge, { color: colors.primary }]}>PAUSA EGO 🌬️</Text>
           <Text style={[styles.title, { color: colors.text }]}>
-            {titleSec} com {assistantName}
+            {title ? title : `${titleSec} com ${assistantName}`}
           </Text>
-          <Text style={[styles.sub, { color: colors.textMuted }]}>
-            Respiração 4–4 · solte os ombros
-          </Text>
+          <Text style={[styles.sub, { color: colors.textMuted }]}>{subLine}</Text>
 
           <View style={styles.ambientRow}>
             <Text style={[styles.ambientLabel, { color: colors.textMuted }]}>
-              Ritmo suave (vibração)
+              Modo discreto (sem vibração — fila ou trabalho)
             </Text>
             <Switch
               value={ambientOn}
