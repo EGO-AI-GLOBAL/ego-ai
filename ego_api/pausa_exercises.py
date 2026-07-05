@@ -114,6 +114,7 @@ EXERCISE_POOL: list[dict[str, Any]] = [
         "anywhere": True,
     },
     {
+        "key": "box_breath",
         "tier": PLAN_CONNECTION,
         "emoji": "⬜",
         "title": "Respiração quadrada",

@@ -80,7 +80,10 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
       <View style={[styles.wrap, { borderColor: colors.border, backgroundColor: colors.bgCard, opacity: 0.92 }]}>
         <Text style={[styles.badge, { color: colors.primary }]}>MONSTRINHOS DO HUMOR 💜</Text>
         <Text style={[styles.hint, { color: colors.textMuted, marginTop: 8 }]}>
-          A carregar… puxe para baixo para atualizar.
+          Jardim a sincronizar… puxe para baixo para atualizar.
+        </Text>
+        <Text style={[styles.hint, { color: colors.textMuted, marginTop: 6, fontSize: 11 }]}>
+          Se continuar vazio após 2 min, saia da conta e entre de novo.
         </Text>
       </View>
     );

@@ -258,12 +258,37 @@ function parseDashboard(data: unknown): DashboardData {
     delegation_requests: body.delegation_requests ?? [],
     streak: body.streak ?? { current: 0, longest: 0, active_today: false, at_risk: false },
     wellness_journey: body.wellness_journey,
+    pausa_ego: body.pausa_ego,
     daily_care: body.daily_care,
     shared_calendars: body.shared_calendars ?? [],
     pending_calendar_invites: body.pending_calendar_invites ?? [],
     messages: body.messages ?? [],
     chat_local_history: Boolean(body.chat_local_history),
   };
+}
+
+function hasDailyCareQuestion(care?: DailyCareInfo | null): boolean {
+  if (!care?.question) return false;
+  const q = care.question as DailyCareInfo["question"] | string;
+  if (typeof q === "string") return q.trim().length > 0;
+  return Boolean(q.text?.trim());
+}
+
+export async function fetchDailyCare(): Promise<DailyCareInfo | null> {
+  try {
+    const { data } = await api.get("daily-care", { timeout: TIMEOUT_DEFAULT_MS });
+    const body = unwrap<{ daily_care: DailyCareInfo }>(data);
+    return body.daily_care ?? null;
+  } catch {
+    return null;
+  }
+}
+
+async function hydrateDashboardGaps(dashboard: DashboardData): Promise<DashboardData> {
+  if (hasDailyCareQuestion(dashboard.daily_care)) return dashboard;
+  const care = await fetchDailyCare();
+  if (!care || !hasDailyCareQuestion(care)) return dashboard;
+  return { ...dashboard, daily_care: care };
 }
 
 async function fetchDashboardLegacy(): Promise<DashboardData> {
@@ -286,14 +311,14 @@ async function fetchDashboardLegacy(): Promise<DashboardData> {
   const agBody = unwrap<{ agenda: DashboardData["agenda"] }>(agRes.data);
   const chatBody = unwrap<{ messages: DashboardData["messages"] }>(chatRes.data);
 
-  return {
+  return hydrateDashboardGaps({
     health: healthRes ? unwrap<HealthInfo>(healthRes.data) : null,
     me: meBody,
     access: normalizeAccessInfo(accessBody),
     reminders: remBody.reminders ?? [],
     agenda: agBody.agenda ?? [],
     messages: chatBody.messages ?? [],
-  };
+  });
 }
 
 function isNotFound(err: unknown): boolean {
@@ -313,7 +338,7 @@ export async function fetchDashboard(): Promise<DashboardData> {
       timeout: TIMEOUT_BOOTSTRAP_MS,
       }
     );
-    return parseDashboard(data);
+    return hydrateDashboardGaps(parseDashboard(data));
   } catch (err) {
     if (isNotFound(err)) {
       return fetchDashboardLegacy();

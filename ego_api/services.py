@@ -1792,12 +1792,13 @@ def _bootstrap_section(label: str, fn, default):  # noqa: ANN001
         return fn()
     except Exception as exc:
         print(f"[EGO] bootstrap {label} error: {exc}", flush=True)
-        return default
+        return default() if callable(default) else default
 
 
 def bootstrap_payload_fallback(supabase: Client | None, user_id: str) -> dict:
     """Resposta mínima 200 — evita ecrã vermelho em todo o app se algo falhar."""
     from ego_api.config import gemini_api_key, supabase_anon_key, supabase_url
+    from ego_api import streaks
 
     me = _bootstrap_section("me", lambda: me_payload(supabase, user_id), None)
     access = _bootstrap_section(
@@ -1826,6 +1827,32 @@ def bootstrap_payload_fallback(supabase: Client | None, user_id: str) -> dict:
         "agenda": [],
         "agenda_drafts": [],
         "shopping_orphans": [],
+        "streak": _bootstrap_section(
+            "streak",
+            lambda: streaks.get_streak(supabase, user_id),
+            {
+                "current": 0,
+                "longest": 0,
+                "last_date": "",
+                "active_today": False,
+                "at_risk": False,
+            },
+        ),
+        "wellness_journey": _bootstrap_section(
+            "wellness_journey",
+            lambda: _wellness_journey_bootstrap(supabase, user_id),
+            _wellness_journey_default,
+        ),
+        "pausa_ego": _bootstrap_section(
+            "pausa_ego",
+            lambda: _pausa_ego_bootstrap(supabase, user_id),
+            _pausa_ego_default,
+        ),
+        "daily_care": _bootstrap_section(
+            "daily_care",
+            lambda: _daily_care_bootstrap(supabase, user_id),
+            _daily_care_default,
+        ),
         "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
         "pending_calendar_invites": _list_pending_calendar_invites_safe(
             supabase, user_id
@@ -2002,17 +2029,17 @@ def bootstrap_payload(supabase: Client | None, user_id: str) -> dict:
         "wellness_journey": _bootstrap_section(
             "wellness_journey",
             lambda: _wellness_journey_bootstrap(supabase, user_id),
-            _wellness_journey_default(),
+            _wellness_journey_default,
         ),
         "pausa_ego": _bootstrap_section(
             "pausa_ego",
             lambda: _pausa_ego_bootstrap(supabase, user_id),
-            _pausa_ego_default(),
+            _pausa_ego_default,
         ),
         "daily_care": _bootstrap_section(
             "daily_care",
             lambda: _daily_care_bootstrap(supabase, user_id),
-            _daily_care_default(),
+            _daily_care_default,
         ),
         "shared_calendars": _list_shared_calendars_safe(supabase, user_id),
         "pending_calendar_invites": _list_pending_calendar_invites_safe(

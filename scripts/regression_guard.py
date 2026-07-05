@@ -608,11 +608,58 @@ def check_mission_pool() -> int:
         return 1
 
 
+def check_pausa_exercise_pool() -> int:
+    print("\n=== PAUSA — EXERCISE_POOL (key obrigatório) ===")
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from ego_api.pausa_exercises import EXERCISE_POOL
+
+        missing = [i for i, e in enumerate(EXERCISE_POOL) if not str(e.get("key") or "").strip()]
+        if missing:
+            print(f"  ERRO  exercícios sem key nos índices: {missing}")
+            return len(missing)
+        print(f"  OK    {len(EXERCISE_POOL)} técnicas com key")
+        return 0
+    except Exception as exc:
+        print(f"  ERRO  pausa_exercises: {exc}")
+        return 1
+
+
+def check_bootstrap_fallback_daily_care() -> int:
+    print("\n=== Bootstrap fallback — Monstrinhos (daily_care) ===")
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from ego_api.services import bootstrap_payload_fallback
+
+        payload = bootstrap_payload_fallback(None, "test-user")
+        care = payload.get("daily_care")
+        if not isinstance(care, dict):
+            print("  ERRO  bootstrap_payload_fallback sem daily_care dict")
+            return 1
+        question = care.get("question")
+        if not isinstance(question, dict) or not str(question.get("text") or "").strip():
+            print("  ERRO  daily_care.question.text ausente no fallback")
+            return 1
+        moods = care.get("moods")
+        if not isinstance(moods, list) or len(moods) < 5:
+            print("  ERRO  daily_care.moods incompleto no fallback")
+            return 1
+        print("  OK    fallback inclui jardim + pergunta do dia")
+        return 0
+    except Exception as exc:
+        print(f"  ERRO  bootstrap fallback: {exc}")
+        return 1
+
+
 def main() -> int:
     failed = check_symbols()
     failed += check_journey_missions()
     failed += check_shop_catalog()
     failed += check_mission_pool()
+    failed += check_pausa_exercise_pool()
+    failed += check_bootstrap_fallback_daily_care()
     try:
         import importlib.util
 

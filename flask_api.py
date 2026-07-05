@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-05-pausa-exercises-push",
+        "api_build": "2026-07-05-monstrinho-pausa-box-breath",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1907,6 +1907,15 @@ def pausa_ego_complete():
     kind = str(data.get("kind") or "breath60").strip()[:16]
     pausa = pausa_ego.complete_session(g.supabase, g.user_id, kind=kind)
     return _json_ok({"pausa_ego": pausa})
+
+
+@app.get("/api/v1/daily-care")
+@require_auth
+def daily_care_get():
+    from ego_api import daily_care
+
+    care = daily_care.get_daily_care(g.supabase, g.user_id)
+    return _json_ok({"daily_care": care})
 
 
 @app.post("/api/v1/daily-care/quiz")
