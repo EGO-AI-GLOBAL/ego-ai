@@ -1,7 +1,7 @@
 AGENTE EGO DE BOLSO / PAUSA — 1.0.78
 =====================================
 
-Estado: ✅ PRONTO — commit c557c8d
+Estado: ✅ PRONTO — commit e791b4a
 
 • ego_api/pausa_exercises.py — 20 técnicas por plano + rotação diária
 • ego_api/pausa_push.py — push 10h/18h com nome da pausa de hoje
