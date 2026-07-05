@@ -416,7 +416,12 @@ def main() -> int:
 
     if not ios_id or not android_id:
         if not ids_path.is_file():
-            raise SystemExit(f"Ficheiro não existe: {ids_path} — rode GERAR-E-SUBMETER-JUNTO.bat primeiro")
+            ver = app_version()
+            raise SystemExit(
+                f"Ficheiro não existe: {ids_path}\n"
+                f"Ordem correta: 1) GERAR-{ver}.bat  (enfileira iOS+Android)\n"
+                f"               2) AGUARDAR-E-SUBMETER-{ver}.bat  (espera e submete)"
+            )
         ios_id, android_id = load_ids(ids_path)
 
     wait_both(ios_id, android_id, poll_sec=args.poll, ios_only=False)
