@@ -17,6 +17,6 @@ Amanhã:
 3. GERAR-1.0.80.bat → AGUARDAR-E-SUBMETER-1.0.80.bat
 4. NOTAS: marketing/NOTAS-1.0.80-*.txt
 
-GIT Monstrinhos: (após commit)
+GIT Monstrinhos: ffd5b09
 Build Android: ___
 Build iOS: ___
