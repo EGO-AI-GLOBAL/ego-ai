@@ -1,0 +1,18 @@
+EGO-AI 1.0.80 — APP STORE (iOS)
+================================
+Build EAS: 1.0.80 · iOS buildNumber 78
+
+O QUE HÁ DE NOVO (PT-BR)
+------------------------
+• Monstrinhos do Humor: marcar o humor primeiro, missões depois
+• Fluxo do jardim mais intuitivo (1º passo destacado)
+• PAUSA EGO e assinaturas IAP — inalterados nesta build
+• Correções de estabilidade
+
+TESTE (App Review / testadores)
+-------------------------------
+1. Abrir Monstrinhos do Humor
+2. Ver «1º PASSO — MARQUE O HUMOR» abaixo do pet
+3. Tocar num humor → pet reage → missões abaixo
+
+IAP: manter os 3 produtos ligados à versão (como 1.0.79).

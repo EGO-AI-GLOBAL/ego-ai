@@ -123,6 +123,80 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
   const days = care.current ?? 0;
   const borderColor = care.at_risk ? colors.warning : colors.primary;
   const todayLabel = resolveMoodLabel(care.moods, care.last_mood, care.last_mood_label);
+  const needsCheckin = !care.checked_today;
+
+  const moodCheckIn = (
+    <View
+      style={[
+        styles.moodFirst,
+        {
+          borderColor: needsCheckin ? colors.primary : colors.border,
+          backgroundColor: needsCheckin ? colors.primaryTint : "transparent",
+        },
+      ]}
+    >
+      {needsCheckin ? (
+        <Text style={[styles.stepBadge, { color: colors.primary }]}>1º PASSO — MARQUE O HUMOR</Text>
+      ) : null}
+      <Text style={[styles.question, { color: colors.text }]}>{care.question.text}</Text>
+      <Text style={[styles.hint, { color: colors.textMuted }]}>
+        {needsCheckin
+          ? "Toque abaixo — seu monstrinho muda de cor e as missões abrem"
+          : "Toque para mudar o humor de hoje"}
+      </Text>
+
+      <View style={styles.moodRow}>
+        {(care.moods ?? []).map((m) => {
+          const selected = care.checked_today && care.last_mood === m.key;
+          const preview = hoverMood === m.key;
+          return (
+            <Pressable
+              key={m.key}
+              onPressIn={() => setHoverMood(m.key)}
+              onPressOut={() => setHoverMood(undefined)}
+              onPress={() => void onPickMood(m.key)}
+              disabled={busy}
+              style={[
+                styles.moodBtn,
+                {
+                  borderColor: selected || preview ? colors.primary : colors.border,
+                  backgroundColor: selected || preview ? colors.primaryTint : colors.bg,
+                  transform: [{ scale: preview ? 1.06 : 1 }],
+                },
+              ]}
+              accessibilityLabel={m.label}
+            >
+              <Text style={styles.moodEmoji}>{m.emoji}</Text>
+              <Text style={[styles.moodLabel, { color: colors.textMuted }]} numberOfLines={1}>
+                {m.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {busy ? <ActivityIndicator color={colors.primary} style={{ marginTop: 8 }} /> : null}
+
+      {care.checked_today ? (
+        <>
+          <Text style={[styles.done, { color: colors.success }]}>
+            ✓ Hoje: {todayLabel} no jardim
+          </Text>
+          <Text style={[styles.hook, { color: colors.textMuted }]}>{care.share_hook}</Text>
+          <Pressable
+            onPress={() => setShareOpen(true)}
+            style={[styles.shareBtn, { backgroundColor: colors.primary }]}
+          >
+            <Text style={styles.shareText}>Postar e desafiar amigos</Text>
+          </Pressable>
+        </>
+      ) : care.at_risk ? (
+        <Text style={[styles.risk, { color: colors.warning }]}>
+          ⚠️ Sequência em risco — salve o jardim com 1 toque!
+        </Text>
+      ) : null}
+    </View>
+  );
 
   return (
     <>
@@ -156,12 +230,20 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
           previewMood={hoverMood}
         />
 
+        {moodCheckIn}
+
         <MoodJournalWeek colors={colors} entries={care.mood_journal} moods={care.moods} />
 
         <MoodJournalTodayNote colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
 
         {care.adventure?.active || care.adventure?.collected ? (
           <MoodAdventureBanner colors={colors} adventure={care.adventure} />
+        ) : null}
+
+        {needsCheckin ? (
+          <Text style={[styles.missionsLocked, { color: colors.textMuted }]}>
+            2º passo — complete as missões depois de marcar o humor
+          </Text>
         ) : null}
 
         <MoodDailyGoals
@@ -190,62 +272,6 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
         <MoodSeedShop colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
 
         <RankingLadder colors={colors} care={care} />
-
-        <Text style={[styles.question, { color: colors.text }]}>{care.question.text}</Text>
-        <Text style={[styles.hint, { color: colors.textMuted }]}>
-          Toque no humor de hoje — seu monstrinho reage no jardim
-        </Text>
-
-        <View style={styles.moodRow}>
-          {(care.moods ?? []).map((m) => {
-            const selected = care.checked_today && care.last_mood === m.key;
-            const preview = hoverMood === m.key;
-            return (
-              <Pressable
-                key={m.key}
-                onPressIn={() => setHoverMood(m.key)}
-                onPressOut={() => setHoverMood(undefined)}
-                onPress={() => void onPickMood(m.key)}
-                disabled={busy}
-                style={[
-                  styles.moodBtn,
-                  {
-                    borderColor: selected || preview ? colors.primary : colors.border,
-                    backgroundColor: selected || preview ? colors.primaryTint : colors.bg,
-                    transform: [{ scale: preview ? 1.06 : 1 }],
-                  },
-                ]}
-                accessibilityLabel={m.label}
-              >
-                <Text style={styles.moodEmoji}>{m.emoji}</Text>
-                <Text style={[styles.moodLabel, { color: colors.textMuted }]} numberOfLines={1}>
-                  {m.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        {busy ? <ActivityIndicator color={colors.primary} style={{ marginTop: 8 }} /> : null}
-
-        {care.checked_today ? (
-          <>
-            <Text style={[styles.done, { color: colors.success }]}>
-              ✓ Hoje: {todayLabel} no jardim
-            </Text>
-            <Text style={[styles.hook, { color: colors.textMuted }]}>{care.share_hook}</Text>
-            <Pressable
-              onPress={() => setShareOpen(true)}
-              style={[styles.shareBtn, { backgroundColor: colors.primary }]}
-            >
-              <Text style={styles.shareText}>Postar e desafiar amigos</Text>
-            </Pressable>
-          </>
-        ) : care.at_risk ? (
-          <Text style={[styles.risk, { color: colors.warning }]}>
-            ⚠️ Sequência em risco — salve o jardim com 1 toque!
-          </Text>
-        ) : null}
 
         <SocialFollowBar colors={colors} compact />
       </View>
@@ -280,6 +306,14 @@ const styles = StyleSheet.create({
   ladderEmoji: { fontSize: 16 },
   ladderLabel: { fontSize: 9, fontWeight: "700", marginTop: 2 },
   challengeLine: { fontSize: 12, fontWeight: "700", marginTop: 10, textAlign: "center" },
+  moodFirst: {
+    marginBottom: 12,
+    padding: 12,
+    borderRadius: 14,
+    borderWidth: 1.5,
+  },
+  stepBadge: { fontSize: 10, fontWeight: "900", letterSpacing: 0.5, marginBottom: 6 },
+  missionsLocked: { fontSize: 11, fontWeight: "700", marginBottom: 6, marginTop: 4 },
   question: { fontSize: 17, fontWeight: "800", lineHeight: 23 },
   hint: { fontSize: 12, marginTop: 4, marginBottom: 12 },
   moodRow: { flexDirection: "row", justifyContent: "space-between", gap: 6 },

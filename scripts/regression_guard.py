@@ -47,7 +47,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "app/src/components/DailyCareChallenge.tsx",
-        ["MONSTRINHOS DO HUMOR", "MoodMonsterScene", "RankingLadder"],
+        ["MONSTRINHOS DO HUMOR", "MoodMonsterScene", "RankingLadder", "1º PASSO"],
     ),
     (
         "app/src/components/moodMonsters/MoodGardenAmbient.tsx",

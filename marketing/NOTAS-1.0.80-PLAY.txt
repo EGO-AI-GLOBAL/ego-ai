@@ -1,0 +1,12 @@
+EGO-AI 1.0.80 — PLAY STORE (Android)
+=====================================
+Build: 1.0.80 · versionCode 125 (EAS)
+
+O que há de novo (PT-BR):
+• Monstrinhos: marcar o humor é o 1º passo — logo abaixo do monstrinho
+• Missões do jardim vêm depois do check-in (fluxo mais claro)
+• PAUSA EGO e demais funções — sem mudanças nesta versão
+• Melhorias de estabilidade
+
+Teste rápido:
+Jardim → toque no humor (Nublina, Agita, etc.) → monstrinho muda → missões.
