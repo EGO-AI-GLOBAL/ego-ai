@@ -1,9 +1,22 @@
-node_modules/
+# EAS — tarball pequeno (evita upload 800MB+ e ECONNRESET)
+**/node_modules/**
+node_modules
+.expo/
+.expo-web-test/
 android/
 ios/
-.expo/
 dist/
 .git/
-.expo-web-test/
+store-assets/
+coverage/
 **/*.md
+**/*.log
+**/*.mp4.bak
+**/*.zip
+**/*.aab
+**/*.ipa
 scripts/
+play-store-service-account.json
+google-services.json
+*.keystore
+*.jks
