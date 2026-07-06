@@ -14,6 +14,7 @@ import {
   type IosIapCardDisplay,
   type IosStoreSubscription,
 } from "@/utils/iosIapPricing";
+import { fetchIosSubscriptionProducts, requestIosSubscription } from "@/utils/iosIapStorekit";
 
 type IapModule = typeof import("react-native-iap");
 
@@ -85,11 +86,11 @@ export function useIosIap(
         if (cancelled) return;
         iapRef.current = iap;
         await iap.initConnection();
-        const products = await iap.fetchProducts({ skus: IAP_PRODUCT_IDS, type: "subs" });
+        const products = await fetchIosSubscriptionProducts(iap);
         const byId = new Map<string, IosStoreSubscription>();
-        for (const item of products || []) {
+        for (const item of products) {
           const id = String(item.productId || "").trim();
-          if (id) byId.set(id, item as IosStoreSubscription);
+          if (id) byId.set(id, item);
         }
         const display: Partial<Record<IapProduct["tier"], IosIapCardDisplay>> = {};
         for (const product of IAP_PRODUCTS) {
@@ -163,10 +164,17 @@ export function useIosIap(
         Alert.alert("Planos", "Loja da App Store indisponível. Tente de novo em instantes.");
         return;
       }
+      if (!ready) {
+        Alert.alert(
+          "Planos",
+          "Ainda a ligar à App Store. Aguarde 2 segundos e tente de novo."
+        );
+        return;
+      }
       purchaseInFlight.current = true;
       setBusy(true);
       try {
-        await iap.requestPurchase({ sku: product.productId, type: "subs" });
+        await requestIosSubscription(iap, product.productId);
       } catch (e) {
         purchaseInFlight.current = false;
         setBusy(false);
@@ -176,7 +184,7 @@ export function useIosIap(
         );
       }
     },
-    []
+    [ready]
   );
 
   const restorePurchases = useCallback(async () => {

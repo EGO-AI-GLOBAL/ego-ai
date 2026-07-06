@@ -1,0 +1,54 @@
+EGO-AI 1.0.79 — RESUBMETER À APP STORE (iOS) — FIX IAP 2.1(b)
+================================================================
+Build EAS: 1.0.79 · iOS buildNumber 77
+
+ORDEM (App Store Connect)
+-------------------------
+1. Apps → EGO-AI → App Store → versão **1.0.79** (ou reutilizar 1.0 com build novo)
+2. Compilação → build **77** (1.0.79)
+3. **Compras dentro do app** → os 3 IAP já marcados (manter)
+4. Descrição → EULA + Privacidade (já colados)
+5. IAP promocionais → sem imagens (já feito)
+6. Colar «O que há de novo» + App Review Notes (abaixo)
+7. Responder à mensagem da rejeição (texto abaixo)
+8. Enviar para revisão
+
+────────────────────────────────────────────────────────────
+O QUE HÁ DE NOVO (PT-BR)
+────────────────────────────────────────────────────────────
+• Correção das assinaturas na App Store (compra no iPad)
+• PAUSA EGO — 20 técnicas para todos os planos
+• Técnica diária no chat e no menu PAUSA
+• Melhorias de estabilidade
+
+────────────────────────────────────────────────────────────
+RESPONDER À APPLE (inglês — colar na mensagem da rejeição)
+────────────────────────────────────────────────────────────
+Hello,
+
+We fixed Guideline 2.3.2 (removed optional IAP promotional images) and
+Guideline 3.1.2(c) (EULA and Privacy Policy links in the app description).
+
+For Guideline 2.1(b): we fixed StoreKit subscription API compatibility
+(react-native-iap v12) on iPad. Paid Apps Agreement is active; all 3
+subscriptions are attached; server receipt validation is configured.
+
+New build: 77 (version 1.0.79)
+
+Demo account: [DEMO_EMAIL] / [DEMO_PASSWORD]
+Path: Planos → EGO Conexão → purchase
+Restore: Planos → Restaurar compras
+
+Product IDs:
+- com.egoai.app.sub.connection.monthly
+- com.egoai.app.sub.premium.monthly
+- com.egoai.app.sub.total.monthly
+
+Thank you.
+
+────────────────────────────────────────────────────────────
+APP REVIEW — NOTES (inglês)
+────────────────────────────────────────────────────────────
+IAP fix: Planos → EGO Conexão → purchase opens native StoreKit sheet.
+PAUSA EGO: menu → PAUSA EGO → Começar pausa de hoje (works on Essential plan).
+Demo: [DEMO_EMAIL] / [DEMO_PASSWORD]

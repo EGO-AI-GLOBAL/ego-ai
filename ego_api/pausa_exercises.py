@@ -382,16 +382,23 @@ def exercise_catalog_size() -> int:
 
 
 def exercises_for_tier(tier: str | None) -> list[dict[str, Any]]:
-    rank = TIER_RANK.get(normalize_plan_tier(tier), 0)
-    return [e for e in EXERCISE_POOL if TIER_RANK.get(str(e["tier"]), 99) <= rank]
+    """Todas as técnicas PAUSA — sem bloqueio por plano."""
+    del tier
+    return list(EXERCISE_POOL)
 
 
 def plan_benefits_payload(tier: str | None) -> dict[str, Any]:
-    key = normalize_plan_tier(tier)
-    base = dict(PLAN_BENEFITS.get(key) or PLAN_BENEFITS[PLAN_ESSENTIAL])
-    base["plan_tier"] = key
-    base["techniques_total"] = len(exercises_for_tier(key))
-    return base
+    total = len(EXERCISE_POOL)
+    return {
+        "plan_tier": normalize_plan_tier(tier),
+        "plan_label": "PAUSA EGO",
+        "headline": f"{total} técnicas · pausa completa para todos",
+        "detail": "1 minuto em qualquer lugar — técnica nova quase todo dia. Grátis no Essencial.",
+        "techniques_unlocked": total,
+        "techniques_total": total,
+        "upgrade_tier": None,
+        "upgrade_hint": "",
+    }
 
 
 def _serialize_exercise(raw: dict[str, Any], *, mood_boosted: bool = False) -> dict[str, Any]:
@@ -435,13 +442,12 @@ def pick_daily_exercise(
     mood_boosted = False
     mood = str(mood_key or "").strip().lower()
 
-    if tier_norm in (PLAN_PREMIUM, PLAN_TOTAL) and mood in MOOD_STRESS_KEYS:
+    if mood in MOOD_STRESS_KEYS:
         tagged = [e for e in eligible if "anxiety" in (e.get("tags") or [])]
         if tagged:
             eligible = tagged
             mood_boosted = True
 
-    if tier_norm == PLAN_TOTAL and mood in MOOD_STRESS_KEYS:
         mood_linked = [e for e in eligible if e.get("mood_linked")]
         if mood_linked:
             eligible = mood_linked

@@ -215,6 +215,19 @@ def get_pausa(supabase: Client | None, user_id: str) -> dict[str, Any]:
     tier = _profile_plan_tier(supabase, user_id)
     mood_key = _profile_mood_key(supabase, user_id)
     avoid = str(state.get("last_exercise_key") or "").strip() or None
+    yesterday = _yesterday(today)
+    if yesterday:
+        from ego_api.pausa_exercises import pick_daily_exercise as _pick
+
+        yday = _pick(
+            user_id=user_id or "anon",
+            local_date=yesterday,
+            tier=tier,
+            mood_key=mood_key,
+        )
+        ykey = str(yday.get("key") or "").strip()
+        if ykey:
+            avoid = ykey
     daily = pick_daily_exercise(
         user_id=user_id or "anon",
         local_date=today,

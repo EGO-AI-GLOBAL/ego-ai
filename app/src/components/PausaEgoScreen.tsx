@@ -125,7 +125,7 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
 
 
 
-      {benefit ? (
+      {benefit?.upgrade_hint?.trim() ? (
 
         <View style={[styles.planCard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
 

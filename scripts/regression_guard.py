@@ -613,13 +613,18 @@ def check_pausa_exercise_pool() -> int:
     try:
         if str(ROOT) not in sys.path:
             sys.path.insert(0, str(ROOT))
-        from ego_api.pausa_exercises import EXERCISE_POOL
+        from ego_api.pausa_exercises import EXERCISE_POOL, exercises_for_tier
 
         missing = [i for i, e in enumerate(EXERCISE_POOL) if not str(e.get("key") or "").strip()]
         if missing:
             print(f"  ERRO  exercícios sem key nos índices: {missing}")
             return len(missing)
-        print(f"  OK    {len(EXERCISE_POOL)} técnicas com key")
+        from ego_api.plans import PLAN_ESSENTIAL
+
+        if len(exercises_for_tier(PLAN_ESSENTIAL)) != len(EXERCISE_POOL):
+            print("  ERRO  PAUSA ainda bloqueada por plano no Essencial")
+            return 1
+        print(f"  OK    {len(EXERCISE_POOL)} técnicas com key · todas liberadas")
         return 0
     except Exception as exc:
         print(f"  ERRO  pausa_exercises: {exc}")
