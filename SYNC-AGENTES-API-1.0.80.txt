@@ -1,0 +1,13 @@
+AGENTE API — 1.0.80
+===================
+Estado: ✅ PRONTO
+
+Zona API:
+• ego_api/plans.py — agenda pessoal + lembretes ilimitados (Essencial e Conexão)
+• ego_api/plans.py — velocidade áudio 1× em todos os planos
+• ego_api/pausa_exercises.py — copy PAUSA grátis todos os planos
+• flask_api.py — api_build 2026-07-07-agenda-livre-audio-1x
+
+Deploy: git push → Railway auto (~2 min)
+
+GIT API: (commit release 1.0.80)

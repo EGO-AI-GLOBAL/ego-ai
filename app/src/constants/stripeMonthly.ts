@@ -148,8 +148,8 @@ export function fallbackLimitsForTier(tier: PlanTier): PlanCatalogItem["limits"]
       daily_text_messages: 10,
       daily_voice_messages: 3,
       daily_tts_replies: 5,
-      max_agenda_items: 3,
-      max_reminders: 3,
+      max_agenda_items: 0,
+      max_reminders: 0,
       audio_speed_multipliers: [1],
     };
   }
@@ -159,9 +159,9 @@ export function fallbackLimitsForTier(tier: PlanTier): PlanCatalogItem["limits"]
       daily_text_messages: 50,
       daily_voice_messages: 15,
       daily_tts_replies: 0,
-      max_agenda_items: 20,
-      max_reminders: 20,
-      audio_speed_multipliers: [1, 1.5, 2],
+      max_agenda_items: 0,
+      max_reminders: 0,
+      audio_speed_multipliers: [1],
     };
   }
   if (tier === "premium") {
@@ -172,7 +172,7 @@ export function fallbackLimitsForTier(tier: PlanTier): PlanCatalogItem["limits"]
       daily_tts_replies: 0,
       max_agenda_items: 0,
       max_reminders: 0,
-      audio_speed_multipliers: [1, 1.5, 2],
+      audio_speed_multipliers: [1],
     };
   }
   if (tier === "enterprise") {
@@ -183,7 +183,7 @@ export function fallbackLimitsForTier(tier: PlanTier): PlanCatalogItem["limits"]
       daily_tts_replies: 0,
       max_agenda_items: 0,
       max_reminders: 0,
-      audio_speed_multipliers: [1, 1.5, 2, 2.5],
+      audio_speed_multipliers: [1],
     };
   }
   return {
@@ -193,6 +193,6 @@ export function fallbackLimitsForTier(tier: PlanTier): PlanCatalogItem["limits"]
     daily_tts_replies: 0,
     max_agenda_items: 0,
     max_reminders: 0,
-    audio_speed_multipliers: [1, 1.5, 2],
+    audio_speed_multipliers: [1],
   };
 }

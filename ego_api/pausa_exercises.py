@@ -393,7 +393,7 @@ def plan_benefits_payload(tier: str | None) -> dict[str, Any]:
         "plan_tier": normalize_plan_tier(tier),
         "plan_label": "PAUSA EGO",
         "headline": f"{total} técnicas · pausa completa para todos",
-        "detail": "1 minuto em qualquer lugar — técnica nova quase todo dia. Grátis no Essencial.",
+        "detail": "Grátis em todos os planos — 1 minuto onde estiver, técnica nova quase todo dia.",
         "techniques_unlocked": total,
         "techniques_total": total,
         "upgrade_tier": None,

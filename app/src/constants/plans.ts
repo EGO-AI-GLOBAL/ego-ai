@@ -31,11 +31,11 @@ export const PAID_PLAN_TIERS: PlanTier[] = [
 ];
 
 export const PLAN_TAGLINES: Record<PlanTier, string> = {
-  essential: "12 assistentes · limite diário de conversa",
+  essential: "12 assistentes · agenda completa · limite diário de conversa",
   connection: "Seu assistente no dia a dia",
-  premium: "Mais conversa, voz e agenda",
+  premium: "Mais conversa e voz",
   total: "Uso intenso, quase sem limites",
-  enterprise: "Equipes, agenda compartilhada e uso profissional",
+  enterprise: "Equipes e uso profissional",
 };
 
 export function formatBrl(price: number): string {
@@ -89,9 +89,7 @@ export function planFeatureLines(plan: PlanCatalogItem): string[] {
       : `${lim.daily_tts_replies} respostas em áudio/dia`,
     formatCap(lim.max_agenda_items, "hábitos na agenda"),
     formatCap(lim.max_reminders, "lembretes"),
+    "Agenda compartilhada e Entre Nós",
     speeds,
-    ...(plan.tier === "total" || plan.tier === "enterprise"
-      ? ["Até 10 agendas compartilhadas", "Até 100 pessoas por agenda"]
-      : []),
   ];
 }

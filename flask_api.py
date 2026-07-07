@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-06-pausa-livre-todos",
+        "api_build": "2026-07-07-agenda-livre-audio-1x",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),

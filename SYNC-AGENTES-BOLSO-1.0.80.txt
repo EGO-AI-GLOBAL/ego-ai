@@ -1,0 +1,12 @@
+AGENTE EGO DE BOLSO / PAUSA — 1.0.80
+====================================
+Estado: ✅ PRONTO
+
+Zona Bolso/PAUSA:
+• PausaEgoScreen — cartão «20 técnicas» visível (headline, não upgrade_hint)
+• PausaEgoScreen — link CVV 188 no SOS
+• ego_api/pausa_exercises.py — copy «Grátis em todos os planos»
+
+NÃO mexido: Monstrinhos UI · IAP · voz · auth core
+
+GIT Bolso: (commit release 1.0.80)

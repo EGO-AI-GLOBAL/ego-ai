@@ -10,8 +10,8 @@ echo ============================================================
 echo.
 echo  app.config.ts version = "1.0.80" · iOS 78 · Android 125
 echo.
-echo  Sem deploy API obrigatório (só UI jardim).
-echo  PAUSA EGO / IAP — não mexer; já está na 1.0.79.
+echo  API: agenda livre + audio 1x + PAUSA copy (deploy com push).
+echo  Android: eas.json track alpha = teste FECHADO.
 echo.
 
 call _ego_run_python.bat scripts\onboarding_guard.py

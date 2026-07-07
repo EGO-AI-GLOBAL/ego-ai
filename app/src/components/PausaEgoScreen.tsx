@@ -2,7 +2,7 @@ import { router } from "expo-router";
 
 import React from "react";
 
-import { Pressable, Share, StyleSheet, Text, View } from "react-native";
+import { Linking, Pressable, Share, StyleSheet, Text, View } from "react-native";
 
 import type { PausaEgoInfo } from "@/api/types";
 
@@ -125,7 +125,7 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
 
 
 
-      {benefit?.upgrade_hint?.trim() ? (
+      {benefit?.headline?.trim() ? (
 
         <View style={[styles.planCard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
 
@@ -133,7 +133,7 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
 
           <Text style={[styles.planDetail, { color: colors.textMuted }]}>{benefit.detail}</Text>
 
-          {benefit.upgrade_hint ? (
+          {benefit.upgrade_hint?.trim() ? (
 
             <Pressable onPress={() => router.push("/(main)/plans")}>
 
@@ -224,6 +224,17 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
           SOS — respiração guiada + conversa no chat
 
         </Text>
+
+        <Pressable
+          onPress={() => void Linking.openURL("tel:188")}
+          accessibilityRole="link"
+          style={styles.cvvLink}
+        >
+          <Text style={[styles.cvvText, { color: colors.textMuted }]}>
+            Em crise grave? Ligue{" "}
+            <Text style={{ color: colors.primary, fontWeight: "800" }}>188 (CVV)</Text> — 24h, gratuito
+          </Text>
+        </Pressable>
 
       </Pressable>
 
@@ -378,6 +389,10 @@ const styles = StyleSheet.create({
   sosBtnText: { fontWeight: "900", fontSize: 16 },
 
   sosHint: { fontSize: 12, marginTop: 4, lineHeight: 16 },
+
+  cvvLink: { marginTop: 8 },
+
+  cvvText: { fontSize: 11, lineHeight: 15 },
 
   shareBtn: {
 

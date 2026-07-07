@@ -1,0 +1,20 @@
+SYNC MESTRE — RELEASE 1.0.80
+============================
+Data: 07/07/2026
+
+| Agente      | Ficheiro                              | Estado     |
+|-------------|---------------------------------------|------------|
+| Monstrinhos | SYNC-AGENTES-MONSTRINHOS-1.0.80.txt | ✅ PRONTO  |
+| Bolso/PAUSA | SYNC-AGENTES-BOLSO-1.0.80.txt         | ✅ PRONTO  |
+| API         | SYNC-AGENTES-API-1.0.80.txt           | ✅ PRONTO  |
+| Marketing   | marketing/NOTAS-1.0.80-*.txt          | ✅ PRONTO  |
+
+Build: 1.0.80 · iOS 78 · Android 125
+Android submit: track **alpha** (= teste fechado)
+Link testadores: https://play.google.com/apps/testing/com.egoai.app
+
+Ordem: FAZ-TUDO-1.0.80.bat
+  → Railway vars RAILWAY-VARS-1.0.80.txt
+  → GERAR → AGUARDAR-E-SUBMETER
+
+iOS: TestFlight (1.0.79 ainda em revisão na App Store — não substituir sem decisão)
