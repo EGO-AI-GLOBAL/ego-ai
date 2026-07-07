@@ -1,0 +1,48 @@
+{
+  "version": "1.0.49",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-1.0.34",
+  "output": "marketing/videos/app-real/ego-ai-3h-solidao-reels.mp4",
+  "post_file": "marketing/POST-REEL-6.txt",
+  "voice_rate": "+30%",
+  "audio_pad": 0.02,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 58,
+  "title_font_boost": 1.18,
+  "photo_width_ratio": 0.82,
+  "top_bar_h": 300,
+  "bottom_reserve": 260,
+  "badge_text": "3h 🌙",
+  "post": {
+    "title": "3h da manhã e ninguém online pra ouvir? 🌙",
+    "description": "3h da manhã.\n\nFeed não resolve. Zap incomoda. Amiga dorme.\n\nAbri um app só pra desabafar — sem julgar. Com voz ou texto.\n\n✅ 20 dias grátis · sem cartão\n✅ Manda \"oi\" e fala o que tá na cabeça\n\n👇\n\nhttps://egoai.com.br\n\n#egoai #saúdemental #solidão #desabafo #noite",
+    "hashtags": ["#egoai", "#saúdemental", "#solidão", "#desabafo", "#noite"],
+    "pinned_comment": "🌙 3h e a cabeça não para?\n\n20 dias grátis · sem cartão\n1) Abre o link\n2) Cadastro\n3) Manda \"oi\" — por voz ou texto\n\nhttps://egoai.com.br",
+    "metric_target": "Cadastro + manda oi no chat · orgânico primeiro · dor solidão (não agenda)"
+  },
+  "scenes": [
+    {
+      "photo": "02-chat-texto.png",
+      "lines": [["3h DA MANHÃ", 62, true], ["ninguém online 🌙", 50, false]],
+      "darken": 0.18, "center": true, "badge": true, "accent": 1,
+      "voice": "Três da manhã. Ninguém online pra ouvir."
+    },
+    {
+      "photo": "04-desabafo-gravando.png",
+      "lines": [["desabafa", 58, true], ["sem julgar", 52, true]],
+      "darken": 0.1, "accent": 1,
+      "voice": "Você desabafa. Sem ninguém julgar."
+    },
+    {
+      "photo": "03-chat-voz.png",
+      "lines": [["com VOZ", 56, true], ["ou texto 💬", 50, false]],
+      "voice": "Por voz ou por texto. Ela responde."
+    },
+    {
+      "photo": "01-capa-luna.png",
+      "lines": [["20 dias", 60, true], ["manda OI 👇", 48, false]],
+      "darken": 0.08, "center": true, "accent": 0,
+      "voice": "Vinte dias grátis. Manda oi."
+    }
+  ]
+}

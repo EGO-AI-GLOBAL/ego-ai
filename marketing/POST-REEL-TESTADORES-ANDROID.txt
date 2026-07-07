@@ -1,0 +1,49 @@
+POST — Reels/TikTok · EGO-AI 1.0.48
+=======================================================
+
+ARQUIVO DO VÍDEO
+----------------
+marketing\videos\app-real\ego-ai-testadores-android-reels.mp4
+
+TÍTULO DO REEL
+--------------
+Quem tem Android — 5 minutos? 🙏 Teste grátis EGO-AI
+
+LEGENDA (copiar no post)
+------------------------
+Quem tem ANDROID — me ajuda com 5 minutos? 🙏
+
+EGO-AI: assistente com IA (chat + voz + agenda).
+
+Como testar:
+1️⃣ Link abaixo → Tornar-se testador
+2️⃣ Instalar na Play Store
+3️⃣ Criar conta
+4️⃣ Escrever "oi" no chat
+
+🤖 Só Android (teste fechado):
+https://play.google.com/apps/testing/com.egoai.app
+
+Obrigado! 💜
+
+#egoai #android #teste #organização #ia
+
+#egoai #android #teste #organização #ia
+
+COMENTÁRIO FIXADO
+-----------------
+🤖 ANDROID — teste grátis (5 min):
+
+1) Tocar no link
+2) Participar do teste → Instalar
+3) Cadastro → chat → escrever "oi"
+
+https://play.google.com/apps/testing/com.egoai.app
+
+CAPCUT (opcional)
+-----------------
+Importar o MP4 → Áudio → música motivacional 12–15% → exportar 1080p → postar
+
+MÉTRICA ALVO
+------------
+Cliques no link Play · cadastros · "oi" no chat

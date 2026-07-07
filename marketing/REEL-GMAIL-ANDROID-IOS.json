@@ -1,0 +1,63 @@
+﻿{
+  "version": "1.0.52",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-1.0.34",
+  "output": "marketing/videos/app-real/ego-ai-gmail-android-ios-reels.mp4",
+  "post_file": "marketing/POST-REEL-GMAIL-ANDROID-IOS.txt",
+  "voice_rate": "+24%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.1,
+  "photo_width_ratio": 0.84,
+  "top_bar_h": 300,
+  "bottom_reserve": 240,
+  "badge_text": "TESTE GRÁTIS",
+  "post": {
+    "title": "Teste o EGO-AI grátis — Android manda Gmail · iPhone link direto",
+    "description": "Quer testar o EGO-AI? 🙏 100% grátis · sem cartão\n\n🤖 ANDROID — manda teu GMAIL aqui embaixo ou no DM:\n(o e-mail da Conta Google da Play Store)\nEu libero na Play em 1–2 h → mando o link.\n\n📱 IPHONE — entra sozinho pelo TestFlight:\nhttps://apps.apple.com/app/id6780595396\n(instala o app TestFlight antes)\n\nDepois de instalar:\ncadastro → escolhe Luna → manda «oi» no chat 💜\n\n#egoai #android #iphone #testflight #ia #assistente",
+    "hashtags": ["#egoai", "#android", "#iphone", "#testflight", "#ia"],
+    "pinned_comment": "🤖 ANDROID → comenta teu GMAIL (Play Store)\n📱 IPHONE → TestFlight:\nhttps://apps.apple.com/app/id6780595396\n\n100% grátis · sem cartão · obrigado 🙏",
+    "metric_target": "Gmail recebidos (Android) · opt-in Play · cadastro · oi no chat · TestFlight installs (iOS)"
+  },
+  "scenes": [
+    {
+      "photo": "01-capa-luna.png",
+      "lines": [["TESTE O", 56, true], ["EGO-AI GRÁTIS 🙏", 52, true]],
+      "darken": 0.14,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Quer testar o EGO-AI de graça? Me ajuda cinco minutos."
+    },
+    {
+      "photo": "02-chat-texto.png",
+      "lines": [["ANDROID?", 58, true], ["Manda teu GMAIL 📧", 50, true]],
+      "darken": 0.12,
+      "center": true,
+      "accent": 1,
+      "voice": "Android? Comenta teu Gmail aqui embaixo. Eu libero na Play Store."
+    },
+    {
+      "photo": "03-chat-voz.png",
+      "lines": [["IPHONE?", 58, true], ["Link na legenda 📱", 48, true]],
+      "darken": 0.1,
+      "center": true,
+      "accent": 0,
+      "voice": "iPhone? O link do TestFlight está na legenda. Entra sozinho."
+    },
+    {
+      "photo": "05-desabafo-agenda-agendar.png",
+      "lines": [["chat + voz", 50, true], ["+ agenda ✓", 48, false]],
+      "voice": "Chat, voz e agenda. Tudo em português."
+    },
+    {
+      "photo": "06-agenda-pessoal.png",
+      "lines": [["cadastro + Luna", 50, true], ["manda oi no chat", 48, true]],
+      "darken": 0.1,
+      "center": true,
+      "accent": 0,
+      "voice": "Instala, cadastra, escolhe a Luna e manda oi no chat. Obrigado."
+    }
+  ]
+}

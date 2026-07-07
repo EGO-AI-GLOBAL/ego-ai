@@ -1,0 +1,44 @@
+﻿EGO-AI — WhatsApp grupo testadores · 06/07/2026 (pós-jogo)
+==========================================================
+
+COPIAR E COLAR NO GRUPO
+-----------------------
+
+Oi, tudo bem? 🙏
+
+Ontem foi aquele jogo… e hoje o humor pode estar meio baixo mesmo — normal.
+
+Se bater aquela sensação de «droga, perdi o dia» ou vontade de desabafar no Zap: no EGO-AI tem a **PAUSA EGO** (1 min, olhos abertos — dá no sofá ou no trabalho).
+
+🎭 Pausa ligada ao seu humor (Monstrinhos)
+🆘 Botão **«Estou mal agora»** → respiração + chat
+
+Não precisa ser todo dia — mas se abrir **2–3× esta semana** já ajuda muito no teste da Play (estamos no **dia 5/14** rumo à loja pública).
+
+Pergunta rápida: depois de um dia pesado assim, você costuma **desabafar com alguém** ou prefere ficar quieto? (1 frase já vale)
+
+Bug ou travou: print + modelo do celular.
+
+Android: https://play.google.com/apps/testing/com.egoai.app
+iPhone: https://apps.apple.com/app/id6780595396
+
+Valeu demais 💜
+
+---
+
+VERSÃO MAIS CURTA (se o grupo já recebeu msg hoje)
+--------------------------------------------------
+
+Oi, tudo bem? Ontem foi difícil pro coração brasileiro 😅
+
+Se o humor estiver ruim hoje: abre o EGO-AI → **PAUSA EGO** (1 min) ou **«Estou mal agora»** (SOS).
+
+Ajuda no teste Play (5/14) se puder usar 1× esta semana. Print se travar. Valeu! 💜
+
+---
+
+NOTAS (não enviar)
+------------------
+• Tom: «Oi, tudo bem» — sem «amigo»
+• Não citar placar/time — evita briga no grupo
+• Play Console 06/07: 12 testadores · 5/14 dias contínuos ✅

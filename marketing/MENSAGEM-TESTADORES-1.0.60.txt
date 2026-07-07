@@ -1,7 +1,7 @@
-EGO-AI 1.0.60 — mensagem WhatsApp / grupo testadores
+﻿EGO-AI 1.0.60 — mensagem WhatsApp / grupo testadores
 ======================================================
 
-ENVIAR DEPOIS da build 1.0.60 no TestFlight + Play (iOS 47 · Android 99)
+ENVIAR DEPOIS da build 1.0.60 no TestFlight + Play (iOS 49 · Android 99)
 
 ---
 
@@ -14,7 +14,7 @@ Novidades:
 • **Reset senha:** e-mail **Ego-IA** (contato@egoai.com.br) — olhem spam/lixo
 • **Jardim (59):** loja 34 itens + missões com **surpresa do dia**
 
-📲 **iPhone:** TestFlight → **1.0.60 (build 47)**
+📲 **iPhone:** TestFlight → **1.0.60 (build 49)**
 🤖 **Android:** Play teste fechado → **1.0.60 (99)**
    (Android: se não abrir, manda teu **Gmail** que eu libero na lista)
 
@@ -28,5 +28,5 @@ Se falhar, mandem print com a versão.
 
 Obrigado! 💜
 
-iPhone: https://testflight.apple.com/join/eNDKdFWF
+iPhone: https://apps.apple.com/app/id6780595396
 Android: https://play.google.com/apps/testing/com.egoai.app

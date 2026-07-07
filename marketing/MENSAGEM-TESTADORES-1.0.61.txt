@@ -1,4 +1,4 @@
-EGO-AI 1.0.61 — mensagem WhatsApp / grupo testadores
+﻿EGO-AI 1.0.61 — mensagem WhatsApp / grupo testadores
 ======================================================
 
 ENVIAR DEPOIS da build 1.0.61 no TestFlight + Play (iOS 50 · Android 100)
@@ -32,5 +32,5 @@ Se falhar, mandem print com a **versão** no canto.
 
 Obrigado! 💜
 
-iPhone: https://testflight.apple.com/join/eNDKdFWF
+iPhone: https://apps.apple.com/app/id6780595396
 Android: https://play.google.com/apps/testing/com.egoai.app

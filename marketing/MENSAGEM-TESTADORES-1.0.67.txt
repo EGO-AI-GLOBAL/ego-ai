@@ -1,4 +1,4 @@
-EGO-AI 1.0.67 — VOZ CORRIGIDA
+﻿EGO-AI 1.0.67 — VOZ CORRIGIDA
 ==============================
 
 Atualize e teste a VOZ:
@@ -6,6 +6,6 @@ Atualize e teste a VOZ:
 • O avatar deve responder em áudio
 
 Android: https://play.google.com/apps/testing/com.egoai.app
-iPhone: https://testflight.apple.com/join/eNDKdFWF
+iPhone: https://apps.apple.com/app/id6780595396
 
 Mande print se falhar. Obrigado!

@@ -1,4 +1,4 @@
-EGO-AI 1.0.64 — nota para testadores
+﻿EGO-AI 1.0.64 — nota para testadores
 ======================================
 
 Olá! Correção da **voz** (iPhone e Android).
@@ -12,6 +12,6 @@ O que mudou vs 1.0.63: voltámos ao fluxo que já funcionava + trava no envio.
 
 Como atualizar
 • Android: https://play.google.com/apps/testing/com.egoai.app
-• iPhone TestFlight: https://testflight.apple.com/join/eNDKdFWF
+• iPhone TestFlight: https://apps.apple.com/app/id6780595396
 
 Obrigado!

@@ -1,0 +1,55 @@
+﻿{
+  "version": "1.0.79",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-PAUSA-EGO",
+  "output": "marketing/videos/app-real/ego-ai-pausa-respira-reels.mp4",
+  "post_file": "marketing/POST-REEL-PAUSA-RESPIRA.txt",
+  "voice_rate": "+24%",
+  "audio_pad": 0.05,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.86,
+  "top_bar_h": 280,
+  "bottom_reserve": 200,
+  "badge_text": "60s",
+  "post": {
+    "title": "Ansiedade não precisa de 1 hora de meditação 🌬️",
+    "description": "Coração acelerado. Mil pensamentos.\n\n60 segundos. PAUSA. Luna guia a respiração.\n\nNão substitui terapia — é um respiro quando o dia aperta.\n\n✅ 20 dias grátis · sem cartão\n🤖 Android: GMAIL no PRIVADO (DM)\n📱 iPhone: https://apps.apple.com/app/id6780595396\n\n#egoai #respiracao #ansiedade #calma #autocuidado #saúdemental",
+    "hashtags": ["#egoai", "#respiracao", "#ansiedade", "#calma", "#autocuidado", "#saúdemental"],
+    "pinned_comment": "🌬️ 60 segundos. Só isso.\n\nGMAIL no PRIVADO (DM) — Android grátis\n🍎 iPhone: https://apps.apple.com/app/id6780595396"
+  },
+  "scenes": [
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["ANTES", 58, true], ["coração acelerado 💓", 46, false]],
+      "darken": 0.14,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Coração acelerado. Mil pensamentos na cabeça."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["DEPOIS", 58, true], ["60 segundos 🌬️", 48, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Sessenta segundos. PAUSA EGO. Respira com a Luna."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["Não é terapia", 52, true], ["é um respiro", 48, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Não substitui terapia. É um respiro quando aperta."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["20 dias grátis", 52, true], ["testa hoje 👇", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Vinte dias grátis. Testa quando precisar."
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+EGO-AI — LANÇAMENTO APP STORE · 07/07/2026
+============================================
+
+iOS NA LOJA PÚBLICA ✅
+----------------------
+https://apps.apple.com/app/id6780595396
+
+Android (teste fechado — ainda não produção)
+--------------------------------------------
+https://play.google.com/apps/testing/com.egoai.app
+(Gmail no DM para liberar na lista)
+
+Site · Planos
+-------------
+https://egoai.com.br
+https://egoai.com.br/planos
+
+---
+
+WHATSAPP — GRUPO TESTADORES
+---------------------------
+
+Oi, tudo bem? 🎉
+
+**EGO-AI agora está na App Store** (iPhone) — loja pública, não precisa mais de TestFlight!
+
+🍎 Baixar: https://apps.apple.com/app/id6780595396
+
+O que tem de novo:
+🎭 Monstrinhos — humor primeiro
+🌬️ PAUSA EGO — 1 min + SOS (CVV 188)
+📅 Agenda liberada no plano grátis
+
+🤖 Android: continua no teste fechado Play (link do grupo) — produção em ~8 dias (6/14 hoje).
+
+Se puder: atualiza no iPhone pela App Store e manda se algo travou (print + modelo).
+
+Valeu demais por chegar até aqui 💜
+
+---
+
+WHATSAPP — INDIVIDUAL (quem só tem iPhone)
+------------------------------------------
+
+Oi, tudo bem?
+
+Lançamos o EGO-AI na **App Store** hoje 🎉
+
+Baixa direto (grátis, 20 dias):
+https://apps.apple.com/app/id6780595396
+
+Cadastro → escolhe Luna ou Leo → manda «oi».
+
+Qualquer bug: print + modelo do iPhone. Obrigado!
+
+---
+
+NOTAS INTERNAS
+--------------
+• Pedir API: EGO_TESTFLIGHT_URL=https://apps.apple.com/app/id6780595396
+• Play 14 dias: 6/14 em 07/07 — Android ainda teste fechado
+• Não misturar «produção Android» até botão verde Play

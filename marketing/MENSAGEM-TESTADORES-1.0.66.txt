@@ -1,4 +1,4 @@
-EGO-AI 1.0.66 — atualize e teste
+﻿EGO-AI 1.0.66 — atualize e teste
 =================================
 
 Olá! Nova versão 1.0.66 no ar — foco na VOZ.
@@ -16,6 +16,6 @@ Olá! Nova versão 1.0.66 no ar — foco na VOZ.
 
 Como atualizar
 • Android: https://play.google.com/apps/testing/com.egoai.app
-• iPhone TestFlight: https://testflight.apple.com/join/eNDKdFWF
+• iPhone TestFlight: https://apps.apple.com/app/id6780595396
 
 Se algo falhar, mande print. Obrigado!

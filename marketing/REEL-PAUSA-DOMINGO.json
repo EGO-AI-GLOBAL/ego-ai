@@ -1,0 +1,55 @@
+﻿{
+  "version": "1.0.79",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-PAUSA-EGO",
+  "output": "marketing/videos/app-real/ego-ai-pausa-domingo-reels.mp4",
+  "post_file": "marketing/POST-REEL-PAUSA-DOMINGO.txt",
+  "voice_rate": "+24%",
+  "audio_pad": 0.05,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.86,
+  "top_bar_h": 280,
+  "bottom_reserve": 200,
+  "badge_text": "DOMINGO",
+  "post": {
+    "title": "Domingo à noite bate diferente — PAUSA EGO 💜",
+    "description": "Domingo à noite.\n\nNão precisa incomodar ninguém no Zap.\n\nPAUSA de 1 min + Luna que pergunta «como foi teu dia?»\n\nSolidão não é falta de gente — é falta de conexão.\n\n✅ 20 dias grátis · sem cartão\n🤖 Android: GMAIL no PRIVADO (DM)\n📱 iPhone: https://apps.apple.com/app/id6780595396\n\n#egoai #solidão #domingo #ansiedade #companhia #saúdemental",
+    "hashtags": ["#egoai", "#solidão", "#domingo", "#ansiedade", "#companhia", "#saúdemental"],
+    "pinned_comment": "💜 Domingo pesado?\n\nManda GMAIL no PRIVADO (DM) — Android\nPAUSA 1 min + chat sem julgar\n\n🍎 iPhone: https://apps.apple.com/app/id6780595396"
+  },
+  "scenes": [
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["DOMINGO À NOITE", 56, true], ["bate diferente 🌙", 46, false]],
+      "darken": 0.14,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Domingo à noite bate diferente."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["Sem incomodar", 54, true], ["ninguém no Zap", 46, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Não precisa incomodar ninguém no Zap."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["PAUSA 1 min", 56, true], ["+ Luna ouve 💬", 48, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "PAUSA de um minuto. Depois desabafa no chat."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["20 dias grátis", 52, true], ["manda OI 👇", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Vinte dias grátis. Testa esse domingo."
+    }
+  ]
+}

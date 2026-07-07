@@ -1,0 +1,131 @@
+﻿PAUSA EGO — ROTEIROS VÍDEO (CapCut / Reels / TikTok)
+=====================================================
+Para: Marketing · Foco: ansiedade leve/média (ver PUBLICO-ALVO-PAUSA-EGO.md)
+Fila com datas: marketing/FILA-VIDEOS-PAUSA-EGO.txt
+Produto: PAUSA EGO (1 min stress/ansiedade + avatar)
+Links teste:
+  Android: https://play.google.com/apps/testing/com.egoai.app
+  iPhone:  https://apps.apple.com/app/id6780595396
+
+────────────────────────────────────────────────────────────
+REEL 1 · 15s · POV ANSIEDADE (prioridade VIRAL)
+────────────────────────────────────────────────────────────
+HOOK tela (0–2s): "POV: são 3h e a ansiedade não deixa dormir"
+VISUAL: mão no telemóvel, quarto escuro, texto grande
+(2–8s): "Abri o EGO-AI → PAUSA → 60 segundos com a Luna"
+VISUAL: gravação ecrã respiração OU mock card roxo PAUSA
+(8–13s): voz Luna TTS ou legenda: "Inspire… expire… estou aqui"
+(13–15s): "Link na bio · teste grátis"
+CTA comentário fixado: links Android + iPhone
+
+LEGENDA:
+3h da manhã e o peito aperta? 💜
+PAUSA EGO: 60s guiados pela Luna — respirar, ancorar, voltar ao agora.
+Monstrinhos do humor + avatar que ouve.
+Teste grátis 👆 bio
+
+#ansiedade #pov #egoai #stress #respirar #insônia #saudemental
+
+────────────────────────────────────────────────────────────
+REEL 2 · 30s · DEMO RESPIRAR 60s
+────────────────────────────────────────────────────────────
+0–3s: "Ansiedade não precisa de 1 hora de meditação"
+3–10s: Mostrar botão "Estou mal agora" → círculo respiração
+10–22s: Timer 60s acelerado (time-lapse) + frases na tela:
+       Inspire 4… Segure 4… Expire 4…
+22–27s: 🔥 Sequência 7 dias — "1 Momento por dia"
+27–30s: "EGO-AI · link na bio"
+
+LEGENDA:
+Só 2 minutos. Respiração guiada pela voz do teu avatar 🌬️
+PAUSA EGO — alívio de stress sem app complicado.
+Teste fechado grátis (Android + iPhone).
+
+#egoai #respiracao #ansiedade #autocuidado #calma
+
+────────────────────────────────────────────────────────────
+REEL 3 · 30s · SOLIDÃO / DOMINGO
+────────────────────────────────────────────────────────────
+0–4s: "Domingo à noite bate diferente"
+4–12s: "Não precisas de incomodar ninguém"
+12–22s: Chat com Luna — "Como foi teu dia?" (ecrã real chat)
+22–28s: "PAUSA + Monstrinhos + voz · tudo num app"
+28–30s: link bio
+
+LEGENDA:
+Solidão não é falta de gente — é falta de conexão 💬
+Luna ouve. PAUSA acalma. Monstrinhos registam teu humor.
+EGO-AI — o amigo que não te abandona.
+
+#solidão #egoai #domingo #ansiedade #companhia
+
+────────────────────────────────────────────────────────────
+REEL 4 · 15s · APP COMPLETO (3 em 1)
+────────────────────────────────────────────────────────────
+Corte rápido 3 blocos 5s cada:
+1) Monstrinhos — emoji humor
+2) PAUSA — respirar 60s
+3) Chat — avatar fala
+Texto overlay: "Humor · Alívio · Companhia"
+Final: logo EGO-AI + link
+
+LEGENDA:
+Não é só chat. Não é só meditação.
+Monstrinhos + PAUSA + Luna/Leo 💜
+Teste grátis na bio.
+
+#egoai #bemestar #app #mentalhealth
+
+────────────────────────────────────────────────────────────
+REEL 5 · 25s · INFLUENCER (#MeuNovoAmigo)
+────────────────────────────────────────────────────────────
+Roteiro creator (falar para câmara):
+"Testei um app quando a ansiedade aperta — PAUSA de 1 minuto
+ com voz de IA, parece gente. Depois ainda desabafa no chat.
+ Link na bio, começo grátis 20 dias."
+
+OBRIGATÓRIO legenda: @egoai #MeuNovoAmigo #egoai
+Brief completo: marketing/influencers/CAMPANHA_MEU_NOVO_AMIGO.md
+
+────────────────────────────────────────────────────────────
+REEL 6 · 15s · ANTES/DEPOIS (sem exagerar)
+────────────────────────────────────────────────────────────
+ANTES texto: "Coração acelerado · mil pensamentos"
+DEPOIS texto: "60 segundos · PAUSA · Luna"
+Sem claim médico. Só sensação.
+
+────────────────────────────────────────────────────────────
+STORIES · 3 frames
+────────────────────────────────────────────────────────────
+Frame 1: "Fiz minha PAUSA hoje? 🔥 5 dias seguidos"
+Frame 2: screenshot card PAUSA ou Monstrinhos
+Frame 3: "Testa tu → link sticker"
+
+────────────────────────────────────────────────────────────
+ANÚNCIOS META (2 variantes A/B)
+────────────────────────────────────────────────────────────
+A) Primary text: "Ansiedade à noite? 60 segundos com a Luna."
+   Headline: PAUSA EGO — teste grátis
+   Creative: Reel 1
+
+B) Primary text: "Respira. Ancora. Volta ao agora. 2 min/dia."
+   Headline: EGO-AI · Monstrinhos + PAUSA
+   Creative: Reel 2
+
+────────────────────────────────────────────────────────────
+CRONOGRAMA SUGERIDO
+────────────────────────────────────────────────────────────
+Semana 1 (ANTES build PAUSA): Reels 1, 3, 5 — POV + chat (já existe)
+Semana 2 (DEPOIS build PAUSA): Reels 2, 4, 6 — ecrã real PAUSA
+Semana 3: Repost melhor performer + Stories sequência 🔥
+Semana 4: 1 influencer + Meta ads A/B
+
+────────────────────────────────────────────────────────────
+MÉTRICAS — o que medir
+────────────────────────────────────────────────────────────
+- Views / saves / shares por Reel
+- Comentários "link?" = hook funcionou
+- Installs dia pós-publicação (Play Console / TestFlight)
+- Comparar Reel POV ansiedade vs Reel Jornada/Bolso antigo (se existir)
+
+Meta 90 dias: +20–40% installs orgânicos vs trimestre anterior (com posting 2–3x/semana)

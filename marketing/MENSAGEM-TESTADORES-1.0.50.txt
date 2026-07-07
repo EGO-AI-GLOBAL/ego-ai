@@ -1,4 +1,4 @@
-EGO-AI 1.0.50 — mensagem WhatsApp / grupo testadores
+﻿EGO-AI 1.0.50 — mensagem WhatsApp / grupo testadores
 ======================================================
 
 ENVIAR DEPOIS da build 1.0.50 estar na loja (TestFlight + Play teste fechado)
@@ -36,5 +36,5 @@ Checklist completo: marketing/VALIDAR-1.0.50.txt
 LINKS
 -----
 Site: https://egoai.com.br
-iPhone: https://testflight.apple.com/join/eNDKdFWF
+iPhone: https://apps.apple.com/app/id6780595396
 Android: https://play.google.com/apps/testing/com.egoai.app

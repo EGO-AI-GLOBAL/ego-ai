@@ -1,4 +1,4 @@
-POST — Reels/TikTok · EGO-AI 1.0.42
+﻿POST — Reels/TikTok · EGO-AI 1.0.42
 =======================================================
 
 ARQUIVO DO VÍDEO
@@ -24,7 +24,7 @@ Teste GRÁTIS 👇
 https://play.google.com/apps/testing/com.egoai.app
 
 🍎 iPhone:
-https://testflight.apple.com/join/eNDKdFWF
+https://apps.apple.com/app/id6780595396
 
 #egoai #finch #ansiedade #rotina #appbrasileiro
 
@@ -36,7 +36,7 @@ COMENTÁRIO FIXADO
 https://play.google.com/apps/testing/com.egoai.app
 
 🍎 iPhone:
-https://testflight.apple.com/join/eNDKdFWF
+https://apps.apple.com/app/id6780595396
 
 CAPCUT (opcional)
 -----------------

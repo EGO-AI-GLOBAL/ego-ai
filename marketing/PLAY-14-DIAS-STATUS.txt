@@ -1,0 +1,43 @@
+EGO-AI — Play teste fechado · contagem 14 dias
+===============================================
+Atualizado: 07/07/2026
+
+PLAY CONSOLE (hoje)
+-------------------
+✅ 12 testadores opt-in
+✅ 12 participando continuamente há **6 dias**
+⏳ Faltam **8 dias** para liberar «Solicitar produção»
+🎯 Meta botão verde: ~**14–15/07/2026** (se ninguém sair da lista)
+
+REGRA GOOGLE
+------------
+• Mínimo **12** testadores no fechado
+• **14 dias seguidos** com os 12 participando
+• Conta só o **teste fechado** (não interno aberto)
+• **Não remover** ninguém da lista durante os 14 dias
+• Um opt-out zera o streak — evitar
+
+O QUE FAZER AGORA
+-----------------
+[ ] Anunciar App Store — MENSAGEM-LANCAMENTO-APP-STORE-07-07.txt
+[ ] Post POST-LANCAMENTO-APP-STORE.txt (Reels/Stories)
+[ ] Manter os 12 na lista Android (6/14 — faltam 8 dias)
+[ ] Pedir API: EGO_TESTFLIGHT_URL=https://apps.apple.com/app/id6780595396
+
+PRÓXIMA MSG GRUPO (07/07)
+-------------------------
+marketing/MENSAGEM-TESTADORES-07-07.txt
+
+LINHA DO TEMPO (estimada)
+-------------------------
+Dia  Play   Data
+ 5   ✅     06/07
+ 6   ✅     07/07  ← hoje
+ 7          08/07  «quase metade»
+10          11/07
+14          14/07  → solicitar produção (estim.)
+
+Histórico
+---------
+06/07 — 5/14
+07/07 — 6/14

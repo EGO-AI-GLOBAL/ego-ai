@@ -1,0 +1,55 @@
+{
+  "version": "1.0.48",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-1.0.34",
+  "output": "marketing/videos/app-real/ego-ai-testadores-android-reels.mp4",
+  "post_file": "marketing/POST-REEL-TESTADORES-ANDROID.txt",
+  "voice_rate": "+26%",
+  "audio_pad": 0.04,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 58,
+  "title_font_boost": 1.12,
+  "photo_width_ratio": 0.84,
+  "top_bar_h": 300,
+  "bottom_reserve": 220,
+  "badge_text": "ANDROID",
+  "post": {
+    "title": "Quem tem Android — 5 minutos? 🙏 Teste grátis EGO-AI",
+    "description": "Quem tem ANDROID — me ajuda com 5 minutos? 🙏\n\nEGO-AI: assistente com IA (chat + voz + agenda).\n\nComo testar:\n1️⃣ Link abaixo → Tornar-se testador\n2️⃣ Instalar na Play Store\n3️⃣ Criar conta\n4️⃣ Escrever \"oi\" no chat\n\n🤖 Só Android (teste fechado):\nhttps://play.google.com/apps/testing/com.egoai.app\n\nObrigado! 💜\n\n#egoai #android #teste #organização #ia",
+    "hashtags": ["#egoai", "#android", "#teste", "#organização", "#ia"],
+    "pinned_comment": "🤖 ANDROID — teste grátis (5 min):\n\n1) Tocar no link\n2) Participar do teste → Instalar\n3) Cadastro → chat → escrever \"oi\"\n\nhttps://play.google.com/apps/testing/com.egoai.app",
+    "metric_target": "Cliques no link Play · cadastros · \"oi\" no chat"
+  },
+  "scenes": [
+    {
+      "photo": "01-capa-luna.png",
+      "lines": [["QUEM TEM", 58, true], ["ANDROID? 🙏", 64, true]],
+      "darken": 0.12,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Quem tem Android? Me ajuda cinco minutos."
+    },
+    {
+      "photo": "02-chat-texto.png",
+      "lines": [["CADASTRO", 56, true], ["+ \"oi\" no chat", 52, true]],
+      "darken": 0.1,
+      "center": true,
+      "accent": 1,
+      "voice": "Instala, cria conta e manda oi no chat."
+    },
+    {
+      "photo": "05-desabafo-agenda-agendar.png",
+      "lines": [["desabafo à noite", 50, true], ["agenda de manhã ✓", 48, false]],
+      "voice": "Desabafo de noite. Agenda de manhã."
+    },
+    {
+      "photo": "06-agenda-pessoal.png",
+      "lines": [["TESTE GRÁTIS", 56, true], ["link na legenda 👇", 44, false]],
+      "darken": 0.1,
+      "center": true,
+      "accent": 0,
+      "voice": "Teste grátis Android. Link na legenda."
+    }
+  ]
+}

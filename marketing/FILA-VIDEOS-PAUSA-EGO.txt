@@ -1,0 +1,34 @@
+EGO-AI — Fila de vídeos PAUSA EGO (foco ansiedade leve/média)
+==============================================================
+Público: mulher 25–44 · respiro sem terapia · ver PUBLICO-ALVO-PAUSA-EGO.md
+Regra: 1 hook por vídeo · 2–3 posts/semana · Gmail no DM (Android)
+
+LEGENDA
+-------
+[x] 06/07 — Reel humor + Monstrinhos     GERAR-REEL-PAUSA-EGO.bat  ← postado
+[ ] 07/07 — POV 3h insônia               GERAR-REEL-PAUSA-3H.bat  ← POSTAR HOJE
+[ ] 10/07 — Fila / trabalho / ônibus     GERAR-REEL-PAUSA-FILA.bat
+[ ] 13/07 — Domingo + PAUSA              GERAR-REEL-PAUSA-DOMINGO.bat
+[ ] 15/07 — Antes/depois 60s             GERAR-REEL-PAUSA-RESPIRA.bat
+[ ] 17/07 — Repost melhor performer
+[ ] 20/07 — Stories sequência 🔥 (manual CapCut)
+
+PAUSAR (não é foco agora)
+-------------------------
+• Reels agenda / «viu no Zap» / carga mental mãe — público 35–54, reativar só com ads
+• EGO de Bolso / Tamagotchi / nível 500 — não usar em Reels
+
+GERAR TODOS DE UMA VEZ
+----------------------
+GERAR-TODOS-REELS-PAUSA.bat
+
+MÉTRICAS (comparar semana a semana)
+-----------------------------------
+• Saves + shares (ansiedade POV costuma salvar mais)
+• DMs com Gmail
+• «link?» nos comentários
+• Installs Play / TestFlight 24–48h pós-post
+
+META 30 DIAS
+------------
+6–8 Reels PAUSA · 1 repost · zero vídeo fora do ICP ansiedade

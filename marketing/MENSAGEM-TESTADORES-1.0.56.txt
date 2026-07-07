@@ -1,0 +1,50 @@
+﻿EGO-AI 1.0.56 — mensagem WhatsApp / grupo testadores
+======================================================
+
+ENVIAR DEPOIS da build 1.0.56 estar no TestFlight (iOS 44) e/ou Play (96)
+
+---
+
+VERSÃO CURTA (copiar)
+---------------------
+Oi pessoal! Atualizem o EGO-AI para a **1.0.56** 🙏
+
+Corrigimos o bug que dava «Algo deu errado» logo depois de escolher o avatar.
+
+📲 iPhone: TestFlight · confiram **1.0.56 (build 44)**
+📲 Android: teste fechado Play · versão **1.0.56**
+
+✅ Testem em 5 min:
+1. Entrar ou cadastrar
+2. Escolher o assistente
+3. O **chat tem de abrir** — sem tela de erro
+4. Ler a mensagem de boas-vindas
+5. «Ouvir resposta» se quiserem ouvir
+
+Bug? Mandem print + versão que aparece no app.
+
+Obrigado! 💜
+
+---
+
+VERSÃO MÉDIA (se alguém perguntar detalhes)
+--------------------------------------------
+**1.0.56 — o que mudou:**
+
+1. **Avatar → chat** — não trava mais ao escolher o assistente
+2. **iPhone** — áudio do chat mais estável
+3. **Boas-vindas** — texto primeiro; voz opcional com «Ouvir resposta»
+
+Checklist: marketing/NOTAS-1.0.56-PLAY.txt
+
+---
+
+LINKS
+-----
+Site: https://egoai.com.br
+iPhone: https://apps.apple.com/app/id6780595396
+Android: https://play.google.com/apps/testing/com.egoai.app
+
+Acompanhar build (download .ipa / .aab):
+iOS: https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/3b0d8bbe-4fd2-4231-b1f1-5ec6dc98d365
+Android: https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/91793553-0b21-4722-b590-556136911d8d

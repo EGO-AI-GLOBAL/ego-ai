@@ -1,0 +1,55 @@
+﻿{
+  "version": "1.0.79",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-PAUSA-EGO",
+  "output": "marketing/videos/app-real/ego-ai-pausa-fila-reels.mp4",
+  "post_file": "marketing/POST-REEL-PAUSA-FILA.txt",
+  "voice_rate": "+26%",
+  "audio_pad": 0.05,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.86,
+  "top_bar_h": 280,
+  "bottom_reserve": 200,
+  "badge_text": "1 MIN",
+  "post": {
+    "title": "Ansiedade na fila do banco? 1 minuto e passa 🌬️",
+    "description": "POV: fila, ônibus, reunião — o peito aperta e você não pode sair correndo.\n\nPAUSA EGO: 1 minuto. Olhos abertos. Sentado ou em pé.\n\nNão precisa de 1 hora de meditação. Não precisa desabafar no Zap.\n\n🆘 Piorou? «Estou mal agora» → SOS + chat\n\n✅ 20 dias grátis · sem cartão\n🤖 Android: GMAIL no PRIVADO (DM)\n📱 iPhone: https://apps.apple.com/app/id6780595396\n\n#egoai #ansiedade #stress #fila #trabalho #respirar",
+    "hashtags": ["#egoai", "#ansiedade", "#stress", "#fila", "#trabalho", "#respirar"],
+    "pinned_comment": "🌬️ Quer testar no Android?\n\nManda GMAIL no PRIVADO (DM)\n1 min de PAUSA onde estiver\n\n🍎 iPhone: https://apps.apple.com/app/id6780595396"
+  },
+  "scenes": [
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["POV: FILA", 60, true], ["peito aperta 😮‍💨", 48, false]],
+      "darken": 0.12,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "P O V: fila do banco. Ônibus. Reunião. O peito aperta."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["1 minuto", 58, true], ["olhos abertos", 46, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "PAUSA EGO. Um minuto. Olhos abertos. Onde você estiver."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["Sem Zap", 54, true], ["sem terapia ainda", 44, false]],
+      "darken": 0.14,
+      "accent": 1,
+      "voice": "Sem desabafar no Zap. Sem complicar. Só respirar."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["Estou mal agora?", 52, true], ["SOS + chat 🆘", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Piorou? Estou mal agora. Respiração e chat na hora."
+    }
+  ]
+}

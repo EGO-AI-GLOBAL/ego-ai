@@ -1,0 +1,13 @@
+EGO-AI 1.0.75 — mensagem WhatsApp (grupo testadores)
+====================================================
+
+EGO-AI 1.0.75 no ar (TestFlight iOS / Play interno Android):
+
+• Voz mais rápida no chat com o avatar
+• App mais leve ao abrir
+• EGO de Bolso: cor do ovo funciona no Jovem e nos outros estágios
+
+Testem e avisem se algo falhar 🙏
+
+iOS: TestFlight → atualizar para 1.0.75
+Android: link teste interno Play (se já estiver na lista)

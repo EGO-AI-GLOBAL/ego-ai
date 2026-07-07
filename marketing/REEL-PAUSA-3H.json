@@ -1,0 +1,55 @@
+﻿{
+  "version": "1.0.79",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-PAUSA-EGO",
+  "output": "marketing/videos/app-real/ego-ai-pausa-3h-reels.mp4",
+  "post_file": "marketing/POST-REEL-PAUSA-3H.txt",
+  "voice_rate": "+22%",
+  "audio_pad": 0.05,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 58,
+  "title_font_boost": 1.18,
+  "photo_width_ratio": 0.86,
+  "top_bar_h": 280,
+  "bottom_reserve": 200,
+  "badge_text": "3h 🌙",
+  "post": {
+    "title": "POV: 3h da manhã e a ansiedade não deixa dormir 🌙",
+    "description": "POV: são 3h e o peito aperta.\n\nFeed não resolve. Zap incomoda. Amiga dorme.\n\nPAUSA EGO: 60 segundos com a Luna — respirar, ancorar, voltar ao agora.\n\nSem terapia. Sem complicar. Só 1 minuto.\n\n✅ 20 dias grátis · sem cartão\n🤖 Android: GMAIL no PRIVADO (DM)\n📱 iPhone: https://apps.apple.com/app/id6780595396\n\n#egoai #ansiedade #insônia #pov #3damanha #saúdemental",
+    "hashtags": ["#egoai", "#ansiedade", "#insônia", "#pov", "#3damanha", "#saúdemental"],
+    "pinned_comment": "🌙 3h e não dorme?\n\nManda teu GMAIL no PRIVADO (DM) — Android grátis\n🍎 iPhone: https://apps.apple.com/app/id6780595396"
+  },
+  "scenes": [
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["POV: 3h DA MANHÃ", 58, true], ["ansiedade não dorme 🌙", 46, false]],
+      "darken": 0.16,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "P O V: três da manhã. A ansiedade não deixa dormir."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["60 segundos", 56, true], ["com a Luna 🌬️", 48, false]],
+      "darken": 0.12,
+      "accent": 1,
+      "voice": "Abre o EGO-AI. PAUSA. Sessenta segundos com a Luna."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["Inspire… expire…", 54, true], ["volta ao agora", 46, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Inspire. Expire. Volta ao agora."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["20 dias grátis", 52, true], ["sem cartão 👇", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Vinte dias grátis. Testa quando a noite apertar."
+    }
+  ]
+}

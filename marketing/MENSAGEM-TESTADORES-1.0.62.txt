@@ -1,4 +1,4 @@
-EGO-AI 1.0.62 — nota para testadores (build 101 Android / iOS 51)
+﻿EGO-AI 1.0.62 — nota para testadores (build 101 Android / iOS 51)
 ==================================================================
 
 Olá! Nova versão com foco em voz no Android e melhorias no Bolso e Jardim.
@@ -21,6 +21,6 @@ Como atualizar
 • Android (teste fechado): Play Store → EGO-AI → Atualizar
   https://play.google.com/apps/testing/com.egoai.app
 • iPhone: TestFlight → EGO-AI (build 51)
-  https://testflight.apple.com/join/eNDKdFWF
+  https://apps.apple.com/app/id6780595396
 
 Obrigado por testar! Qualquer bug: descreva o passo a passo (modelo do telefone ajuda).

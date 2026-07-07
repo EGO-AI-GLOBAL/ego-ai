@@ -1,18 +1,24 @@
-EGO-AI 1.0.65 — nota para testadores
-======================================
+﻿EGO-AI 1.0.65 — atualize e teste
+=================================
 
-Olá! Voltámos a **voz como estava a funcionar em 26/06**.
+Olá! Nova versão 1.0.65 no ar.
 
-🎤 VOZ
-• Toque no **microfone** → fale 2–3 segundos
-• Toque na **seta ↑** para enviar
-• (Mic e seta são botões separados — como antes)
+🎤 VOZ (corrigida — como 26/06)
+• Toque no microfone → fale 2–3 segundos
+• Toque na seta ↑ para enviar
+• Mic e seta são botões separados
 
 ✏️ TEXTO
-• Escreva e toque na seta ↑ — deve aparecer a sua mensagem no chat
+• Escreva e toque na seta ↑
+
+🔑 RESET DE SENHA
+• Esqueci a senha → e-mail (veja spam)
+• Na página: use o olho para ver a senha
+• Senha tem de ser NOVA (diferente da anterior)
+• Depois de guardar, o app deve abrir já logado
 
 Como atualizar
 • Android: https://play.google.com/apps/testing/com.egoai.app
-• iPhone TestFlight: https://testflight.apple.com/join/eNDKdFWF
+• iPhone TestFlight: https://apps.apple.com/app/id6780595396
 
-Obrigado!
+Se algo falhar, mande print. Obrigado!

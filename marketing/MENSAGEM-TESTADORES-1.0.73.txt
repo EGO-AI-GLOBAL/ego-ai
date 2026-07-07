@@ -1,0 +1,20 @@
+﻿EGO-AI 1.0.73 — testadores Android + iPhone
+============================================
+
+Oi, tudo bem? Aqui é o Ego-IA 💜
+
+Nova versão no ar — atualizem pela Play Store ou TestFlight:
+
+• Android: https://play.google.com/apps/testing/com.egoai.app
+• iPhone: https://apps.apple.com/app/id6780595396
+
+Desta vez:
+• Conversa com o avatar mais rápida — experimentem «Chamada ao vivo» no chat
+• Microfone: resposta de voz mais ágil que a 1.0.72
+• App mais fluido no chat
+
+Testem: abrir chat → chamada ao vivo OU microfone → frase curta → ouvir resposta.
+
+Se algo falhar: digam Android ou iPhone + versão 1.0.73 + print.
+
+Obrigado por testar com a gente! 🙏

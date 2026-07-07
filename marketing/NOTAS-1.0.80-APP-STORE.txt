@@ -1,18 +1,31 @@
-EGO-AI 1.0.80 — APP STORE (iOS)
-================================
-Build EAS: 1.0.80 · iOS buildNumber 78
+EGO-AI 1.0.80 — APP STORE (iOS · LOJA PÚBLICA)
+================================================
+Lançamento: 07/07/2026
+App Store: https://apps.apple.com/app/id6780595396
 
-O QUE HÁ DE NOVO (PT-BR)
-------------------------
-• Monstrinhos do Humor: marcar o humor primeiro, missões depois
-• Fluxo do jardim mais intuitivo (1º passo destacado)
-• PAUSA EGO e assinaturas IAP — inalterados nesta build
-• Correções de estabilidade
+O QUE HÁ DE NOVO (PT-BR) — TestFlight / «O que há de novo»
+----------------------------------------------------------
+• Monstrinhos do Humor: marcar o humor é o 1º passo — missões depois
+• PAUSA EGO: 20 técnicas para todos os planos; link CVV 188 no SOS
+• Agenda pessoal, compartilhada e Entre Nós liberadas no plano grátis
+• Melhorias de estabilidade
 
-TESTE (App Review / testadores)
--------------------------------
-1. Abrir Monstrinhos do Humor
-2. Ver «1º PASSO — MARQUE O HUMOR» abaixo do pet
-3. Tocar num humor → pet reage → missões abaixo
+VERSÃO CURTA (WhatsApp testadores iOS)
+--------------------------------------
+Saiu **1.0.80** no TestFlight!
 
-IAP: manter os 3 produtos ligados à versão (como 1.0.79).
+🎭 Humor primeiro no jardim
+🌬️ PAUSA completa + CVV 188 no SOS
+📅 Agenda liberada no grátis
+
+TestFlight: https://apps.apple.com/app/id6780595396
+
+TESTE RÁPIDO
+------------
+1. Monstrinhos → «1º PASSO — MARQUE O HUMOR»
+2. PAUSA EGO → cartão 20 técnicas → SOS
+3. Agenda → lembrete sem bloqueio de plano
+
+NOTA
+----
+✅ App Store pública desde 07/07/2026. Android continua teste fechado Play (14 dias).

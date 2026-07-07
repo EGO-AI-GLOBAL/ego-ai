@@ -1,0 +1,48 @@
+{
+  "version": "1.0.49",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-1.0.34",
+  "output": "marketing/videos/app-real/ego-ai-carga-mental-reels.mp4",
+  "post_file": "marketing/POST-REEL-7.txt",
+  "voice_rate": "+28%",
+  "audio_pad": 0.03,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.82,
+  "top_bar_h": 300,
+  "bottom_reserve": 260,
+  "badge_text": "carga mental",
+  "post": {
+    "title": "Não é que eu esqueço. EU sou o lembrete de todo mundo 😮‍💨",
+    "description": "Não é que eu esqueço consulta, escola ou aniversário.\n\nÉ que EU virei a memória da casa — e ninguém pergunta se EU tô bem.\n\nNo EGO-AI eu desabafava à noite. Sem cobrar ninguém no Zap.\n\n✅ 20 dias grátis · sem cartão\n✅ Voz ou texto — manda \"oi\"\n\n👇\n\nhttps://egoai.com.br\n\n#egoai #cargamental #mãe #mulher #desabafo",
+    "hashtags": ["#egoai", "#cargamental", "#mãe", "#mulher", "#desabafo"],
+    "pinned_comment": "😮‍💨 Carga mental?\n\n20 dias grátis · sem cartão\nDesabafa aqui — sem incomodar ninguém:\n\nhttps://egoai.com.br",
+    "metric_target": "Teste dor B carga mental · par com Reel 6 solidão · orgânico"
+  },
+  "scenes": [
+    {
+      "photo": "07-familia-compartilhada.png",
+      "lines": [["NÃO É QUE", 58, true], ["EU ESQUEÇO", 56, true]],
+      "darken": 0.12, "center": true, "badge": true, "accent": 1,
+      "voice": "Não é que você esquece."
+    },
+    {
+      "photo": "06-agenda-pessoal.png",
+      "lines": [["EU SOU o", 54, true], ["lembrete DELES", 58, true]],
+      "darken": 0.14, "center": true, "accent": 1,
+      "voice": "Você virou o lembrete de todo mundo."
+    },
+    {
+      "photo": "04-desabafo-gravando.png",
+      "lines": [["desabafa", 56, true], ["sem cobrar", 52, true], ["no Zap", 48, false]],
+      "voice": "Desabafa sem cobrar ninguém no Zap."
+    },
+    {
+      "photo": "01-capa-luna.png",
+      "lines": [["20 dias", 60, true], ["manda OI 👇", 46, false]],
+      "darken": 0.08, "center": true, "accent": 0,
+      "voice": "Vinte dias grátis. Manda oi."
+    }
+  ]
+}
