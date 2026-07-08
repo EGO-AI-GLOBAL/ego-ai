@@ -1,0 +1,22 @@
+EGO-AI 1.0.81 — PLAY (Android · teste FECHADO manual)
+======================================================
+versionCode: **126** · versionName: 1.0.81
+
+NOTAS DA VERSÃO (Play Console)
+------------------------------
+• Correção: sessão mantida ao reabrir o app
+• Monstrinhos: humor é o 1º passo
+• PAUSA EGO: 20 técnicas + CVV 188 no SOS
+• Agenda liberada no plano grátis
+• Melhorias de estabilidade
+
+UPLOAD MANUAL
+-------------
+1. SUBIR-ANDROID-FECHADO-MANUAL.bat  (baixa AAB)
+2. Play Console → Teste fechado → Nova versão → AAB
+3. Se «código 126 já usado»: Adicionar da biblioteca
+4. Testadores: https://play.google.com/apps/testing/com.egoai.app
+
+TESTE
+-----
+Login → fechar app → reabrir → chat sem pedir senha.

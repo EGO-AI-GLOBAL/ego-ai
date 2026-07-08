@@ -200,8 +200,8 @@ def check_fresh_install_guard() -> int:
     if "clearSecureSessionIfFreshInstall" not in guard:
         print("  ERRO  freshInstallGuard.ts sem clearSecureSessionIfFreshInstall")
         failed += 1
-    elif "ego_async_install_marker_v1" not in guard:
-        print("  ERRO  freshInstallGuard.ts sem marcador AsyncStorage")
+    elif "ego_secure_install_marker_v1" not in guard:
+        print("  ERRO  freshInstallGuard.ts sem marcador SecureStore (backup)")
         failed += 1
     elif "consumeSecureWipeIfNeeded" not in guard:
         print("  ERRO  freshInstallGuard.ts sem consumeSecureWipeIfNeeded (persona Keychain)")

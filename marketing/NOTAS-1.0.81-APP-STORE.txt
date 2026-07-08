@@ -1,0 +1,35 @@
+EGO-AI 1.0.81 — APP STORE (iOS · REVISÃO)
+==========================================
+Hotfix: 07/07/2026
+App Store: https://apps.apple.com/app/id6780595396
+
+O QUE HÁ DE NOVO (PT-BR) — colar no App Store Connect
+------------------------------------------------------
+• Correção: o app mantém a sessão — não pede senha toda vez que abre
+• Monstrinhos do Humor: marcar o humor é o 1º passo
+• PAUSA EGO: 20 técnicas para todos os planos; link CVV 188 no SOS
+• Agenda pessoal, compartilhada e Entre Nós liberadas no plano grátis
+• Melhorias de estabilidade
+
+VERSÃO CURTA (WhatsApp testadores iOS)
+--------------------------------------
+Hotfix **1.0.81** — sessão mantida ao reabrir o app (não pede senha sempre).
+
+Inclui tudo da 1.0.80: humor 1º passo, PAUSA completa, agenda no grátis.
+
+App Store: https://apps.apple.com/app/id6780595396
+
+APP STORE CONNECT — PASSOS
+--------------------------
+1. Retirar da revisão a 1.0.80 (se ainda «À espera») OU criar versão **1.0.81**
+2. Selecionar build iOS **79** (1.0.81)
+3. Colar «O que há de novo» acima
+4. Conta demo válida em «Informações para a revisão»
+5. Compras dentro do app = **vazia**
+6. Enviar para revisão
+
+TESTE RÁPIDO (obrigatório antes de aprovar)
+--------------------------------------------
+1. Login → fechar app → reabrir → **entra direto no chat** (sem senha)
+2. Monstrinhos → «1º PASSO — MARQUE O HUMOR»
+3. PAUSA EGO → 20 técnicas → SOS

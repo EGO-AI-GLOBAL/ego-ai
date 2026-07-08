@@ -35,6 +35,7 @@ import {
 import {
   clearSecureSessionIfFreshInstall,
   consumeSecureWipeIfNeeded,
+  ensureInstallMarkers,
   runFreshInstallMigrations,
 } from "@/storage/freshInstallGuard";
 import { sessionNeedsRefresh } from "@/storage/sessionRefresh";
@@ -68,6 +69,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (s) {
       await saveSecureItem(STORAGE_KEY, JSON.stringify(s));
       await saveAuthAppVersion();
+      await ensureInstallMarkers();
     } else {
       await deleteSecureItem(STORAGE_KEY);
       await clearAuthAppVersion();

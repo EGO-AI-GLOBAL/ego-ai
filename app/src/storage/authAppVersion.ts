@@ -7,6 +7,11 @@ export function currentAppVersion(): string {
   return getInstalledAppVersion();
 }
 
+function isUsableVersion(v: string): boolean {
+  const t = v.trim();
+  return t.length > 0 && t !== "0.0.0";
+}
+
 /** Só força novo login em mudança de versão maior (ex. 1.0 → 1.1), não em patch (1.0.36 → 1.0.37). */
 function versionMajorMinor(v: string): string {
   const parts = v.trim().split(".");
@@ -30,8 +35,14 @@ export async function clearAuthAppVersion(): Promise<void> {
 /** Após instalar build nova, exige login uma vez só em release maior (não em patch). */
 export async function shouldClearSessionForAppUpdate(): Promise<boolean> {
   const stored = await getStoredAuthAppVersion();
-  if (!stored) return false;
+  if (!stored || !isUsableVersion(stored)) return false;
   const current = currentAppVersion();
+  if (!isUsableVersion(current)) return false;
   if (stored === current) return false;
+  if (versionMajorMinor(stored) === versionMajorMinor(current)) {
+    // Patch/build novo (1.0.79 → 1.0.80): mantém sessão, alinha versão guardada.
+    await saveAuthAppVersion(current);
+    return false;
+  }
   return versionMajorMinor(stored) !== versionMajorMinor(current);
 }

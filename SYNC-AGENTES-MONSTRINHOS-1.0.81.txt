@@ -1,0 +1,15 @@
+AGENTE MONSTRINHOS — RELEASE 1.0.81
+===================================
+Estado: ✅ PRONTO — hotfix build + EAS
+
+Zona Monstrinhos:
+• app.config.ts — 1.0.81 · Android 126 · iOS 79
+• Scripts: PREPARAR / GERAR / AGUARDAR / FAZ-TUDO-1.0.81.bat
+• EAS queue + iOS submit auto; Android manual
+
+Incluído (auth — impacto onboarding):
+• freshInstallGuard — marcador duplo + recuperação sessão
+• sessionStorage — espelho AsyncStorage
+• authAppVersion — patch update não desloga
+
+GIT Monstrinhos: (commit release 1.0.81)

@@ -1,0 +1,19 @@
+SYNC MESTRE — RELEASE 1.0.81
+============================
+Data: 07/07/2026 — hotfix sessão persistente
+
+| Agente      | Ficheiro                              | Estado     |
+|-------------|---------------------------------------|------------|
+| Monstrinhos | SYNC-AGENTES-MONSTRINHOS-1.0.81.txt | ✅ PRONTO  |
+| Bolso/PAUSA | SYNC-AGENTES-BOLSO-1.0.81.txt         | ✅ PRONTO  |
+| API         | SYNC-AGENTES-API-1.0.81.txt           | ✅ PRONTO  |
+| Marketing   | marketing/NOTAS-1.0.81-*.txt          | ✅ PRONTO  |
+
+Build: 1.0.81 · iOS 79 · Android 126
+Android: upload **manual** teste fechado
+iOS: submit auto TestFlight + revisão App Store 1.0.81
+
+Ordem: FAZ-TUDO-1.0.81.bat
+  → Railway vars RAILWAY-VARS-1.0.81.txt (após builds)
+  → GERAR → AGUARDAR-E-SUBMETER
+  → Connect: versão 1.0.81 (substituir 1.0.80 em revisão)
