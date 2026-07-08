@@ -12,4 +12,4 @@ Incluído (auth — impacto onboarding):
 • sessionStorage — espelho AsyncStorage
 • authAppVersion — patch update não desloga
 
-GIT Monstrinhos: (commit release 1.0.81)
+GIT Monstrinhos: 82184da
