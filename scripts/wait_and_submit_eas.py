@@ -68,18 +68,23 @@ def ids_file_for_version(version: str | None = None) -> Path:
     return ROOT / f"builds-{ver}.ids.json"
 
 
-def build_status(build_id: str) -> str:
+def build_view_json(build_id: str) -> dict:
     proc = _run(["eas", "build:view", build_id, "--json"])
     out = (proc.stdout or "").strip()
     if out:
         try:
             data = json.loads(out)
-            return str(data.get("status") or "UNKNOWN").upper()
+            if isinstance(data, dict):
+                return data
         except json.JSONDecodeError:
             pass
     if proc.returncode != 0:
         raise RuntimeError(proc.stderr.strip() or proc.stdout.strip() or "eas build:view falhou")
     raise RuntimeError("eas build:view sem JSON de status")
+
+
+def build_status(build_id: str) -> str:
+    return str(build_view_json(build_id).get("status") or "UNKNOWN").upper()
 
 
 def wait_ios(ios_id: str, poll_sec: int = 60) -> None:
@@ -124,7 +129,7 @@ def _safe_print(text: str) -> None:
         print(out.encode(enc, errors="replace").decode(enc, errors="replace"))
 
 
-def submit_pair(ios_id: str, android_id: str) -> None:
+def submit_ios(ios_id: str) -> None:
     print("Submetendo iOS (TestFlight)...")
     proc_ios = _run(
         ["eas", "submit", "--platform", "ios", "--id", ios_id, "--non-interactive"]
@@ -134,17 +139,43 @@ def submit_pair(ios_id: str, android_id: str) -> None:
         print(proc_ios.stderr, file=sys.stderr)
         raise SystemExit(proc_ios.returncode)
     _safe_print(proc_ios.stdout or "")
+    print("Submit iOS concluído.")
 
-    print("Submetendo Android (Play)...")
-    proc_and = _run(
-        ["eas", "submit", "--platform", "android", "--id", android_id, "--non-interactive"]
-    )
-    if proc_and.returncode != 0:
-        _safe_print(proc_and.stdout or "")
-        print(proc_and.stderr, file=sys.stderr)
-        raise SystemExit(proc_and.returncode)
-    _safe_print(proc_and.stdout or "")
-    print("Submit iOS + Android concluído (uma vez só).")
+
+def android_manual_play_instructions(android_id: str) -> None:
+    """Android: NUNCA eas submit — upload manual no teste fechado."""
+    data = build_view_json(android_id)
+    artifacts = data.get("artifacts") if isinstance(data.get("artifacts"), dict) else {}
+    aab = str(artifacts.get("applicationArchiveUrl") or artifacts.get("buildUrl") or "").strip()
+    ver = str(data.get("appVersion") or app_version()).strip()
+    code = str(data.get("appBuildVersion") or "?").strip()
+    page = f"https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/{android_id}"
+    print()
+    print("=" * 60)
+    print("ANDROID — SUBIR MANUAL NO TESTE FECHADO (não usar eas submit)")
+    print("=" * 60)
+    print(f"Versão app: {ver}  ·  versionCode: {code}")
+    print(f"Build Expo: {page}")
+    if aab:
+        print(f"AAB download: {aab}")
+    print()
+    print("Play Console:")
+    print("  1) Testar e publicar → Teste fechado → Criar nova versão")
+    print("  2) Carregar o .aab (primeira vez) OU Adicionar da biblioteca (se code já usado)")
+    print("  3) Notas → Revisar → Publicar → esperar 15-60 min")
+    print("  4) Testadores: https://play.google.com/apps/testing/com.egoai.app")
+    print()
+    print("Se «código já usado»: Release → Explorador de pacotes de apps → ver faixa do code")
+    print("  ou Promover do teste interno → teste fechado (sem novo upload).")
+    print()
+    print("Atalho PC: SUBIR-ANDROID-FECHADO-MANUAL.bat")
+    print("=" * 60)
+
+
+def submit_pair(ios_id: str, android_id: str) -> None:
+    submit_ios(ios_id)
+    android_manual_play_instructions(android_id)
+    print("iOS submetido; Android fica para upload manual no teste fechado.")
 
 
 def queue_build(platform: str) -> str:
@@ -303,7 +334,10 @@ def main() -> int:
     q.add_argument("--ids-file", help="Onde gravar os build IDs (default: builds-VERSION.ids.json)")
     q.add_argument("--skip-sync", action="store_true", help="Não rodar sync-check")
 
-    w = sub.add_parser("wait-submit", help="Espera ambos FINISHED e submete uma vez")
+    w = sub.add_parser(
+        "wait-submit",
+        help="Espera ambos FINISHED; submete iOS; Android manual (teste fechado)",
+    )
     w.add_argument("--ios", help="Build ID iOS")
     w.add_argument("--android", help="Build ID Android")
     w.add_argument("--ids-file", help="Ficheiro com ios/android ids")
@@ -326,6 +360,13 @@ def main() -> int:
     qi = sub.add_parser("queue-ios", help="Enfileira só iOS e grava IDs (preserva Android)")
     qi.add_argument("--ids-file", help="Onde gravar os build IDs (default: builds-VERSION.ids.json)")
     qi.add_argument("--skip-sync", action="store_true", help="Não rodar sync-check")
+
+    dl = sub.add_parser(
+        "android-manual",
+        help="Baixa AAB e mostra passos para teste fechado (sem eas submit)",
+    )
+    dl.add_argument("--ids-file", help="Ficheiro com android id")
+    dl.add_argument("--android", help="Build ID Android")
 
     args = parser.parse_args()
 
@@ -379,6 +420,32 @@ def main() -> int:
         print(f"  ou: python scripts/wait_and_submit_eas.py wait-submit --ios-only --ids-file {ids_path}")
         return 0
 
+    if args.cmd == "android-manual":
+        android_id = str(getattr(args, "android", "") or "").strip()
+        if not android_id:
+            if not ids_path.is_file():
+                raise SystemExit(f"Ficheiro não existe: {ids_path}")
+            data = json.loads(ids_path.read_text(encoding="utf-8"))
+            android_id = str(data.get("android") or "").strip()
+        if not android_id:
+            raise SystemExit("Android build ID em falta — rode GERAR primeiro")
+        wait_android(android_id)
+        out_dir = ROOT / "releases" / f"android-{version}"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        print(f"Baixando AAB para {out_dir} ...")
+        proc_dl = _run(
+            ["eas", "build:download", "--build-id", android_id, "--non-interactive"],
+            cwd=out_dir,
+        )
+        if proc_dl.returncode != 0:
+            _safe_print(proc_dl.stdout or "")
+            print(proc_dl.stderr, file=sys.stderr)
+            print("AVISO: download falhou — use o link Expo abaixo.")
+        else:
+            _safe_print(proc_dl.stdout or "")
+        android_manual_play_instructions(android_id)
+        return 0
+
     ios_id = args.ios
     android_id = args.android
     if getattr(args, "android_only", False):
@@ -394,24 +461,24 @@ def main() -> int:
         return 0
 
     if getattr(args, "ios_only", False):
-        if not ios_id:
+        if not ios_id or not android_id:
             if not ids_path.is_file():
                 raise SystemExit(f"Ficheiro não existe: {ids_path}")
             data = json.loads(ids_path.read_text(encoding="utf-8"))
-            ios_id = str(data.get("ios") or "").strip()
+            if not ios_id:
+                ios_id = str(data.get("ios") or "").strip()
+            if not android_id:
+                android_id = str(data.get("android") or "").strip()
         if not ios_id:
             raise SystemExit("iOS build ID em falta — rode GERAR-IOS primeiro")
-        wait_ios(ios_id, poll_sec=args.poll)
-        print("Submetendo iOS (TestFlight / App Store)...")
-        proc_ios = _run(
-            ["eas", "submit", "--platform", "ios", "--id", ios_id, "--non-interactive"]
-        )
-        if proc_ios.returncode != 0:
-            _safe_print(proc_ios.stdout or "")
-            print(proc_ios.stderr, file=sys.stderr)
-            raise SystemExit(proc_ios.returncode)
-        _safe_print(proc_ios.stdout or "")
-        print("Submit iOS concluído. App Store Connect: escolher build e enviar para revisão.")
+        if android_id:
+            wait_both(ios_id, android_id, poll_sec=args.poll)
+        else:
+            wait_ios(ios_id, poll_sec=args.poll)
+        submit_ios(ios_id)
+        if android_id:
+            android_manual_play_instructions(android_id)
+        print("Submit iOS concluído. Android: upload manual no teste fechado.")
         return 0
 
     if not ios_id or not android_id:
