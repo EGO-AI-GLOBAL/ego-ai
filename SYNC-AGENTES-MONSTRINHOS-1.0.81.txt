@@ -12,4 +12,6 @@ Incluído (auth — impacto onboarding):
 • sessionStorage — espelho AsyncStorage
 • authAppVersion — patch update não desloga
 
-GIT Monstrinhos: 82184da
+GIT Monstrinhos: 82184da · builds queued 4eb76c1
+Build Android: 57554b4b-ab89-4f8a-a1d2-9cc09d521a41
+Build iOS: 94516ecc-193b-4ae0-8891-41bf14f09761

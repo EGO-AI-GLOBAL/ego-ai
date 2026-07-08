@@ -10,6 +10,9 @@ Data: 07/07/2026 — hotfix sessão persistente
 | Marketing   | marketing/NOTAS-1.0.81-*.txt          | ✅ PRONTO  |
 
 Build: 1.0.81 · iOS 79 · Android 126
+Build iOS: 94516ecc-193b-4ae0-8891-41bf14f09761
+Build Android: 57554b4b-ab89-4f8a-a1d2-9cc09d521a41
+GIT: 4eb76c1 (release 82184da)
 Android: upload **manual** teste fechado
 iOS: submit auto TestFlight + revisão App Store 1.0.81
 
