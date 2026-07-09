@@ -17,7 +17,7 @@ if (isProd && apiUrl && !apiUrl.startsWith("https://")) {
 const config: ExpoConfig = {
   name: "Ego-IA",
   slug: "ego-ai",
-  version: "1.0.82",
+  version: "1.0.83",
   orientation: "portrait",
   scheme: "egoai",
   userInterfaceStyle: "automatic",
@@ -32,11 +32,13 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.egoai.app",
-    buildNumber: "83",
+    buildNumber: "84",
     entitlements: {
       "com.apple.security.application-groups": ["group.com.egoai.app.widget"],
     },
     infoPlist: {
+      CFBundleDevelopmentRegion: "pt-BR",
+      CFBundleLocalizations: ["pt-BR"],
       ITSAppUsesNonExemptEncryption: false,
       LSApplicationQueriesSchemes: ["itms-beta", "itms-apps", "whatsapp", "instagram"],
       NSMicrophoneUsageDescription:

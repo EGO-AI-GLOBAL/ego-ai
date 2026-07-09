@@ -1,0 +1,45 @@
+EGO-AI 1.0.83 — APP STORE (iOS · subtítulo + idioma PT-BR)
+============================================================
+Marketing · 09/07/2026
+
+OBRIGATÓRIO: **build nova** — subtítulo e idioma principal só entram com binário novo.
+Marketing já salvou no Connect (versão 1.0.83 «Preparar para envio»).
+
+ORDEM (Agente API/Release) — **SÓ iOS**
+--------------------------------
+1. app.config.ts → version **1.0.83** · iOS build **84** · CFBundleDevelopmentRegion pt-BR
+2. EAS build **iOS apenas** (production)
+3. Connect → versão **1.0.83** → anexar build **84**
+4. **NÃO mudar** descrição, keywords, promo, screenshots (já ok na 1.0.82)
+5. Colar só **O que há de novo** abaixo
+6. Compras no app = **vazia**
+7. Enviar para revisão
+
+LINK Connect:
+https://appstoreconnect.apple.com/apps/6780595396/distribution/ios/version/inflight
+
+================================================================================
+JÁ SALVO NO CONNECT (Marketing — não reeditar)
+================================================================================
+
+Subtítulo: Ansiedade, respirar, PAUSA
+Idioma principal: Português (Brasil)
+Descrição · keywords · promo · screenshots: iguais à 1.0.82
+
+================================================================================
+VERSÃO 1.0.83 → O QUE HÁ DE NOVO (colar no Connect)
+================================================================================
+
+• Subtítulo da loja: Ansiedade, respirar, PAUSA (foco ansiedade e PAUSA EGO)
+• Idioma principal e ficha alinhados a Português (Brasil)
+• Melhorias de estabilidade
+
+================================================================================
+REGRAS iOS (não quebrar)
+================================================================================
+• SEM preços, Premium, Stripe, Upgrade na ficha
+• IAP / Compras no app = vazia
+• Conta demo válida em «Informações para a revisão»
+• Android: **não** construir nesta release
+
+App Store pública (1.0.82): https://apps.apple.com/app/id6780595396
