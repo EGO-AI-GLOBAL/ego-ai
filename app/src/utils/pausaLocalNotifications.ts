@@ -17,10 +17,25 @@ function pausaNotificationCopy(pausa: PausaEgoInfo, slot: "morning" | "evening")
   const daily = resolveDailyExercise(pausa);
   const streak = pausa.streak_current ?? 0;
   const dur = formatPausaDuration(daily.duration_seconds);
+  const now = new Date();
+  const isSunday = now.getDay() === 0;
   if (slot === "morning") {
+    if (isSunday) {
+      return {
+        title: "☀️ Domingo no jardim",
+        body: "Sem pressa — PAUSA de 1 min antes do dia pesar",
+      };
+    }
     return {
       title: `${daily.emoji} PAUSA de hoje`,
       body: `${daily.title} · ${dur} — casa, escritório ou onde estiver`,
+    };
+  }
+  const hour = now.getHours();
+  if (hour >= 22 || hour < 5) {
+    return {
+      title: "🌌 Madrugada difícil?",
+      body: "PAUSA 60s no corpo — falar no chat é opcional",
     };
   }
   if (streak >= 2) {

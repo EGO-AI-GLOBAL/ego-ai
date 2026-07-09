@@ -52,6 +52,29 @@ VALID_KINDS = frozenset({"breath60", "breath120", "sos"})
 BREATH_DURATIONS: dict[str, int] = {"breath60": 60, "breath120": 120, "sos": 60}
 
 
+def _profile_lonely_today(supabase: Client | None, user_id: str, today: str) -> bool:
+    if not supabase or not user_id:
+        return False
+    from ego_api.gentleness import note_signals_lonely
+
+    prof = db.load_profile(supabase, user_id) or {}
+    ui = db._parse_ui_state(prof)  # noqa: SLF001
+    dc = ui.get("daily_care")
+    if not isinstance(dc, dict):
+        return False
+    journal = dc.get("mood_journal")
+    if not isinstance(journal, list):
+        return False
+    for entry in journal:
+        if not isinstance(entry, dict):
+            continue
+        if str(entry.get("date") or "").strip() != today:
+            continue
+        if note_signals_lonely(str(entry.get("note") or "")):
+            return True
+    return False
+
+
 def _profile_mood_key(supabase: Client | None, user_id: str) -> str:
     if not supabase or not user_id:
         return ""
@@ -82,9 +105,13 @@ def bolso_replaced_by_pausa() -> bool:
 def pausa_chat_prompt_block() -> str:
     return (
         "\n\nPAUSA EGO (use com leveza — máx. 1 frase se couber):\n"
-        "- Se o utilizador mencionar ansiedade, stress, pressão ou «estou mal», "
-        "valide com empatia e convide à PAUSA (respirar 60s no cartão PAUSA ou menu PAUSA EGO).\n"
+        "- Se o utilizador mencionar ansiedade, stress, pressão, solidão, «estou mal», "
+        "«cabeça não para», domingo difícil ou madrugada, valide com empatia e convide à "
+        "PAUSA (respirar 60s no cartão PAUSA ou menu PAUSA EGO).\n"
+        "- Se disser que não quer falar ou desabafar, respeite: ofereça PAUSA no corpo "
+        "ou Monstrinhos (cartinha no jardim) — não force conversa longa.\n"
         "- Não mencione EGO de Bolso, missões, ovo, níveis ou Tamagotchi.\n"
+        "- Não diagnostique depressão/ansiedade; não substitua terapia. CVV 188 só se risco agudo.\n"
     )
 
 
@@ -214,6 +241,7 @@ def get_pausa(supabase: Client | None, user_id: str) -> dict[str, Any]:
     today_done = state["streak_last_date"] == today
     tier = _profile_plan_tier(supabase, user_id)
     mood_key = _profile_mood_key(supabase, user_id)
+    lonely_today = _profile_lonely_today(supabase, user_id, today)
     avoid = str(state.get("last_exercise_key") or "").strip() or None
     yesterday = _yesterday(today)
     if yesterday:
@@ -234,6 +262,7 @@ def get_pausa(supabase: Client | None, user_id: str) -> dict[str, Any]:
         tier=tier,
         mood_key=mood_key,
         avoid_key=avoid,
+        lonely_note=lonely_today,
     )
     tomorrow = pick_tomorrow_teaser(
         user_id=user_id or "anon",
@@ -265,6 +294,7 @@ def get_pausa(supabase: Client | None, user_id: str) -> dict[str, Any]:
         "moment_emoji": moment["emoji"],
         "moment_title": moment["title"],
         "moment_prompt": moment["prompt"],
+        "lonely_boosted": bool(daily.get("lonely_boosted")),
         "share_line": share_line,
         "week_dots": _week_dots(state["recent_dates"], today),
         "last_kind": state.get("last_kind") or None,

@@ -1,0 +1,18 @@
+SYNC MESTRE — 1.0.84 (aguardando agentes)
+============================================
+
+| Agente      | Sync file                         | Estado        |
+|-------------|-----------------------------------|---------------|
+| PAUSA       | SYNC-AGENTES-PAUSA-1.0.84.txt     | ✅ PRONTO     |
+| API/Segurança | SYNC-AGENTES-API-1.0.84.txt     | ⏳ pendente   |
+| Marketing   | SYNC-AGENTES-MARKETING-1.0.84.txt | ⏳ pendente |
+| Build       | (este ficheiro)                   | ⏳ 3× ✅      |
+
+Release alvo: 1.0.84 — Tríade Silenciosa PAUSA + Monstrinhos
+iOS 1.0.83 em revisão — não conflitar.
+
+PAUSA fechou primeiro — ficheiros bloqueados listados em SYNC-AGENTES-PAUSA-1.0.84.txt
+
+API: pode deployar ego_api/ EXCETO zona PAUSA listada acima.
+Marketing: copy/reels apenas — não editar jardim/PAUSA UI.
+Build: NÃO correr GERAR até 3× ✅.

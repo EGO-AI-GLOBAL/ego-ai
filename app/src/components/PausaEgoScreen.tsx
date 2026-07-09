@@ -80,6 +80,12 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
 
         <Text style={[styles.heroBadge, { color: colors.primary }]}>PAUSA EGO 🌬️</Text>
 
+        {pausa.moment_key === "late_night" || pausa.moment_key === "evening" ? (
+          <Text style={[styles.momentBanner, { color: colors.primary }]}>
+            {pausa.moment_emoji} {pausa.moment_title} — {pausa.moment_prompt}
+          </Text>
+        ) : null}
+
         <Text style={[styles.heroTitle, { color: colors.text }]}>
 
           {daily.emoji} {daily.title}
@@ -91,7 +97,11 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
           <Text style={[styles.anywhereLine, { color: colors.textMuted }]}>{pausa.anywhere_line}</Text>
         ) : null}
 
-        {daily.mood_boosted ? (
+        {daily.lonely_boosted || pausa.lonely_boosted ? (
+          <Text style={[styles.moodBoost, { color: colors.primary }]}>
+            Adaptada à sua carta no jardim — sem precisar desabafar
+          </Text>
+        ) : daily.mood_boosted ? (
 
           <Text style={[styles.moodBoost, { color: colors.primary }]}>
 
@@ -311,6 +321,13 @@ const styles = StyleSheet.create({
   },
 
   heroBadge: { fontSize: 11, fontWeight: "900", letterSpacing: 0.4 },
+  momentBanner: {
+    marginTop: 8,
+    fontSize: 12,
+    fontWeight: "700",
+    lineHeight: 17,
+    textAlign: "center",
+  },
 
   heroTitle: { fontSize: 22, fontWeight: "900", marginTop: 6 },
 

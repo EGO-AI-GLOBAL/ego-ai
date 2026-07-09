@@ -50,9 +50,9 @@ export function MoodJournalTodayNote({ colors, care, onUpdate }: Props) {
 
   return (
     <View style={[styles.wrap, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
-      <Text style={[styles.title, { color: colors.text }]}>Nota de hoje</Text>
+      <Text style={[styles.title, { color: colors.text }]}>💌 Carta pro monstrinho</Text>
       <Text style={[styles.hint, { color: colors.textMuted }]}>
-        Uma linha sobre o dia — desabafo curto ou gratidão.
+        Escreva o que pesa — só o seu monstrinho guarda. Ninguém lê. Falar no chat é opcional.
       </Text>
       <TextInput
         style={[
@@ -64,7 +64,7 @@ export function MoodJournalTodayNote({ colors, care, onUpdate }: Props) {
           setDraft(t.slice(0, NOTE_MAX));
           setSaved(false);
         }}
-        placeholder="Como foi o dia?"
+        placeholder="Domingo sozinha, cabeça não para, ou só o que pesou hoje…"
         placeholderTextColor={colors.textMuted}
         multiline
         maxLength={NOTE_MAX}
@@ -88,7 +88,7 @@ export function MoodJournalTodayNote({ colors, care, onUpdate }: Props) {
           {busy ? (
             <ActivityIndicator color="#fff" size="small" />
           ) : (
-            <Text style={styles.btnText}>{saved && !dirty ? "Guardado ✓" : "Guardar nota"}</Text>
+            <Text style={styles.btnText}>{saved && !dirty ? "Carta guardada ✓" : "Guardar carta"}</Text>
           )}
         </Pressable>
       </View>

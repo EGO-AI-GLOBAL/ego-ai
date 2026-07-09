@@ -401,7 +401,9 @@ def plan_benefits_payload(tier: str | None) -> dict[str, Any]:
     }
 
 
-def _serialize_exercise(raw: dict[str, Any], *, mood_boosted: bool = False) -> dict[str, Any]:
+def _serialize_exercise(
+    raw: dict[str, Any], *, mood_boosted: bool = False, lonely_boosted: bool = False
+) -> dict[str, Any]:
     out: dict[str, Any] = {
         "key": raw["key"],
         "emoji": raw["emoji"],
@@ -411,6 +413,7 @@ def _serialize_exercise(raw: dict[str, Any], *, mood_boosted: bool = False) -> d
         "mode": raw.get("mode") or "breath",
         "focus": (raw.get("tags") or ["stress"])[0],
         "mood_boosted": mood_boosted,
+        "lonely_boosted": lonely_boosted,
         "anywhere_friendly": raw.get("anywhere", True) is not False,
     }
     if out["mode"] == "breath":
@@ -433,6 +436,7 @@ def pick_daily_exercise(
     tier: str | None,
     mood_key: str | None = None,
     avoid_key: str | None = None,
+    lonely_note: bool = False,
 ) -> dict[str, Any]:
     eligible = exercises_for_tier(tier)
     if not eligible:
@@ -440,6 +444,7 @@ def pick_daily_exercise(
 
     tier_norm = normalize_plan_tier(tier)
     mood_boosted = False
+    lonely_boosted = False
     mood = str(mood_key or "").strip().lower()
 
     if mood in MOOD_STRESS_KEYS:
@@ -453,6 +458,14 @@ def pick_daily_exercise(
             eligible = mood_linked
             mood_boosted = True
 
+    if lonely_note:
+        lonely_keys = frozenset({"compassion", "avatar_1", "mood_link"})
+        lonely_pool = [e for e in eligible if str(e.get("key") or "") in lonely_keys]
+        if lonely_pool:
+            eligible = lonely_pool
+            lonely_boosted = True
+            mood_boosted = True
+
     if avoid_key and len(eligible) > 1:
         filtered = [e for e in eligible if str(e.get("key")) != avoid_key]
         if filtered:
@@ -460,7 +473,7 @@ def pick_daily_exercise(
 
     digest = hashlib.sha256(f"{user_id}:{local_date}".encode()).hexdigest()
     idx = int(digest[:8], 16) % len(eligible)
-    return _serialize_exercise(eligible[idx], mood_boosted=mood_boosted)
+    return _serialize_exercise(eligible[idx], mood_boosted=mood_boosted, lonely_boosted=lonely_boosted)
 
 
 def pick_tomorrow_teaser(

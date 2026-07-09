@@ -79,12 +79,17 @@ def morning_notification_copy(
 
 
 def evening_notification_copy(
-    pausa: dict[str, Any], *, avatar_name: str = ""
+    pausa: dict[str, Any], *, avatar_name: str = "", local_hour: int | None = None
 ) -> tuple[str, str, str]:
     avatar = (avatar_name or "EGO-AI").strip() or "EGO-AI"
     streak = max(0, int(pausa.get("streak_current") or 0))
     daily = pausa.get("daily_exercise") if isinstance(pausa.get("daily_exercise"), dict) else {}
     ex_title = str(daily.get("title") or "PAUSA de hoje").strip()
+    hour = local_hour if local_hour is not None else 18
+    if hour >= 22 or hour < 5:
+        title = f"{avatar} · madrugada 🌌"
+        body = "Ansiedade à noite? PAUSA 60s — falar é opcional depois"
+        return title, body, PAUSA_SCREEN
     title = f"{avatar} · pausa da tarde 🌙"
     if streak >= 2:
         body = f"{ex_title} — sequência 🔥 {streak} dias"

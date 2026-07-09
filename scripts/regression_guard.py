@@ -664,7 +664,13 @@ def check_gentleness() -> int:
         if not payload.get("gentle_mode") or not payload.get("night_garden"):
             print("  ERRO  gentleness_payload incompleto")
             return 1
-        print("  OK    modo gentil · PAUSA bridge · missões leves · noite")
+        if not payload.get("survival_streak_line") and payload.get("survival_streak_current", 0) == 0:
+            pass
+        lonely_bridge = crisis_bridge("ok", True, lonely_note=True, local_hour=23)
+        if not lonely_bridge.get("show"):
+            print("  ERRO  crisis_bridge deveria aparecer com carta solidão")
+            return 1
+        print("  OK    modo gentil · PAUSA bridge · missões leves · noite · solidão")
         return 0
     except Exception as exc:
         print(f"  ERRO  gentleness: {exc}")
