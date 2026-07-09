@@ -1,6 +1,6 @@
 AGENTE PAUSA — 1.0.84 (Tríade Silenciosa)
 ==========================================
-Estado: ✅ PRONTO — aguardar commit após push
+Estado: ✅ PRONTO — commit 4d7fc66 (+ base 97d5998 Jardim Gentileza)
 
 Zona PAUSA + Monstrinhos (jardim gentileza) — NÃO MEXER NESTES FICHEIROS:
 
@@ -36,4 +36,4 @@ OUTROS AGENTES — NÃO TOCAR:
 
 DEPLOY API: Marketing pode pedir deploy Railway após merge (gentleness.py).
 
-GIT: commit hash → preencher abaixo após push
+GIT: 4d7fc66 (+ 97d5998 gentleness base) — falta git push origin main
