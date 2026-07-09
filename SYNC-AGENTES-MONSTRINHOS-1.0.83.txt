@@ -29,5 +29,5 @@ Teste manual obrigatório:
 4. Missões gentis (sem aventura/arrumar cantinho)
 5. Escrever carta no diário → ver no cenário
 
-GIT Monstrinhos: (após commit desta release)
+GIT Monstrinhos: 97d5998
 Build iOS: (preencher após GERAR-1.0.83.bat)
