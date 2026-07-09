@@ -19,11 +19,14 @@ export function MoodMonsterScene({ colors, care, celebrate = false, previewMood 
   const displayKey = moodKeyOrDefault(moodKey);
   const moodMeta = (care.moods ?? []).find((m) => m.key === displayKey);
   const displayLabel = resolveMoodLabel(care.moods, displayKey, moodMeta?.label);
+  const gentleness = care.gentleness;
   const line =
     care.monster_line ||
     (care.checked_today
       ? `${displayLabel} está no jardim hoje.`
       : "Quem vai aparecer no jardim hoje?");
+  const mirrorLine = gentleness?.mirror_line?.trim();
+  const heldNote = gentleness?.held_note?.trim();
 
   return (
     <MoodGardenScene
@@ -35,10 +38,23 @@ export function MoodMonsterScene({ colors, care, celebrate = false, previewMood 
       decorUnlocked={care.decor_unlocked}
       shopOwned={care.shop_owned}
       atRisk={care.at_risk}
+      nightMode={Boolean(gentleness?.night_garden || gentleness?.sunday_garden)}
+      gentleMode={Boolean(gentleness?.gentle_mode)}
     >
       <MoodMonsterIllustration moodKey={displayKey} size={116} celebrate={celebrate} />
       <Text style={styles.name}>{displayLabel}</Text>
       <Text style={[styles.line, { color: colors.text }]}>{line}</Text>
+      {mirrorLine ? (
+        <Text style={[styles.mirror, { color: colors.primary }]}>{mirrorLine}</Text>
+      ) : null}
+      {heldNote ? (
+        <View style={[styles.heldNote, { backgroundColor: "rgba(255,255,255,0.5)" }]}>
+          <Text style={styles.heldLabel}>💌 Carta guardada — só seu monstrinho</Text>
+          <Text style={[styles.heldText, { color: colors.text }]} numberOfLines={2}>
+            {heldNote}
+          </Text>
+        </View>
+      ) : null}
       {care.daily_mission ? (
         <View style={[styles.mission, { backgroundColor: "rgba(255,255,255,0.45)" }]}>
           <Text style={styles.missionLabel}>Missão do dia</Text>
@@ -67,6 +83,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     lineHeight: 18,
   },
+  mirror: {
+    marginTop: 6,
+    fontSize: 12,
+    fontWeight: "700",
+    textAlign: "center",
+    paddingHorizontal: 14,
+    lineHeight: 17,
+  },
+  heldNote: {
+    marginTop: 10,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    maxWidth: "92%",
+  },
+  heldLabel: { fontSize: 10, fontWeight: "900", color: "#5B4FCF", letterSpacing: 0.3 },
+  heldText: { fontSize: 12, fontWeight: "600", marginTop: 4, lineHeight: 16, textAlign: "center" },
   mission: {
     marginTop: 10,
     borderRadius: 12,

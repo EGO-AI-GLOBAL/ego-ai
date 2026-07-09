@@ -1,0 +1,33 @@
+AGENTE MONSTRINHOS — RELEASE 1.0.83
+===================================
+Estado: ✅ PRONTO — Jardim da Gentileza + iOS ASO
+
+Zona Monstrinhos:
+• ego_api/gentleness.py — modo gentil, espelho 7d, sequência calma, PAUSA bridge
+• POST /api/v1/daily-care/calm-mark
+• MoodCrisisBridgeCard — PAUSA 60s inline após Nublina/Agita
+• MoodGentlenessRibbon — faixa «Jardim da Gentileza»
+• MoodMonsterScene — carta guardada + espelho emocional
+• MoodGardenScene — jardim noturno (após 20h)
+• daily_care_missions — missões leves + surpresa «dia permitido ficar mal»
+• app.config.ts — 1.0.83 · iOS build **85** · Android 126 (sem build nesta release)
+
+NÃO mexido:
+• PAUSA core (pausa_ego.py) · IAP · voz · auth · Stripe
+
+Ordem build (só iOS — Marketing):
+1. Agente API: deploy Railway (gentleness.py) **ANTES** do build
+2. PREPARAR-1.0.83.bat
+3. GERAR-1.0.83.bat → AGUARDAR-E-SUBMETER-1.0.83.bat
+4. Connect build **85** (não usar build 84 — sem Jardim)
+5. NOTAS: marketing/NOTAS-1.0.83-APP-STORE.txt
+
+Teste manual obrigatório:
+1. Marcar Nublina ou Agita
+2. Ver «2º PASSO — PAUSA 60s»
+3. Completar PAUSA → sequência calma sobe
+4. Missões gentis (sem aventura/arrumar cantinho)
+5. Escrever carta no diário → ver no cenário
+
+GIT Monstrinhos: (após commit desta release)
+Build iOS: (preencher após GERAR-1.0.83.bat)

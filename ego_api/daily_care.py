@@ -21,6 +21,13 @@ from ego_api.daily_care_shop import (
     shop_catalog_payload,
     shop_owned_decor,
 )
+from ego_api.gentleness import (
+    compute_calm_streak,
+    compute_survival_streak,
+    gentleness_payload,
+    mark_calm_day,
+    resolve_gentle_mode,
+)
 from ego_api.request_ctx import get_session
 from ego_api.schedule_tz import local_now_from_session
 
@@ -154,7 +161,14 @@ def _decor_unlocked(current: int) -> list[dict[str, str | int]]:
 
 
 def _daily_goals(raw: dict, today: str, checked_today: bool) -> list[dict]:
-    return build_daily_goals(raw, today, checked_today, checkin_seeds=SEEDS_CHECKIN)
+    gentle = resolve_gentle_mode(raw, today) if checked_today else False
+    return build_daily_goals(
+        raw,
+        today,
+        checked_today,
+        checkin_seeds=SEEDS_CHECKIN,
+        gentle_mode=gentle,
+    )
 
 
 def _adventure_payload(raw: dict, today: str, checked_today: bool) -> dict:
@@ -467,6 +481,19 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
     seeds = int(raw.get("seeds") or 0)
     shop_payload = shop_catalog_payload(raw, seeds)
     all_done = _all_goals_done(goals) if checked_today else False
+    journal = _mood_journal_payload(raw)
+    try:
+        local_hour = local_now_from_session(get_session()).hour
+    except Exception:
+        local_hour = 12
+    gentle_block = gentleness_payload(
+        raw,
+        today=today,
+        checked_today=checked_today,
+        last_mood=last_mood if checked_today else "",
+        journal=journal,
+        local_hour=local_hour,
+    )
     payload = {
         "current": current,
         "longest": longest_eff,
@@ -499,9 +526,10 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
         "shop_base_complete": shop_payload["shop_base_complete"],
         "shop_rotating_available": shop_payload["shop_rotating_available"],
         "seed_history": _seed_history_payload(raw),
-        "mood_journal": _mood_journal_payload(raw),
+        "mood_journal": journal,
         "all_goals_done": all_done,
         "all_goals_bonus": SEEDS_ALL_GOALS_BONUS,
+        "gentleness": gentle_block,
     }
     congrats = _avatar_congrats_line(supabase, user_id, raw, today)
     if congrats:
@@ -678,6 +706,8 @@ def record_goal(
     reward = apply_mission_complete(raw, today, mission)
     if reward <= 0:
         return get_daily_care(supabase, user_id)
+    if kind == "breathe":
+        mark_calm_day(raw, today)
     raw["seeds"] = seeds + reward
     label = str(mission.get("label") or key)
     _append_seed_history(raw, "earn", reward, label[:48])
@@ -692,6 +722,29 @@ def record_goal(
         if line:
             care["avatar_congrats"] = line
     return care
+
+
+def record_calm_mark(supabase: Client | None, user_id: str) -> dict:
+    """Marca dia calmo (PAUSA inline no jardim) — sequência calma em dias difíceis."""
+    if not supabase or not user_id:
+        return get_daily_care(supabase, user_id)
+    today = _local_date_str()
+    prof = db.load_profile(supabase, user_id) or {}
+    ui = db._parse_ui_state(prof)  # noqa: SLF001
+    raw = dict(ui.get("daily_care") if isinstance(ui.get("daily_care"), dict) else {})
+    if str(raw.get("last_date") or "").strip() != today:
+        return get_daily_care(supabase, user_id)
+    mark_calm_day(raw, today)
+    journal = _mood_journal_payload(raw)
+    calm = compute_calm_streak(raw, journal)
+    survival = compute_survival_streak(raw, journal)
+    if calm["current"] > int(raw.get("calm_streak_longest") or 0):
+        raw["calm_streak_longest"] = calm["current"]
+    if survival["current"] > int(raw.get("survival_streak_longest") or 0):
+        raw["survival_streak_longest"] = survival["current"]
+    ui["daily_care"] = raw
+    db.update_profile_fields(supabase, user_id, {"ui_state": ui})
+    return get_daily_care(supabase, user_id)
 
 
 def purchase_shop_item(

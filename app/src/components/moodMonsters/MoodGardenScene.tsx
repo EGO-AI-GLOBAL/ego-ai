@@ -17,6 +17,8 @@ type Props = {
   decorUnlocked?: DailyCareDecor[];
   shopOwned?: DailyCareShopOwned[];
   atRisk?: boolean;
+  nightMode?: boolean;
+  gentleMode?: boolean;
   children: React.ReactNode;
 };
 
@@ -52,15 +54,20 @@ export function MoodGardenScene({
   decorUnlocked = [],
   shopOwned = [],
   atRisk = false,
+  nightMode = false,
+  gentleMode = false,
   children,
 }: Props) {
   const stage = gardenStage ?? gardenStageFromDays(days);
-  const colors = GARDEN_GRADIENTS[stage] ?? GARDEN_GRADIENTS[1];
+  const base = GARDEN_GRADIENTS[stage] ?? GARDEN_GRADIENTS[1];
+  const nightColors: readonly [string, string, string] = ["#1a2438", "#2a3550", "#3a4560"];
+  const colors = nightMode ? nightColors : base;
   const decor = GARDEN_DECOR[stage] ?? GARDEN_DECOR[1];
 
   return (
-    <View style={styles.wrap}>
+    <View style={[styles.wrap, gentleMode ? styles.wrapGentle : null]}>
       <LinearGradient colors={[...colors]} style={styles.sky} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        {nightMode ? <View style={styles.nightVeil} /> : null}
         <MoodGardenAmbient stage={stage} atRisk={atRisk} />
         <View style={styles.hillBack} />
         <View style={styles.hillFront} />
@@ -97,6 +104,12 @@ export function MoodGardenScene({
 
 const styles = StyleSheet.create({
   wrap: { borderRadius: 16, overflow: "hidden", marginBottom: 12 },
+  wrapGentle: { opacity: 0.98 },
+  nightVeil: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(20,24,48,0.28)",
+    zIndex: 1,
+  },
   sky: { minHeight: 248, paddingTop: 10, paddingHorizontal: 12 },
   hillBack: {
     position: "absolute",

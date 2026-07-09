@@ -1,0 +1,38 @@
+COMANDO PARA OS 4 AGENTES — RELEASE 1.0.83
+==========================================
+Copiar e colar no chat de cada agente.
+
+--- AGENTE API (URGENTE — antes do build iOS) ---
+
+Deploy Railway com Jardim da Gentileza:
+• ego_api/gentleness.py
+• daily_care.py + daily_care_missions.py
+• flask_api.py → POST /api/v1/daily-care/calm-mark
+
+regression_guard + smoke_test_api → push main.
+Ficheiro: SYNC-AGENTES-API-1.0.83.txt
+
+--- AGENTE BOLSO / PAUSA ---
+
+NÃO MEXER em pausa_ego.py, PausaEgoScreen, IAP.
+O Jardim só **abre** PAUSA via link — não altera o módulo PAUSA.
+Pode testar: marcar Nublina → PAUSA 60s inline no Monstrinhos.
+
+--- AGENTE MARKETING ---
+
+1.0.83 iOS only · build **85** (não 84).
+NOTAS atualizadas: marketing/NOTAS-1.0.83-APP-STORE.txt
+Colar «O que há de novo» com Jardim da Gentileza + subtítulo ASO.
+Reels sugerido: humor Nublina → PAUSA 60s → «dia permitido ficar mal»
+Android: sem build nesta release.
+
+--- AGENTE MONSTRINHOS (build) ---
+
+✅ Código pronto. Ordem:
+PREPARAR-1.0.83.bat → GERAR-1.0.83.bat → AGUARDAR-E-SUBMETER-1.0.83.bat
+SYNC: SYNC-AGENTES-MONSTRINHOS-1.0.83.txt
+
+Teste: conta nova → Nublina → PAUSA inline → missões gentis.
+
+--- MESTRE ---
+SYNC-AGENTES-1.0.83.txt

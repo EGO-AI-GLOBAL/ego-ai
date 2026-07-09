@@ -1986,6 +1986,16 @@ def daily_care_goal():
     return _json_ok({"daily_care": care})
 
 
+@app.post("/api/v1/daily-care/calm-mark")
+@require_auth
+@rate_limit(12, 60, scope="user")
+def daily_care_calm_mark():
+    from ego_api import daily_care
+
+    care = daily_care.record_calm_mark(g.supabase, g.user_id)
+    return _json_ok({"daily_care": care})
+
+
 @app.post("/api/v1/daily-care/shop")
 @require_auth
 @rate_limit(20, 60, scope="user")

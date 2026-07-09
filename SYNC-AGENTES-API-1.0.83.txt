@@ -1,0 +1,20 @@
+SYNC AGENTE API — RELEASE 1.0.83
+================================
+Estado: ⏳ PENDENTE — deploy obrigatório antes do build iOS
+
+Deploy Railway (push main após merge):
+• ego_api/gentleness.py (NOVO)
+• ego_api/daily_care.py — gentleness payload + record_calm_mark
+• ego_api/daily_care_missions.py — modo gentil
+• flask_api.py — POST /api/v1/daily-care/calm-mark
+
+Validar após deploy:
+  py scripts/regression_guard.py
+  py scripts/smoke_test_api.py
+  GET /api/health → ok=true
+
+Sem novas vars Railway — só código.
+
+Retrocompatível: app antigo ignora campo `gentleness` no bootstrap.
+
+GIT: (hash após deploy)

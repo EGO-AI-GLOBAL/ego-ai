@@ -256,6 +256,7 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             '@app.post("/api/v1/daily-care/checkin")',
             '@app.post("/api/v1/daily-care/journal-note")',
             '@app.post("/api/v1/daily-care/goal")',
+            '@app.post("/api/v1/daily-care/calm-mark")',
             '@app.post("/api/v1/daily-care/shop")',
             '@app.post("/api/v1/wellness-journey/step")',
             '@app.post("/api/v1/wellness-journey/shop")',
@@ -270,7 +271,11 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
     ),
     (
         "ego_api/daily_care.py",
-        ["get_daily_care", "record_checkin", "record_journal_note", "record_goal", "purchase_shop_item", "award_quiz_seeds", "CARE_MILESTONES", "shop_week_label", "mood_journal"],
+        ["get_daily_care", "record_checkin", "record_journal_note", "record_goal", "record_calm_mark", "purchase_shop_item", "award_quiz_seeds", "CARE_MILESTONES", "shop_week_label", "mood_journal"],
+    ),
+    (
+        "ego_api/gentleness.py",
+        ["gentle_mode_active", "mirror_line", "gentleness_payload", "crisis_bridge", "mark_calm_day", "compute_calm_streak", "note_signals_lonely", "compute_survival_streak", "survival_streak_line"],
     ),
     (
         "ego_api/daily_care_missions.py",
@@ -608,6 +613,64 @@ def check_mission_pool() -> int:
         return 1
 
 
+def check_gentleness() -> int:
+    print("\n=== Jardim da Gentileza (modo suave + PAUSA bridge) ===")
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        import datetime
+
+        from ego_api.daily_care_missions import build_daily_goals, daily_mission_defs
+        from ego_api.gentleness import (
+            crisis_bridge,
+            gentle_mode_active,
+            gentleness_payload,
+            note_signals_lonely,
+        )
+
+        if not note_signals_lonely("domingo sozinha"):
+            print("  ERRO  note_signals_lonely deveria detectar solidão")
+            return 1
+
+        today = datetime.date.today().isoformat()
+        journal = [{"date": today, "mood": "heavy", "note": ""}]
+        if not gentle_mode_active("heavy", journal):
+            print("  ERRO  gentle_mode deveria ligar em Nublina")
+            return 1
+        bridge = crisis_bridge("heavy", True)
+        if not bridge.get("show"):
+            print("  ERRO  crisis_bridge deveria aparecer em heavy")
+            return 1
+        gentle_goals = build_daily_goals({}, today, True, checkin_seeds=5, gentle_mode=True)
+        gentle_keys = {g["key"] for g in gentle_goals if g["key"] != "checkin"}
+        if "surprise_gentle_day" not in gentle_keys:
+            print("  ERRO  missão surpresa gentil ausente")
+            return 1
+        if "adventure" in gentle_keys or "tidy" in gentle_keys:
+            print("  ERRO  missões pesadas no modo gentil")
+            return 1
+        defs = daily_mission_defs(today, gentle=True)
+        if len(defs) != 4:
+            print(f"  ERRO  modo gentil espera 4 missões, veio {len(defs)}")
+            return 1
+        payload = gentleness_payload(
+            {},
+            today=today,
+            checked_today=True,
+            last_mood="heavy",
+            journal=journal,
+            local_hour=21,
+        )
+        if not payload.get("gentle_mode") or not payload.get("night_garden"):
+            print("  ERRO  gentleness_payload incompleto")
+            return 1
+        print("  OK    modo gentil · PAUSA bridge · missões leves · noite")
+        return 0
+    except Exception as exc:
+        print(f"  ERRO  gentleness: {exc}")
+        return 1
+
+
 def check_pausa_exercise_pool() -> int:
     print("\n=== PAUSA — EXERCISE_POOL (key obrigatório) ===")
     try:
@@ -663,6 +726,7 @@ def main() -> int:
     failed += check_journey_missions()
     failed += check_shop_catalog()
     failed += check_mission_pool()
+    failed += check_gentleness()
     failed += check_pausa_exercise_pool()
     failed += check_bootstrap_fallback_daily_care()
     try:

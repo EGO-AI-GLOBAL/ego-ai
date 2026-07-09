@@ -441,6 +441,7 @@ export type PausaDailyExercise = {
   mode: "breath" | "steps";
   focus?: string;
   mood_boosted?: boolean;
+  lonely_boosted?: boolean;
   anywhere_friendly?: boolean;
   breath_inhale?: number;
   breath_exhale?: number;
@@ -475,6 +476,7 @@ export type PausaEgoInfo = {
   tomorrow_teaser?: { emoji: string; title: string };
   anywhere_line?: string;
   retention_line?: string;
+  lonely_boosted?: boolean;
 };
 
 export type DailyCareMood = {
@@ -487,6 +489,32 @@ export type DailyCareQuestion = {
   index: number;
   total: number;
   text: string;
+};
+
+export type DailyCareCrisisBridge = {
+  show: boolean;
+  title: string;
+  subtitle: string;
+  exercise_key: string;
+  duration_seconds: number;
+  cvv_line: string;
+  chat_draft?: string;
+};
+
+export type DailyCareGentleness = {
+  gentle_mode: boolean;
+  mirror_line?: string;
+  calm_streak_current?: number;
+  calm_streak_longest?: number;
+  survival_streak_current?: number;
+  survival_streak_longest?: number;
+  survival_streak_line?: string;
+  held_note?: string;
+  crisis_bridge?: DailyCareCrisisBridge;
+  night_garden?: boolean;
+  sunday_garden?: boolean;
+  lonely_note_today?: boolean;
+  tagline?: string;
 };
 
 export type DailyCareInfo = {
@@ -529,6 +557,7 @@ export type DailyCareInfo = {
   seasonal_event?: DailyCareSeasonalEvent | null;
   weekly_quiz?: DailyCareWeeklyQuiz | null;
   social_invite?: DailyCareSocialInvite | null;
+  gentleness?: DailyCareGentleness | null;
 };
 
 export type DailyCareShopItem = {
@@ -578,6 +607,7 @@ export type DailyCareGoal = {
   locked?: boolean;
   kind?: "checkin" | "tap" | "breathe" | "adventure";
   surprise?: boolean;
+  gentle?: boolean;
 };
 
 export type DailyCareAdventure = {

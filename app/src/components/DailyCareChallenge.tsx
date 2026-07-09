@@ -8,7 +8,9 @@ import { resolveMoodLabel } from "@/constants/moodMonsters";
 import { queueMonsterChatNotice } from "@/utils/monsterChatNotice";
 import { DailyCareShareModal } from "./DailyCareShareModal";
 import { MoodAdventureBanner } from "./moodMonsters/MoodAdventureBanner";
+import { MoodCrisisBridgeCard } from "./moodMonsters/MoodCrisisBridgeCard";
 import { MoodDailyGoals } from "./moodMonsters/MoodDailyGoals";
+import { MoodGentlenessRibbon } from "./moodMonsters/MoodGentlenessRibbon";
 import { MoodGoalsCompleteBurst } from "./moodMonsters/MoodGoalsCompleteBurst";
 import { MoodJournalTodayNote } from "./moodMonsters/MoodJournalTodayNote";
 import { MoodJournalWeek } from "./moodMonsters/MoodJournalWeek";
@@ -124,6 +126,10 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
   const borderColor = care.at_risk ? colors.warning : colors.primary;
   const todayLabel = resolveMoodLabel(care.moods, care.last_mood, care.last_mood_label);
   const needsCheckin = !care.checked_today;
+  const gentleBadge =
+    care.gentleness?.gentle_mode ||
+    care.gentleness?.night_garden ||
+    care.gentleness?.sunday_garden;
 
   const moodCheckIn = (
     <View
@@ -213,7 +219,9 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
           }}
         />
         <View style={styles.head}>
-          <Text style={[styles.badge, { color: colors.primary }]}>MONSTRINHOS DO HUMOR 💜</Text>
+          <Text style={[styles.badge, { color: colors.primary }]}>
+            {gentleBadge ? "JARDIM DA GENTILEZA 💜" : "MONSTRINHOS DO HUMOR 💜"}
+          </Text>
           {days > 0 ? (
             <Text style={[styles.streak, { color: colors.textMuted }]}>
               💜 {days} {days === 1 ? "dia" : "dias"}
@@ -223,6 +231,8 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
 
         <SeasonalEventBanner colors={colors} event={care.seasonal_event} />
 
+        <MoodGentlenessRibbon colors={colors} gentleness={care.gentleness} />
+
         <MoodMonsterScene
           colors={colors}
           care={care}
@@ -231,6 +241,8 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
         />
 
         {moodCheckIn}
+
+        <MoodCrisisBridgeCard colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
 
         <MoodJournalWeek colors={colors} entries={care.mood_journal} moods={care.moods} />
 
@@ -242,7 +254,9 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
 
         {needsCheckin ? (
           <Text style={[styles.missionsLocked, { color: colors.textMuted }]}>
-            2º passo — complete as missões depois de marcar o humor
+            {care.gentleness?.crisis_bridge?.show
+              ? "3º passo — missões gentis depois da PAUSA"
+              : "2º passo — complete as missões depois de marcar o humor"}
           </Text>
         ) : null}
 

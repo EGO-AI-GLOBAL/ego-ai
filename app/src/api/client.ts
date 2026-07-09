@@ -866,6 +866,17 @@ export async function submitDailyCareJournalNote(note: string): Promise<{ daily_
   }
 }
 
+export async function submitDailyCareCalmMark(): Promise<{ daily_care: DailyCareInfo } | null> {
+  try {
+    const { data } = await api.post("daily-care/calm-mark", {});
+    const body = unwrap<{ daily_care: DailyCareInfo }>(data);
+    if (!body.daily_care) return null;
+    return body;
+  } catch {
+    return null;
+  }
+}
+
 export async function submitDailyCareGoal(goalKey: string): Promise<{ daily_care: DailyCareInfo } | null> {
   try {
     const { data } = await api.post("daily-care/goal", { goal: goalKey });
