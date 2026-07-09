@@ -1,0 +1,30 @@
+EGO-AI 1.0.84 — APP STORE (iOS · Tríade Silenciosa)
+====================================================
+Marketing · 09/07/2026
+
+ORDEM — iOS auto · Android manual (teste fechado)
+------------------------------------------------
+1. Connect → versão **1.0.84** → anexar build **86**
+2. Colar **O que há de novo** abaixo
+3. IAP vazia → Enviar para revisão
+
+LINK Connect:
+https://appstoreconnect.apple.com/apps/6780595396/distribution/ios/version/inflight
+
+================================================================================
+VERSÃO 1.0.84 → O QUE HÁ DE NOVO
+================================================================================
+
+• **Tríade Silenciosa** — PAUSA no corpo, monstrinho espelha, falar é opcional
+• **Carta pro monstrinho** — desabafo privado; ninguém lê além do seu jardim
+• **PAUSA 60s no jardim** — alívio inline nos dias Nublina/Agita
+• **Jardim da Gentileza** — missões leves + domingo e madrugada mais suaves
+• Sequência de dias difíceis com PAUSA
+• Foco ansiedade, solidão e respiração (PAUSA EGO)
+• Melhorias de estabilidade
+
+================================================================================
+REGRAS iOS
+================================================================================
+• IAP / Compras no app = vazia
+• Conta demo em «Informações para a revisão»

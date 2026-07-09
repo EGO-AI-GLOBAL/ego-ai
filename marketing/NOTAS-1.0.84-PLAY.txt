@@ -1,0 +1,22 @@
+EGO-AI 1.0.84 — PLAY (Android · teste FECHADO manual)
+======================================================
+versionCode: **128** · versionName: 1.0.84
+
+NOTAS DA VERSÃO (Play Console)
+------------------------------
+• Tríade Silenciosa — PAUSA + Monstrinhos sem obrigar conversa
+• Carta pro monstrinho (privada) + PAUSA 60s no jardim
+• Jardim da Gentileza — dias difíceis, domingo e noite
+• Sequência dias difíceis com PAUSA
+• PAUSA EGO: 20 técnicas + CVV 188
+• Melhorias de estabilidade
+
+UPLOAD MANUAL (Iury)
+--------------------
+1. SUBIR-ANDROID-FECHADO-MANUAL.bat  (baixa AAB quando build terminar)
+2. Play Console → Teste fechado → Nova versão → AAB code 128
+3. Testadores: https://play.google.com/apps/testing/com.egoai.app
+
+TESTE
+-----
+Jardim → Nublina → carta «domingo sozinha» → PAUSA 60s → «Ficar em silêncio».
