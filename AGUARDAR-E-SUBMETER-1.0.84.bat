@@ -4,7 +4,8 @@ cd /d "%~dp0"
 title Aguardar 1.0.84 — iOS auto, Android manual
 
 echo iOS: submit automatico para App Store Connect
-echo Android: VOCE sobe manual — SUBIR-ANDROID-FECHADO-MANUAL.bat
+echo Android: NAO sobe sozinho — nem teste fechado nem interno
+echo Android: VOCE decide quando — SUBIR-ANDROID-FECHADO-MANUAL.bat
 echo.
 
 call _ego_run_python.bat scripts\wait_and_submit_eas.py wait-submit --ios-only --ids-file builds-1.0.84.ids.json

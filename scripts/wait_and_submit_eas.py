@@ -159,11 +159,13 @@ def android_manual_play_instructions(android_id: str) -> None:
     if aab:
         print(f"AAB download: {aab}")
     print()
-    print("Play Console:")
-    print("  1) Testar e publicar -> Teste fechado -> Criar nova versao")
-    print("  2) Carregar o .aab (primeira vez) OU Adicionar da biblioteca (se code já usado)")
+    print("Play Console (MANUAL — nunca automático):")
+    print("  1) Testar e publicar -> Teste FECHADO (ou interno se preferir)")
+    print("  2) Carregar o .aab — VOCE escolhe quando publicar")
     print("  3) Notas -> Revisar -> Publicar -> esperar 15-60 min")
     print("  4) Testadores: https://play.google.com/apps/testing/com.egoai.app")
+    print()
+    print("NÃO corre eas submit — nada sobe sozinho no Play.")
     print()
     print("Se «código já usado»: Release → Explorador de pacotes de apps → ver faixa do code")
     print("  ou Promover do teste interno → teste fechado (sem novo upload).")
@@ -250,16 +252,10 @@ def wait_android(android_id: str, poll_sec: int = 60) -> None:
 
 
 def submit_android(android_id: str) -> None:
-    print("Submetendo Android (Play)...")
-    proc_and = _run(
-        ["eas", "submit", "--platform", "android", "--id", android_id, "--non-interactive"]
-    )
-    if proc_and.returncode != 0:
-        _safe_print(proc_and.stdout or "")
-        print(proc_and.stderr, file=sys.stderr)
-        raise SystemExit(proc_and.returncode)
-    _safe_print(proc_and.stdout or "")
-    print("Submit Android concluído.")
+    """Bloqueado — Play teste fechado/interno é sempre manual (Iury)."""
+    print("AVISO: eas submit Android DESLIGADO — não sobe teste fechado nem interno.")
+    android_manual_play_instructions(android_id)
+    print("Use SUBIR-ANDROID-FECHADO-MANUAL.bat quando quiser publicar no Play.")
 
 
 def sync_check() -> None:

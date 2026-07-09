@@ -11,8 +11,9 @@ NOTAS DA VERSÃO (Play Console)
 • PAUSA EGO: 20 técnicas + CVV 188
 • Melhorias de estabilidade
 
-UPLOAD MANUAL (Iury)
---------------------
+UPLOAD MANUAL (Iury) — NUNCA automático
+-------------------------------------
+O EAS NÃO faz eas submit no Android. Nada sobe sozinho no teste fechado nem interno.
 1. SUBIR-ANDROID-FECHADO-MANUAL.bat  (baixa AAB quando build terminar)
 2. Play Console → Teste fechado → Nova versão → AAB code 128
 3. Testadores: https://play.google.com/apps/testing/com.egoai.app
