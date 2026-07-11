@@ -8,7 +8,7 @@ SYNC MESTRE — 1.0.85 (hotfix sessão — PRONTO BUILD)
 | Marketing   | SYNC-AGENTES-MARKETING-1.0.85.txt | ✅ PRONTO   |
 | Build       | (este ficheiro)                   | ✅ PRONTO     |
 
-Release 1.0.85 — hotfix auth sessão + push + cooldown reset e-mail
+Release 1.0.85 — commit c6273b0 · hotfix auth sessão + push + cooldown reset e-mail
 iOS build 87 · Android versionCode 129
 
 Ficheiros app:
@@ -23,5 +23,5 @@ Ficheiros API:
 Scripts: PREPARAR / GERAR / AGUARDAR 1.0.85
 Marketing: NOTAS-1.0.85-APP-STORE.txt · NOTAS-1.0.85-PLAY.txt
 
-Próximo: GERAR-1.0.85.bat → AGUARDAR-E-SUBMETER-1.0.85.bat
-Android: SUBIR-ANDROID-FECHADO-MANUAL.bat
+iOS: 70f3db2a-b85d-4b73-b567-cc99dd9a6207 (submit auto em curso)
+Android: 4c60cb9e-8523-4287-bdc8-de4f9cca71c4 (Iury sobe manual)

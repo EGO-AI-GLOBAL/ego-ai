@@ -2,7 +2,7 @@ SYNC API — 1.0.85
 =================
 ✅ PRONTO
 
-Commit: (após push)
+Commit: c6273b0
 Zona: ego_api/services.py request_password_reset cooldown · flask_api.py api_build
 
 Deploy: git push main → Railway automático (~2 min)
