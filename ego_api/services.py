@@ -317,8 +317,14 @@ def signup_check(email: str, phone: str) -> dict[str, Any]:
     return check_signup_eligibility(email, phone)
 
 
+_RESET_EMAIL_COOLDOWN_SEC = 120
+_reset_email_last_sent: dict[str, float] = {}
+
+
 def request_password_reset(email: str, redirect_to: str = "") -> tuple[bool, str | None]:
     """Envia e-mail de recuperação — Brevo (Ego-IA) ou fallback Supabase SMTP."""
+    import time
+
     from ego_api.auth_reset import (
         brevo_reset_available,
         dispatch_password_reset_email,
@@ -331,15 +337,20 @@ def request_password_reset(email: str, redirect_to: str = "") -> tuple[bool, str
         return False, err
     if not auth_account_exists(email_norm):
         return False, MSG_NO_ACCOUNT
+    now = time.time()
+    last = _reset_email_last_sent.get(email_norm, 0.0)
+    if now - last < _RESET_EMAIL_COOLDOWN_SEC:
+        return True, None
     target = (redirect_to or "").strip() or password_reset_redirect_url()
     try:
         if brevo_reset_available():
             dispatch_password_reset_email(email_norm, redirect_to=target)
-            return True, None
-        client = create_anon_client()
-        if not client:
-            return False, "Supabase não configurado."
-        client.auth.reset_password_for_email(email_norm, {"redirect_to": target})
+        else:
+            client = create_anon_client()
+            if not client:
+                return False, "Supabase não configurado."
+            client.auth.reset_password_for_email(email_norm, {"redirect_to": target})
+        _reset_email_last_sent[email_norm] = now
         return True, None
     except Exception as e:  # noqa: BLE001
         return False, format_auth_error(e)

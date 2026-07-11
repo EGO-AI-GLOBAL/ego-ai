@@ -1,0 +1,20 @@
+EGO-AI 1.0.85 — PLAY STORE (Android · hotfix sessão)
+===================================================
+Marketing · 10/07/2026
+
+Versão **1.0.85** · versionCode **129**
+
+================================================================================
+O QUE HÁ DE NOVO (copiar)
+================================================================================
+
+• Fica logado ao abrir pelo push — não pede senha toda hora
+• Mais estável quando o servidor volta online
+• Tríade Silenciosa PAUSA + Monstrinhos
+• Melhorias de estabilidade
+
+================================================================================
+TESTE MANUAL (1 min)
+================================================================================
+1. Login → fechar app → tocar num push PAUSA/Monstrinhos → entra direto
+2. Chat «oi» responde

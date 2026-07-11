@@ -1,0 +1,27 @@
+SYNC MESTRE — 1.0.85 (hotfix sessão — PRONTO BUILD)
+====================================================
+
+| Agente      | Sync file                         | Estado        |
+|-------------|-----------------------------------|---------------|
+| PAUSA       | — (sem mudanças UI)               | ✅ skip       |
+| API/Segurança | SYNC-AGENTES-API-1.0.85.txt     | ✅ PRONTO     |
+| Marketing   | SYNC-AGENTES-MARKETING-1.0.85.txt | ✅ PRONTO   |
+| Build       | (este ficheiro)                   | ✅ PRONTO     |
+
+Release 1.0.85 — hotfix auth sessão + push + cooldown reset e-mail
+iOS build 87 · Android versionCode 129
+
+Ficheiros app:
+- app/src/api/client.ts — 404/offline não apaga sessão
+- app/src/context/AuthContext.tsx — hydration antes de logout
+- app/src/hooks/useDailyRitualNotifications.ts — push só logado
+
+Ficheiros API:
+- ego_api/services.py — cooldown 2 min reset e-mail
+- flask_api.py — api_build 2026-07-10-auth-session-push-hotfix
+
+Scripts: PREPARAR / GERAR / AGUARDAR 1.0.85
+Marketing: NOTAS-1.0.85-APP-STORE.txt · NOTAS-1.0.85-PLAY.txt
+
+Próximo: GERAR-1.0.85.bat → AGUARDAR-E-SUBMETER-1.0.85.bat
+Android: SUBIR-ANDROID-FECHADO-MANUAL.bat

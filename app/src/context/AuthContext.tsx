@@ -16,6 +16,7 @@ import {
   refreshSessionToken,
   saveLastLoginEmail,
   setSession,
+  setAuthHydrationComplete,
   setOnAuthFailure,
   setSessionPersistHandler,
   signup as apiSignup,
@@ -140,6 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         /* ignore */
       } finally {
+        setAuthHydrationComplete(true);
         setLoading(false);
       }
     })();

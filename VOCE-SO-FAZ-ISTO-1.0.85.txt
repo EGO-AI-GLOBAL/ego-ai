@@ -1,0 +1,26 @@
+VOCE SO FAZ ISTO — 1.0.85 (hotfix sessão)
+============================================
+
+1. Duplo-clique: GERAR-1.0.85.bat
+   (valida tudo + enfileira iOS 87 + Android 129)
+
+2. Duplo-clique: AGUARDAR-E-SUBMETER-1.0.85.bat
+   (iOS sobe sozinho para revisão)
+
+3. Android quando build terminar:
+   SUBIR-ANDROID-FECHADO-MANUAL.bat
+
+4. App Store Connect:
+   Versão 1.0.85 + build 87
+   Colar: marketing/NOTAS-1.0.85-APP-STORE.txt
+
+5. Depois de APROVAR nas lojas:
+   Railway → EGO_LATEST_APP_VERSION=1.0.85
+   (ver RAILWAY-VARS-1.0.85.txt)
+
+6. Marketing: marketing/SO-MARKETING-AGORA.txt
+
+Teste no telemovel (conta tua):
+- Login → receber push → tocar → NAO pede senha
+
+API ja sobe com git push (cooldown e-mail reset).

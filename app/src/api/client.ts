@@ -48,6 +48,23 @@ const apiBase = API_V1.endsWith("/") ? API_V1 : `${API_V1}/`;
 let memorySession: AuthSession | null = null;
 let onSessionPersist: ((s: AuthSession) => Promise<void>) | null = null;
 let onAuthFailure: (() => void) | null = null;
+/** false até AuthContext carregar sessão do Keychain — evita apagar sessão em corrida. */
+let authHydrationComplete = false;
+
+export function setAuthHydrationComplete(complete: boolean): void {
+  authHydrationComplete = complete;
+}
+
+export function isAuthHydrationComplete(): boolean {
+  return authHydrationComplete;
+}
+
+/** Só desloga quando o refresh prova que o token morreu — não em 404/offline (Railway). */
+function shouldClearSessionOnRefreshFailure(refreshStatus?: number): boolean {
+  return (
+    refreshStatus === 401 || refreshStatus === 403 || refreshStatus === 400
+  );
+}
 
 export function setSession(session: AuthSession | null) {
   memorySession = session;
@@ -176,13 +193,16 @@ api.interceptors.response.use(
           next = await refreshSessionToken(session.refresh_token, session);
         } catch (firstErr) {
           const ax0 = firstErr as AxiosError;
+          const st0 = ax0.response?.status;
           const retryable =
             !ax0.response ||
             ax0.code === "ERR_NETWORK" ||
             ax0.code === "ECONNABORTED" ||
             ax0.code === "ETIMEDOUT" ||
-            (typeof ax0.response?.status === "number" &&
-              ax0.response.status >= 500);
+            st0 === 404 ||
+            st0 === 502 ||
+            st0 === 503 ||
+            (typeof st0 === "number" && st0 >= 500);
           if (!retryable) throw firstErr;
           await new Promise((r) => setTimeout(r, 400));
           next = await refreshSessionToken(session.refresh_token, session);
@@ -196,22 +216,16 @@ api.interceptors.response.use(
       } catch (refreshErr) {
         const ax = refreshErr as AxiosError;
         const refreshStatus = ax.response?.status;
-        const networkish =
-          !ax.response ||
-          ax.code === "ERR_NETWORK" ||
-          ax.code === "ECONNABORTED" ||
-          ax.code === "ETIMEDOUT" ||
-          (typeof refreshStatus === "number" && refreshStatus >= 500);
-        const refreshInvalid =
-          refreshStatus === 401 ||
-          refreshStatus === 403 ||
-          refreshStatus === 400;
-        if (refreshInvalid || (!networkish && refreshStatus)) {
+        if (shouldClearSessionOnRefreshFailure(refreshStatus)) {
           setSession(null);
           onAuthFailure?.();
         }
       }
-    } else if (status === 401 && !session?.refresh_token) {
+    } else if (
+      status === 401 &&
+      !session?.refresh_token &&
+      authHydrationComplete
+    ) {
       setSession(null);
       onAuthFailure?.();
     }

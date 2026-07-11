@@ -2,6 +2,7 @@ import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import { useEffect } from "react";
 import type { DailyRitualId } from "@/constants/dailyRituals";
+import { useAuth } from "@/context/AuthContext";
 import { savePendingRitual } from "@/storage/pendingRitual";
 
 function screenFromData(data: unknown): "chat" | "agenda" | null {
@@ -65,19 +66,24 @@ function handleNotificationData(data: unknown): void {
 
 /** Escuta toques nas notificações de ritual e delegação familiar. */
 export function useDailyRitualNotifications(): void {
+  const { session, loading } = useAuth();
+  const signedIn = Boolean(session?.access_token?.trim());
+
   useEffect(() => {
+    if (loading || !signedIn) return;
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       handleNotificationData(response.notification.request.content.data);
     });
     return () => sub.remove();
-  }, []);
+  }, [loading, signedIn]);
 
   useEffect(() => {
+    if (loading || !signedIn) return;
     void (async () => {
       const last = await Notifications.getLastNotificationResponseAsync();
       if (!last) return;
       handleNotificationData(last.notification.request.content.data);
       await Notifications.clearLastNotificationResponseAsync();
     })();
-  }, []);
+  }, [loading, signedIn]);
 }

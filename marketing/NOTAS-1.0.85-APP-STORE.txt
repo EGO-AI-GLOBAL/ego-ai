@@ -1,0 +1,28 @@
+EGO-AI 1.0.85 — APP STORE (iOS · hotfix sessão)
+================================================
+Marketing · 10/07/2026
+
+ORDEM — iOS auto · Android manual
+---------------------------------
+1. Connect → versão **1.0.85** → anexar build **87**
+2. Colar **O que há de novo** abaixo
+3. IAP vazia → Enviar para revisão
+
+LINK Connect:
+https://appstoreconnect.apple.com/apps/6780595396/distribution/ios/version/inflight
+
+================================================================================
+VERSÃO 1.0.85 → O QUE HÁ DE NOVO
+================================================================================
+
+• **Fica logado** — abrir pelo push não pede senha de novo
+• **Mais estável** quando o servidor volta após manutenção
+• Menos e-mails duplicados ao recuperar senha
+• Tríade Silenciosa PAUSA + Monstrinhos (1.0.84)
+• Melhorias de estabilidade
+
+================================================================================
+REGRAS iOS
+================================================================================
+• IAP / Compras no app = vazia
+• Conta demo em «Informações para a revisão»
