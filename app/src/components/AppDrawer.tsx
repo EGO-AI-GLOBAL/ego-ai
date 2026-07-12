@@ -46,7 +46,7 @@ const NAV: NavItem[] = [
   },
   { label: "Agenda", href: "/(main)/agenda", caption: "Lembretes e hábitos" },
   { label: "Uso", href: "/(main)/usage", caption: "Limite do plano (%)" },
-  { label: "Planos", href: "/(main)/plans", caption: "Conexão, Premium, Total ou Empresa" },
+  { label: "Planos", href: "/(main)/plans", caption: "Lançamento, Conexão, Premium ou Total" },
   { label: "Conta", href: "/(main)/account", caption: "Perfil e exclusão de conta" },
 ];
 

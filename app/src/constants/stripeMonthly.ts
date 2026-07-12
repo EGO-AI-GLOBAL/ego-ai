@@ -1,6 +1,13 @@
 import type { PlanCatalogItem, PlanTier } from "@/api/types";
 
-/** Lançamento: assinaturas mensais (4 BR + 4 USD). Anuais INT ficam para fase 2. */
+/** Impostos + taxa Stripe embutidos (conta PJ · igual catálogo Stripe). */
+export const STRIPE_TAX_FEE_RATE = 0.095;
+
+export const PRICE_INCLUDES_TAXES_NOTE = "Inclui impostos e taxas.";
+
+function stripeInclusiveBrl(base: number): number {
+  return Math.round(base * (1 + STRIPE_TAX_FEE_RATE) * 100) / 100;
+}
 
 export type MonthlyMarket = "br" | "int";
 
@@ -24,11 +31,11 @@ export const LAUNCH_OFFER_CAMPAIGN_START = "2026-06-01";
 export const LAUNCH_PLAN_OFFER_BR = {
   tier: "connection" as const,
   label: "EGO Lançamento",
-  tagline: `Oferta de lançamento: R$ 10,94/mês (inclui impostos e taxas) por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 19,90/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 29,90/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`,
+  tagline: `Oferta de lançamento: R$ 10,94/mês (inclui impostos e taxas) por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 19,90/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 32,74/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`,
   displayPrice: "R$ 10,94/mês",
   priceNum: 10.94,
   introMonths: LAUNCH_OFFER_INTRO_MONTHS,
-  priceAfterBrl: 29.9,
+  priceAfterBrl: stripeInclusiveBrl(29.9),
 };
 
 function addMonthsIso(startIso: string, months: number): Date {
@@ -49,10 +56,10 @@ export function isLaunchCampaignActive(
 
 const TIER_PRICE_ORDER_BR: Record<PlanTier, number> = {
   essential: 0,
-  connection: 29.9,
-  premium: 49.9,
-  total: 99.9,
-  enterprise: 199.9,
+  connection: stripeInclusiveBrl(29.9),
+  premium: stripeInclusiveBrl(49.9),
+  total: stripeInclusiveBrl(99.9),
+  enterprise: stripeInclusiveBrl(199.9),
 };
 
 /** Individual BR: do mais barato ao mais caro (sem essencial). */
@@ -64,20 +71,27 @@ export function sortIndividualOffersByPrice(
   );
 }
 
+/** Planos individuais BR no lançamento Stripe PJ (sem Empresa nem USD). */
+export const BR_STRIPE_LAUNCH_INDIVIDUAL_TIERS = [
+  "connection",
+  "premium",
+  "total",
+] as const satisfies readonly PlanTier[];
+
 export const MONTHLY_PLAN_OFFERS: MonthlyPlanOffer[] = [
   {
     market: "br",
     tier: "connection",
     label: "EGO Conexão",
     tagline: "Seu assistente no dia a dia",
-    displayPrice: "R$ 29,90/mês",
+    displayPrice: "R$ 32,74/mês",
   },
   {
     market: "br",
     tier: "premium",
     label: "EGO Premium",
     tagline: "Mais conversa, voz e agenda",
-    displayPrice: "R$ 49,90/mês",
+    displayPrice: "R$ 54,64/mês",
     highlighted: true,
   },
   {
@@ -85,14 +99,14 @@ export const MONTHLY_PLAN_OFFERS: MonthlyPlanOffer[] = [
     tier: "total",
     label: "EGO Total",
     tagline: "Uso intenso, quase sem limites",
-    displayPrice: "R$ 99,90/mês",
+    displayPrice: "R$ 109,39/mês",
   },
   {
     market: "br",
     tier: "enterprise",
     label: "EGO Empresa",
     tagline: "Equipes e agenda compartilhada",
-    displayPrice: "R$ 199,90/mês",
+    displayPrice: "R$ 218,89/mês",
     highlighted: true,
   },
   {
@@ -128,10 +142,10 @@ export const MONTHLY_PLAN_OFFERS: MonthlyPlanOffer[] = [
 ];
 
 export const DISPLAY_PRICE_BRL: Record<Exclude<PlanTier, "essential">, number> = {
-  connection: 29.9,
-  premium: 49.9,
-  total: 99.9,
-  enterprise: 199.9,
+  connection: stripeInclusiveBrl(29.9),
+  premium: stripeInclusiveBrl(49.9),
+  total: stripeInclusiveBrl(99.9),
+  enterprise: stripeInclusiveBrl(199.9),
 };
 
 export const DISPLAY_PRICE_USD: Record<Exclude<PlanTier, "essential">, number> = {

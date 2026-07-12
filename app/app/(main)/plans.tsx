@@ -16,33 +16,27 @@ import type { LaunchPlanOffer, PlanCatalogItem, PlanTier, ReferralPlanOffer } fr
 import { PlanCard } from "@/components/PlanCard";
 import { ScreenShell } from "@/components/ScreenShell";
 import {
+  BR_STRIPE_LAUNCH_INDIVIDUAL_TIERS,
   DISPLAY_PRICE_BRL,
-  DISPLAY_PRICE_USD,
   isLaunchCampaignActive,
   LAUNCH_OFFER_INTRO_MONTHS,
   LAUNCH_PLAN_OFFER_BR,
   MONTHLY_PLAN_OFFERS,
+  PRICE_INCLUDES_TAXES_NOTE,
   fallbackLimitsForTier,
   sortIndividualOffersByPrice,
-  type MonthlyMarket,
 } from "@/constants/stripeMonthly";
-import { TEAM_PLAN_OFFERS } from "@/constants/teamStripeCheckout";
 import { formatMonthlyPrice, subscribeLabelForTier } from "@/constants/plans";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 import {
   checkoutUrlForTier,
   launchCheckoutUrl,
-  teamCheckoutUrl,
   withCheckoutUserRef,
 } from "@/utils/planCheckout";
 import { allowsInAppPlanPurchase, IOS_SUBSCRIPTION_LEGAL, usesAppleIap, usesStripeCheckout } from "@/utils/iosAppStoreBilling";
 import { iosIapCatalog, useIosIap } from "@/hooks/useIosIap";
-
-const MARKET_TITLE: Record<MonthlyMarket, string> = {
-  br: "Brasil (R$) — mensal",
-  int: "Internacional (USD) — mensal",
-};
+import { IOS_APP_STORE_PRICE_NOTE } from "@/constants/iapProducts";
 
 export default function PlansScreen() {
   const colors = useColors();
@@ -145,6 +139,7 @@ export default function PlansScreen() {
           }}
           busy={iap.busy || openingKey === key}
           priceOverride={display?.priceLine ?? formatMonthlyPrice(offer.priceBrl)}
+          priceNote={IOS_APP_STORE_PRICE_NOTE}
           subscribeLabel={subscribeLabelForTier(offer.tier, currentTier)}
           footnote={display?.footnote}
         />
@@ -193,7 +188,6 @@ export default function PlansScreen() {
   const busy = loading || catalogLoading;
   const showErrorBanner = Boolean(error);
 
-  /** Cupom parceiro: esconde EGO Lançamento e mostra benefício 10% na 1ª compra. */
   const showLaunchCard =
     usesStripeCheckout() &&
     !referralActive &&
@@ -227,23 +221,14 @@ export default function PlansScreen() {
   const brIndividualSorted = useMemo(
     () =>
       sortIndividualOffersByPrice(
-        MONTHLY_PLAN_OFFERS.filter((o) => o.market === "br")
+        MONTHLY_PLAN_OFFERS.filter(
+          (o) =>
+            o.market === "br" &&
+            (BR_STRIPE_LAUNCH_INDIVIDUAL_TIERS as readonly string[]).includes(o.tier)
+        )
       ),
     []
   );
-
-  const intIndividualSorted = useMemo(
-    () =>
-      sortIndividualOffersByPrice(
-        MONTHLY_PLAN_OFFERS.filter((o) => o.market === "int")
-      ),
-    []
-  );
-
-  const teamSorted = (market: MonthlyMarket) =>
-    [...TEAM_PLAN_OFFERS.filter((o) => o.market === market)].sort(
-      (a, b) => a.priceNum - b.priceNum
-    );
 
   const renderEssentialBr = () => {
     const key = "essential-br";
@@ -341,19 +326,18 @@ export default function PlansScreen() {
         })}
         footnote={
           launchOffer?.tagline ||
-          `Oferta de lançamento: R$ 10,94/mês (inclui impostos e taxas) por ${launchIntroMonths} meses. Depois R$ 19,90/mês por ${launchIntroMonths} meses. Depois R$ 29,90/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`
+          `Oferta de lançamento: R$ 10,94/mês (inclui impostos e taxas) por ${launchIntroMonths} meses. Depois R$ 19,90/mês por ${launchIntroMonths} meses. Depois R$ 32,74/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`
         }
+        priceNote={PRICE_INCLUDES_TAXES_NOTE}
       />
     );
   };
 
-  const renderIndividual = (market: MonthlyMarket) => {
-    const offers = market === "br" ? brIndividualSorted : intIndividualSorted;
-    const displayPrices = market === "br" ? DISPLAY_PRICE_BRL : DISPLAY_PRICE_USD;
-    return offers.map((offer) => {
-      const url = checkoutUrlForTier(offer.tier, checkout, market);
-      const priceNum = displayPrices[offer.tier];
-      const key = `ind-${market}-${offer.tier}`;
+  const renderIndividualBr = () => {
+    return brIndividualSorted.map((offer) => {
+      const url = checkoutUrlForTier(offer.tier, checkout, "br");
+      const priceNum = DISPLAY_PRICE_BRL[offer.tier];
+      const key = `ind-br-${offer.tier}`;
       return (
         <PlanCard
           key={key}
@@ -370,35 +354,8 @@ export default function PlansScreen() {
           checkoutUrl={url}
           onSubscribe={(_, u) => onSubscribe(key, u)}
           busy={openingKey === key}
-          priceOverride={market === "int" ? offer.displayPrice : undefined}
+          priceNote={PRICE_INCLUDES_TAXES_NOTE}
           subscribeLabel={subscribeLabelForTier(offer.tier, currentTier)}
-        />
-      );
-    });
-  };
-
-  const renderTeam = (market: MonthlyMarket) => {
-    return teamSorted(market).map((offer) => {
-      const url = teamCheckoutUrl(offer.tier, offer.seats, checkout, market);
-      const key = `team-${market}-${offer.tier}-${offer.seats}`;
-      return (
-        <PlanCard
-          key={key}
-          colors={colors}
-          plan={{
-            tier: offer.tier,
-            label: offer.label,
-            price_brl: offer.priceNum,
-            limits:
-              limitsByTier.get(offer.tier) ?? fallbackLimitsForTier(offer.tier),
-          }}
-          isCurrent={false}
-          highlighted={offer.seats === 30}
-          checkoutUrl={url}
-          onSubscribe={(_, u) => onSubscribe(key, u)}
-          busy={openingKey === key}
-          priceOverride={offer.displayPrice}
-          subscribeLabel="Assinar equipe"
         />
       );
     });
@@ -406,11 +363,11 @@ export default function PlansScreen() {
 
   return (
     <ScreenShell
-      title={usesAppleIap() ? "Planos" : "Planos"}
+      title="Planos"
       subtitle={
         usesAppleIap()
           ? "Assinatura mensal · compra na App Store"
-          : "Mensal · todos os planos · pode mudar quando quiser"
+          : "Lançamento, Conexão, Premium e Total · mensal"
       }
     >
       <ScrollView
@@ -467,7 +424,7 @@ export default function PlansScreen() {
                 <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
                   {showIosLaunchOffer
                     ? `EGO Conexão com oferta de lançamento na App Store: R$ 19,90/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses (quem nunca assinou), depois R$ 39,90/mês. Renovação automática até cancelar.`
-                    : "Pagamento via App Store (In-App Purchase). Pode mudar de plano quando quiser."}
+                    : "Pagamento via App Store. Conexão R$ 39,90 · Premium R$ 69,90 · Total R$ 129,90/mês. Pode mudar de plano quando quiser."}
                 </Text>
                 {renderEssentialBr()}
                 {renderIosIapPlans()}
@@ -503,40 +460,23 @@ export default function PlansScreen() {
                       EGO Lançamento — R$ 10,94
                     </Text>
                     <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-                      Oferta promocional para todos (mesmo no plano Total ou Premium). Limites do
-                      EGO Conexão · válida por {launchIntroMonths} meses.
+                      Oferta promocional · limites do EGO Conexão · válida por{" "}
+                      {launchIntroMonths} meses.
                     </Text>
                     {renderLaunchOffer()}
                   </>
                 ) : null}
 
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  {MARKET_TITLE.br} — individual
+                  Planos mensais (Brasil)
                 </Text>
                 <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-                  Todos os planos aparecem para todos. Ordem: do mais barato ao mais caro.
-                  Pagamento mensal — pode mudar de plano quando quiser.
+                  Essencial grátis · Lançamento R$ 10,94 · Conexão R$ 32,74 · Premium R$ 54,64 ·
+                  Total R$ 109,39. Preços incluem impostos e taxas. Sem Equipe nem Empresa neste
+                  lançamento.
                 </Text>
                 {renderEssentialBr()}
-                {renderIndividual("br")}
-
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  {MARKET_TITLE.br} — equipes (agenda compartilhada)
-                </Text>
-                <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-                  Planos para várias pessoas · ordenados por preço.
-                </Text>
-                {renderTeam("br")}
-
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  {MARKET_TITLE.int} — individual
-                </Text>
-                {renderIndividual("int")}
-
-                <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  {MARKET_TITLE.int} — teams
-                </Text>
-                {renderTeam("int")}
+                {renderIndividualBr()}
               </>
             ) : null}
           </>

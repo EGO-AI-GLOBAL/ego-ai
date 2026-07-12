@@ -9,7 +9,7 @@ import { usesStripeCheckout } from "@/utils/iosAppStoreBilling";
 export type CheckoutMarket = "br" | "int";
 
 export const LAUNCH_CHECKOUT_FALLBACK =
-  "https://buy.stripe.com/aFa6oJc2q3mW81G7pg4ow0P";
+  "https://buy.stripe.com/7sY3cu923evNaqP6ovfYY04";
 
 function gateCheckoutUrl(url: string | null | undefined): string | null {
   if (!usesStripeCheckout()) return null;
@@ -42,10 +42,10 @@ const FALLBACK_CHECKOUT_URLS: Record<
   Record<Exclude<PlanTier, "essential">, string | null>
 > = {
   br: {
-    connection: "https://buy.stripe.com/dRm5kFaYmbTs5TydNE4ow0M",
-    premium: "https://buy.stripe.com/14A7sNgiG6z8chWgZQ4ow02",
-    total: "https://buy.stripe.com/5kQeVf6I60aK95K6lc4ow03",
-    enterprise: "https://buy.stripe.com/5kQ4gBaYm7Dcfu8eRI4ow0O",
+    connection: "https://buy.stripe.com/4gM5kC6TV4Vd6az3cjfYY05",
+    premium: "https://buy.stripe.com/3cIeVc5PRevN56vcMTfYY02",
+    total: "https://buy.stripe.com/14AeVcdijevN8iH3cjfYY03",
+    enterprise: null,
   },
   int: {
     connection: "https://buy.stripe.com/00w3cx9UibTs0ze24W4ow04",

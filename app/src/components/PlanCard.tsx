@@ -26,6 +26,8 @@ type Props = {
   onIapPurchase?: (tier: PlanTier) => void;
   /** Nota sob o plano atual (ex.: cancelar para voltar ao grátis). */
   footnote?: string;
+  /** Linha sob o preço (ex.: impostos inclusos — Stripe Android). */
+  priceNote?: string;
 };
 
 export function PlanCard({
@@ -40,6 +42,7 @@ export function PlanCard({
   badgeLabel,
   subscribeLabel,
   footnote,
+  priceNote,
   purchaseViaIap,
   onIapPurchase,
 }: Props) {
@@ -78,6 +81,9 @@ export function PlanCard({
             ? `US$ ${plan.price_brl.toFixed(2)}/month`
             : formatMonthlyPrice(plan.price_brl))}
       </Text>
+      {priceNote ? (
+        <Text style={[styles.priceNote, { color: colors.textMuted }]}>{priceNote}</Text>
+      ) : null}
 
       <View style={styles.features}>
         {features.map((line) => (
@@ -153,7 +159,8 @@ const styles = StyleSheet.create({
   badgeText: { color: "#fff", fontSize: 11, fontWeight: "800" },
   name: { fontSize: 20, fontWeight: "800", letterSpacing: -0.3 },
   tagline: { fontSize: 14, marginTop: 4, lineHeight: 20 },
-  price: { fontSize: 26, fontWeight: "800", marginTop: 12, marginBottom: 14 },
+  price: { fontSize: 26, fontWeight: "800", marginTop: 12, marginBottom: 4 },
+  priceNote: { fontSize: 12, lineHeight: 16, marginBottom: 10 },
   features: { gap: 8, marginBottom: 16 },
   featureRow: { flexDirection: "row", gap: 8, alignItems: "flex-start" },
   bullet: { fontSize: 16, lineHeight: 20, fontWeight: "700" },
