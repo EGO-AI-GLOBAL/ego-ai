@@ -1,16 +1,15 @@
 SYNC MESTRE — 1.0.88
 =====================
 Versão alvo: **1.0.88**
-Eu (este agente) = Calma 1 min + Build
+Inclui: sessão persistente · Calma 1 min clips · Monstrinhos pet/vídeos · copy Calma
 
 | Agente / chat     | Sync file                              | Estado |
 |-------------------|----------------------------------------|--------|
-| Monstrinhos       | SYNC-AGENTES-PAUSA-1.0.88.txt (*)      | ⏳ |
-| API/Segurança     | SYNC-AGENTES-API-1.0.88.txt            | ⏳ ver ficheiro |
-| Marketing         | SYNC-AGENTES-MARKETING-1.0.88.txt      | ⏳ |
-| Calma (eu)        | SYNC-AGENTES-CALMA-1.0.88.txt          | ✅ clips ligados · sem EAS |
-| Build (eu + Iury) | (este)                                 | ⏳ só após 3× ✅ + «pode build» |
+| PAUSA / Monstrinhos | SYNC-AGENTES-PAUSA-1.0.88.txt        | ✅ PRONTO 4dbf2f7 — Calma 21 clips + sticky |
+| API/Segurança     | SYNC-AGENTES-API-1.0.88.txt            | ✅ PRONTO 89733df · Railway OK (bb464a5) |
+| Marketing         | SYNC-AGENTES-MARKETING-1.0.88.txt      | ✅ PRONTO 12f52d2 — site/ASA; screenshots loja pendentes |
+| Build (eu + Iury) | (este)                                 | ⏳ após «pode build» → GERAR-1.0.88 |
 
-(*) ficheiro SYNC ainda chama PAUSA; chat = Monstrinhos.
+Nota: 4dbf2f7 também criou SYNC-AGENTES-CALMA-1.0.88.txt (mesmo fecho clips).
 
-Build: **NÃO GERAR** até Monstrinhos + API + Marketing ✅ e Iury confirmar.
+Build: **NÃO GERAR** até Iury confirmar.
