@@ -12,7 +12,7 @@ EGO-AI
 ## Breve descrição (máx. 80, sem emoji)
 
 ```
-Ansiedade, humor e desabafo. Chat com voz, PAUSA 1 min e agenda.
+Ansiedade, humor e desabafo. Chat com voz, Calma 1 min e agenda.
 ```
 
 ## Descrição longa (prosa)

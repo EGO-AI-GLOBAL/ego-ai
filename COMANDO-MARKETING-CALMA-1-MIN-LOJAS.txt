@@ -1,0 +1,58 @@
+EGO-AI — COMANDO MARKETING — ATUALIZAR LOJAS «Calma 1 min»
+============================================================
+Colar no chat do agente MARKETING. Zona só marketing/ + Connect/Play/site.
+NÃO: GERAR / eas / app.config / app/ / ego_api/
+
+──────────────────────────────────────────────────────────────
+COLAR DAQUI ATÉ AO FIM
+──────────────────────────────────────────────────────────────
+
+Zona MARKETING — atualizar ficha nas lojas e site. Nome oficial agora: **Calma 1 min** (antes PAUSA EGO). Sem build.
+
+CONTEXTO:
+- Repo já tem copy com Calma 1 min (commits bb5215c / a6b7457 / 70e7ff7).
+- App em loja ainda pode mostrar texto antigo até alguém colar no Connect/Play.
+- Feedbackadores: «PAUSA EGO» confunde → usar só **Calma 1 min**.
+
+LEITURA (git pull origin main):
+1. marketing/NOME-CALMA-1-MIN.txt
+2. marketing/loja/APP_STORE_COPY.md
+3. marketing/loja/PLAY_STORE_COPY.md
+4. marketing/MENSAGEM-TESTADORES-CALMA-1-MIN.txt
+5. marketing/SO-MARKETING-AGORA.txt
+6. marketing/landing/ (brand + testadores) — FTP se Iury tiver senha
+
+TAREFAS (fazer nesta ordem):
+
+A) git pull origin main
+
+B) APP STORE CONNECT (iPhone) — Localization PT-BR
+   Colar de marketing/loja/APP_STORE_COPY.md:
+   • Subtitle (máx 30): Ansiedade · Calma 1 min
+   • Promotional text (máx 170): bloco do ficheiro
+   • Description: bloco do ficheiro (com EULA https://egoai.com.br/termos/)
+   • Keywords: bloco do ficheiro
+   NÃO criar versão nova de binário. Só metadata se o Connect permitir save agora; senão deixar pronto para o próximo submit do Build.
+
+C) GOOGLE PLAY CONSOLE — Presença na loja → PT-BR
+   Colar de marketing/loja/PLAY_STORE_COPY.md:
+   • Breve descrição: Ansiedade, humor e desabafo. Chat com voz, Calma 1 min e agenda.
+   • Descrição completa: bloco longo
+   • Notas da versão (próximo release): bloco do ficheiro
+   Guardar / enviar para revisão de store listing se pedido (NÃO gerar AAB).
+
+D) SITE (se uol-ftp.env com senha existir)
+   Publicar landing atualizada (tagline Calma 1 min) para egoai.com.br
+   Scripts: PUBLICAR-SITE-TESTADORES.bat ou scripts/upload_site_uol_ftp.py
+   Se não houver senha: criar/atualizar SO-FALTA-SENHA-FTP e avisar Iury — NÃO inventar credenciais.
+
+E) CHECK
+   • Nenhuma ficha nova com «PAUSA EGO» como nome do produto
+   • Atualizar SYNC-AGENTES-MARKETING-1.0.86.txt → ✅ LOJAS COLADAS (ou ⏳ Connect pendente + motivo)
+   • Commit só se mexeres em ficheiros locais (ex.: checklist); push origin main
+   • NUNCA: GERAR-*.bat, eas build, eas submit
+
+FECHAR:
+✅ MARKETING LOJAS — Calma 1 min · Connect: [feito/pendente] · Play: [feito/pendente] · site FTP: [feito/faltasenha]
+
+FIM DO COMANDO

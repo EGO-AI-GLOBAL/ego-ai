@@ -12,7 +12,7 @@ EGO-AI
 ## Subtítulo (PT-BR, máx. 30)
 
 ```
-Ansiedade · respirar · PAUSA
+Ansiedade · Calma 1 min
 ```
 
 ## Descrição promocional (máx. 170)
