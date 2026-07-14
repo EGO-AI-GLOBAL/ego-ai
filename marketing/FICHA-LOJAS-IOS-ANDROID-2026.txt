@@ -103,7 +103,7 @@ PASSO 5 — Android ficha: só quando Play produção (Parte B)
 ================================================================================
 CHECKLIST — as duas lojas iguais na mensagem
 ================================================================================
-[ ] iOS subtítulo: Ansiedade · respirar · PAUSA
+[ ] iOS subtítulo: Ansiedade · Calma 1 min
 [ ] iOS descrição: PAUSA + Monstrinhos + Luna/Leo (sem preços)
 [ ] Android breve: PAUSA + voz + agenda
 [ ] Android longa: explica Calma 1 min e Monstrinhos em prosa
