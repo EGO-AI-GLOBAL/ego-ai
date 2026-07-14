@@ -3,7 +3,7 @@ SYNC MARKETING — 1.0.88
 ✅ PRONTO
 
 Data: 14/07/2026
-Commit: **12f52d2**
+Commit: **12f52d2** (conteúdo) · tip sync **6ce545c**
 
 ZONA MARKETING — FECHO PARA BUILD 1.0.88
 ---------------------------------------
