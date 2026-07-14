@@ -1,24 +1,31 @@
-AGENTE PAUSA / MONSTRINHOS — 1.0.86
-===================================
-Estado: ✅ Vi AVISO métricas — a monitorar Monstrinhos/PAUSA
+SYNC PAUSA — 1.0.86
+===================
+Estado: ✅ PRONTO — Vi AVISO métricas — a monitorar PAUSA
 
-Vi AVISO-AGENTES-METRICAS-PRODUTO-DIVULGACAO.txt — a acompanhar métricas
-humor/monstrinho (~230) + ASA ansiedade + vídeo #1 noite.
+✅ Vi AVISO-AGENTES-METRICAS-PRODUTO-DIVULGACAO.txt — a monitorar PAUSA
+✅ Vi marketing/METRICAS-LOOP-PRODUTO.txt
+Commit: c3833f2 · push origin main
 
-Zona (só isto):
-• daily_care / Monstrinhos jardim humor missões
-• PausaEgo* · MoodCrisisBridge · gentleness
+Meta Iury: melhor app do segmento + melhor divulgação.
+Zona: humor / monstrinhos / jardim / PAUSA 1 min.
 
-Diff mínimo 13/07 (sem auth/voz/Stripe/GERAR):
-• DailyCareChallenge — monstrinho celebra no 1º toque (antes da API) · hint Finch PT
-• MoodCrisisBridgeCard — CTA «PAUSA 1 min» (ASA ansiedade + Reel noite)
-• PausaEgoScreen — botão «Começar PAUSA 1 min»
+SINAIS
+------
+• Short ~230 humor/monstrinho → 1º humor Finch <10s · <2 toques
+• ASA «ansiedade» → PAUSA 1 min estável
+• Vídeo #1 noite → acompanhar 24h (SEM monstrinho neste #1)
 
-A monitorar (não inventar contra divulgação):
-• Short ~230 → humor → reação monstrinho <2 toques / <10s
-• ASA «ansiedade» → PAUSA 1 min abre rápido, sem crash, bgCard OK
-• Vídeo #1 noite → PAUSA fluido + silêncio opcional no jardim
+DIFF MÍNIMO (c3833f2)
+---------------------
+• DailyCareChallenge — humor ANTES da cena se !checked_today; sem Alert no 1º check-in
+• MoodGardenWidgetCard — CTA «1 toque / Abrir jardim → humor»
+• daily-care — sem refresh forçado se question já existe
 
-NÃO MEXER: auth · voz · Stripe · marketing copy · EAS/GERAR
+NÃO TOQUEI: auth / voz / Stripe / app.config / EAS / GERAR
 
-Git: (local após commit desta tarefa)
+PRÓXIMO (só se métricas pedirem)
+--------------------------------
+• Humor inline no card do chat (1 toque total)
+• Se #1 noite forte → bridge PAUSA ainda mais óbvio
+
+Build: NÃO — agente Build + Iury
