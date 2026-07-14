@@ -78,7 +78,7 @@ function defaultPausa(): PausaEgoInfo {
 
 
 
-/** Cartão PAUSA EGO no chat — pausa diária anti-stress. */
+/** Cartão Calma 1 min no chat — pausa diária anti-stress. */
 
 export function PausaEgoChatCard({
 

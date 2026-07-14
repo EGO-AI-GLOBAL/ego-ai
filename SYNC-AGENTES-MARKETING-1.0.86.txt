@@ -3,11 +3,13 @@ SYNC MARKETING — 1.0.86+ · Calma 1 min
 ✅ PRONTO (rename copy · sem build)
 
 Data: 14/07/2026
+Commit: bb5215c (+ a6b7457 app/API)
 
 O QUE FECHEI
 ------------
 1. Nome oficial: **Calma 1 min** (antes PAUSA EGO)
    → marketing/NOME-CALMA-1-MIN.txt
+   → marketing/MENSAGEM-TESTADORES-CALMA-1-MIN.txt
 2. Bulk copy: loja, Reels JSON, ASA, testadores, PROJETO, landing, brand
 3. SO-MARKETING-AGORA.txt atualizado
 4. App + API textos já em a6b7457 (Calma 1 min)
