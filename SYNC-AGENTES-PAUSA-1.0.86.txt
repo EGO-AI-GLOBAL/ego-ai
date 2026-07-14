@@ -1,25 +1,26 @@
 SYNC PAUSA — 1.0.86
 ===================
-Estado: 🔧 WIP local — pet sticky + vídeos idle/missões (ainda sem commit)
+Estado: ✅ PRONTO — pet sticky + vídeos idle/missões
 
-Último commit remoto: c3833f2 (métricas Finch)
+Commit: (preencher após push)
+Push: origin main
 
-NOVO (local — testar no Expo)
------------------------------
+ENTREGA
+-------
+• Pet FIXO no topo (MoodMonsterStickyPet) · verde do MP4 (sem remaster)
+• Idle: 01-idle da cor do humor em loop
+• Humor = 1º no scroll sob o pet
+• Check-in → 02 · missões → 03–06 · bónus → 07
 • 35 MP4 em app/assets/monstrinhos/{brisa,sol,neutro,agita,nublina}/
-• MoodMonsterStickyPet — pet FIXO no topo; idle 01 em loop da cor do dia
-• Humor = 1º item no scroll (logo sob o pet); define cor
-• Check-in → 02-mood-react; missão → 03..06; bónus todas → 07
-• daily-care.tsx: sticky fora do ScrollView
+• mapa: app/src/constants/monsterClipAssets.ts
 
-Nota: chroma verde (#00FF00) ainda visível até remaster sem fundo verde.
-
-RENOME UI (14/07 — pedido Iury / testadores)
--------------------------------------------
-• Nome user-facing: **Calma 1 min** (antes PAUSA EGO)
-• Drawer, ecrã, cartões chat, bridge jardim, notificações, push API, prompt LLM
-• Código interno continua `pausa_ego` / rotas wellness-journey (sem breaking)
+TESTAR (Expo, sem EAS)
+----------------------
+1. Abrir Monstrinhos do Humor
+2. Idle a rodar no topo
+3. Marcar humor → reação vídeo
+4. Completar missão → clip correspondente
 
 NÃO TOQUEI: auth / voz / Stripe / app.config / EAS / GERAR
 
-Build: NÃO — agente Build + Iury (rename entra na próxima release)
+Build: NÃO — agente Build + Iury

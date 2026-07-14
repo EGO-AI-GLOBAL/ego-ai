@@ -11,9 +11,17 @@ type Props = {
   care: DailyCareInfo;
   celebrate?: boolean;
   previewMood?: string;
+  /** Pet sticky no topo com vídeo — cena fica só jardim + texto. */
+  hidePet?: boolean;
 };
 
-export function MoodMonsterScene({ colors, care, celebrate = false, previewMood }: Props) {
+export function MoodMonsterScene({
+  colors,
+  care,
+  celebrate = false,
+  previewMood,
+  hidePet = false,
+}: Props) {
   const days = care.current ?? 0;
   const moodKey = previewMood ?? (care.checked_today ? care.last_mood : undefined);
   const displayKey = moodKeyOrDefault(moodKey);
@@ -41,8 +49,10 @@ export function MoodMonsterScene({ colors, care, celebrate = false, previewMood 
       nightMode={Boolean(gentleness?.night_garden || gentleness?.sunday_garden)}
       gentleMode={Boolean(gentleness?.gentle_mode)}
     >
-      <MoodMonsterIllustration moodKey={displayKey} size={116} celebrate={celebrate} />
-      <Text style={styles.name}>{displayLabel}</Text>
+      {hidePet ? null : (
+        <MoodMonsterIllustration moodKey={displayKey} size={116} celebrate={celebrate} />
+      )}
+      {hidePet ? null : <Text style={styles.name}>{displayLabel}</Text>}
       <Text style={[styles.line, { color: colors.text }]}>{line}</Text>
       {mirrorLine ? (
         <Text style={[styles.mirror, { color: colors.primary }]}>{mirrorLine}</Text>

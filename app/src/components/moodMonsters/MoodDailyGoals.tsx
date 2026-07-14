@@ -13,6 +13,8 @@ type Props = {
   userId?: string;
   onUpdate: (care: DailyCareInfo) => void;
   onGoalsBonus?: (congratsLine?: string) => void;
+  /** Dispara vídeo one-shot no pet sticky. */
+  onGoalCompleted?: (goal: DailyCareGoal, allGoalsBonus: boolean) => void;
 };
 
 function goalKind(goal: DailyCareGoal): string {
@@ -78,7 +80,14 @@ function GoalRow({
   );
 }
 
-export function MoodDailyGoals({ colors, care, userId, onUpdate, onGoalsBonus }: Props) {
+export function MoodDailyGoals({
+  colors,
+  care,
+  userId,
+  onUpdate,
+  onGoalsBonus,
+  onGoalCompleted,
+}: Props) {
   const goals = care.daily_goals ?? [];
   const [busyKey, setBusyKey] = useState<string | null>(null);
   const [breatheCount, setBreatheCount] = useState<number | null>(null);
@@ -126,6 +135,7 @@ export function MoodDailyGoals({ colors, care, userId, onUpdate, onGoalsBonus }:
       if (!res?.daily_care) return;
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       onUpdate(res.daily_care);
+      onGoalCompleted?.(goal, Boolean(res.daily_care.goals_bonus_granted));
       const congratsLine = res.daily_care.avatar_congrats?.trim();
       if (congratsLine && userId) {
         void savePendingAvatarCongrats(userId, congratsLine);
