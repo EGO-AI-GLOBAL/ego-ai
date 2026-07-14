@@ -1,6 +1,7 @@
 SYNC — API / SEGURANÇA · 1.0.86+
 =================================
 Estado: ✅ PRONTO — hotfix sessão iOS+Android (ficar logado)
+Commit: 89733df
 Data: 14/07/2026 18:46 BRT
 Proibido: GERAR / EAS / app.config.ts
 
@@ -8,6 +9,7 @@ Vi AVISO-AGENTES-METRICAS-PRODUTO-DIVULGACAO.txt — a monitorar API/funil.
 
 HOTFIX SESSÃO (incluído nesta zona — Build inclui no próximo EAS)
 ----------------------------------------------------------------
+Commit: 89733df
 Ficheiros:
   app/src/storage/sessionStorage.ts
   app/src/context/AuthContext.tsx
