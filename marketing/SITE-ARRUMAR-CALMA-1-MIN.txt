@@ -1,0 +1,50 @@
+SITE — arrumar agora (Calma 1 min) · 14/07
+==========================================
+Problema: FTP 530 — senha/utilizador errados em uol-ftp.env
+site-publico/ já tem «Calma 1 min» (build OK).
+
+================================================
+OPÇÃO A — Corrigir senha e FTP automático (melhor)
+================================================
+1. Chrome: https://uolhost.uol.com.br  (ou meupainelhost.uol.com.br)
+2. Login UOL → teu hosting egoai.com.br
+3. Menu FTP / Acesso FTP / Gerenciador
+4. Anota (ou redefine a senha FTP):
+   • Host (ex.: ftp.egoai.com.br)
+   • Utilizador FTP
+   • Senha FTP (se não souberes → «Alterar senha» / criar nova)
+5. No PC, na raiz do projeto, abre o ficheiro:
+   uol-ftp.env
+   (já existe — NÃO commits; só local)
+
+6. Preenche EXACTAMENTE (sem espaços a mais):
+   UOL_FTP_HOST=ftp.egoai.com.br
+   UOL_FTP_USER=XXXXXXXX
+   UOL_FTP_PASS=XXXXXXXX
+   UOL_FTP_REMOTE_DIR=/public_html
+
+7. Guarda o ficheiro (Ctrl+S)
+
+8. Duplo-clique: SUBIR-SITE-FTP-AUTOMATICO.bat
+   → tem de dizer PRONTO: N arquivos enviados (não 530)
+
+9. Chrome: https://egoai.com.br
+   Confirma que vês **Calma 1 min** na tagline
+   (Ctrl+F5 se ainda aparecer texto antigo)
+
+================================================
+OPÇÃO B — Manual (sem FTP, se A falhar)
+================================================
+1. Pasta já aberta / abrir: site-publico\
+2. Duplo-clique: PUBLICAR-SITE-TESTADORES.bat  (rebuild + abre pasta)
+3. UOL → Gerenciador de ficheiros → public_html
+4. Apaga/substitui o conteúdo antigo
+5. Envia TUDO o que está dentro de site-publico\
+   (index.html, pastas, planos/, etc.)
+6. Testa https://egoai.com.br com Ctrl+F5
+
+================================================
+QUANDO ESTIVER ONLINE — diz-me
+================================================
+Eu confirmo a tagline e atualizo SYNC:
+✅ site FTP: feito

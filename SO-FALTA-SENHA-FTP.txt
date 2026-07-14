@@ -1,0 +1,12 @@
+SO FALTA SENHA FTP — site Calma 1 min
+=====================================
+14/07/2026
+
+site-publico/ JÁ foi gerado localmente com tagline **Calma 1 min**.
+
+FTP tentado: 530 Login authentication failed
+→ atualiza a senha em uol-ftp.env (não partilhar no chat)
+→ depois: PUBLICAR-SITE-TESTADORES.bat  OU  python scripts/upload_site_uol_ftp.py
+
+Manual: uolhost → public_html → enviar conteúdo de site-publico\
+Confirmar: https://egoai.com.br mostra «Calma 1 min»

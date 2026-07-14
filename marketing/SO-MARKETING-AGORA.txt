@@ -7,20 +7,14 @@ Ver: marketing/NOME-CALMA-1-MIN.txt
 
 HOJE / ESTA SEMANA
 ------------------
-1. Apple Search Ads — manter/ajustar (CPI meta < R$ 10)
+1. Apple Search Ads — ✅ campanha nova ON · antiga PAUSADA (distribuição aprovada 14/07)
 2. Reels — ângulos diferentes · dizer **Calma 1 min** (não PAUSA EGO)
-3. Testadores — nas mensagens: Calma 1 min / Monstrinhos
-
-COPY LOJA (próxima versão — NÃO GERAR aqui)
-------------------------------------------
-• marketing/loja/APP_STORE_COPY.md
-• marketing/loja/PLAY_STORE_COPY.md
-Já dizem Calma 1 min — colar no Connect/Play quando Build publicar.
+3. Testadores — Calma 1 min / Monstrinhos · amanhã 14/14 Play se Console OK
+4. Status: marketing/STATUS-LOJA-ASA-14-07.txt
 
 SITE
 ----
-• brand tagline + landing testadores atualizados no repo
-• Publicar FTP quando Iury quiser: egoai.com.br
+• ✅ egoai.com.br com Calma 1 min (ZIP UOL 14/07)
 
 NÃO FAZER
 ---------

@@ -4,9 +4,8 @@ Atualizado: 13/07/2026
 
 QUANDO LIGAR
 ------------
-• Espera a 1.0.86 **aprovada + na loja** (lançamento automático)
-• Confirma no iPhone: subtítulo novo + screenshots novos
-• Depois: pausa campanha antiga e liga esta
+✅ FEITO 14/07: versão em distribuição aprovada · campanha antiga pausada · só a nova activa
+Ver: marketing/STATUS-LOJA-ASA-14-07.txt
 
 ASA NÃO sobe fotos — puxa a ficha da App Store sozinha.
 Mudar subtítulo/prints = esperar loja atualizar (pode levar horas).

@@ -1,22 +1,23 @@
 SYNC MARKETING — 1.0.86+ · Calma 1 min
 ======================================
-✅ PRONTO (rename copy · sem build)
+✅ SITE · ✅ ASA nova · ✅ Distribuição aprovada
+⏳ LOJAS metadata Calma 1 min ADIADA (faltam screenshots)
 
-Data: 14/07/2026
-Commit: bb5215c (+ a6b7457 app/API)
+Data: 14/07/2026 (noite)
 
-O QUE FECHEI
-------------
-1. Nome oficial: **Calma 1 min** (antes PAUSA EGO)
-   → marketing/NOME-CALMA-1-MIN.txt
-   → marketing/MENSAGEM-TESTADORES-CALMA-1-MIN.txt
-2. Bulk copy: loja, Reels JSON, ASA, testadores, PROJETO, landing, brand
-3. SO-MARKETING-AGORA.txt atualizado
-4. App + API textos já em a6b7457 (Calma 1 min)
+FECHADO
+-------
+• Site egoai.com.br — Calma 1 min ✅
+• App Store distribuição APROVADA ✅
+• ASA: campanha antiga PAUSADA · só a nova activa ✅
+• Copy loja pronta — NÃO colar até fotos Calma 1 min
 
-NÃO CORRI: GERAR / eas build / eas submit
+PENDENTE
+--------
+1. Screenshots Calma 1 min → COLAR-CALMA-1-MIN-LOJAS-AGORA.txt
+2. Play 14/14 ~15/07 produção
+3. Medir ASA nova 48–72h vs baseline
 
-Próximo Iury:
-• FTP site se quiser egoai.com.br com tagline nova
-• Ficha Connect/Play na próxima release (APP_STORE_COPY / PLAY_STORE_COPY já prontos)
-• Reels novos: só «Calma 1 min»
+NÃO CORRI: GERAR / eas / submit
+
+✅ MARKETING — distribuição + ASA OK · lojas texto/fotos depois

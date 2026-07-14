@@ -1,0 +1,83 @@
+COLAR AGORA — Calma 1 min · Connect + Play (só metadata)
+========================================================
+14/07/2026 · MARKETING · NÃO gerar AAB/IPA
+
+Chrome Connect: https://appstoreconnect.apple.com/apps/6780595396/distribution/ios
+Chrome Play:    https://play.google.com/console
+
+================================================
+A) APP STORE CONNECT — Localization PT-BR
+================================================
+Apps → EGO-AI → Distribuição → versão atual (ou Preparar para envio)
+  OU Informações da app / Localização se metadata estiver editável.
+
+1) Subtítulo (máx 30) — COLAR:
+Ansiedade · Calma 1 min
+
+2) Texto promocional (máx 170) — COLAR:
+1 minuto de calma quando a ansiedade aperta. Calma 1 min com Luna ou Leo por voz. Monstrinhos do humor. 20 dias grátis no iPhone.
+
+3) Keywords — COLAR:
+ansiedade,stress,respirar,calma,humor,desabafo,solidão,autocuidado,pausa,avatar
+
+4) Descrição — COLAR TUDO (já com EULA):
+Quando a ansiedade aperta, você não precisa ficar sozinha no celular.
+
+O EGO-AI é companheiro com rosto e voz: Luna ou Leo ouvem por texto e áudio, ajudam a organizar o dia e oferecem pausas guiadas quando o stress sobe.
+
+• Calma 1 min — exercícios de respiração e calma em cerca de 1 minuto; botão «Estou mal agora» e apoio SOS
+• Monstrinhos do Humor — marque como se sente hoje e acompanhe seu humor ao longo dos dias
+• Chat por texto e voz — ouça as respostas quando precisar
+• Agenda pessoal, compartilhada e Entre Nós — lembretes no plano grátis
+• 20 dias para experimentar no iPhone, sem cartão na loja
+
+Grátis para baixar. Uso em percentagem simples, como a bateria do celular.
+
+O EGO-AI não substitui médicos, psicólogos ou outros profissionais de saúde.
+
+Terms of Use (EULA): https://egoai.com.br/termos/
+Privacy Policy: https://egoai.com.br/privacidade/
+
+5) Guardar / Save
+   Se Connect bloquear (versão em review): deixa este ficheiro para o próximo submit do Build — copy já está correta.
+
+================================================
+B) GOOGLE PLAY — Presença na loja → PT-BR
+================================================
+1) Breve descrição — COLAR:
+Ansiedade, humor e desabafo. Chat com voz, Calma 1 min e agenda.
+
+2) Descrição completa — COLAR:
+Quando a ansiedade aperta ou o humor pesa, você não precisa ficar sozinha no celular.
+
+O EGO-AI é companhia com rosto e voz em português: converse com Luna, Leo ou qualquer dos 12 assistentes no plano Essencial grátis. Desabafe por texto ou áudio, sem cobrar ninguém no Zap.
+
+Monstrinhos do Humor: marque como se sente hoje, faça missões leves e acompanhe seu humor. Quando a ansiedade apertar, a Calma 1 min oferece respiração e calma em cerca de um minuto, com atalho para momentos de mal-estar.
+
+No chat, as respostas podem ser ouvidas em voz alta. Dá para anexar PDF ou foto e pedir resumo. Na agenda, crie lembretes, use agenda compartilhada em família e o modo Entre Nós — organização sem briga por esquecer.
+
+Cadastro com e-mail e senha. Recuperação de senha e exclusão de conta no site. Uso gratuito inicial; assinaturas opcionais (Android via Stripe) ampliam limites de chat, voz e agenda.
+
+As respostas são geradas por inteligência artificial. Elas não substituem aconselhamento médico, psicológico, jurídico ou financeiro.
+
+Suporte: contato@egoai.com.br
+Site: https://egoai.com.br
+Política de privacidade: https://egoai.com.br/privacidade/
+Exclusão de conta: https://egoai.com.br/exclusao-conta/
+
+3) Notas da versão (quando houver release) — COLAR:
+• Ficha da loja alinhada ao app atual: Calma 1 min, Monstrinhos e chat com voz
+• Sessão mantida ao reabrir o app
+• Agenda liberada no plano grátis
+• Melhorias de estabilidade
+
+4) Guardar / Enviar revisão de listing se pedir (NÃO gerar AAB)
+
+================================================
+C) CHECK
+================================================
+[ ] Nenhum «PAUSA EGO» como nome do produto na ficha
+[ ] Só **Calma 1 min**
+[ ] EULA + Privacy no fim da descrição iOS
+
+Fonte: marketing/loja/APP_STORE_COPY.md · PLAY_STORE_COPY.md

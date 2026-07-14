@@ -1,0 +1,23 @@
+STATUS APP STORE + APPLE ADS — 14/07/2026 (noite)
+=================================================
+Iury confirmou:
+
+✅ Versão em **distribuição** APROVADA (loja)
+✅ Campanha ASA **antiga** → PAUSADA
+✅ Campanha ASA **nova** → única activa
+   (projeto humor/desabafo / keywords — ex. EGO-AI-BR-humor-desabafo-v1
+    ou o nome que criaste no painel)
+
+ASA puxa a ficha viva da App Store sozinha.
+Próximos 48–72h: comparar CPA/installs vs baseline ansiedade
+(marketing/APPLE-ADS-COMPARAR-14-07.txt).
+
+NÃO mexer:
+• Não reactivar a campanha antiga
+• Keywords Exact · Search Match OFF (se foi o setup do guia)
+• Bid ansiedade ~$1.50 · solidão pode ir $0.55→$0.90 se a nova campanha tiver essa KW
+
+Lojas metadata «Calma 1 min» + screenshots: ainda ADIADO
+(até fotos pós-update — ver SO-MARKETING-AGORA.txt)
+
+Site: egoai.com.br já Calma 1 min ✅
