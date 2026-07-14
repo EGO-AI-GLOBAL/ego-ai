@@ -1,0 +1,23 @@
+SYNC PAUSA — 1.0.88
+===================
+Estado: ✅ PRONTO — (hash após push)
+
+ENTREGA
+-------
+• Calma 1 min: 21 clips WayIn → app/assets/calma-clips/ (~53 MB)
+  mapa: app/src/constants/calmaClipAssets.ts (breath44…sos)
+  UI: CalmaClipPlayer em PausaBreathSession · PausaStepSession · SOS
+  + MoodCrisisBridgeCard (jardim → Calma inline)
+• Monstrinhos: pet sticky + 35 clips já em main (42f18e9) — confirmado
+
+PESO AAB (nota)
+---------------
+• calma-clips ~53 MB + monstrinhos ~71 MB ≈ +124 MB no bundle
+• Fase 1 (se Iury pedirotimizar depois): manter só breath44 + sos + 3 keys do dia;
+  resto CDN/lazy — NÃO feito agora (pediste ligar os 21)
+
+NÃO TOQUEI: auth / voz / Stripe / app.config / EAS / GERAR
+
+Testar Expo: Calma 1 min → vídeo loop · SOS → 21-sos · Monstrinhos pet sticky
+
+Build: NÃO — agente Build + Iury (1.0.88)

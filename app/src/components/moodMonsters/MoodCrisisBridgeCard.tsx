@@ -101,6 +101,7 @@ export function MoodCrisisBridgeCard({ colors, care, assistantName = "Luna", onU
         subtitle={exercise.subtitle}
         inhaleSeconds={exercise.breath_inhale ?? 4}
         exhaleSeconds={exercise.breath_exhale ?? 6}
+        clipKey={exercise.key}
         onClose={() => setPausaOpen(false)}
         onComplete={() => void onPausaComplete()}
       />

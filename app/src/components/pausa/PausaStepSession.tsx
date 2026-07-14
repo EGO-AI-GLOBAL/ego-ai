@@ -3,6 +3,8 @@ import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import type { PausaExerciseStep } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import { resolveCalmaClipKey } from "@/constants/calmaClipAssets";
+import { CalmaClipPlayer } from "@/components/pausa/CalmaClipPlayer";
 
 type Props = {
   colors: AppColors;
@@ -10,6 +12,7 @@ type Props = {
   title: string;
   subtitle: string;
   steps: PausaExerciseStep[];
+  clipKey?: string;
   onClose: () => void;
   onComplete: () => void;
 };
@@ -20,9 +23,11 @@ export function PausaStepSession({
   title,
   subtitle,
   steps,
+  clipKey,
   onClose,
   onComplete,
 }: Props) {
+  const videoKey = resolveCalmaClipKey(clipKey);
   const safeSteps = steps.length > 0 ? steps : [{ text: "Respire com calma.", seconds: 10 }];
   const [stepIdx, setStepIdx] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(safeSteps[0]?.seconds ?? 8);
@@ -75,6 +80,8 @@ export function PausaStepSession({
           <Text style={[styles.badge, { color: colors.primary }]}>CALMA DE HOJE</Text>
           <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
           <Text style={[styles.sub, { color: colors.textMuted }]}>{subtitle}</Text>
+
+          <CalmaClipPlayer clipKey={videoKey} playing={visible} />
 
           <View style={[styles.stepBox, { backgroundColor: colors.primaryTint }]}>
             <Text style={[styles.stepText, { color: colors.text }]}>{current?.text}</Text>

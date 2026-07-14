@@ -39,6 +39,7 @@ export function PausaDailySessionModal({
         durationSeconds={60}
         title="SOS — respire comigo"
         subtitle="Um minuto para acalmar agora"
+        clipKey="sos"
         onClose={onClose}
         onComplete={finish}
       />
@@ -53,6 +54,7 @@ export function PausaDailySessionModal({
         title={exercise.title}
         subtitle={exercise.subtitle}
         steps={exercise.steps ?? []}
+        clipKey={exercise.key}
         onClose={onClose}
         onComplete={finish}
       />
@@ -69,6 +71,7 @@ export function PausaDailySessionModal({
       subtitle={exercise.subtitle}
       inhaleSeconds={exercise.breath_inhale ?? 4}
       exhaleSeconds={exercise.breath_exhale ?? 4}
+      clipKey={exercise.key}
       onClose={onClose}
       onComplete={finish}
     />

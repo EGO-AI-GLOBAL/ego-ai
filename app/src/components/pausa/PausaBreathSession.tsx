@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import * as Haptics from "expo-haptics";
 import type { AppColors } from "@/theme/colors";
-
-const PHASE_SECONDS = 4;
+import { resolveCalmaClipKey } from "@/constants/calmaClipAssets";
+import { CalmaClipPlayer } from "@/components/pausa/CalmaClipPlayer";
 
 type Phase = "inhale" | "exhale";
 
@@ -24,6 +24,8 @@ type Props = {
   subtitle?: string;
   inhaleSeconds?: number;
   exhaleSeconds?: number;
+  /** key do exercício (breath44, sos, …) → vídeo WayIn. */
+  clipKey?: string;
   onClose: () => void;
   onComplete: () => void;
 };
@@ -37,9 +39,11 @@ export function PausaBreathSession({
   subtitle,
   inhaleSeconds = 4,
   exhaleSeconds = 4,
+  clipKey,
   onClose,
   onComplete,
 }: Props) {
+  const videoKey = resolveCalmaClipKey(clipKey);
   const total = Math.max(30, Math.min(180, durationSeconds));
   const phaseDur = Math.max(3, Math.min(8, inhaleSeconds));
   const exhaleDur = Math.max(3, Math.min(10, exhaleSeconds));
@@ -124,7 +128,7 @@ export function PausaBreathSession({
 
           <View style={styles.ambientRow}>
             <Text style={[styles.ambientLabel, { color: colors.textMuted }]}>
-              Modo discreto (sem vibração — fila ou trabalho)
+              Modo discreto (sem vibração / som do clip)
             </Text>
             <Switch
               value={ambientOn}
@@ -133,6 +137,8 @@ export function PausaBreathSession({
               thumbColor={ambientOn ? colors.primary : colors.textMuted}
             />
           </View>
+
+          <CalmaClipPlayer clipKey={videoKey} playing={visible} muted={!ambientOn} />
 
           <View style={styles.circleWrap}>
             <Animated.View

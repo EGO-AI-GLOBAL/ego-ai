@@ -1,0 +1,25 @@
+SYNC CALMA + BUILD — 1.0.88
+===========================
+Agente: este chat = **Calma 1 min + Build**
+Estado Calma: ✅ PRONTO (clips ligados · SEM EAS)
+Estado Build: ⏳ aguarda 3× ✅ (Monstrinhos + API + Marketing) → só então GERAR
+
+Data: 14/07/2026
+
+CALMA — O QUE FICOU PRONTO
+-------------------------
+• 21 MP4 em app/assets/calma-clips/ (01–21)
+• app/src/constants/calmaClipAssets.ts — mapa key→require
+• CalmaClipPlayer.tsx — loop expo-av na sessão
+• PausaBreathSession / PausaStepSession / PausaDailySessionModal / MoodCrisisBridge — clipKey
+• regression_guard: OK
+
+NÃO FIZ (ainda)
+---------------
+• app.config bump 1.0.88
+• PREPARAR / GERAR / eas submit
+
+Quando Iury disser «pode build» E existir 3× ✅:
+1. bump 1.0.88
+2. GERAR iOS+Android
+3. AGUARDAR-E-SUBMETER
