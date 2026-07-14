@@ -1,0 +1,100 @@
+COMANDO — 3 AGENTES FECHAM HOJE → BUILD SOBE 1.0.88
+====================================================
+Data: 14/07/2026 · App.config actual: 1.0.87 (iOS já enfileirado) → **próximo EAS = 1.0.88**
+Ordem: 1 PAUSA · 2 API · 3 Marketing · depois Build + Iury (este agente)
+
+Proibido aos 3: GERAR / eas build / eas submit / mudar app.config.ts
+
+──────────────────────────────────────────────────────────────
+1) COLAR NO CHAT **PAUSA**
+──────────────────────────────────────────────────────────────
+
+```
+Zona PAUSA — FECHAR TUDO DE HOJE e ficar ✅ para build 1.0.88. SEM EAS.
+
+CONTEXTO HOJE:
+• Calma 1 min (UI rename) + Monstrinhos pet sticky / 35 clips (já houve commits)
+• 21 vídeos WayIn Calma prontos em:
+  marketing/wayin/CALMA-1-MIN-ANIMS/entregues/01…21-*.mp4
+
+TAREFAS:
+1. git pull origin main
+2. Ligar os 21 clips no app Calma 1 min (PausaBreath / PausaStep / SOS / wellness-journey)
+   mapa key → ficheiro (breath44, long_exh, …, sos)
+   Preferir app/assets/calma-clips/ (copiar MP4s leves) — cuidado tamanho AAB
+   Se bundle ficar enorme: Fase 1 só breath44 + sos + 3 steps comuns; resto lazy depois — mas DOCUMENTA no SYNC
+3. Celebrção leve ao completar Calma (opcional se tempo: burst tipo Monstrinhos)
+4. python scripts/regression_guard.py
+5. git add só zona PAUSA (app/ pausa/monstrinhos/calma + assets calma + SYNC)
+   NÃO meter marketing/videos pesados fora dos 21 calma se já estiverem só em wayin
+6. git commit -m "feat(pausa): Calma 1 min com clips animados + fecho 1.0.88"
+7. git push origin main
+8. Criar/actualizar SYNC-AGENTES-PAUSA-1.0.88.txt → ✅ PRONTO + hash
+9. Avisar Iury: ✅ PAUSA PRONTO — commit XXX — ficheiros: …
+
+PROIBIDO: GERAR / eas / app.config.ts / auth / Stripe
+```
+
+──────────────────────────────────────────────────────────────
+2) COLAR NO CHAT **API / SEGURANÇA**
+──────────────────────────────────────────────────────────────
+
+```
+Zona API/Segurança — FECHAR HOJE e ✅ para build 1.0.88. SEM EAS.
+
+CONTEXTO:
+• Hotfix sessão 89733df (SecureStore + refresh 503 soft) já em main
+• Build 1.0.88 precisa isto no binário + Railway alinhado
+
+TAREFAS:
+1. git pull origin main
+2. Confirmar /api/health (sem maintenance) e api_build com sessão persistente
+3. Se Railway ainda não tiver o deploy da sessão: fazer deploy API AGORA (só Railway — não EAS)
+4. python scripts/smoke_test_api.py (e regression se tocaste código)
+5. Se houver M locais em ego_api/flask_api da tua zona → commit + push
+6. SYNC-AGENTES-API-1.0.88.txt → ✅ PRONTO + hash (mesmo 89733df se nada novo)
+7. Avisar: ✅ API PRONTO — commit XXX — health OK · Railway [sim/já]
+
+PROIBIDO: GERAR / eas / app.config / mexer em marketing Reels
+```
+
+──────────────────────────────────────────────────────────────
+3) COLAR NO CHAT **MARKETING**
+──────────────────────────────────────────────────────────────
+
+```
+Zona MARKETING — FECHAR HOJE e ✅ para build 1.0.88. SEM EAS.
+
+CONTEXTO:
+• Calma 1 min copy (loja/site/ASA) · site egoai.com.br · ASA nova
+• 21 clips Calma estão em marketing/wayin/CALMA-1-MIN-ANIMS/entregues/ (PAUSA liga no app)
+• Metadata loja com screenshots pode ficar PENDENTE — NÃO bloqueia o binário 1.0.88
+
+TAREFAS:
+1. git pull origin main
+2. Commit/push o que ainda estiver local da tua zona (SO-MARKETING, NOME-CALMA, comandos loja, wayin LEIA-MEs se faltarem)
+   NÃO precisa re-subir os 21 MP4 se já estão no disco no path certo — confirma path no SYNC
+3. SYNC-AGENTES-MARKETING-1.0.88.txt → ✅ PRONTO + o que está feito + o que fica depois (screenshots loja)
+4. Avisar: ✅ MARKETING PRONTO — commit XXX · site/ASA OK · lojas fotos [depois]
+
+PROIBIDO: GERAR / eas / app/ / ego_api/
+```
+
+──────────────────────────────────────────────────────────────
+4) DEPOIS DOS 3× ✅ — COLAR NESTE CHAT (BUILD) / Iury diz «pode build»
+──────────────────────────────────────────────────────────────
+
+```
+Build 1.0.88 — após 3× ✅ (PAUSA + API + Marketing).
+
+1. git pull origin main
+2. Confirmar SYNC-AGENTES-*-1.0.88.txt todos ✅
+3. Actualizar SYNC-AGENTES-1.0.88.txt mestre
+4. Bump app.config.ts → 1.0.88 · iOS buildNumber+1 · Android versionCode+1
+5. Criar PREPARAR-1.0.88.bat · GERAR-1.0.88.bat · AGUARDAR-E-SUBMETER-1.0.88.bat
+6. PREPARAR → GERAR (iOS+Android) → AGUARDAR-E-SUBMETER
+7. Railway vars EGO_LATEST só DEPOIS lojas OK (padrão do projecto)
+```
+
+NOTA: 1.0.87 já tem iOS id no builds-1.0.87.ids.json (android vazio).
+Por isso a actualização «de hoje» sobe como **1.0.88** completa.

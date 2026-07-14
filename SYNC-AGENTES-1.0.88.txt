@@ -1,0 +1,15 @@
+SYNC MESTRE — 1.0.88
+=====================
+Versão alvo: **1.0.88** (1.0.87 iOS já enfileirado; este release fecha o dia 14/07)
+Inclui: sessão persistente · Calma 1 min UI · clips Calma · Monstrinhos pet/vídeos · copy Calma
+
+| Agente        | Sync file                              | Estado |
+|---------------|----------------------------------------|--------|
+| PAUSA         | SYNC-AGENTES-PAUSA-1.0.88.txt          | ⏳ aguarda fecho + clips Calma |
+| API/Segurança | SYNC-AGENTES-API-1.0.88.txt            | ⏳ confirma Railway + ✅ |
+| Marketing     | SYNC-AGENTES-MARKETING-1.0.88.txt      | ⏳ confirma push + ✅ |
+| Build         | (este + Iury)                          | ⏳ após 3× ✅ → GERAR-1.0.88 |
+
+Comandos para colar: COMANDO-3-AGENTES-FECHAR-HOJE-BUILD-1.0.88.txt
+
+Build: NÃO GERAR até 3× ✅.
