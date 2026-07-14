@@ -1,0 +1,101 @@
+EGO-AI 1.0.72 — SUBMETER À APP STORE (iOS build 69)
+====================================================
+Binary: 76a4519b-1602-45d0-8d82-8e6c3a457c1d · Apple build 69 · commit 267d2d8
+TestFlight: já enviado. Agora: App Store Connect → versão 1.0.72 → revisão.
+
+ORDEM (clique a clique)
+-----------------------
+1. App Store Connect → Apps → EGO-AI → App Store → «+ Versão» ou editar 1.0.72
+2. Em «Compilação» escolher build **69** (1.0.72) — NÃO 63 nem 65
+3. Colar «O que há de novo» (secção abaixo)
+4. Rever descrição — usar textos iOS (sem Premium/Stripe/IAP) — secção abaixo
+5. Monetização → In-App Purchases → apagar TODOS os rascunhos pendentes
+6. App Review Information → Notes (inglês) + conta demo — secção abaixo
+7. Privacidade: URL da política válida
+8. «Adicionar para revisão» → «Enviar para revisão da App»
+
+────────────────────────────────────────────────────────────
+O QUE HÁ DE NOVO (PT-BR) — colar no Connect
+────────────────────────────────────────────────────────────
+• App mais estável no iPhone — correções de abertura e interface
+• Monstrinhos: diário de humor com histórico dos últimos 7 dias
+• Chat mais limpo — use «Ouvir ao responder» no topo para ouvir as respostas
+• Melhorias gerais de usabilidade
+
+(NÃO mencionar: Stripe, assinar, premium, preços, compra, upgrade, link de planos)
+
+────────────────────────────────────────────────────────────
+DESCRIÇÃO PROMOCIONAL (PT, máx. 170 caracteres)
+────────────────────────────────────────────────────────────
+Companheiro com rosto e voz. Hábitos, lembretes e chat com Luna ou Leo. Grátis para começar no iPhone.
+
+────────────────────────────────────────────────────────────
+DESCRIÇÃO COMPLETA (PT-BR) — substituir texto antigo com «Upgrade/Premium»
+────────────────────────────────────────────────────────────
+Pare de rolar feeds frios.
+
+O EGO-AI é o companheiro de bolso que você quer abrir: chat por texto e voz, hábitos e lembretes inteligentes — com Luna ou Leo, uma voz acolhedora e um rosto que parece humano.
+
+• Escolha Luna ou Leo — seu companheiro diário, não um robô genérico
+• Converse por texto ou voz; ouça as respostas quando precisar
+• Hábitos e lembretes integrados à conversa
+• Uso em % simples — como a bateria do celular
+
+Grátis para baixar e experimentar no iPhone.
+
+O EGO-AI não substitui profissionais de saúde mental ou médicos.
+
+────────────────────────────────────────────────────────────
+DESCRIÇÃO (EN) — se a ficha principal for em inglês
+────────────────────────────────────────────────────────────
+EGO-AI is your pocket companion: text and voice chat, habits, and reminders — with Luna or Leo.
+
+• Choose your avatar companion
+• Text and voice conversation
+• Habits and smart reminders
+• Free to download and try on iPhone
+
+EGO-AI does not replace medical or mental health professionals.
+
+────────────────────────────────────────────────────────────
+APP REVIEW — NOTES (inglês) — colar em «Notes for reviewer»
+────────────────────────────────────────────────────────────
+Hello App Review Team,
+
+Thank you for your feedback.
+
+EGO-AI on iOS is a free app. We do not use StoreKit and we do not sell subscriptions or digital content through In-App Purchase on iPhone or iPad.
+
+In this build we removed all in-app purchase flows on iOS:
+- No "Subscribe" / "Assinar" buttons that open payment
+- No external checkout links from the app
+- The account screen shows only the user's current plan (no purchase buttons or prices)
+- Users who already have an active subscription can sign in with the same email (multiplatform account)
+
+We are not submitting IAP products because paid plans are not sold inside the iOS app.
+
+Demo account for review:
+Email: [COLOCAR_EMAIL_DEMO]
+Password: [COLOCAR_SENHA_DEMO]
+
+Account deletion: Profile → Account → "Excluir minha conta"
+
+Thank you.
+
+────────────────────────────────────────────────────────────
+CHECKLIST ANTES DE ENVIAR (iPhone build 69)
+────────────────────────────────────────────────────────────
+[ ] Menu lateral SEM item «Planos»
+[ ] Conta SEM «Fazer upgrade» / «Ver planos»
+[ ] Chat trial expirado SEM botões Assinar Conexão/Premium/Total
+[ ] Nenhum link abre buy.stripe.com
+[ ] Excluir minha conta visível em Conta
+[ ] IAP rascunhos apagados no Connect
+[ ] Descrição da loja SEM «in-app purchase» / «upgrade» / preços
+
+────────────────────────────────────────────────────────────
+DEPOIS DA APROVAÇÃO
+────────────────────────────────────────────────────────────
+• Lentidão voz/app → release 1.0.73 (performance) — não bloqueia esta submissão
+• Android Play já tem 1.0.72 (versionCode 109)
+• API Railway: vars em RAILWAY-VARS-1.0.72.txt (retenção + banner 1.0.72)

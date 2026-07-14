@@ -1,17 +1,27 @@
 NOTAS VERSÃO 1.0.63 — TestFlight / Play (teste fechado)
 =====================================================
-iOS build 52 · Android versionCode 103
+iOS build 54 · Android versionCode 104
 
-CURTO (O que há de novo)
-------------------------
-Voz corrigida iOS e Android: toque no microfone, fale, o botão vira seta ↑ no mesmo sítio — toque na seta para enviar. Inclui Bolso e Monstrinhos da 1.0.62.
+CURTO (O que há de novo — copiar TestFlight / Play)
+---------------------------------------------------
+Voz corrigida no iPhone e Android: toque no microfone, fale, o botão vira seta ↑ no mesmo sítio — toque na seta para enviar. Inclui melhorias do Bolso e do Jardim dos Monstrinhos (1.0.62).
+
+MÉDIO (Play Console — notas completas)
+--------------------------------------
+• Voz (iOS + Android): fluxo mic → falar → seta ↑ para enviar, sem envio automático no mesmo toque
+• EGO de Bolso: «Falar disso» preenche o chat; pet celebra missões; desafio semanal com bónus de estrelas
+• Jardim dos Monstrinhos: aviso de streak em risco; parabéns ao completar o dia no chat
+
+ULTRA CURTO (limite Play ~500 chars se precisar)
+------------------------------------------------
+1.0.63: voz corrigida (mic vira seta, iOS e Android). Bolso «Falar disso» e Jardim com streak.
 
 O QUE TESTAR
 ------------
-1. Atualizar para **1.0.63** (iOS build **52** · Android **103**)
-2. **Voz:** mic → falar 3 s → seta ↑ → avatar responde (iPhone e Android)
-3. Bolso «Falar disso» · Monstrinhos streak (herdado 1.0.62)
+1. Atualizar para 1.0.63 (iOS build 54 · Android 104)
+2. Voz: mic → falar 3 s → seta ↑ → avatar responde
+3. Bolso «Falar disso» · Monstrinhos streak
 
-TEXTO CURTO — Play / TestFlight
---------------------------------
-1.0.63: voz corrigida (mic vira seta, iOS+Android). Bolso e Jardim da versão anterior.
+TEXTO WHATSAPP
+--------------
+Ver: marketing/MENSAGEM-TESTADORES-1.0.63.txt

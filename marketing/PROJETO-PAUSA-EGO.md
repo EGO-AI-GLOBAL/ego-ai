@@ -1,8 +1,8 @@
-# PAUSA EGO — substitui EGO de Bolso
+# Calma 1 min — substitui EGO de Bolso
 
 ## Produto (resumo para Marketing)
 
-**Nome:** PAUSA EGO (cartão no chat, substitui EGO de Bolso)
+**Nome:** Calma 1 min (cartão no chat, substitui EGO de Bolso)
 
 **Promessa:** Alívio de stress e ansiedade em **2 minutos**, guiado pelo avatar (Luna/Leo).
 
@@ -11,7 +11,7 @@
 | Pilar | Nome user-facing | Hook marketing |
 |-------|------------------|----------------|
 | Humor | Monstrinhos do Humor | "Como me sinto hoje" |
-| Alívio | **PAUSA EGO** | "Estou ansioso — 60s e passa" |
+| Alívio | **Calma 1 min** | "Estou ansioso — 60s e passa" |
 | Companhia | Luna / Leo | "Alguém que ouve de verdade" |
 
 **Monstrinhos:** não mudar. **Bolso:** esconder quando PAUSA entrar.
@@ -20,7 +20,7 @@
 
 ## Por que Marketing muda (Bolso → PAUSA)
 
-| EGO de Bolso (hoje) | PAUSA EGO (novo) |
+| EGO de Bolso (hoje) | Calma 1 min (novo) |
 |---------------------|------------------|
 | "Tamagotchi, 5 missões, nível 500" | "Respira 60s com a Luna" |
 | Difícil explicar em 15s | **POV ansiedade** = formato Reels/TikTok |
@@ -33,7 +33,7 @@
 
 Ninguém garante viral. PAUSA **aumenta a fit** com o que já viraliza em saúde mental.
 
-| Métrica | Bolso / Jornada (est.) | PAUSA EGO (est.) | Variação |
+| Métrica | Bolso / Jornada (est.) | Calma 1 min (est.) | Variação |
 |---------|------------------------|------------------|----------|
 | Hook Reels (parar scroll) | ~15–25% | ~35–50% | **~2×** |
 | Taxa de share por user | ~0,5–1% | ~2–5% | **~3–4×** |

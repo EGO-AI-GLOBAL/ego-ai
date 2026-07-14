@@ -44,7 +44,7 @@ Nunca reciclar o mesmo MP4 pronto como se fosse conteúdo novo.
 Monitorar se o conteúdo que RENDE mostra o feature estável:
 • Humor do dia → reação do monstrinho em <2 toques
 • Missões 3/dia claras · jardim que “parece vivo”
-• PAUSA 1 min: abrir rápido, sem crash, sem cores inválidas (bgCard)
+• Calma 1 min (nome novo; código pausa_*): abrir rápido, sem crash, sem colors.card
 Pedido produto (prioridade se métricas #1 forem fracas no humor mas fortes na noite):
 • Primeiros 30s do utilizador novo: humor OU desabafo devem “clicar”
 • Onboarding não pode crashar (cadastro → Luna → chat → oi)

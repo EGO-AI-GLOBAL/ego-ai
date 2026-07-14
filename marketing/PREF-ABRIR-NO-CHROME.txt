@@ -1,0 +1,7 @@
+PREF: abrir sempre no Google Chrome
+=====================================
+chrome.exe = C:\Program Files\Google\Chrome\Application\chrome.exe
+Atalho: marketing\ABRIR-NO-CHROME.bat URL-OU-FICHEIRO
+
+Agentes: NÃO usar edge/default Start-Process em URLs.
+Usar sempre: & "C:\Program Files\Google\Chrome\Application\chrome.exe" "URL"

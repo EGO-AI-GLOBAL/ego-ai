@@ -1,0 +1,53 @@
+Calma 1 min — foto nova pós-atualização (1.0.81) · para vídeos
+================================================================
+Pasta: marketing/CAPCUT-FOTOS-PAUSA-EGO-1.0.81/
+Cópia para reels antigos: marketing/CAPCUT-FOTOS-PAUSA-EGO/01-pausa-ego-tela-principal.png
+
+--------------------------------------------------------------------------------
+01-pausa-ego-tela-principal.png
+--------------------------------------------------------------------------------
+O que mostra (app real atualizado):
+• Título Calma 1 min — «1 min · casa, escritório ou onde estiver»
+• Técnica do dia: «O que posso controlar» (50s)
+• 20 técnicas · pausa completa para todos os planos
+• Sequência dias 02–08 (streak)
+• Botão roxo: «Começar pausa de hoje · 50s»
+• Card SOS: «Estou mal agora» + CVV 188
+• Compartilhar sequência
+
+Melhor para:
+• Hook ansiedade / fila / ônibus / 3h da manhã
+• Reels formato C (PAUSA) e B (App Store)
+• **Screenshot #1 na App Store** (build 1.0.82)
+• Texto overlay sugerido: «1 min · olhos abertos»
+
+--------------------------------------------------------------------------------
+ROTEIRO REEL (4 cenas — mesma foto, textos diferentes)
+--------------------------------------------------------------------------------
+Cena 1: «POV: peito aperta» + «1 minuto»
+Cena 2: «20 técnicas» + «grátis em todos os planos»
+Cena 3: «Começar pausa · 50s»
+Cena 4: «Estou mal agora?» + SOS CVV 188
+
+Gerar: GERAR-REEL-PAUSA-EGO-1.0.81.bat
+JSON: marketing/REEL-PAUSA-EGO-1.0.81.json
+
+--------------------------------------------------------------------------------
+PRÓXIMO NA FILA (10/07)
+--------------------------------------------------------------------------------
+Atualizar REEL-PAUSA-FILA.json para usar:
+  photo: 01-pausa-ego-tela-principal.png
+  fotos_dir: marketing/CAPCUT-FOTOS-PAUSA-EGO-1.0.81
+
+--------------------------------------------------------------------------------
+FOTOS PAUSA QUE AINDA FALTAM (pedir depois)
+--------------------------------------------------------------------------------
+[ ] Tela durante respiração (círculo/timer em ação)
+[ ] Técnica diferente do dia (outro card)
+[ ] Sequência 🔥 completa (7 dias)
+
+--------------------------------------------------------------------------------
+REGRA
+--------------------------------------------------------------------------------
+• 1 reel/semana pode usar esta foto PAUSA
+• Na mesma semana, reel Monstrinhos usa pasta MONSTRINHOS-1.0.81 (não repetir hook)

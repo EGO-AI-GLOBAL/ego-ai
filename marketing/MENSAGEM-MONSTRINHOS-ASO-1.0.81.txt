@@ -1,0 +1,39 @@
+MONSTRINHOS — ASO Calma 1 min (colar na 1.0.81 antes de aprovar)
+================================================================
+Marketing pediu. App Store Connect bloqueou edição em «Informações do app»
+enquanto 1.0.81 está em revisão.
+
+AÇÃO (só App Store Connect — sem código se já tiver build 79)
+-------------------------------------------------------------
+1. App Store Connect → EGO-AI → Distribuição → versão **1.0.81**
+2. Se não der editar: **Retirar da revisão** → editar → **Enviar de novo**
+3. Colar textos abaixo → Salvar → Reenviar revisão
+
+LINK:
+https://appstoreconnect.apple.com/apps/6780595396/distribution/ios/version/inflight
+
+--- Informações do app → Português (Brasil) ---
+
+SUBTÍTULO (máx. 30):
+Ansiedade · respirar · PAUSA
+
+--- Versão 1.0.81 → descer página → Português (Brasil) ---
+
+TEXTO PROMOCIONAL (máx. 170):
+1 minuto de calma quando a ansiedade aperta. Calma 1 min + Luna/Leo com voz. Grátis 20 dias no iPhone — sem cartão.
+
+PALAVRAS-CHAVE (máx. 100, sem espaços após vírgula):
+ansiedade,stress,respirar,calma,humor,desabafo,solidão,autocuidado,pausa,avatar
+
+(O que há de novo — manter o de marketing/NOTAS-1.0.81-APP-STORE.txt)
+
+SE 1.0.81 JÁ APROVADA
+---------------------
+Criar versão **1.0.82** só ASO (hotfix ou mesmo build se Apple permitir reutilizar).
+
+NÃO MUDAR
+---------
+• Nome do app (EGO-AI)
+• Categoria
+• Política de privacidade
+• Compras no app (vazia)

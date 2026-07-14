@@ -1,0 +1,75 @@
+EGO-AI — FICHA PLAY (corrigir rejeição Google)
+================================================
+Problema: "A página Detalhes do app não descreve claramente os recursos do app"
+Solução: colar os textos abaixo em Páginas de detalhes do app → Página padrão → Salvar
+
+---
+
+BREVE DESCRIÇÃO (máx. 80 caracteres — copiar UMA linha)
+---------------------------------------------------------
+Assistente com IA: chat, voz, agenda, lembretes e rotina diária no celular.
+
+(Alternativa 79 chars:)
+Chat e voz com IA, agenda pessoal, lembretes e hábitos. Teste grátis no app.
+
+---
+
+DESCRIÇÃO COMPLETA (copiar tudo)
+--------------------------------
+O que é o EGO-AI
+
+O EGO-AI é um aplicativo de assistente pessoal com inteligência artificial em português. Você conversa por texto ou voz com um assistente virtual (Luna ou Leo), organiza compromissos na agenda e recebe apoio emocional no dia a dia. O app é indicado para quem quer centralizar conversas, lembretes e rotina familiar em um só lugar.
+
+O que você pode fazer no app
+
+• Chat com IA: envie mensagens de texto e receba respostas do assistente.
+• Mensagens de voz: grave áudio no chat; o assistente responde (com opção de ouvir a resposta).
+• Agenda pessoal: crie compromissos e lembretes com data e hora.
+• Desabafo noturno: grave ou escreva à noite; de manhã revise sugestões na agenda para confirmar ou excluir.
+• Agenda compartilhada (Entre Nós): crie agendas em família e marque compromissos com outras pessoas que também usam o EGO-AI.
+• Lista de compras: itens ligados à agenda; marque como comprado quando concluir.
+• Monstrinhos do Humor: rotina diária de bem-estar com missões simples (humor, respirar, gratidão) e um pet virtual no jardim.
+• EGO de Bolso: acompanhe uma jornada de hábitos com missões diárias e lembretes.
+• Documentos: anexe PDF no chat e peça resumos ou perguntas sobre o conteúdo.
+• Conta segura: cadastro com e-mail e senha; recuperação de senha; exclusão de conta pelo site.
+
+Planos
+
+O app oferece período de teste gratuito. Planos pagos (Conexão, Premium, Total) ampliam limites de uso de chat, voz e recursos. Assinatura opcional dentro do app.
+
+Importante
+
+As respostas são geradas por inteligência artificial e não substituem aconselhamento médico, psicológico, jurídico ou financeiro profissional. Em emergência, procure ajuda especializada.
+
+Suporte e privacidade
+
+Site: https://egoai.com.br
+E-mail: contato@egoai.com.br
+Política de privacidade: https://egoai.com.br/privacidade/
+Exclusão de conta: https://egoai.com.br/exclusao-conta/
+
+---
+
+O QUE NÃO COLOCAR NA DESCRIÇÃO PRINCIPAL
+---------------------------------------
+• Só "notas da versão" (Monstrinhos 5 missões…) sem explicar o app
+• Só slogan ("amigo que não te abandona") sem listar funções
+• Só link de teste ou "baixe grátis" sem dizer o que o app faz
+
+Notas da versão 1.0.48 vão em: Testar e lançar → release → Notas da versão (não na ficha principal).
+
+---
+
+NOTAS DA VERSÃO 1.0.48 (só no campo "O que há de novo" da release)
+-----------------------------------------------------------------
+• Monstrinhos do Humor: 5 missões diárias e atalho no chat
+• EGO de Bolso: missões diárias e lembrete às 18h
+• Agenda Entre Nós e lista de compras persistente
+• Melhorias de estabilidade e cadastro
+
+---
+
+DEPOIS DE COLAR
+---------------
+1. Páginas de detalhes do app → Salvar (botão azul)
+2. Testar e lançar → reenviar para análise

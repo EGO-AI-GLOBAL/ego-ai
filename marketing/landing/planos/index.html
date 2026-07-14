@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Planos EGO-AI — 20 dias grátis. Assine Conexão, Premium ou Total. Pagamento seguro Stripe. Use o mesmo e-mail do app." />
+  <meta name="description" content="Planos EGO-AI — Lançamento R$ 10,94 · Conexão · Premium · Total. Android/Stripe inclui impostos. iPhone assina no app (App Store)." />
   <title>Planos — EGO-AI</title>
   <link rel="icon" href="../img/icon.png" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -50,7 +50,10 @@
       .plan-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (min-width: 900px) {
-      .plan-grid { grid-template-columns: repeat(4, 1fr); }
+      .plan-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (min-width: 1100px) {
+      .plan-grid { grid-template-columns: repeat(5, 1fr); }
     }
     .plan {
       background: var(--card);
@@ -87,13 +90,15 @@
     <header>
       <a class="back" href="/">← Voltar ao site</a>
       <h1>Planos EGO-AI</h1>
-      <p class="sub">20 dias grátis no app · pagamento mensal seguro via Stripe · cancele quando quiser</p>
+      <p class="sub">20 dias grátis no app · pagamento mensal · cancele quando quiser</p>
     </header>
 
     <div class="note">
-      <strong>iPhone e Android:</strong> use o <strong>mesmo e-mail</strong> do cadastro no app ao pagar aqui.
-      No iPhone a assinatura é feita neste site (o app não vende planos na App Store).
-      No Android você também pode assinar pelo app ou por aqui.
+      <strong>iPhone (só no app — App Store):</strong> 3 assinaturas — Conexão <strong>R$ 39,90</strong> · Premium <strong>R$ 69,90</strong> · Total <strong>R$ 129,90</strong>/mês.
+      Oferta de lançamento iOS: <strong>R$ 19,90/mês por 6 meses</strong> na assinatura Conexão (configurada na Apple, não é produto Stripe).
+      <br /><br />
+      <strong>Android e site (Stripe — 4 planos):</strong> Lançamento <strong>R$ 10,94</strong> · Conexão <strong>R$ 32,74</strong> · Premium <strong>R$ 54,64</strong> · Total <strong>R$ 109,39</strong>/mês — inclui impostos e taxas.
+      Use o <strong>mesmo e-mail</strong> do app. Equipe e Empresa: em breve, se houver procura.
     </div>
 
     <div class="plan-grid">
@@ -101,7 +106,7 @@
         <h3>Essencial</h3>
         <div class="price">Grátis</div>
         <ul>
-          <li>Luna e Leo</li>
+          <li>12 assistentes</li>
           <li>20 dias de teste completo</li>
           <li>Limites diários depois</li>
           <li>Sem cartão</li>
@@ -109,38 +114,52 @@
         <span class="btn btn-muted">Cadastre-se no app</span>
       </div>
       <div class="plan">
-        <h3>Conexão</h3>
-        <div class="price">R$ 29,90<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
+        <h3>EGO Lançamento</h3>
+        <p style="font-size:0.72rem;color:var(--warn);margin:0;font-weight:600">Só Android / Stripe — não existe no iPhone</p>
+        <div class="price">R$ 10,94<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
         <ul>
-          <li>+4 assistentes</li>
+          <li>6 meses promocionais</li>
+          <li>Limites do Conexão</li>
+          <li>Inclui impostos e taxas</li>
+        </ul>
+        <a class="btn btn-buy" id="plan-cta-launch" href="https://buy.stripe.com/7sY3cu923evNaqP6ovfYY04" target="_blank" rel="noopener noreferrer">Assinar Lançamento</a>
+      </div>
+      <div class="plan">
+        <h3>Conexão</h3>
+        <div class="price">R$ 32,74<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
+        <p style="font-size:0.72rem;color:var(--muted);margin:0">Inclui impostos e taxas.</p>
+        <ul>
+          <li>12 assistentes</li>
           <li>Mais mensagens e voz</li>
           <li>Agenda ampliada</li>
         </ul>
-        <a class="btn btn-buy" id="plan-cta-connection" href="#">Assinar Conexão</a>
+        <a class="btn btn-buy" id="plan-cta-connection" href="https://buy.stripe.com/4gM5kC6TV4Vd6az3cjfYY05" target="_blank" rel="noopener noreferrer">Assinar Conexão</a>
       </div>
       <div class="plan featured">
         <h3>Premium</h3>
-        <div class="price">R$ 49,90<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
+        <div class="price">R$ 54,64<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
+        <p style="font-size:0.72rem;color:var(--muted);margin:0">Inclui impostos e taxas.</p>
         <ul>
           <li>Texto e voz ilimitados/dia*</li>
-          <li>7 assistentes</li>
+          <li>12 assistentes</li>
           <li>Agenda sem limite</li>
         </ul>
-        <a class="btn btn-buy" id="plan-cta-premium" href="#">Assinar Premium</a>
+        <a class="btn btn-buy" id="plan-cta-premium" href="https://buy.stripe.com/3cIeVc5PRevN56vcMTfYY02" target="_blank" rel="noopener noreferrer">Assinar Premium</a>
       </div>
       <div class="plan">
         <h3>Total</h3>
-        <div class="price">R$ 99,90<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
+        <div class="price">R$ 109,39<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
+        <p style="font-size:0.72rem;color:var(--muted);margin:0">Inclui impostos e taxas.</p>
         <ul>
           <li>12 assistentes</li>
           <li>Uso intenso · 5M tokens/mês</li>
           <li>Máximo de recursos</li>
         </ul>
-        <a class="btn btn-buy" id="plan-cta-total" href="#">Assinar Total</a>
+        <a class="btn btn-buy" id="plan-cta-total" href="https://buy.stripe.com/14AeVcdijevN8iH3cjfYY03" target="_blank" rel="noopener noreferrer">Assinar Total</a>
       </div>
     </div>
 
-    <p class="fine">* Dentro do pacote mensal de tokens. Após o pagamento, abra o app e puxe para atualizar — o plano ativa na mesma conta.</p>
+    <p class="fine">* Dentro do pacote mensal de tokens. iPhone: preços na App Store (39,90 / 69,90 / 129,90). Após pagar no Android, abra o app e puxe para atualizar.</p>
 
     <footer>
       Dúvidas: <a href="mailto:contato@egoai.com.br" id="footer-email">contato@egoai.com.br</a><br />

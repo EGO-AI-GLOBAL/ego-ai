@@ -1,0 +1,187 @@
+EGO-AI — Mudar de CPF (pessoa física) para EMPRESA (CNPJ)
+==========================================================
+Objetivo: dados legais do app + dinheiro das assinaturas na conta da empresa.
+
+IMPORTANTE — leia primeiro
+--------------------------
+• Não dá para «trocar CPF por CNPJ» num clique em todo lugar.
+• Cada plataforma tem regra própria (Stripe, Google, Apple, site).
+• Ordem abaixo evita perder app na loja ou quebrar pagamentos.
+
+O EGO-AI hoje:
+• iOS — SEM compra na App Store (Stripe não aparece no iPhone)
+• Android — assinaturas via **Stripe** (buy.stripe.com)
+• Dinheiro das assinaturas cai na **conta bancária ligada ao Stripe**
+
+================================================================================
+O QUE PREPARAR ANTES (contador + banco)
+================================================================================
+[ ] CNPJ ativo (MEI, ME ou Ltda)
+[ ] Conta corrente **PJ** no banco (mesmo CNPJ)
+[ ] Razão social + nome fantasia
+[ ] Endereço comercial da empresa
+[ ] E-mail corporativo (ex.: contato@egoai.com.br)
+[ ] Contrato social / CCMEI (PDF)
+[ ] Comprovante endereço empresa (alguns bancos/Stripe pedem)
+
+Dados para colar nos formulários:
+  Razão social: _______________________________
+  CNPJ: __.___.___/____-__
+  Nome fantasia: EGO-AI
+  Banco PJ: ______________ Ag ___ Cc ___________
+
+================================================================================
+ORDEM RECOMENDADA (uma de cada vez)
+================================================================================
+
+PASSO 1 — STRIPE (PRIORIDADE — é onde cai o dinheiro)
+----------------------------------------------------
+Onde: https://dashboard.stripe.com/settings/account
+
+Opção A — Mesma conta Stripe, virar empresa (se Stripe permitir):
+1. Configurações → Detalhes da empresa
+2. Alterar de Pessoa física → **Empresa**
+3. Informar CNPJ, razão social, representante legal (você)
+4. Configurações → **Dados bancários e agendamentos**
+5. Trocar conta de saque para **conta PJ** (CNPJ)
+6. Stripe pode pedir documentos — enviar e aguardar verificação (1–7 dias)
+
+Opção B — Nova conta Stripe no CNPJ (se A não der):
+1. Criar conta Stripe nova com login corporativo
+2. Recriar produtos/links de pagamento (Conexão, Premium, Total)
+3. Atualizar links em:
+   • marketing/brand/config.json (stripe.*)
+   • Railway: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+   • ego_api/plans.py e buy.stripe.com
+4. Webhook novo: egoai.com.br/api/.../stripe/webhook
+5. Testar 1 pagamento teste antes de desligar conta antiga
+
+⚠️ Assinaturas **já ativas** na conta CPF: perguntar ao Stripe suporte como migrar
+   ou manter conta antiga só para renovações até expirarem.
+
+Checklist Stripe:
+[ ] Conta verificada como empresa (CNPJ)
+[ ] Conta bancária PJ recebendo payouts
+[ ] Links buy.stripe.com funcionando no Android
+[ ] Webhook Railway OK (pagamento teste)
+
+================================================================================
+PASSO 2 — SITE (privacidade, termos, contato)
+================================================================================
+Onde: egoai.com.br (UOL) + API legal se usar
+
+Atualizar textos com:
+• Razão social + CNPJ
+• Endereço empresa
+• contato@egoai.com.br
+• Responsável / DPO se aplicável
+
+URLs que lojas exigem:
+• https://egoai.com.br/privacidade/
+• https://egoai.com.br/termos/
+• https://egoai.com.br/exclusao-conta/
+• https://egoai.com.br/contato/
+
+Play Console + App Store Connect leem estes links.
+
+Checklist site:
+[ ] Privacidade menciona empresa (CNPJ)
+[ ] Termos menciona empresa
+[ ] Contato com e-mail corporativo
+
+================================================================================
+PASSO 3 — GOOGLE PLAY (Android)
+================================================================================
+Onde: https://play.google.com/console
+
+3.1 Perfil da conta de desenvolvedor
+    • Configurações da conta → Detalhes da conta de desenvolvedor
+    • Tipo: **Organização** (se ainda for individual, Google pode pedir verificação)
+    • Nome público: EGO-AI
+    • E-mail, site, endereço empresa
+
+3.2 Perfil de pagamentos (quando for produção + Google Play Billing no futuro)
+    • Configurações → Pagamentos → Perfil de pagamentos
+    • CNPJ + conta PJ
+    (Hoje assinaturas vão pelo Stripe — mas perfil PJ já deixa pronto)
+
+3.3 Ficha do app
+    • Presença na loja → já atualizada Calma 1 min ✅
+    • Contato: contato@egoai.com.br
+
+3.4 Transferência de app entre contas (só se criar conta Google NOVA com CNPJ)
+    • Play Console → Transferir app → processo Google (semanas)
+    • Mais simples: atualizar conta existente para organização se Google permitir
+
+Checklist Play:
+[ ] Conta desenvolvedor = organização / CNPJ
+[ ] Perfil pagamentos Google (CNPJ) — se usar billing Google depois
+[ ] Site legal com CNPJ
+
+================================================================================
+PASSO 4 — APPLE (iOS)
+================================================================================
+Onde: https://developer.apple.com / App Store Connect
+
+Situação: conta **Individual (CPF)** não vira **Organization (CNPJ)** direto.
+
+Caminho correto para empresa:
+1. Abrir **Apple Developer Program — Organization** com CNPJ
+   • Precisa D-U-N-S Number (grátis, pode levar dias)
+   • https://developer.apple.com/support/D-U-N-S/
+2. Quando conta Organization estiver ativa:
+   • **App Transfer** do CPF → CNPJ
+   • App Store Connect → pedir transferência (app mantém reviews e URL)
+3. App Store Connect → **Acordos, impostos e banking**
+   • Contrato pago apps (mesmo sem IAP iOS, pode precisar para Search Ads)
+   • Dados fiscais empresa Brasil
+
+iOS EGO-AI: assinaturas NÃO passam pela Apple hoje → receita iOS vem de
+Stripe (web/Android) ou usuário assina no site/Android com mesmo e-mail.
+
+Search Ads (marketing): billing pode ser cartão empresa ou PF — separado do Developer.
+
+Checklist Apple:
+[ ] Decidir: manter CPF até Organization pronta OU iniciar D-U-N-S agora
+[ ] Organization Apple Developer (CNPJ)
+[ ] App Transfer EGO-AI para conta empresa
+[ ] Acordos fiscais Connect atualizados
+
+⏱ Apple Organization + transferência: **2–6 semanas** (não urgente se Stripe já PJ)
+
+================================================================================
+PASSO 5 — OUTROS (rápido)
+================================================================================
+| Serviço      | O que fazer |
+|--------------|-------------|
+| Supabase     | Billing → cartão/CNPJ empresa (só fatura) |
+| Railway      | Billing → cartão empresa |
+| UOL domínio  | Titular egoai.com.br → CNPJ se possível |
+| Apple Search Ads | Conta ads → cartão ou fatura empresa |
+| Google Ads   | Conta faturamento → CNPJ (quando rodar App Campaign) |
+
+================================================================================
+O QUE NÃO MEXER SEM AGENTE API/RELEASE
+================================================================================
+• Bundle ID com.egoai.app (iOS/Android)
+• STRIPE_WEBHOOK_SECRET sem testar
+• Transferência Apple no meio de revisão 1.0.82
+
+================================================================================
+RESUMO — O QUE RESOLVE O DINHEIRO HOJE
+================================================================================
+1. **Stripe → CNPJ + conta bancária PJ**  ← faz isto primeiro
+2. Site privacidade/termos com CNPJ
+3. Google Play perfil empresa (ficha já ok)
+4. Apple Organization + transferência (planejar, não correr)
+
+================================================================================
+CHECKLIST GERAL
+================================================================================
+[ ] PASSO 1 Stripe PJ + banco PJ
+[ ] PASSO 2 Site legal CNPJ
+[ ] PASSO 3 Play Console organização
+[ ] PASSO 4 Apple D-U-N-S + Organization (médio prazo)
+[ ] Teste: assinatura Android → payout aparece conta PJ (Stripe dashboard)
+
+Dúvidas Stripe migração assinaturas antigas: suporte Stripe chat (PT).

@@ -3,8 +3,8 @@ EGO-AI 1.0.76 — PLAY STORE (Android)
 Build: 1.0.76 · versionCode 120 (EAS)
 
 O que há de novo (PT-BR):
-• PAUSA EGO — respire 60s com seu avatar (stress e ansiedade)
-• Sequência diária 🔥 no chat e menu PAUSA EGO
+• Calma 1 min — respire 60s com seu avatar (stress e ansiedade)
+• Sequência diária 🔥 no chat e menu Calma 1 min
 • Monstrinhos do Humor e melhorias de estabilidade
 • Planos no Android continuam como antes (Stripe no app)
 

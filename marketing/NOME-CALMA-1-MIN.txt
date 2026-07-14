@@ -1,0 +1,35 @@
+NOME OFICIAL — Calma 1 min (antes PAUSA EGO)
+============================================
+Data: 14/07/2026 · Pedido Iury + feedbackadores
+
+NOME USER-FACING (obrigatório em tudo novo)
+------------------------------------------
+**Calma 1 min**
+
+Subtítulo típico: stress e ansiedade · SOS · 1 minuto
+
+NÃO USAR (salvo histórico interno de ficheiros)
+---------------------------------------------
+• PAUSA EGO
+• PAUSA Ego
+• «Pausa» sozinho como nome do produto
+
+CÓDIGO / API (não mudar sem necessidade)
+----------------------------------------
+• Rotas e keys: `pausa_ego`, `wellness-journey`, `EGO_PAUSA_PUSH_*`
+• Agentes: zona continua a chamar-se PAUSA nos SYNC (pasta/código)
+
+ONDE JÁ FOI ATUALIZADO
+----------------------
+• App UI + push API — commit a6b7457
+• marketing/ (loja, Reels, ASA, testadores, landing) — bulk 14/07
+• brand/config.json tagline
+
+SITE PÚBLICO
+------------
+Depois de FTP: confirmar egoai.com.br mostra «Calma 1 min» na tagline
+(site-publico/brand + landing — já no repo; falta publicar se Iury quiser)
+
+BUILD
+-----
+NÃO — Build + Iury. Texto da loja Connect/Play só na próxima release.

@@ -1,0 +1,60 @@
+TestFlight EXTERNO — EGO-AI 1.0.40 (build 26)
+==============================================
+
+O SUBMIT-IOS-1.0.40.bat so ENVIA o .ipa.
+Testadores externos so veem quando voce ATIVA o build no grupo externo.
+
+LINK DIRETO (TestFlight iOS)
+----------------------------
+https://appstoreconnect.apple.com/apps/6780595396/testflight/ios
+
+PASSO A PASSO
+-------------
+
+1) Aguarde o build 26 aparecer em TestFlight > Builds iOS
+   Status: "Pronto para envio" ou "Processando" (15-30 min apos submit)
+
+2) Export compliance (obrigatorio na 1a vez do build)
+   Clique no build 26 > "Gerenciar conformidade de exportacao"
+   Pergunta: "Seu app usa criptografia?"
+   EGO-AI: escolha NAO (so HTTPS padrao / sem crypto propria)
+   OU marque isencao se aparecer opcao de apps que so usam HTTPS
+
+3) Testes EXTERNOS (nao confundir com Internos)
+   Menu lateral: TestFlight > Testes externos
+   Abra seu grupo (ex: "Testadores EGO" ou nome que criou)
+   Se nao tiver grupo: + Criar grupo > nome + link publico opcional
+
+4) Adicionar build ao grupo externo
+   No grupo > Builds > + (adicionar build)
+   Escolha versao 1.0.40 / build 26
+   Preencha "O que testar" (copie de NOTAS abaixo)
+
+5) Enviar para revisao beta
+   Botao: "Enviar para revisao" / "Submit for Review"
+   Apple revisa em algumas horas ate 1-2 dias (1a vez pode demorar mais)
+
+6) Quando status = "Pronto para testar" / "Testing"
+   Testadores abrem: https://testflight.apple.com/join/eNDKdFWF
+   App TestFlight > EGO-AI > Atualizar
+
+SE BUILD ANTIGO BLOQUEIA (ex: build 23 ou 25 no externo)
+--------------------------------------------------------
+- No grupo EXTERNO, remova builds antigos do grupo (nao apaga o .ipa)
+- Deixe so o build 26 ativo
+- Reenvie para revisao se pedir
+
+TEXTO "O QUE TESTAR" (copiar/colar)
+-----------------------------------
+Versao 1.0.40 — Monstrinhos do Humor + Companheiro de Bolso.
+Testar: menu lateral, check-in diario, partilha WhatsApp/Stories,
+chat sem badge Ofensiva. Login, chat texto e voz.
+
+CHECKLIST RAPIDO
+----------------
+[ ] Build 26 visivel em TestFlight
+[ ] Export compliance = OK
+[ ] Build 26 no grupo EXTERNO (nao so interno)
+[ ] Enviado para revisao beta
+[ ] Status "Pronto para testar"
+[ ] Link join abre no iPhone do testador

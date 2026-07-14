@@ -1,0 +1,50 @@
+EGO-AI 1.0.39 — VERSÃO RETENÇÃO MÁXIMA (~14 seg)
+===============================================
+Arquivo: marketing/videos/app-real/ego-ai-1.0.39-retencao-reels.mp4
+Gerar: GERAR-VIDEO-RETENCAO-1.0.39.bat
+
+USE PARA ANÚNCIO PAGO — esta é a versão que um especialista em retenção testaria primeiro.
+
+TÉCNICAS APLICADAS NO VÍDEO
+---------------------------
+- Frame 0 = print do app (nunca preto)
+- Hook "SE VOCÊ..." = identificação imediata
+- Loop aberto → fecha na cena 2 ("lembra de tudo" → "é a agenda dele")
+- Corte visual a cada ~1,5–2s
+- Zoom Ken Burns sutil (movimento = retenção)
+- Fim = mesma foto do início (loop no Reels)
+- Voz +22% mais rápida, zero pausa morta
+
+TÍTULO DO REEL
+--------------
+Se você lembra de tudo da casa… isso não é normal 😤
+
+LEGENDA
+-------
+Se você lembra de consulta, escola, aniversário e ainda responde "viu?" no Zap…
+
+Você não é desorganizada. Virou a agenda de todo mundo.
+
+No EGO-AI:
+🎙️ Desabafa de noite → vira agenda de manhã
+📅 Família no mesmo app — sem cobrança no WhatsApp
+💜 Desafio Diário — 1 toque, ranking
+
+Teste GRÁTIS 👇
+
+🤖 https://play.google.com/apps/testing/com.egoai.app
+🍎 https://testflight.apple.com/join/eNDKdFWF
+
+#egoai #mulher #casamento #maternidade #organização #whatsapp
+
+MÉTRICA ALVO (anúncio)
+----------------------
+- Retenção 3s: > 45% (antes: ~1s)
+- CPA visita perfil: < R$ 2,00
+- Teste: R$ 25/dia · 3 dias · mulheres 35–54 · Brasil
+
+COMENTÁRIO FIXADO
+-----------------
+📲 Baixe grátis:
+🤖 https://play.google.com/apps/testing/com.egoai.app
+🍎 https://testflight.apple.com/join/eNDKdFWF

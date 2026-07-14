@@ -1,0 +1,55 @@
+{
+  "version": "1.0.81",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-PAUSA-EGO-1.0.81",
+  "output": "marketing/videos/app-real/ego-ai-pausa-ego-1.0.81-reels.mp4",
+  "post_file": "marketing/POST-REEL-PAUSA-EGO-1.0.81.txt",
+  "voice_rate": "+24%",
+  "audio_pad": 0.05,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.86,
+  "top_bar_h": 280,
+  "bottom_reserve": 200,
+  "badge_text": "1 MIN 🌬️",
+  "post": {
+    "title": "Calma 1 min — 1 minuto quando a ansiedade aperta 🌬️",
+    "description": "POV: fila, ônibus, escritório — o peito aperta e você não pode sair correndo.\n\nCalma 1 min atualizado:\n🌬️ 50 segundos · olhos abertos\n🎯 20 técnicas · grátis em todos os planos\n🆘 «Estou mal agora» → SOS + CVV 188\n\n🍎 iPhone: https://apps.apple.com/app/id6780595396\n🤖 Android: GMAIL no DM\n\n#egoai #ansiedade #pausa #respirar #stress #saúdemental",
+    "hashtags": ["#egoai", "#ansiedade", "#pausa", "#respirar", "#stress", "#saúdemental"],
+    "pinned_comment": "🍎 App Store: https://apps.apple.com/app/id6780595396\n🤖 Android: GMAIL no PRIVADO"
+  },
+  "scenes": [
+    {
+      "photo": "01-pausa-ego-tela-principal.png",
+      "lines": [["POV: aperta", 58, true], ["1 minuto 🌬️", 50, false]],
+      "darken": 0.12,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "P O V: o peito aperta. Um minuto. Calma 1 min."
+    },
+    {
+      "photo": "01-pausa-ego-tela-principal.png",
+      "lines": [["20 técnicas", 56, true], ["grátis p/ todos", 46, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Vinte técnicas. Pausa completa. Grátis em todos os planos."
+    },
+    {
+      "photo": "01-pausa-ego-tela-principal.png",
+      "lines": [["Começar pausa", 54, true], ["50 segundos", 46, false]],
+      "darken": 0.14,
+      "accent": 1,
+      "voice": "Começar pausa de hoje. Cinquenta segundos. Olhos abertos."
+    },
+    {
+      "photo": "01-pausa-ego-tela-principal.png",
+      "lines": [["Estou mal agora?", 52, true], ["SOS · CVV 188", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Piorou? Estou mal agora. S O S e apoio no chat."
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+E-MAILS AUTOMÁTICOS — LEMBRETE SEMANAL
+======================================
+
+O QUE FAZ (após deploy API amanhã)
+----------------------------------
+1. Cadastro → e-mail de boas-vindas (egoai.com.br)
+2. Sem login em 24h → lembrete 1
+3. Ainda sem login → lembrete 2, 3, 4 a cada 7 dias
+4. Parou quando a pessoa faz login no app
+
+HOJE (antes do deploy)
+----------------------
+Duplo clique: ABRIR-SQL-LEMBRETE-SEMANAL.bat
+→ Supabase SQL Editor → RUN
+
+AMANHÃ (deploy Railway)
+-----------------------
+Push/redeploy da API — nada extra se Brevo/Resend já está ligado.
+
+VARIÁVEIS OPCIONAIS (Railway)
+-----------------------------
+EGO_SIGNUP_EMAIL_ENABLED=1
+EGO_SIGNUP_REMINDER_MAX=4
+EGO_SIGNUP_REMINDER_INTERVAL_DAYS=7
+EGO_SIGNUP_REMINDER_FIRST_HOURS=24
+EGO_APP_SIGNUP_URL=https://egoai.com.br
+
+TESTAR MANUAL
+-------------
+POST /api/v1/admin/cron/signup-reminders
+Header: X-Admin-Key: REFERRAL_ADMIN_SECRET
+
+QUEM RECEBE
+-----------
+SQL Supabase:
+SELECT email, signup_reminder_count, signup_reminder_sent_at, created_at
+FROM profiles
+WHERE welcome_email_sent_at IS NOT NULL
+  AND last_login_at IS NULL
+ORDER BY created_at DESC;

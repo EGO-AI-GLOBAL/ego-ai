@@ -1,0 +1,279 @@
+EGO-AI — STRIPE PJ · COPIAR IGUAL À CONTA PF ANTIGA
+====================================================
+Conta nova: Economizze · CNPJ 52.045.624/0001-29
+Modo: PRODUÇÃO (não Teste)
+
+ÚNICA DIFERENÇA vs PF: preços BR com impostos/taxas embutidos (+9,5%).
+Tudo o resto (nomes, metadados, extrato, cupons, textos) = IGUAL.
+
+================================================================================
+A) CONTA (uma vez — Configurações)
+================================================================================
+
+Configurações → Dados comerciais / Informações públicas:
+  Nome público:     EGO-AI
+  Site:             https://egoai.com.br
+  E-mail suporte:   contato@egoai.com.br
+
+Configurações → Faturamento → Descrições no extrato:
+  Descrição curta:  EGO-AI
+  Descrição longa:  EGO-AI
+  (máx. 22 caracteres — igual conta antiga)
+
+Impostos (Stripe Tax):
+  DESLIGADO em todos os produtos (preço já inclui imposto + taxa)
+
+Cupom indicação (recriar igual PF — depois dos planos):
+  Cupons → Criar → 10% · Duração: Uma vez (Once)
+  Códigos promocionais → EGOINDICA10 → ligar ao cupom
+  Railway: STRIPE_REFERRAL_PROMO_CODE=EGOINDICA10
+
+Webhook (Developers → Webhooks → Adicionar destino):
+  URL: https://ego-ai-production-a2c2.up.railway.app/stripe/webhook
+  Eventos: checkout.session.completed, customer.subscription.*, invoice.*
+
+================================================================================
+B) REGRAS IGUAIS EM TODOS OS PRODUTOS BR
+================================================================================
+
+  Tipo:              Assinatura
+  Recorrente:        Sim
+  Período:           Mensal
+  Moeda:             BRL
+  Imposto no Stripe: NÃO
+  Extrato cartão:    EGO-AI
+  Logo (opcional):   marketing/brand/logo-site.png
+  Imagens plano:     FOTOS-STRIPE/br/{launch|connection|premium|total}/01-capa.png
+  (nome + preço estão NA imagem — usar pasta certa, nunca trocar)
+
+  Metadado no PRODUTO (sempre):
+    plan_tier = (ver tabela de cada plano)
+
+  Metadado no LINK (sempre — repetir igual):
+    plan_tier = (mesmo valor)
+
+================================================================================
+TABELA FOTO × NOME × PREÇO (Stripe PJ — copiar certo)
+================================================================================
+
+| Produto Stripe   | Preço/mês  | Foto (01-capa.png)                    |
+|------------------|------------|---------------------------------------|
+| EGO Lançamento   | R$ 10,94   | FOTOS-STRIPE/br/launch/01-capa.png    |
+| EGO Conexão      | R$ 32,74   | FOTOS-STRIPE/br/connection/01-capa.png|
+| EGO Premium      | R$ 54,64   | FOTOS-STRIPE/br/premium/01-capa.png   |
+| EGO Total        | R$ 109,39  | FOTOS-STRIPE/br/total/01-capa.png     |
+| EGO Empresa      | R$ 218,89  | marketing/brand/logo-site.png (sem foto dedicada) |
+
+Regenerar fotos: python scripts/generate_plan_product_images.py --locale br
+
+================================================================================
+PLANO 1 — EGO LANÇAMENTO  (copiar tudo de uma vez)
+================================================================================
+
+--- PRODUTO ---
+
+Nome:
+EGO Lançamento
+
+Descrição (colar inteiro):
+Oferta de lançamento: R$ 10,94/mês (inclui impostos e taxas) por 6 meses. Depois R$ 19,90/mês por 6 meses. Depois R$ 32,74/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.
+
+Imagem:
+FOTOS-STRIPE/br/launch/01-capa.png
+(NÃO usar connection — essa foto diz EGO Conexão R$ 32,74)
+
+Preço:
+10,94
+BRL · Recorrente · Mensal
+
+Metadados do produto:
+  plan_tier | connection
+
+--- LINK DE PAGAMENTO ---
+
+Tipo:                    Assinatura
+Produto:                 EGO Lançamento · R$ 10,94/mês
+Códigos promocionais:    DESLIGADO  ← obrigatório (igual PF)
+Descrição no extrato:    EGO-AI
+
+Metadados do link:
+  plan_tier | connection
+
+Guardar URL como:
+STRIPE_CHECKOUT_LAUNCH_URL=https://buy.stripe.com/___________
+
+Escada manual (igual PF — LEMBRETE-STRIPE-PRECOS-MANUAL.txt):
+  10,94 (6 meses) → 19,90/mês (6 meses) → 32,74 Conexão
+
+================================================================================
+PLANO 2 — EGO CONEXÃO
+================================================================================
+
+Nome:
+EGO Conexão
+
+Descrição curta (Stripe / card):
+Seu assistente no dia a dia: mais mensagens, voz, agenda e respostas em áudio.
+
+Descrição longa (opcional):
+O plano Conexão foi feito para quem usa o EGO-AI com regularidade. Você ganha mais mensagens de texto e voz, agenda pessoal ampla, respostas faladas pelo assistente e velocidade de áudio acelerada (1,5x e 2x).
+
+Imagem:
+FOTOS-STRIPE/br/connection/01-capa.png
+
+Preço:
+32,74
+BRL · Recorrente · Mensal
+
+Metadados produto + link:
+  plan_tier | connection
+
+Link:
+  Códigos promocionais: LIGADO (cupom EGOINDICA10)
+  Extrato: EGO-AI
+
+STRIPE_CHECKOUT_CONNECTION_URL=https://buy.stripe.com/___________
+
+================================================================================
+PLANO 3 — EGO PREMIUM
+================================================================================
+
+Nome:
+EGO Premium
+
+Descrição curta:
+.
+
+Descrição longa:
+O Premium remove as barreiras do dia a dia: mensagens de texto e voz sem limite diário, hábitos e lembretes ilimitados na agenda pessoal e um pacote generoso de tokens para conversas longas.
+
+Imagem:
+FOTOS-STRIPE/br/premium/01-capa.png
+
+Preço:
+54,64
+BRL · Recorrente · Mensal
+
+Metadados produto + link:
+  plan_tier | premium
+
+Link:
+  Códigos promocionais: LIGADO
+  Extrato: EGO-AI
+
+STRIPE_CHECKOUT_PREMIUM_URL=https://buy.stripe.com/___________
+
+================================================================================
+PLANO 4 — EGO TOTAL
+================================================================================
+
+Nome:
+EGO Total
+
+Descrição curta:
+Uso intenso com o máximo de tokens e agenda ilimitada para quem vive no app.
+
+Descrição longa:
+O EGO Total é o plano para power users: quase sem limites no dia a dia, 5 milhões de tokens por mês e todos os assistentes do catálogo.
+
+Imagem:
+FOTOS-STRIPE/br/total/01-capa.png
+
+Preço:
+109,39
+BRL · Recorrente · Mensal
+
+Metadados produto + link:
+  plan_tier | total
+
+Link:
+  Códigos promocionais: LIGADO
+  Extrato: EGO-AI
+
+STRIPE_CHECKOUT_TOTAL_URL=https://buy.stripe.com/___________
+
+================================================================================
+PLANO 5 — EGO EMPRESA (opcional no lançamento)
+================================================================================
+
+Nome:
+EGO Empresa
+
+Descrição curta:
+Equipes e agenda compartilhada.
+
+Preço:
+218,89
+BRL · Recorrente · Mensal
+
+Metadados produto + link:
+  plan_tier | enterprise
+
+Link:
+  Códigos promocionais: LIGADO
+  Extrato: EGO-AI
+
+STRIPE_CHECKOUT_ENTERPRISE_URL=https://buy.stripe.com/___________
+
+================================================================================
+PLANOS USD (INT) — IGUAL PF (preços não mudam)
+================================================================================
+
+| Nome Stripe        | Preço/mês | plan_tier  | Variável Railway                    |
+|--------------------|-----------|------------|-------------------------------------|
+| EGO AI Pro         | US$ 7,99  | connection | STRIPE_CHECKOUT_INT_CONNECTION_URL  |
+| EGO AI Premium     | US$ 14,99 | premium    | STRIPE_CHECKOUT_INT_PREMIUM_URL     |
+| EGO AI Complete    | US$ 29,99 | total      | STRIPE_CHECKOUT_INT_TOTAL_URL       |
+| EGO AI Business    | US$ 49,99 | enterprise | STRIPE_CHECKOUT_INT_ENTERPRISE_URL  |
+
+Metadados: plan_tier = (coluna acima)
+Extrato: EGO-AI
+Cupons: LIGADO (EGOINDICA10)
+
+================================================================================
+TABELA RÁPIDA — METADADOS (não inventar mais nada)
+================================================================================
+
+| Produto        | plan_tier   | Cupom no link |
+|----------------|-------------|---------------|
+| EGO Lançamento | connection  | NÃO           |
+| EGO Conexão    | connection  | SIM           |
+| EGO Premium    | premium     | SIM           |
+| EGO Total      | total       | SIM           |
+| EGO Empresa    | enterprise  | SIM           |
+
+NÃO usar: conexao, Conexão, lançamento, Lançamento no metadado.
+SÓ minúsculas inglês: connection | premium | total | enterprise
+
+================================================================================
+BLOCO PARA O AGENTE API (colar quando tiver os links — SEM secrets no git)
+================================================================================
+
+STRIPE_CHECKOUT_LAUNCH_URL=
+STRIPE_CHECKOUT_CONNECTION_URL=
+STRIPE_CHECKOUT_PREMIUM_URL=
+STRIPE_CHECKOUT_TOTAL_URL=
+STRIPE_CHECKOUT_ENTERPRISE_URL=
+STRIPE_CHECKOUT_INT_CONNECTION_URL=
+STRIPE_CHECKOUT_INT_PREMIUM_URL=
+STRIPE_CHECKOUT_INT_TOTAL_URL=
+STRIPE_CHECKOUT_INT_ENTERPRISE_URL=
+EGO_LAUNCH_OFFER_PRICE_BRL=10.94
+STRIPE_REFERRAL_PROMO_CODE=EGOINDICA10
+
+sk_live_... (só Railway, não commitar)
+whsec_... (só Railway, não commitar)
+
+================================================================================
+CONTA PF ANTIGA — REFERÊNCIA (só para comparar estrutura)
+================================================================================
+
+Links PF (NÃO usar na PJ — desactivar depois da migração):
+  Lançamento:  https://buy.stripe.com/aFa6oJc2q3mW81G7pg4ow0P
+  Conexão:     https://buy.stripe.com/5kQ6oJfeC3mWeq4cJA4ow00
+  Premium:     https://buy.stripe.com/14A7sNgiG6z8chWgZQ4ow02
+  Total:       https://buy.stripe.com/5kQeVf6I60aK95K6lc4ow03
+
+Preços PF antigos (só histórico): 29,90 · 49,90 · 99,90 · 199,90
+Preços PJ novos:                  32,74 · 54,64 · 109,39 · 218,89
+Lançamento: 10,94 em ambas

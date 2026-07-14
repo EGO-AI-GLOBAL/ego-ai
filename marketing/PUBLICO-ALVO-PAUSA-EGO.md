@@ -1,4 +1,4 @@
-﻿# EGO-AI — Público-alvo PAUSA EGO
+# EGO-AI — Público-alvo Calma 1 min
 
 Atualizado: 06/07/2026 · Agente Marketing
 
@@ -80,7 +80,7 @@ Não misturar os 3 no mesmo Reels de 15s. Escolher **um** gancho:
 | Pilar | Nome no app | Hook marketing |
 |-------|-------------|----------------|
 | Humor | Monstrinhos do Humor | «Como me sinto hoje» |
-| Alívio | **PAUSA EGO** | «Estou ansioso — 60s e passa» |
+| Alívio | **Calma 1 min** | «Estou ansioso — 60s e passa» |
 | Companhia | Luna / Leo | «Alguém que ouve de verdade» |
 
 **Frase única loja:** *Monstrinhos do humor + PAUSA de 1 min com teu avatar.*

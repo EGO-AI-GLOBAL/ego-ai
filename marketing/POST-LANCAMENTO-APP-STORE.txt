@@ -1,51 +1,38 @@
-POST — LANÇAMENTO APP STORE · EGO-AI · 07/07/2026
-==================================================
+POST — Reels/TikTok · EGO-AI 1.0.80
+=======================================================
 
-USO: Instagram Reels / Feed · Stories · TikTok · Kwai
-
----
-
-TÍTULO / HOOK
--------------
-EGO-AI chegou na App Store 🍎💜
-
-LEGENDA (copiar)
+ARQUIVO DO VÍDEO
 ----------------
-Chegou na **App Store** — não é beta, é loja pública.
+marketing\videos\app-real\ego-ai-lancamento-variedade-reels.mp4
 
-Para quem sente ansiedade no dia a dia e quer um respiro de 1 minuto:
+TÍTULO DO REEL
+--------------
+Baixei da App Store às 3h — e finalmente desabei sem incomodar ninguém 🌙
 
-🎭 Monstrinhos do humor
-🌬️ PAUSA EGO — respiração guiada
-💬 Luna/Leo que ouve (voz ou texto)
-🆘 «Estou mal agora» + CVV 188 no SOS
+LEGENDA (copiar no post)
+------------------------
+3h da manhã. Não quis mandar áudio no Zap.
 
-✅ 20 dias grátis · sem cartão
+Abri o EGO-AI — agora na App Store.
 
-🍎 iPhone — baixa agora:
-https://apps.apple.com/app/id6780595396
+Desabafo por voz → PAUSA 1 min → Luna responde.
 
-🤖 Android — teste fechado (manda GMAIL no PRIVADO):
-https://play.google.com/apps/testing/com.egoai.app
+🍎 iPhone: https://apps.apple.com/app/id6780595396
+🤖 Android: GMAIL no DM
 
-Planos: https://egoai.com.br/planos
+#egoai #appstore #3damanha #desabafo #ansiedade
 
-#egoai #appstore #ansiedade #saúdemental #iphone #appbrasileiro #lancamento
+#egoai #appstore #3damanha #desabafo #ansiedade
 
 COMENTÁRIO FIXADO
 -----------------
-🍎 iPhone — App Store:
-https://apps.apple.com/app/id6780595396
+🍎 App Store: https://apps.apple.com/app/id6780595396
+🤖 Android: GMAIL no PRIVADO
 
-🤖 Android — manda GMAIL no PRIVADO (DM)
+CAPCUT (opcional)
+-----------------
+Importar o MP4 → Áudio → música motivacional 12–15% → exportar 1080p → postar
 
-STORIES (3 frames)
-------------------
-1. «EGO-AI na App Store hoje» + print loja
-2. PAUSA EGO 1 min — screenshot app
-3. Link sticker → apps.apple.com/app/id6780595396
-
-VÍDEO
------
-Pode repostar reel PAUSA 3h ou humor com legenda de lançamento acima.
-Arquivo: marketing/videos/app-real/ego-ai-pausa-3h-reels.mp4
+MÉTRICA ALVO
+------------
+Retenção 3s > 45% · visita perfil · clique bio

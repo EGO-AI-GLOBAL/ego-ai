@@ -1,0 +1,45 @@
+EGO-AI — PREÇOS PJ NO APP (Android/Stripe)
+==========================================
+Data: 09/07/2026 · Conta: Economizze (PJ)
+
+O QUE MUDOU NO CÓDIGO
+---------------------
+• app/src/constants/stripeMonthly.ts — preços BR com +9,5% embutido
+• ego_api/plans.py — PLAN_PRICES_BRL igual ao Stripe PJ
+• app Planos (Android): linha «Inclui impostos e taxas.» sob cada preço BR
+• iOS App Store: SEM mudança (IAP 39,90 / 69,90 / 129,90)
+
+TABELA STRIPE PJ (preço final ao cliente)
+-----------------------------------------
+| Plano        | Base antiga | Com +9,5% | plan_tier  |
+|--------------|-------------|-----------|------------|
+| EGO Conexão  | R$ 29,90    | R$ 32,74  | connection |
+| EGO Premium  | R$ 49,90    | R$ 54,64  | premium    |
+| EGO Total    | R$ 99,90    | R$ 109,39 | total      |
+| EGO Empresa  | R$ 199,90   | R$ 218,89 | enterprise |
+| EGO Lançamento | R$ 10,94  | R$ 10,94  | connection |
+
+Escada lançamento (manual Stripe):
+  10,94 (6m) → 19,90/mês (6m) → 32,74 Conexão
+
+FÓRMULA
+-------
+preço = round(base × 1,095, 2)
+
+API / RAILWAY (quando ligar conta PJ)
+-------------------------------------
+1. STRIPE_SECRET_KEY · STRIPE_WEBHOOK_SECRET (conta Economizze)
+2. STRIPE_CHECKOUT_*_URL — links com estes preços
+3. Webhook: https://ego-ai-production-a2c2.up.railway.app/stripe/webhook
+4. marketing/brand/config.json — URLs novos
+5. Deploy API antes ou junto com build Android que mostra novos preços
+
+PENDENTE (opcional fase 2)
+--------------------------
+• Preços equipe (teamStripeCheckout.ts) — aplicar mesmo +9,5%
+• Site marketing/landing/planos — alinhar textos
+
+NÃO FAZER
+---------
+• Usar preços iOS (+30% Apple) no Stripe
+• Mudar iapProducts.ts / iosIapPricing.ts

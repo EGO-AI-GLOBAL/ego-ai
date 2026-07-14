@@ -1,0 +1,41 @@
+EGO-AI 1.0.86 — APP STORE (iOS · ASO + bypass comboio 1.0.85)
+==============================================================
+Marketing · 13/07/2026
+
+PORQUÊ 1.0.86
+-------------
+Apple ITMS-90186 / 90062: versão **1.0.85 já aprovada** — comboio fechado.
+Não dá para enviar build 87 outra vez com 1.0.85.
+Nova versão: **1.0.86** · build **88**
+
+ORDEM
+-----
+1. Duplo-clique: GERAR-IOS-1.0.86.bat
+2. Duplo-clique: AGUARDAR-IOS-E-SUBMETER-1.0.86.bat
+3. Connect → **+ Versão** → **1.0.86** → anexar build **88**
+4. Subtítulo / promo / screenshots (já na 1.0.85 draft — copiar ou refazer)
+5. Screenshots: marketing\APP-STORE-FICHA-1.0.85-APPLE\ (01→05)
+6. IAP vazia → Enviar para revisão
+
+LINK:
+https://appstoreconnect.apple.com/apps/6780595396/distribution/ios
+
+================================================================================
+O QUE HÁ DE NOVO (colar na 1.0.86)
+================================================================================
+
+• Ficha renovada: humor, desabafo e calma na ansiedade
+• Monstrinhos do Humor + chat com voz
+• Fica logado — abrir pelo push não pede senha de novo
+• Mais estável quando o servidor volta após manutenção
+• Tríade Silenciosa PAUSA + Monstrinhos
+• Melhorias de estabilidade
+
+================================================================================
+REGRAS iOS
+================================================================================
+• IAP / Compras no app = vazia
+• Conta demo em «Informações para a revisão»
+• NÃO clicar «Carregar» documentação de criptografia (só isenta / HTTPS)
+
+Android: continua 1.0.85 no teste fechado (versionCode 129). Paridade loja depois.

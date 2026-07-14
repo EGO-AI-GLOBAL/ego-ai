@@ -1,0 +1,34 @@
+BUILD 1.0.82 — SÓ iOS (ficha App Store Calma 1 min)
+===================================================
+Copiar tudo abaixo e colar no chat do Agente API/Release.
+
+---
+
+Agente API/Release — pedido Marketing:
+
+**Só iOS.** Não build Android nesta release.
+
+Apple não deixa atualizar ficha sem build nova. Precisamos 1.0.82 para ASO e mais downloads.
+
+**Tarefa:**
+1. Bump `app.config.ts` → **1.0.82**
+2. **EAS build iOS apenas**
+3. App Store Connect → versão **1.0.82** → anexar build nova
+4. Colar ficha completa: `marketing/NOTAS-1.0.82-APP-STORE.txt`
+5. IAP vazia → submit
+
+**Link Connect:**
+https://appstoreconnect.apple.com/apps/6780595396/distribution/ios/version/inflight
+
+**O que mudamos na ficha (já está no «O que há de novo» do NOTAS):**
+- Subtítulo: «Companheiro com voz e IA» → **Ansiedade · respirar · PAUSA**
+- Descrição: texto novo com Calma 1 min, Monstrinhos, Luna/Leo, agenda grátis
+- Keywords: ansiedade, stress, respirar, calma, desabafo, autocuidado…
+- Texto promocional: 1 min de calma + PAUSA + 20 dias grátis iPhone
+- Tirar mensagem genérica do início do projeto
+
+**Android:** não fazer agora (teste fechado Play).
+
+---
+
+Ficheiro textos prontos: marketing/NOTAS-1.0.82-APP-STORE.txt

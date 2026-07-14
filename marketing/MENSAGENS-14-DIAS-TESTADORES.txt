@@ -1,0 +1,187 @@
+EGO-AI — 14 dias de retenção (teste fechado Play)
+=================================================
+Início dos 12 testadores: anotar data ___/___/2025
+Meta produção Play: +14 dias = ___/___/2025
+
+Como usar: 1 msg/dia no WhatsApp (mesma msg pra todos — «Oi, amigo!»).
+Mensagem curta — não precisa texto longo na resposta.
+
+---
+
+DIA 1 — Boas-vindas + primeira impressão
+----------------------------------------
+Oi, amigo! 🙏 Você entrou nos 12 testadores oficiais do Ego-IA — obrigado!
+
+Nos próximos 14 dias o app fica em teste na Play. Se puder, abre 2–3× por semana (não precisa todo dia).
+
+Pergunta de hoje: qual foi sua **primeira impressão** ao abrir o app? (pode ser 1 frase ou áudio)
+
+Qualquer bug: print + modelo do celular. Valeu! 💜
+
+---
+
+DIA 2 — Chat texto
+------------------
+Oi, amigo! Dia 2 do teste Ego-IA 🙏
+
+Hoje: abre o app e manda **«oi»** pro avatar no chat (texto).
+
+Pergunta: a resposta do avatar fez **sentido** pra você? Pareceu natural ou robótica?
+
+Se travar, manda print. Obrigado!
+
+---
+
+DIA 3 — Escolha do avatar
+-------------------------
+Oi, amigo! 🙏
+
+Pergunta de hoje: **qual avatar** você escolheu (ou trocaria)? Por quê?
+
+Se ainda não escolheu: entra no app → escolhe um → me conta qual ficou.
+
+Valeu por ajudar no teste!
+
+---
+
+DIA 4 — Voz Android
+-------------------
+Oi, amigo! Foco de hoje: **voz** 🎤
+
+1. Toque no microfone → fale → toque na **SETA ↑** pra enviar
+2. O avatar respondeu?
+
+Pergunta: o microfone funcionou **de primeira** ou deu erro? (iPhone: testa voz também se quiser)
+
+Modelo do celular ajuda se falhar. Obrigado!
+
+---
+
+DIA 5 — Jardim / Monstrinhos
+----------------------------
+Oi, amigo! 🙏
+
+Hoje: abre o **card do jardim** no chat (Monstrinhos).
+
+Pergunta: entendeu como funcionam as **missões do dia** e as **sementes**? Ficou claro ou confuso?
+
+Print se algo não abrir. Valeu!
+
+---
+
+DIA 6 — EGO de Bolso
+--------------------
+Oi, amigo! Dia 6 💜
+
+Procura o card do **EGO de Bolso** (desafio semanal / cuidar).
+
+Pergunta: esse card **chamou atenção**? Você usaria isso no dia a dia ou ignoraria?
+
+Pode responder honesto — estamos melhorando. Obrigado!
+
+---
+
+DIA 7 — Meio da semana 1 (check-in leve)
+----------------------------------------
+Oi, amigo! Uma semana de teste 🙏
+
+Sem pressão — só um check-in: você **ainda tem o app instalado**? Abriu nos últimos dias?
+
+Pergunta: de 0 a 10, quanto você **recomendaria** testar pra um amigo? Por quê?
+
+Qualquer coisa, chama aqui. Valeu!
+
+---
+
+DIA 8 — Agenda / lembrete
+-------------------------
+Oi, amigo! 🙏
+
+Hoje: tenta marcar **1 lembrete** na agenda (ou ver se já tem algo lá).
+
+Pergunta: marcar compromisso no app foi **fácil** ou travou em algum passo?
+
+Screenshot ajuda. Obrigado!
+
+---
+
+DIA 9 — Desabafo / chat profundo
+--------------------------------
+Oi, amigo! Dia 9 💜
+
+Se quiser: manda uma mensagem um pouco maior no chat (como um **desabafo** curto).
+
+Pergunta: o avatar **acompanhou** bem ou respondeu genérico demais?
+
+Honestidade ajuda muito. Valeu!
+
+---
+
+DIA 10 — UI / navegação
+-----------------------
+Oi, amigo! 🙏
+
+Pergunta de hoje: teve alguma tela que você **não soube onde clicar**? Algo sumiu ou ficou repetindo?
+
+Se sim: descreve em 1 frase ou manda print.
+
+Estamos polindo antes de publicar. Obrigado!
+
+---
+
+DIA 11 — Update / versão
+------------------------
+Oi, amigo! 🙏
+
+Se aparecer **Atualizar** na Play ou no app, instala a versão nova.
+
+Pergunta: qual **versão** aparece no canto do app? (print do TestFlight/Play ajuda)
+
+Algo **piorou** depois de atualizar? Me avisa. Valeu!
+
+---
+
+DIA 12 — Funcionalidade favorita
+--------------------------------
+Oi, amigo! Quase lá nos 14 dias 🙏
+
+Pergunta: qual parte do Ego-IA você **mais gostou** até agora?
+(chat / voz / jardim / bolso / agenda / outro)
+
+E o que **menos** usaria? Pode ser direto. Obrigado!
+
+---
+
+DIA 13 — Última chance de bug
+-----------------------------
+Oi, amigo! Penúltimo dia do ciclo de teste 💜
+
+Se ainda não testou **voz + chat + jardim**, vale 5 min hoje.
+
+Pergunta: tem algum **bug** que a gente ainda não corrigiu? Última chance de reportar antes do lançamento.
+
+Print + modelo do celular. Valeu demais!
+
+---
+
+DIA 14 — Agradecimento + feedback final
+---------------------------------------
+Oi, amigo! 🎉 Completamos os 14 dias de teste fechado na Play — MUITO obrigado!
+
+Pergunta final (pode ser áudio):
+1. O Ego-IA **vale assinar** depois do trial? Por quê sim ou não?
+2. Uma coisa que **mudaria** antes de lançar pra todo mundo?
+
+Você ajudou de verdade. Quando publicar na loja, te aviso 💜
+
+---
+
+LEMBRETES PARA VOCÊ (não mandar aos testadores)
+-----------------------------------------------
+• Não remover ninguém da lista Play durante os 14 dias
+• Publicar builds novas no MESMO teste fechado se precisar
+• Dia 14 Play Console: conferir se o 3º requisito ficou ✅
+• Quem não responde: não insistir todo dia — 1 msg/dia basta
+• 1 não-Gmail na Play não conta — foco nos 12 com opt-in
+
+ARQUIVO: marketing/MENSAGENS-14-DIAS-TESTADORES.txt

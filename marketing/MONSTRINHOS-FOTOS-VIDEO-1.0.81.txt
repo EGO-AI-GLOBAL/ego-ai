@@ -1,0 +1,70 @@
+MONSTRINHOS — fotos novas pós-atualização (1.0.81) · para vídeos
+==================================================================
+Pasta: marketing/CAPCUT-FOTOS-MONSTRINHOS-1.0.81/
+
+Substituem capturas antigas do jardim. Usar em Reels formato D (humor).
+
+--------------------------------------------------------------------------------
+01-jardim-sol-humor-hoje.png
+--------------------------------------------------------------------------------
+O que mostra:
+• Jardim com monstrinho «Sol» radiante
+• Festival Inverno Calma (check-in + PAUSA)
+• Seletor de humor: Nublina, Agita, Neutro, Sol, Brisa
+• «Hoje: Sol no jardim» · Dia 1 Iniciante
+
+Melhor para:
+• Hook «Como me sinto hoje?»
+• Cena 1 de reel Monstrinhos (NÃO repetir 2 semanas seguidas com PAUSA)
+• Texto overlay: «1 toque · seu humor no jardim»
+
+--------------------------------------------------------------------------------
+02-diario-nota-missoes.png
+--------------------------------------------------------------------------------
+O que mostra:
+• Diário 7 dias · histórico
+• Nota de hoje (desabafo curto)
+• Missões 5/5 completas
+• Luna: «orgulho de você»
+
+Melhor para:
+• Cena 2 — «marquei o humor e completei o dia»
+• Hook retenção / hábito diário
+• Texto overlay: «5 missões · 1 minuto por dia»
+
+--------------------------------------------------------------------------------
+03-missoes-quiz-convidar.png
+--------------------------------------------------------------------------------
+O que mostra:
+• Checklist missões (humor, água, pausa sem tela, sol, surpresa)
+• Quiz da semana
+• Convidar amigo · Loja do jardim
+• Nível 1/500 · sequência dias
+
+Melhor para:
+• Cena 3 — gamificação leve (sem falar «nível 500» no vídeo)
+• CTA «convida quem precisa de calma»
+• Texto overlay: «Pausar 1 min sem tela» (liga com PAUSA)
+
+--------------------------------------------------------------------------------
+ROTEIRO REEL SUGERIDO (15–20s)
+--------------------------------------------------------------------------------
+Cena 1 (01): «Como você se sente HOJE?» — voz Luna
+Cena 2 (02): «Marquei. Luna viu.» — 5/5 missões
+Cena 3 (03): «Pausa 1 min + humor» — não é terapia
+Cena 4 (01 ou chat): CTA App Store + Gmail Android
+
+Gerar: GERAR-REEL-MONSTRINHOS-1.0.81.bat
+JSON: marketing/REEL-MONSTRINHOS-1.0.81.json
+
+--------------------------------------------------------------------------------
+REGRA (ver REGRA-NAO-REPETIR-REELS.txt)
+--------------------------------------------------------------------------------
+• Máximo 1 reel/semana com pasta MONSTRINHOS-1.0.81
+• Alternar com CAPCUT-FOTOS-PAUSA-EGO e VARIEDADE
+• Não usar as 3 fotos no mesmo post de outro formato na mesma semana
+
+--------------------------------------------------------------------------------
+APP STORE (quando build 1.0.82)
+--------------------------------------------------------------------------------
+Screenshot 2 ou 3 na ordem da ficha iOS (depois de PAUSA em 1º).

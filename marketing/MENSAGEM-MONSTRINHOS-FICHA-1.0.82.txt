@@ -1,0 +1,5 @@
+AGENTE API/RELEASE — Ficha App Store 1.0.82 (Calma 1 min · BUILD OBRIGATÓRIA)
+=========================================================================
+⚠️ Sem build nova a Apple NÃO deixa editar. Ver MENSAGEM-MONSTRINHOS-BUILD-1.0.82-FICHA.txt
+
+FONTE TEXTOS: marketing/NOTAS-1.0.82-APP-STORE.txt

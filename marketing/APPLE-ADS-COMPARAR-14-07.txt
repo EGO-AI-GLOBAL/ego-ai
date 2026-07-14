@@ -1,0 +1,55 @@
+APPLE SEARCH ADS — comparação (grupo keywords-ansiedade-pt)
+==========================================================
+Atualizado: 14/07/2026 ~14:20 (print Iury)
+
+ONTEM / baseline anterior (chat)
+--------------------------------
+Keyword âncora **ansiedade**:
+~160 impressões · 7 toques · 2 installs · CPA ~$2.37 · bid $1.50
+
+HOJE 14/07 (print dashboard)
+----------------------------
+| Keyword              | Bid  | Gastos | Inst | CPA   | Imp | Toques | CPT médio |
+|----------------------|------|--------|------|-------|-----|--------|-----------|
+| ansiedade            | 1.50 | 8.74   | 3    | 2.91  | 200 | 9      | 0.97      |
+| saúde mental         | 1.50 | 3.53   | 1    | 3.53  | 195 | 3      | 1.18      |
+| solidão              | 0.55 | 1.64   | 1    | 1.64  |  91 | 4      | 0.41      |
+| stress               | 1.50 | 1.64   | 0    | —     |  41 | 2      | 0.82      |
+| app ansiedade        | 1.50 | 1.22   | 0    | —     |  31 | 1      | 1.22      |
+| autocuidado          | 0.55 | 0.50   | 0    | —     |  22 | 1      | 0.50      |
+| desabafo             | 1.50 | 0.42   | 0    | —     |  33 | 1      | 0.42      |
+| app para ansiedade   | 1.50 | 0.00   | 0    | —     |  14 | 0      | —         |
+| respiração ansiedade | 1.50 | 0.00   | 0    | —     |  18 | 0      | —         |
+
+TOTAL grupo (aprox.): **5 installs · ~$17.69 gastos · CPA médio ~$3.5**
+
+COMPARAÇÃO ansiedade (core)
+---------------------------
+|                | Antes   | Hoje 14/07 | Delta        |
+|----------------|---------|------------|--------------|
+| Impressões     | ~160    | 200        | +25%         |
+| Toques         | 7       | 9          | +2           |
+| Installs       | 2       | 3          | +1           |
+| CPA            | ~$2.37  | $2.91      | +$0.54       |
+| CR (toque→inst)| ~29%    | 33%        | melhor       |
+| TTR            | —       | 4.5%       | saudável     |
+
+VEREDITO
+--------
+✅ **ansiedade** continua a rainha — mais volume e 3ª install, CPA ainda bom (<$3)
+✅ **solidão** ($0.55) = melhor eficiência (CPA $1.64 · 1 install) — considerar subir bid p/ $0.80–1.00
+✅ **saúde mental** converte (1 inst) mas CPA mais alto ($3.53) — manter, não subir bid
+⏳ stress / desabafo / app ansiedade / autocuidado — volume baixo, ainda sem install — deixar 3–5 dias
+❌ Não turbinar keywords com 0 toques (respiração…, app para ansied…) até terem dados
+
+ACÇÃO RECOMENDADA
+-----------------
+1. Manter **ansiedade** @ $1.50
+2. Subir **solidão** de $0.55 → **$0.90** (teste 48h)
+3. Não pausar o grupo — 1.0.87 em review/distribuição melhora ficha = TTR pode subir
+4. Orçamento diário do grupo: manter ~$5/dia no campaign group (se for o caso)
+
+PRODUTO (métricas → PAUSA/API)
+------------------------------
+Dores que pagam: ansiedade · solidão · saúde mental
+Reforçar no app: PAUSA 1 min + 1º chat sem fricção (já no AVISO agentes)

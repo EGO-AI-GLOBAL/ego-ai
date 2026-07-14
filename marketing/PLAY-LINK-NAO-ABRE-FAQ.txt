@@ -1,0 +1,92 @@
+EGO-AI — Link Play teste fechado «não abre» (FAQ testadores)
+================================================================
+Atualizado: 28/06/2026 · Agente Marketing
+
+LINK OFICIAL
+------------
+https://play.google.com/apps/testing/com.egoai.app
+
+NÃO é só @gmail.com
+-------------------
+A Play Store exige **conta Google** (Conta Google), por exemplo:
+  ✅ @gmail.com
+  ✅ @googlemail.com
+  ✅ e-mail do trabalho se for Google Workspace
+  ❌ @hotmail.com / @outlook.com / @yahoo.com **sozinhos** — não servem na Play
+  ❌ iPhone — este link é **só Android**
+
+Se a pessoa não tem conta Google: Configurações → Contas → Adicionar conta Google (grátis).
+
+---
+
+POR QUE «NÃO ABRE» (9 causas comuns)
+------------------------------------
+
+| # | Problema | Solução |
+|---|----------|---------|
+| 1 | Abriu no **WhatsApp** (navegador interno) | ⋮ → **Abrir no Chrome** |
+| 2 | Abriu no **iPhone** | Só Android. iPhone: TestFlight (outro link) |
+| 3 | Celular **sem Google Play** (Huawei antigo, etc.) | Não dá pela Play — ver Plano B (APK) abaixo |
+| 4 | **Não logada** na Play Store | Abrir app Play Store → foto perfil → entrar na conta Google |
+| 5 | Track **teste interno** + e-mail **não está na lista** | Tu adicionas o e-mail dela no Play Console OU usas teste **fechado** com link público |
+| 6 | Versão ainda **em revisão** na Play | Esperar ~15 min após subir AAB |
+| 7 | Link errado (`store/apps/details` direto) | Usar sempre `apps/testing/com.egoai.app` **primeiro** |
+| 8 | Copiou link **quebrado** (espaço/linha) | Colar de novo numa mensagem |
+| 9 | Play Store desatualizada | Atualizar Play Store na loja de apps do sistema |
+
+PASSO A PASSO (mandar no WhatsApp)
+----------------------------------
+1) Celular **Android**
+2) Copiar link → colar no **Chrome** (não no WhatsApp)
+3) Entrar com **conta Google** se pedir
+4) Botão **«Tornar-se testador»** → Aceitar
+5) Abrir **Play Store** → procurar **Ego-IA** → **Instalar**
+6) Abrir app → cadastro → escrever **«oi»** no chat
+
+Se depois do passo 4 aparecer «Acesso negado» ou «não elegível»:
+→ E-mail não está na lista (teste interno). Pedir o **e-mail da conta Google** dela e adicionar no Play Console.
+
+---
+
+TU NO PLAY CONSOLE (verificar 1x)
+--------------------------------
+1. play.google.com/console → EGO-AI
+2. **Testar e lançar** → **Teste fechado** (não só teste interno)
+3. Track activo com AAB publicado (verde)
+4. **Testadores** → opção **Lista de e-mails** OU **Link público / opt-in**
+   • Link público = qualquer conta Google aceita (melhor para 12 testadores)
+   • Lista fechada = só e-mails que tu adicionaste
+5. Copiar de novo o link de opt-in e testar no **teu** Android em aba anónima
+
+Se estiveres só em **Teste interno** (máx. 100 e-mails na lista):
+→ Cada testador precisa do e-mail **exacto** da Conta Google na lista.
+
+---
+
+RESPOSTA WHATSAPP — COPIAR
+--------------------------
+
+Versão curta:
+«Precisa ser Android + conta Google (Gmail). Abre o link no Chrome, não no WhatsApp: https://play.google.com/apps/testing/com.egoai.app → Tornar-se testador → Play Store → Instalar. Se não der, manda teu e-mail Gmail que eu adiciono na lista.»
+
+Versão iPhone:
+«No iPhone ainda não é pela Play. Link TestFlight: https://testflight.apple.com/join/eNDKdFWF»
+
+Versão sem Play (Huawei / sem Google):
+«Sem Play Store não instala pelo link. Posso enviar APK de teste por Drive — me avisa.»
+
+---
+
+PLANO B — APK (último recurso)
+------------------------------
+Ver: PLANO-B-TESTADORES.md · INSTALAR-NO-CELULAR-USB.bat
+APK debug não conta para os 12 opt-in da Play — preferir corrigir link/lista.
+
+---
+
+CHECKLIST RÁPIDO (tu testa agora)
+---------------------------------
+[ ] Link abre no TEU Android em Chrome (modo anónimo)
+[ ] «Tornar-se testador» aparece
+[ ] Instala da Play Store
+[ ] Track = teste **fechado** activo (não só rascunho)

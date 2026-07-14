@@ -1,0 +1,197 @@
+EGO-AI — CRESCIMENTO MÁXIMO · 09/07/2026
+========================================
+Marketing · alinhar PAUSA + API/Release + próxima build produto
+
+SITUAÇÃO
+--------
+✅ iOS 1.0.82 na loja (descrição PAUSA)
+⏳ iOS 1.0.83 em revisão (subtítulo + idioma PT)
+⏳ Android Play: 7/14 dias → produção ~14/07
+⏳ 2 agentes a melhorar produto → próxima build (1.0.84+)
+⏳ Stripe PJ Economizze (site planos depois)
+
+REGRA
+-----
+1 hook por vídeo · PAUSA/ansiedade · NUNCA Bolso/Tamagotchi/nível 500
+Bio única: https://egoai.com.br
+iPhone: https://apps.apple.com/app/id6780595396
+Android: GMAIL no DM (até produção Play)
+
+================================================================================
+FASE 0 — HOJE E AMANHÃ (grátis · não esperar 1.0.83)
+================================================================================
+
+[ ] REEL FILA — GERAR-REEL-PAUSA-FILA.bat
+    Legenda: marketing/POST-REEL-PAUSA-FILA.txt
+    Postar: Instagram + TikTok + Kwai + YouTube Shorts (mesmo MP4)
+
+[ ] Bios redes — marketing/REDES-SOCIAIS-APP-STORE-07-07.txt
+    Nome: EGO-AI · PAUSA 1 min · link egoai.com.br
+
+[ ] Reels com fotos novas (3 ângulos — rodar esta semana):
+    GERAR-REEL-PAUSA-EGO-1.0.81.bat   → POST-REEL-PAUSA-EGO-1.0.81.txt
+    GERAR-REEL-MONSTRINHOS-1.0.81.bat → POST-REEL-MONSTRINHOS-1.0.81.txt
+    GERAR-REEL-CHAT-AVATAR-1.0.81.bat → POST-REEL-CHAT-AVATAR-1.0.81.txt
+
+[ ] Comentário fixado em TODO post:
+    🍎 https://apps.apple.com/app/id6780595396
+    🤖 Android: GMAIL no PRIVADO
+    🌐 https://egoai.com.br
+
+[ ] Grupo testadores — marketing/MENSAGEM-TESTADORES-08-07.txt (1x/semana)
+
+[ ] Números 1x/dia — VER-QUANTOS-USUARIOS.bat ou SQL RESUMO-CAMPANHA
+
+[ ] Criar conta Apple Search Ads (SEM ligar campanha ainda):
+    marketing/APPLE-SEARCH-ADS-PAUSA-EGO.txt → PASSO 2
+
+================================================================================
+FASE 1 — QUANDO 1.0.83 APROVAR (1–2 dias)
+================================================================================
+
+[ ] Connect: se manual → Lançar esta versão
+[ ] Safari: subtítulo «Ansiedade, respirar, PAUSA» + idioma Português
+[ ] Story: «Ficha nova na App Store»
+[ ] LIGAR Apple Search Ads — 7 dias teste:
+    Campanha: EGO-AI-BR-ansiedade-teste-7d
+    Budget: R$ 25/dia · Brasil · iPhone · 25–54 · feminino se der
+    Keywords: marketing/APPLE-SEARCH-ADS-PAUSA-EGO.txt PASSO 3
+    Só depois do subtítulo visível na ficha (mesmo dia ou +24h)
+
+[ ] NÃO ligar Google App Campaign (Android ainda fechado)
+
+================================================================================
+FASE 2 — SEMANA 09–15/07 (volume orgânico)
+================================================================================
+
+Cronograma Reels (marketing/FILA-VIDEOS-PAUSA-EGO.txt):
+
+| Data   | Reel              | Bat / ficheiro                    |
+|--------|-------------------|-----------------------------------|
+| 09/07  | Fila/ônibus       | GERAR-REEL-PAUSA-FILA.bat         |
+| 11/07  | Monstrinhos       | GERAR-REEL-MONSTRINHOS-1.0.81.bat |
+| 13/07  | Domingo solidão   | GERAR-REEL-PAUSA-DOMINGO.bat      |
+| 14/07  | Play produção     | msg testadores + ficha Play       |
+| 15/07  | Antes/depois 60s  | GERAR-REEL-PAUSA-RESPIRA.bat      |
+| 17/07  | Repost vencedor   | melhor retention dos acima        |
+
+Meta: 2–3 posts/semana · 4 plataformas cada · 6–8 Reels/mês
+
+Turbinar Meta (opcional — só se Reel >45% retenção 3s):
+  R$ 25 · objetivo VISITAS AO SITE → egoai.com.br
+  Guia: marketing/TURBINAR-REEL-SITE.txt
+
+================================================================================
+FASE 3 — USAR O QUE OS AGENTES ESTÃO A FAZER
+================================================================================
+
+--- Agente PAUSA / Monstrinhos (produto) ---
+
+Quando entregarem build melhor (1.0.84+), Marketing PEDE:
+
+1. Screenshots loja (ordem fixa):
+   1º Calma 1 min tela principal
+   2º Chat Luna desabafo
+   3º Monstrinhos humor hoje
+   4º Estou mal agora / SOS
+   5º Agenda (secundário)
+
+2. «O que há de novo» em linguagem user (não técnica):
+   • PAUSA mais rápida / mais técnicas
+   • Monstrinhos / humor
+   • Estabilidade
+
+3. Reels NOVOS com ecrã real pós-build (substituir mock)
+
+4. NÃO promover: Bolso, Tamagotchi, jornada 500
+
+Comando para colar no agente PAUSA:
+---
+Marketing: quando fechares a tua build, avisa com:
+• 3 prints PAUSA + 1 Monstrinhos + 1 chat (pastas CAPCUT-FOTOS-*)
+• 3 bullets «o que há de novo» em PT para loja
+• Confirmação que PAUSA está visível no chat para gravação Reel
+---
+
+--- Agente API / Release ---
+
+Pedidos Marketing em paralelo:
+
+1. Stripe PJ → atualizar egoai.com.br/planos + brand/config.json
+2. Site HTML: versão 1.0.83 (hoje diz 1.0.80)
+3. Próxima build iOS: só depois 1.0.83 live + ASA dia 3 medido
+4. Android produção ~14/07: ficha Play já em marketing/FICHA-LOJAS-*
+
+Comando para colar no agente API:
+---
+Marketing: após Stripe PJ verificado:
+• Railway keys novas + webhook
+• Site planos + config.json
+• FTP site versão 1.0.83
+• Dia 14/07: submit Play produção (ficha PAUSA já pronta)
+---
+
+================================================================================
+FASE 4 — ANDROID PRODUÇÃO (~14/07)
+================================================================================
+
+[ ] Play Console → Solicitar produção (12 testadores · 14 dias OK)
+[ ] Ficha: marketing/FICHA-LOJAS-IOS-ANDROID-2026.txt
+[ ] Gráficos: ATUALIZAR-GRAFICOS-PLAY-1.0.81.bat
+[ ] Post Reel: «Chegou no Android» — POST-REEL-GMAIL-ANDROID-IOS.txt
+[ ] Aí sim: Google App Campaign teste (R$ 20/dia · 7 dias) — DEPOIS produção
+
+================================================================================
+MÉTRICAS — DECISÃO RÁPIDA
+================================================================================
+
+| Métrica              | Fraco        | OK           | Bom          |
+|----------------------|--------------|--------------|--------------|
+| cadastros_7_dias     | 0–2          | 3–10         | 11+          |
+| ASA CPI (iPhone)     | > R$ 12      | R$ 8–10      | < R$ 8       |
+| Reel retenção 3s     | < 30%        | 30–45%       | > 45%        |
+| login pós-cadastro   | < 50%        | 50–70%       | 70%+         |
+
+Dia 7 ASA ruim (CPI > R$ 12) → pausar · testar 2 micro-influenciadoras (R$ 150–400)
+Dia 7 ASA bom (CPI < R$ 8) → manter R$ 25/dia + mais keywords Exact
+Cadastros OK mas chat 0 → problema onboarding (agente API/PAUSA, não ads)
+
+================================================================================
+ORÇAMENTO MÁXIMO EFICIENTE (30 dias)
+================================================================================
+
+| Canal              | Quando        | Budget      |
+|--------------------|---------------|-------------|
+| Reels orgânico     | Já            | R$ 0        |
+| Apple Search Ads   | Pós 1.0.83    | R$ 175 (7d) |
+| Meta turbo site    | Reel vencedor | R$ 25       |
+| Google App Campaign| Pós Play prod | R$ 140 (7d) |
+| Micro-influencer   | Se ASA fraco  | R$ 300–800  |
+
+TOTAL teste mês 1: ~R$ 350–500 (não R$ 1500/mo flywheel ainda)
+
+================================================================================
+NÃO FAZER (perde tempo/dinheiro)
+================================================================================
+
+✗ Apple Search Ads antes subtítulo 1.0.83 na ficha
+✗ Google ads Android antes produção Play
+✗ 3 links na legenda
+✗ Vídeos Bolso / Tamagotchi / agenda-mãe (fora ICP)
+✗ Prometer cura ou substituir terapia
+✗ Nova build iOS 1.0.84 antes medir ASA 7 dias (salvo hotfix)
+
+================================================================================
+CHECKLIST HOJE (30 min)
+================================================================================
+
+1. GERAR-REEL-PAUSA-FILA.bat → postar 4 redes
+2. Comentário fixado App Store + site
+3. searchads.apple.com → criar conta (não campanha)
+4. VER-QUANTOS-USUARIOS.bat → anotar cadastros_hoje
+
+Ficheiros-chave:
+  marketing/FILA-VIDEOS-PAUSA-EGO.txt
+  marketing/APPLE-SEARCH-ADS-PAUSA-EGO.txt
+  marketing/REDES-SOCIAIS-APP-STORE-07-07.txt
+  marketing/PLAY-14-DIAS-STATUS.txt

@@ -1,0 +1,11 @@
+1.0.75 — Google Play (teste interno / produção)
+
+• Conversa com o avatar mais rápida — respostas de voz mais ágeis
+• App mais fluido ao abrir o chat e o jardim dos Monstrinhos
+• EGO de Bolso: a cor comprada na loja aparece no companheiro em todos os estágios
+• Melhorias de estabilidade e desempenho
+
+Teste: abrir chat → microfone → frase curta → ouvir resposta mais rápido.
+EGO de Bolso → comprar cor do ovo → confirmar que o monstrinho muda de cor.
+
+Build: 1.0.75 · versionCode 119 (EAS)

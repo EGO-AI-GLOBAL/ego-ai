@@ -1,0 +1,68 @@
+EGO-AI — FICHA PLAY v2 (rejeição "não descreve recursos")
+==========================================================
+Google rejeita quando: só slogan, só changelog, lista de palavras-chave,
+nomes internos (Monstrinhos/Bolso) sem explicar, ou "teste grátis" na breve.
+
+ONDE COLAR
+----------
+Aumentar número de usuários → Presença na loja → Páginas de detalhes do app
+→ Página "Detalhes do app" padrão → idioma Português (Brasil)
+
+IMPORTANTE: editar TODOS os idiomas listados (se tiver en-US vazio, apagar ou preencher igual).
+
+---
+
+NOME DO APP (máx. 30 caracteres)
+--------------------------------
+EGO-AI
+
+(Não usar: "EGO-AI — O amigo que..." no título)
+
+---
+
+BREVE DESCRIÇÃO (máx. 80 caracteres, SEM emoji, SEM "teste grátis")
+--------------------------------------------------------------------
+Converse com IA por texto e voz, organize agenda e lembretes no celular.
+
+---
+
+DESCRIÇÃO COMPLETA (prosa — copiar tudo, sem emojis)
+----------------------------------------------------
+EGO-AI é um assistente pessoal para celular que usa inteligência artificial em português. O aplicativo serve para conversar com um assistente virtual, organizar compromissos e lembretes, e acompanhar a rotina do dia a dia.
+
+No chat, o usuário envia mensagens de texto ou grava áudio pelo microfone. O assistente responde em português e pode ler a resposta em voz alta. É possível escolher entre dois personagens de assistente (Luna ou Leo). Também é possível anexar um arquivo PDF na conversa e pedir um resumo ou tirar dúvidas sobre o conteúdo do documento.
+
+Na agenda pessoal, o usuário cria compromissos com título, data e hora, e consulta o que está marcado. Existe um modo de desabafo noturno: à noite o usuário grava ou escreve livremente e, na manhã seguinte, revisa sugestões na agenda para confirmar ou excluir cada item. A agenda compartilhada permite criar um calendário em família e marcar compromissos com outras pessoas que também usam o EGO-AI. A lista de compras fica ligada à agenda e os itens podem ser marcados como comprados.
+
+O aplicativo inclui rotinas de bem-estar com missões diárias simples (como registrar humor, pausas para respirar e gratidão) e um personagem virtual em um jardim para acompanhar hábitos ao longo dos dias.
+
+O cadastro é feito com e-mail e senha. Há recuperação de senha e exclusão de conta pelo site do desenvolvedor. O EGO-AI oferece uso gratuito inicial com limites; planos de assinatura opcionais dentro do app ampliam o uso de chat, voz e agenda.
+
+As respostas são geradas por inteligência artificial. Elas não substituem aconselhamento médico, psicológico, jurídico ou financeiro de um profissional qualificado.
+
+Suporte: contato@egoai.com.br
+Site: https://egoai.com.br
+Política de privacidade: https://egoai.com.br/privacidade/
+Exclusão de conta: https://egoai.com.br/exclusao-conta/
+
+---
+
+CHECKLIST ANTES DE SALVAR
+-------------------------
+[ ] Breve descrição SEM "teste grátis", SEM emoji, SEM slogan só
+[ ] Descrição completa em PROSA (não só bullets de versão 1.0.48)
+[ ] Nome do app = só "EGO-AI"
+[ ] Clicou SALVAR (botão azul) e apareceu confirmação
+[ ] Se existir outro idioma na ficha → preencher ou remover tradução vazia
+[ ] Screenshots mostram chat e agenda (coerente com o texto)
+
+NOTAS DA VERSÃO (campo separado na RELEASE, não na ficha)
+---------------------------------------------------------
+Versão 1.0.48: melhorias na agenda compartilhada, lista de compras, rotinas de bem-estar e estabilidade do chat.
+
+---
+
+DEPOIS
+------
+Testar e lançar → reenviar para análise
+Aguardar 1–24 h

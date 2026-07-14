@@ -1,0 +1,55 @@
+{
+  "version": "1.0.80",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-PAUSA-EGO",
+  "output": "marketing/videos/app-real/ego-ai-lancamento-appstore-reels.mp4",
+  "post_file": "marketing/POST-LANCAMENTO-APP-STORE.txt",
+  "voice_rate": "+24%",
+  "audio_pad": 0.05,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.86,
+  "top_bar_h": 280,
+  "bottom_reserve": 200,
+  "badge_text": "NOVO 🍎",
+  "post": {
+    "title": "EGO-AI chegou na App Store 🍎💜",
+    "description": "Chegou na App Store — não é beta, é loja pública.\n\nPara quem sente ansiedade no dia a dia e quer um respiro de 1 minuto:\n\n🎭 Monstrinhos do humor\n🌬️ Calma 1 min — respiração guiada\n💬 Luna/Leo que ouve (voz ou texto)\n🆘 «Estou mal agora» + CVV 188 no SOS\n\n✅ 20 dias grátis · sem cartão\n\n🍎 iPhone: https://apps.apple.com/app/id6780595396\n🤖 Android: GMAIL no PRIVADO (DM)\n🌐 https://egoai.com.br\n\n#egoai #appstore #ansiedade #saúdemental #iphone #lancamento",
+    "hashtags": ["#egoai", "#appstore", "#ansiedade", "#saúdemental", "#iphone", "#lancamento"],
+    "pinned_comment": "🍎 iPhone — App Store:\nhttps://apps.apple.com/app/id6780595396\n\n🤖 Android — manda GMAIL no PRIVADO (DM)"
+  },
+  "scenes": [
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["NA APP STORE", 58, true], ["loja pública 🍎", 48, false]],
+      "darken": 0.12,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "EGO-AI chegou na App Store. Loja pública, não é beta."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["Ansiedade no dia?", 54, true], ["PAUSA 1 min 🌬️", 48, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Ansiedade no dia a dia? PAUSA de um minuto com a Luna."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["Monstrinhos + chat", 52, true], ["corpo e mente 💜", 46, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Monstrinhos do humor, chat com voz e SOS quando aperta."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["20 dias grátis", 52, true], ["link na bio 👇", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Vinte dias grátis, sem cartão. Link na bio para baixar."
+    }
+  ]
+}

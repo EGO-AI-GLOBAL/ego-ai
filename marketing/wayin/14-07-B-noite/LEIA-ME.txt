@@ -1,0 +1,84 @@
+MELHOR VERSÃO — recursos reais (sem inventar / sem repetir MP4 velho)
+====================================================================
+Fonte #1 (melhor qualidade UI): marketing\APP-STORE-FICHA-1.0.85-APPLE\
+Fonte #2 (fotos CapCut):       marketing\CAPCUT-FOTOS-*\
+Fonte #3 (rosto falando):      app\assets\avatar-*-speaking.mp4
+WayIn: anima 2–3 FOTOS → CapCut junta (~15–21s)
+
+NÃO usar neste lote (já saturados / post A de hoje):
+• 01-monstrinhos-humor-hoje · 06-monstrinhos-missoes
+• ego-ai-monstrinhos-1.0.81-reels.mp4 · ego-ai-1.0.42-retencao
+• ego-ai-pausa-3h / 3h-solidao como “vídeo pronto” (podes tirar STILL, mas não o Reel inteiro outra vez)
+
+--------------------------------------------------------------------
+AGORA — SLOT B 14/07 · NOITE / DESABAFO (melhor cut)
+--------------------------------------------------------------------
+Título: Noite fria, tela acesa… desabafei sem incomodar ninguém 📱
+
+3 FOTOS → WayIn 7s cada (OU CapCut “Ken Burns” 5–7s se não quiser WayIn)
+
+1) marketing\APP-STORE-FICHA-1.0.85-APPLE\02-chat-desabafo-luna.png
+2) marketing\APP-STORE-FICHA-1.0.85-APPLE\05-chat-voz-rosto.png
+3) marketing\APP-STORE-FICHA-1.0.85-APPLE\03-pausa-1-min-ansiedade.png
+
+PROMPT WAYIN (igual nas 3, cola e troca só a imagem)
+----------------------------------------------------
+Animate this app screenshot for 7 seconds, vertical 9:16.
+Keep UI readable, same layout, same face, no morphing.
+Soft slow push-in 5%, gentle screen glow pulse, very subtle handheld.
+No new text, no logos, no stickers, no WhatsApp bubbles, cinematic calm night mood.
+
+B-ROLL opcional (2–3s no meio ou fim):
+app\assets\avatar-f1-speaking.mp4   (corta 0–3s, volume baixo ou mute)
+
+CAPCUT — ordem (export 1080p 9:16 ~18s)
+---------------------------------------
+0–7s   clip1 chat desabafo
+7–14s  clip2 voz/rosto     (transição Dissolve 0.3s)
+14–20s clip3 PAUSA 1 min
+Áudio: música ambient baixa 10–15% · auto captions OFF no export se fores pôr texto no IG
+Texto ON SCREEN (CapCut, 1 linha, grande, 0–2.5s):
+  “Todo mundo dormindo. Você não.”
+No fim (últimos 2s): “20 dias grátis · link na bio”
+
+Legenda / fixado: marketing\POST-REEL-NOITE-FRIA-14-07-B.txt
+
+--------------------------------------------------------------------
+MAPA — próximos posts (cada um USA 3 FOTOS DIFERENTES)
+--------------------------------------------------------------------
+15/07 A CARGA MENTAL
+  APPLE\04-agenda-familia.png
+  CAPCUT-FOTOS-1.0.34\06-agenda-pessoal.png
+  CAPCUT-FOTOS-1.0.34\07-familia-compartilhada.png
+  B-roll: avatar-m2-speaking.mp4 (corta curto)
+
+15/07 B 12 AVATARES
+  APPLE\02-chat-desabafo-luna.png  ← SÓ se B de hoje NÃO usou; senão:
+  Preferir: CAPCUT-FOTOS-1.0.34\01-capa-luna.png
+            CAPCUT-FOTOS-CHAT-AVATAR-1.0.81\01-chat-avatar-hana-desabafo.png
+            app\assets\avatar-g1.png + avatar-f2.png + avatar-m1.png (3 rostos em sequência CapCut)
+  B-roll: 3 speaking diferentes × 2s
+
+16/07 A PAUSA TRABALHO
+  APPLE\03-pausa-1-min-ansiedade.png  ← se já usada no B 14/07, usar:
+  CAPCUT-FOTOS-PAUSA-EGO-1.0.81\01-pausa-ego-tela-principal.png
+  APPLE\07-respirar-3x.png
+  CAPCUT-FOTOS-ENTREGA\03-respirar-3x.png
+
+16/07 B CASAL / ANTI-ZAP
+  CAPCUT-FOTOS-1.0.34\08-entre-nos.png
+  CAPCUT-FOTOS-1.0.34\09-confirmar-recusar.png
+  APPLE\04-agenda-familia.png (se livre)
+
+17/07 A / B · só o que ainda não saiu da ficha + CAPCUT-ENTREGA monstrinho
+  (01 e 06 monstrinhos) — guarda para quando fores VARIANTE do vencedor humor
+
+--------------------------------------------------------------------
+REGRA DE OURO
+--------------------------------------------------------------------
+• 1 post = 3 imagens que AINDA não usaste nessa semana
+• WayIn = vida · CapCut = juntar + 1 legenda grande + música
+• Não reexportar o mesmo MP4 de marketing\videos\app-real\ como “novo”
+• Vencedor = o cut que der mais DMs/Gmail → aí sim turbinar
+
+Pastas abertas no Explorer: FICHA APPLE · PAUSA 1.0.81 · CHAT-AVATAR 1.0.81

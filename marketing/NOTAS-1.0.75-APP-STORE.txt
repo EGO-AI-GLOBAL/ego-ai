@@ -1,0 +1,47 @@
+EGO-AI 1.0.75 — SUBMETER À APP STORE (iOS)
+============================================
+Build EAS: 1.0.75 (72)
+Site planos (fora do app): https://egoai.com.br/planos/
+
+ORDEM (App Store Connect)
+-------------------------
+1. Apps → EGO-AI → App Store → versão **1.0.75**
+2. Compilação → build **1.0.75 (72)**
+3. Colar «O que há de novo» (abaixo)
+4. Monetização → IAP → sem produtos / sem rascunhos
+5. App Review Notes → inglês + conta demo (APP-STORE-IOS-SEM-IAP.txt)
+6. Enviar para revisão
+
+────────────────────────────────────────────────────────────
+O QUE HÁ DE NOVO (PT-BR) — colar no Connect
+────────────────────────────────────────────────────────────
+• Respostas de voz mais rápidas no chat com o avatar
+• App mais fluido ao abrir o chat e o jardim dos Monstrinhos
+• EGO de Bolso: cores do ovo aplicam-se em todos os estágios do companheiro
+• Melhorias de estabilidade e desempenho geral
+
+(NÃO mencionar: Stripe, assinar, premium, preços, compra no app iOS, chamada ao vivo)
+
+────────────────────────────────────────────────────────────
+APP REVIEW — NOTES (inglês)
+────────────────────────────────────────────────────────────
+This update improves voice response speed and general app performance.
+No In-App Purchase products exist in App Store Connect. Paid plans are not sold inside the iOS app.
+Demo account: [DEMO_EMAIL] / [DEMO_PASSWORD]
+Account deletion: Profile → Account → "Excluir minha conta"
+See marketing/APP-STORE-IOS-SEM-IAP.txt for full reviewer text.
+
+────────────────────────────────────────────────────────────
+TESTFLIGHT — O QUE TESTAR (PT)
+────────────────────────────────────────────────────────────
+Testar login, escolher a Luna, enviar uma mensagem de voz curta no chat e abrir o EGO de Bolso (comprar/trocar cor do ovo e confirmar que muda no monstrinho). App gratuito com trial — sem compras no iOS.
+
+────────────────────────────────────────────────────────────
+CHECKLIST ANTES DE ENVIAR (iOS 1.0.75)
+────────────────────────────────────────────────────────────
+[ ] Menu lateral SEM «Planos» / checkout Stripe
+[ ] Conta SEM botões de compra
+[ ] Microfone / voz funcionam em device real
+[ ] Nenhum link abre buy.stripe.com no iPhone
+[ ] Excluir minha conta visível em Conta
+[ ] IAP vazios no Connect

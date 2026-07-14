@@ -1,0 +1,37 @@
+EGO-AI — Ficha App Store 1.0.85 · sequência de screenshots
+============================================================
+TAMANHO APPLE (obrigatório): 1284 × 2778 px
+
+USE ESTA PASTA NO CONNECT:
+  marketing\APP-STORE-FICHA-1.0.85-APPLE\
+(ou os PNG desta pasta — já redimensionados para 1284×2778)
+
+As fotos CapCut originais eram ~472×1024 → a Apple rejeitava.
+
+ORDEM (usar 01→05 no mínimo; 06–07 opcional)
+--------------------------------------------
+01  Monstrinhos / humor do dia     ← Reel #1 (viciei 🥚)
+02  Chat desabafo (rosto)          ← Reel #2 + tela fria
+03  PAUSA 1 min                    ← ASA keyword ansiedade
+04  Agenda família                 ← Top TikTok (casamentos/Zap)
+05  Chat voz                       ← “app real” / companhia
+06  Missões Monstrinhos            (extra)
+07  Respirar 3x                    (extra)
+
+NO CONNECT
+----------
+1. Versão 1.0.85 → Previews e capturas de ecrã → iPhone
+2. Apaga as antigas (ou substitui pela ordem)
+3. Sobe 01, 02, 03, 04, 05 (nessa ordem)
+4. Se pedir iPad: podes repetir as mesmas 5 por agora
+
+TEXTOS NA IMAGEM (se fores legendar no CapCut)
+---------------------------------------------
+01  «Como me sinto hoje»
+02  «Desabafo sem cobrar no Zap»
+03  «Ansiedade? 1 minuto»
+04  «Família sem briga por esquecer»
+05  «Voz e rosto — não é tela fria»
+
+Já mudaste: subtítulo + texto promocional ✅
+Ver também: marketing/NOTAS-1.0.85-APP-STORE.txt (checklist completo)

@@ -1,0 +1,64 @@
+EGO-AI — Play · ficha pronta ANTES da produção (~15/07)
+======================================================
+Atualizado: 13/07/2026
+Objetivo: Android = mesma mensagem que iOS 1.0.86 (humor · desabafo · ansiedade)
+
+PODE FAZER JÁ (não espera 14/14)
+--------------------------------
+Play Console → Presença na loja → Produção (ou rascunho de listagem principal)
+https://play.google.com/console
+
+1) Breve descrição (máx. 80) — COLAR:
+Ansiedade, humor e desabafo. Chat com voz, PAUSA 1 min e agenda.
+
+2) Descrição completa — 1ª linhas (alinhar aos Reels/iOS):
+Quando a ansiedade aperta ou o humor pesa, você não precisa ficar sozinha no celular.
+
+EGO-AI é companhia com rosto e voz: Luna ou Leo. Marque o humor (Monstrinhos), desabafe no chat por texto ou áudio, respire 1 minuto na PAUSA quando apertar, e organize a agenda sem cobrar ninguém no Zap.
+
+(Restante da descrição longa actual pode ficar — ver marketing/loja/PLAY_STORE_COPY.md)
+
+3) Gráficos — telefone (ordem = iOS):
+Pasta: marketing\APP-STORE-FICHA-1.0.85-APPLE\
+  01-monstrinhos-humor-hoje.png
+  02-chat-desabafo-luna.png
+  03-pausa-1-min-ansiedade.png
+  04-agenda-familia.png
+  05-chat-voz-rosto.png
+(1284×2778 — Play aceita)
+Opcional 06–07 da mesma pasta.
+
+4) Ícone / feature graphic
+• Ícone: já o do app (não mudar sem necessidade)
+• Feature graphic 1024×500: se já tens na Play, manter; se velho, atualizar depois
+
+5) Categoria / tags
+• Estilo de vida / Produtividade (como iOS)
+• Não marcar como rede social / jogo
+
+NÃO FAZER AINDA
+---------------
+[ ] Solicitar produção — só com 14/14 dias (~15/07)
+[ ] Remover testadores
+[ ] Google App Ads pagos — só com link Play público
+
+PRODUÇÃO (~15/07) — checklist
+-----------------------------
+[ ] Console: 14 dias · 12 testadores
+[ ] Solicitar produção / revisão
+[ ] Confirmar lista: breve desc + capturas novas já gravadas
+[ ] AAB 1.0.85 (129) no fechado → promover produção (ou build nova se pedirem)
+[ ] Quando público: site egoai.com.br botão Play activo
+[ ] ASA-equivalente Android = Google App Campaigns (depois)
+
+PARIDADE iOS ↔ ANDROID
+----------------------
+| iOS (App Store)     | Android (Play)              |
+|---------------------|-----------------------------|
+| Subtítulo           | Breve descrição (80 chars)  |
+| Screenshots 01–05   | Mesmas 5 fotos (pasta APPLE)|
+| Promo / «o que há»  | Notas da versão no release  |
+| ASA Search Ads      | Depois: Google App Ads      |
+
+Versão app: teste fechado já tem 1.0.85 planos PJ.
+iOS loja: 1.0.86 em revisão (ASO). Android loja pública depois dos 14 dias.

@@ -1,0 +1,35 @@
+NOTAS VERSÃO 1.0.57 — TestFlight / Play (teste fechado)
+=====================================================
+iOS build 45 · Android versionCode 97
+
+CURTO (O que há de novo — copiar TestFlight externo / Play)
+-----------------------------------------------------------
+Correção do chat: abre após escolher o avatar e responde a mensagens de texto.
+
+MÉDIO
+-----
+• Corrigido «Chat indisponível» ao abrir o chat depois de escolher o assistente
+• Corrigido erro ao enviar mensagens (servidor API — sem novo build iOS)
+• Fluxo cadastro → avatar → conversa estável no iPhone
+• Melhorias herdadas das versões 1.0.55–1.0.56 (telefone no cadastro, gates de perfil)
+
+O QUE TESTAR (TestFlight externo — campo «O que testar»)
+--------------------------------------------------------
+1. Atualizar para **1.0.57 (build 45)** no TestFlight
+2. Login ou cadastro → escolher avatar → **chat abre**
+3. Enviar **«oi»** e depois **«boa noite»** (ou 2 mensagens seguidas)
+4. Leo/Luna responde às duas, sem erro vermelho em baixo
+5. (Opcional) microfone e «Ouvir ao responder»
+
+CONFIRMAR VERSÃO
+----------------
+iPhone: **1.0.57 (45)** — não usar 1.0.56
+
+API em produção (Railway)
+-------------------------
+api_build: 2026-06-29-1.0.57-chat-hotfix3
+EGO_LATEST_APP_VERSION=1.0.57
+EGO_LATEST_ANDROID_VERSION_CODE=97
+EGO_MAINTENANCE=0
+
+Guia passo a passo TestFlight externo: marketing/TESTFLIGHT-EXTERNO-1.0.57.txt

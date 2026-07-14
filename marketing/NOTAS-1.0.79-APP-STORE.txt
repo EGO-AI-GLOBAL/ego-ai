@@ -17,8 +17,8 @@ ORDEM (App Store Connect)
 O QUE HÁ DE NOVO (PT-BR)
 ────────────────────────────────────────────────────────────
 • Correção das assinaturas na App Store (compra no iPad)
-• PAUSA EGO — 20 técnicas para todos os planos
-• Técnica diária no chat e no menu PAUSA
+• Calma 1 min — 20 técnicas para todos os planos
+• Técnica diária no chat e no menu Calma 1 min
 • Melhorias de estabilidade
 
 ────────────────────────────────────────────────────────────
@@ -50,5 +50,5 @@ Thank you.
 APP REVIEW — NOTES (inglês)
 ────────────────────────────────────────────────────────────
 IAP fix: Planos → EGO Conexão → purchase opens native StoreKit sheet.
-PAUSA EGO: menu → PAUSA EGO → Começar pausa de hoje (works on Essential plan).
+Calma 1 min: menu → Calma 1 min → Começar pausa de hoje (works on Essential plan).
 Demo: [DEMO_EMAIL] / [DEMO_PASSWORD]

@@ -1,0 +1,46 @@
+BUILD 1.0.83 — SÓ iOS (subtítulo ASO + idioma PT-BR)
+====================================================
+Copiar tudo abaixo e colar no chat do Agente API/Release.
+
+---
+
+Agente API/Release — pedido Marketing:
+
+**Só iOS.** Não build Android nesta release.
+
+**Contexto (Marketing já fez no Connect):**
+- Versão **1.0.83** criada → «Preparar para envio»
+- **Informações do app** → Subtítulo salvo: `Ansiedade, respirar, PAUSA`
+- **Idioma principal:** Português (Brasil)
+- **1.0.82** continua «Pronto para distribuição» na loja
+
+Apple bloqueou subtítulo com 1.0.82 no ar. Subtítulo + idioma na ficha só entram com build nova na **1.0.83**.
+
+**Tarefa (código mínimo):**
+1. `app.config.ts` → **version 1.0.83** · **ios.buildNumber 84**
+2. `ios.infoPlist` — declarar português (ficha hoje mostra «Inglês»):
+   - `CFBundleDevelopmentRegion`: `pt-BR`
+   - `CFBundleLocalizations`: `['pt-BR']`
+3. `python scripts/regression_guard.py` + `python scripts/smoke_test_api.py`
+4. **EAS build iOS apenas** (production)
+5. Connect → versão **1.0.83** → anexar build **84**
+6. **Não mudar** descrição, keywords, promo, screenshots (já ok na 1.0.82)
+7. IAP vazia → **Enviar para revisão**
+
+**Link Connect:**
+https://appstoreconnect.apple.com/apps/6780595396/distribution/ios/version/inflight
+
+**O que há de novo (colar na 1.0.83):**
+• Subtítulo da loja: Ansiedade, respirar, PAUSA (foco ansiedade e Calma 1 min)
+• Idioma principal e ficha alinhados a Português (Brasil)
+• Melhorias de estabilidade
+
+**NÃO MUDAR**
+• Nome EGO-AI · categorias · privacidade · Stripe/IAP iOS
+• Android · voz · auth · chat core
+
+**Android:** não fazer agora.
+
+---
+
+Ficheiro: marketing/PEDIDO-API-1.0.83-SO-SUBTITULO.txt

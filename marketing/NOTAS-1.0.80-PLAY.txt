@@ -1,12 +1,30 @@
-EGO-AI 1.0.80 — PLAY STORE (Android)
-=====================================
-Build: 1.0.80 · versionCode 125 (EAS)
+EGO-AI 1.0.80 — PLAY STORE (Android · teste fechado)
+====================================================
+Build: 1.0.80 · versionCode 126
 
-O que há de novo (PT-BR):
-• Monstrinhos: marcar o humor é o 1º passo — logo abaixo do monstrinho
-• Missões do jardim vêm depois do check-in (fluxo mais claro)
-• PAUSA EGO e demais funções — sem mudanças nesta versão
+NOTAS PARA COLAR NA PLAY (PT-BR, até 500 caracteres)
+----------------------------------------------------
+• Monstrinhos: marque o humor primeiro — fluxo do jardim mais claro
+• Calma 1 min: 20 técnicas para todos + link CVV 188 no SOS
+• Agenda pessoal, compartilhada e Entre Nós liberadas no plano grátis
 • Melhorias de estabilidade
 
-Teste rápido:
-Jardim → toque no humor (Nublina, Agita, etc.) → monstrinho muda → missões.
+VERSÃO CURTA (WhatsApp / grupo)
+-------------------------------
+Oi! Saiu a **1.0.80** no teste fechado 🎉
+
+Novidades:
+🎭 Jardim — humor é o 1º passo
+🌬️ PAUSA completa (20 técnicas) + SOS com CVV 188
+📅 Agenda pessoal e compartilhada liberadas no grátis
+
+Android: https://play.google.com/apps/testing/com.egoai.app
+(Play Store → EGO-AI → Atualizar · versão 1.0.80 / 126)
+
+Bug: print + modelo do celular. Valeu! 💜
+
+TESTE RÁPIDO
+------------
+1. Monstrinhos → marcar humor → missões
+2. Calma 1 min → ver cartão «20 técnicas» → SOS (188)
+3. Agenda → criar lembrete sem limite no grátis

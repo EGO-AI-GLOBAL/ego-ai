@@ -1,0 +1,30 @@
+EGO-AI — DESCRIÇÃO ORIGINAL (antes das alterações do agente)
+=============================================================
+Colar de volta em: Páginas de detalhes do app → Página padrão → Salvar
+
+NOME DO APP
+-----------
+EGO-AI
+
+BREVE DESCRIÇÃO
+---------------
+O amigo que não te abandona — assistente com IA, chat, voz e agenda.
+
+DESCRIÇÃO COMPLETA
+------------------
+EGO-AI — O amigo que não te abandona.
+
+Assistente pessoal com inteligência artificial: converse por texto ou voz, organize a agenda e tenha apoio no dia a dia.
+
+• Chat com IA
+• Mensagens de voz (microfone opcional)
+• Anexar PDF e perguntar sobre o conteúdo
+• Agenda pessoal
+• Vários avatares assistentes
+• Login seguro e recuperação de senha
+
+Site: https://egoai.com.br
+Suporte: contato@egoai.com.br
+Privacidade: https://egoai.com.br/privacidade/
+
+As respostas são geradas por IA e não substituem aconselhamento médico, jurídico ou financeiro profissional.

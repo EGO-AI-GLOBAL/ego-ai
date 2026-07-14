@@ -1,0 +1,40 @@
+EGO-AI — iOS: 3 PLANOS NA APPLE (não confundir com Stripe)
+===========================================================
+
+REGRA
+-----
+• iPhone = In-App Purchase na App Store. Proibido vender assinatura fora (Stripe no app).
+• São só 3 produtos no Connect — NÃO existe «EGO Lançamento» como 4º produto Apple.
+• «Lançamento» no iPhone = oferta introdutória DENTRO da assinatura Conexão (Apple aprova).
+
+APP STORE CONNECT → Assinaturas → grupo «EGO-AI Planos»
+-------------------------------------------------------
+
+| # | Nome no app   | product id                              | Preço/mês |
+|---|---------------|-----------------------------------------|-----------|
+| 1 | EGO Conexão   | com.egoai.app.sub.connection.monthly    | R$ 39,90  |
+| 2 | EGO Premium   | com.egoai.app.sub.premium.monthly       | R$ 69,90  |
+| 3 | EGO Total     | com.egoai.app.sub.total.monthly         | R$ 129,90 |
+
+Preços iOS = base + ~30% (taxa Apple). NÃO usar 32,74 / 54,64 / 109,39 do Stripe.
+
+OFERTA INTRODUTÓRIA (lançamento iOS — só Conexão)
+-------------------------------------------------
+Connect → EGO Conexão → Ofertas introdutórias → +
+  • Tipo: Pagar conforme o uso · 6 meses
+  • Preço: R$ 19,90/mês
+  • Novos assinantes
+Passo a passo: marketing/APPLE-IAP-LANCAMENTO-CONNECT.txt
+
+NO APP iOS (código)
+-------------------
+• Ecrã Planos: 3 cards (Conexão, Premium, Total) — compra StoreKit
+• Conexão mostra selo «Lançamento · 6 meses» + R$ 19,90 se oferta intro activa
+• Card «EGO Lançamento R$ 10,94» NÃO aparece no iPhone (só Android/Stripe)
+
+ANDROID / STRIPE (separado — 4º plano só aqui)
+------------------------------------------------
+| EGO Lançamento | R$ 10,94 | Stripe only |
+| EGO Conexão    | R$ 32,74 | + impostos/taxas |
+| EGO Premium    | R$ 54,64 | |
+| EGO Total      | R$ 109,39 | |

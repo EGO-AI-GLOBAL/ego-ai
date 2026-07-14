@@ -1,0 +1,66 @@
+EGO-AI — CATÁLOGO STRIPE PJ (copiar igual conta antiga)
+========================================================
+Empresa: Economizze Cataguases Representacoes Ltda · CNPJ 52.045.624/0001-29
+Fonte: STRIPE-LANCAMENTO.md · plans.py · PLANOS-SITE-DESCRICOES.md
+
+REGRAS IGUAIS EM TODOS OS PRODUTOS
+----------------------------------
+• Tipo: Assinatura · Recorrente · Mensal · BRL
+• Descrição no extrato: EGO-AI
+• Impostos: JÁ INCLUÍDOS no preço — NÃO ligar alíquota manual no catálogo Stripe
+• Cupons: desligados no EGO Lançamento; demais conforme conta antiga
+• Metadado obrigatório: plan_tier (ver tabela)
+• Logo produto (opcional): marketing/brand/logo-site.png
+• Imagens: FOTOS-STRIPE/br/{launch,connection,premium,total}/ — nome e preço na capa
+
+================================================================================
+BRASIL — PARTICULARES (criar nesta ordem)
+================================================================================
+
+| # | Nome Stripe      | Preço/mês  | plan_tier   | Observação |
+|---|------------------|------------|-------------|------------|
+| 1 | EGO Lançamento   | R$ 10,94   | connection  | Impostos + taxa Stripe já no preço. Sem cupom. |
+| 2 | EGO Conexão      | R$ 32,74   | connection  | Base 29,90 + 9,5% |
+| 3 | EGO Premium      | R$ 54,64   | premium     | Base 49,90 + 9,5% |
+| 4 | EGO Total        | R$ 109,39  | total       | Base 99,90 + 9,5% |
+| 5 | EGO Empresa      | R$ 218,89  | enterprise  | Base 199,90 + 9,5% |
+
+Escada manual (não é produto separado — LEMBRETE-STRIPE-PRECOS-MANUAL.txt):
+  10,94 (6 meses) → 19,90/mês (6 meses) → 32,74 Conexão
+
+NÃO USAR NO STRIPE (são preços iPhone +30% Apple):
+  R$ 39,90 · R$ 69,90 · R$ 129,90
+
+================================================================================
+TEXTO EGO LANÇAMENTO (copiar no produto/link)
+================================================================================
+
+Oferta de lançamento: R$ 10,94/mês (inclui impostos e taxas) por 6 meses.
+Depois R$ 19,90/mês por 6 meses. Depois R$ 32,74/mês (EGO Conexão).
+Cancele quando quiser. Sem cupons adicionais.
+
+================================================================================
+DESCRIÇÕES CURTAS (Conexão / Premium / Total)
+================================================================================
+
+EGO Conexão:
+Seu assistente no dia a dia: mais mensagens, voz, agenda e respostas em áudio.
+
+EGO Premium:
+Uso diário sem travas: texto e voz ilimitados no dia, agenda completa e mais tokens.
+
+EGO Total:
+Uso intenso com o máximo de tokens e agenda ilimitada para quem vive no app.
+
+(Bullets completos: marketing/PLANOS-SITE-DESCRICOES.md)
+
+================================================================================
+DEPOIS DE CRIAR PRODUTOS → LINKS DE PAGAMENTO
+================================================================================
+
+Para cada plano: Links de pagamento → Novo → Assinatura → produto → BRL
+• Metadado no link: plan_tier = connection | premium | total
+• Copiar URLs novas → agente API (Railway + brand/config.json)
+
+Webhook:
+https://ego-ai-production-a2c2.up.railway.app/stripe/webhook

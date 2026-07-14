@@ -1,4 +1,4 @@
-﻿POST — Reels/TikTok · EGO-AI 1.0.79
+POST — Reels/TikTok · EGO-AI 1.0.79
 =======================================================
 
 ARQUIVO DO VÍDEO
@@ -13,7 +13,7 @@ LEGENDA (copiar no post)
 ------------------------
 POV: fila, ônibus, reunião — o peito aperta e você não pode sair correndo.
 
-PAUSA EGO: 1 minuto. Olhos abertos. Sentado ou em pé.
+Calma 1 min: 1 minuto. Olhos abertos. Sentado ou em pé.
 
 Não precisa de 1 hora de meditação. Não precisa desabafar no Zap.
 

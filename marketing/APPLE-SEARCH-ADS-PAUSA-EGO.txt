@@ -1,0 +1,265 @@
+EGO-AI — Marketing App Store iOS · passo a passo (um de cada vez)
+==================================================================
+Público: mulher 25–44 · ansiedade leve · PAUSA 1 min
+Só iPhone aprovado · Android ainda teste fechado (7/14)
+App: https://apps.apple.com/app/id6780595396
+
+ORDEM (não pular)
+-----------------
+PASSO 1 → ASO grátis (App Store Connect)     ← faça PRIMEIRO
+PASSO 2 → Conta Apple Search Ads
+PASSO 3 → Campanha de teste (7 dias)
+PASSO 4 → Medir e decidir (continuar ou parar)
+
+Budget teste sugerido: R$ 20–30/dia · máx. 7 dias (~R$ 140–210)
+Meta CPI: abaixo de R$ 8–10 no Brasil = bom
+
+==================================================================
+PASSO 1 — ASO GRÁTIS (antes de gastar 1 real)
+==================================================================
+LINK DIRETO (ficha + versão em edição):
+  https://appstoreconnect.apple.com/apps/6780595396/distribution/ios/version/inflight
+
+LINK alternativo (ficha geral do app):
+  https://appstoreconnect.apple.com/apps/6780595396/appstore
+
+Lista de apps (se o link acima pedir login):
+  https://appstoreconnect.apple.com/apps
+
+Atalho Windows: ABRIR-APP-STORE-ASO.bat (na raiz do projeto)
+
+Caminho na tela (interface nova da Apple):
+  1. Entrar em appstoreconnect.apple.com
+  2. Menu esquerdo: **Apps** → clicar **EGO-AI**
+  3. Menu esquerdo: **Distribuição** (ou **Distribution**)
+  4. Clicar na versão em preparação (ex.: 1.0.81)
+  5. Aba **App Store**
+  6. Secção **Informações localizadas** → **Português (Brasil)**
+     (ou botão **+** idioma → Português Brasil, se ainda não existir)
+
+IMPORTANTE — Apple bloqueou edição?
+-----------------------------------
+Se «Informações do app» não deixa editar (mensagem azul + campos cinzentos):
+→ A versão **1.0.81 em revisão** trava a ficha.
+→ Monstrinhos cola tudo em: marketing/MENSAGEM-MONSTRINHOS-ASO-1.0.81.txt
+   (retirar da revisão → editar → reenviar)
+
+O utilizador pode tentar SÓ «Texto promocional» na página **1.0.80**
+(versão → descer scroll) — esse às vezes edita mesmo com revisão pendente.
+
+| Campo | Quem | Build? |
+|-------|------|--------|
+| Subtítulo | Monstrinhos na 1.0.81 | Não (só reenviar revisão) |
+| Texto promocional | Utilizador na 1.0.80 OU Monstrinhos | Não |
+| Palavras-chave | Monstrinhos na 1.0.81 | Não |
+
+--- 1.2 Descrição promocional (máx. 170 caracteres) ---
+
+Copiar:
+1 minuto de calma quando a ansiedade aperta. Calma 1 min + Luna/Leo com voz. Grátis 20 dias no iPhone — sem cartão.
+
+--- 1.3 Palavras-chave (máx. 100 caracteres, sem espaços extras, vírgula sem espaço) ---
+
+Copiar:
+ansiedade,stress,respirar,calma,humor,desabafo,solidão,autocuidado,pausa,avatar
+
+--- 1.4 O que há de novo (versão atual na loja) ---
+
+Usar texto de: marketing/NOTAS-1.0.81-APP-STORE.txt (ou 1.0.80 se ainda não subiu 81)
+
+--- 1.5 Screenshots (quando tiver prints novos) ---
+
+Ordem sugerida nas 6–10 imagens:
+1. Calma 1 min — «1 minuto de calma»
+2. Monstrinhos — humor do dia
+3. Chat com Luna — voz
+4. «Estou mal agora» / SOS
+5. Agenda (secundário)
+
+Por agora: se só tiver print PAUSA, coloque ele em 1º lugar.
+
+--- 1.6 Salvar ---
+
+Canto superior direito → Salvar
+Aguardar processamento (minutos a horas)
+
+✅ PASSO 1 FEITO quando: subtítulo + keywords + promo text salvos.
+
+==================================================================
+PASSO 2 — CRIAR CONTA APPLE SEARCH ADS
+==================================================================
+Onde: https://searchads.apple.com
+
+--- 2.1 Entrar ---
+
+• Clicar «Começar» ou «Sign In»
+• Usar o MESMO Apple ID da conta Developer / App Store Connect
+• Aceitar termos
+
+--- 2.2 Configurar conta ---
+
+• País/região: Brasil
+• Moeda: BRL (real) se disponível; senão USD
+• Método de pagamento: cartão
+• Time zone: America/Sao_Paulo
+
+--- 2.3 Vincular app ---
+
+• Campaigns → + Nova campanha
+• Selecionar app: **EGO-AI**
+• Storefront: **Brazil**
+
+✅ PASSO 2 FEITO quando: conta ativa e app EGO-AI aparece para anunciar.
+
+==================================================================
+PASSO 3 — CAMPANHA DE TESTE (7 DIAS)
+==================================================================
+Use **Advanced** (não Basic) — mais controlo, menos desperdício.
+
+--- 3.1 Nova campanha ---
+
+Nome da campanha:
+EGO-AI-BR-ansiedade-teste-7d
+
+--- 3.2 Objetivo ---
+
+• Tipo: **Search Results** (Resultados da busca)
+• NÃO marcar: Search Tab · Today Tab (caro demais para começar)
+
+--- 3.3 Orçamento ---
+
+• Budget diário: **R$ 25** (ajuste se quiser: mín. R$ 20)
+• Budget total campanha: **R$ 175** (7 × R$ 25) — opcional como teto
+
+--- 3.4 Grupo de anúncios (Ad Group) ---
+
+Nome:
+keywords-ansiedade-pt
+
+--- 3.5 Keywords — COPIAR UMA A UMA (tipo: Broad ou Exact) ---
+
+Começar com **Exact** nas 5 primeiras; depois Broad nas outras.
+
+EXACT (prioridade alta — lance R$ 3,00–5,00):
+ansiedade
+app ansiedade
+respiração ansiedade
+meditação ansiedade
+app para ansiedade
+
+BROAD (lance R$ 2,00–3,50):
+stress
+respirar
+calma
+autocuidado
+saúde mental
+desabafo
+solidão
+ansiedade noturna
+como acalmar ansiedade
+
+NEGATIVE KEYWORDS (palavras negativas — adicionar no grupo):
+grátis jogo
+jogo
+psicólogo
+terapia
+depressão tratamento
+chatgpt
+chat gpt
+inteligência artificial grátis
+medico
+remédio
+
+--- 3.6 Público (Audience) ---
+
+• Localização: **Brasil** apenas
+• Dispositivo: **iPhone** (excluir iPad se opção existir)
+• Idade: **25–54** (se disponível; senão «All ages»)
+• Género: **Feminino** preferencial (se disponível; senão todos)
+
+--- 3.7 Criativo ---
+
+• Apple usa a ficha da App Store automaticamente
+• Não precisa upload de imagem extra no ASA
+• Por isso PASSO 1 (screenshots/subtítulo) é crítico
+
+--- 3.8 Publicar ---
+
+• Revisar → Publicar campanha
+• Status: Active / Em veiculação
+
+✅ PASSO 3 FEITO quando: campanha «Active» e aparecem impressões em 24–48h.
+
+==================================================================
+PASSO 4 — MEDIR (dia 3, 5 e 7)
+==================================================================
+Onde: searchads.apple.com → Campaigns → EGO-AI-BR-ansiedade-teste-7d
+
+Colunas importantes:
+| Métrica | Bom | Ruim — pausar keyword |
+|---------|-----|------------------------|
+| CPI (custo por install) | < R$ 8 | > R$ 12 |
+| TTR (taxa toque) | > 3% | < 1% |
+| Installs | sobe | 0 com 20+ cliques |
+
+--- 4.1 Dia 3 ---
+
+[ ] CPI médio abaixo de R$ 10?
+[ ] Qual keyword trouxe installs? → aumentar lance 10%
+[ ] Qual keyword só gastou? → pausar
+
+--- 4.2 Dia 7 — DECISÃO ---
+
+CONTINUAR se:
+• CPI médio < R$ 8
+• Pelo menos 15–25 installs na semana
+• Reviews não negativas
+
+PARAR / PAUSAR se:
+• CPI > R$ 12 sem melhora
+• Muitos cliques, zero installs
+• Budget gasto sem installs
+
+Se parar: manter só orgânico (Reels + ASO) até Android produção.
+
+--- 4.3 O que NÃO fazer com os dados ---
+
+• Não aumentar budget 10× no dia 1
+• Não adicionar keywords «IA», «ChatGPT», «assistente virtual»
+• Não rodar Meta Ads para site ao mesmo tempo (confunde métrica)
+
+==================================================================
+PASSO 5 (OPCIONAL, DEPOIS) — CUSTOM PRODUCT PAGE
+==================================================================
+Só depois de PASSO 4 com CPI bom.
+
+App Store Connect → EGO-AI → Custom Product Pages
+• Página «Ansiedade»: screenshot PAUSA em 1º
+• URL para usar em anúncio específico ASA
+
+==================================================================
+LINKS RÁPIDOS
+==================================================================
+App Store Connect:  https://appstoreconnect.apple.com
+Apple Search Ads:   https://searchads.apple.com
+App na loja:        https://apps.apple.com/app/id6780595396
+Site:               https://egoai.com.br
+Público-alvo:       marketing/PUBLICO-ALVO-PAUSA-EGO.md
+
+==================================================================
+CHECKLIST IMPRESSO (marque com X)
+==================================================================
+[ ] PASSO 1.1 Subtítulo
+[ ] PASSO 1.2 Descrição promocional
+[ ] PASSO 1.3 Keywords
+[ ] PASSO 1.6 Salvar
+[ ] PASSO 2 Conta ASA criada
+[ ] PASSO 3 Campanha publicada
+[ ] PASSO 4 Dia 7 — decisão continuar/parar
+
+==================================================================
+O QUE NÃO PROMETER NOS ANÚNCIOS (Apple rejeita / CFM)
+==================================================================
+❌ Cura ansiedade / depressão
+❌ Substitui terapia ou psicólogo
+✅ «1 minuto de calma», «alívio», «companhia», «respirar»

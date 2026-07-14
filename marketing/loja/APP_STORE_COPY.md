@@ -1,47 +1,59 @@
-# App Store — textos prontos (EGO-AI)
+# App Store — textos atuais (Calma 1 min · 2026)
 
-## Nome (máx. 30)
+> **Fonte completa + Android:** [`FICHA-LOJAS-IOS-ANDROID-2026.txt`](../FICHA-LOJAS-IOS-ANDROID-2026.txt)  
+> **iOS sem IAP:** não usar Premium, preços nem Stripe na ficha.
 
-```
-EGO-AI: Luna, Leo & Routine
-```
-
-## Subtítulo (máx. 30)
+## Nome
 
 ```
-Voice companion, not cold AI
+EGO-AI
 ```
 
-## Descrição promocional (PT-BR, máx. 170)
+## Subtítulo (PT-BR, máx. 30)
 
 ```
-Companheiro com rosto e voz. Organize hábitos e lembretes. Grátis com Luna ou Leo. Premium: conversas generosas por menos que uma pizza/mês.
+Ansiedade · respirar · PAUSA
 ```
 
-## Descrição (EN — principal internacional)
+## Descrição promocional (máx. 170)
 
 ```
-Stop scrolling cold feeds.
-
-EGO-AI is the pocket companion you actually want to open: text and voice chat, habits, and smart reminders — with Luna or Leo, a warm voice and a face that feels human.
-
-• Pick Luna or Leo — your daily AI companion, not a generic corporate bot  
-• Talk by text or voice; hear replies when you need them  
-• Habits and reminders built into the conversation  
-• Usage in simple % — like your battery, no tech jargon  
-
-Start free. Upgrade to Pro, Premium, or Complete when you need more.
-
-EGO-AI does not replace medical or mental health professionals.
+1 minuto de calma quando a ansiedade aperta. Calma 1 min com Luna ou Leo por voz. Monstrinhos do humor. 20 dias grátis no iPhone.
 ```
 
-## Keywords (EN, 100 chars)
+## Keywords (máx. 100)
 
 ```
-AI assistant,voice chat,reminder,habits,wellness,companion,Luna,Leo,productivity
+ansiedade,stress,respirar,calma,humor,desabafo,solidão,autocuidado,pausa,avatar
+```
+
+## Descrição (PT-BR)
+
+```
+Quando a ansiedade aperta, você não precisa ficar sozinha no celular.
+
+O EGO-AI é companheiro com rosto e voz: Luna ou Leo ouvem por texto e áudio, ajudam a organizar o dia e oferecem pausas guiadas quando o stress sobe.
+
+• Calma 1 min — exercícios de respiração e calma em cerca de 1 minuto; botão «Estou mal agora» e apoio SOS
+• Monstrinhos do Humor — marque como se sente hoje e acompanhe seu humor ao longo dos dias
+• Chat por texto e voz — ouça as respostas quando precisar
+• Agenda pessoal, compartilhada e Entre Nós — lembretes no plano grátis
+• 20 dias para experimentar no iPhone, sem cartão na loja
+
+Grátis para baixar. Uso em percentagem simples, como a bateria do celular.
+
+O EGO-AI não substitui médicos, psicólogos ou outros profissionais de saúde.
+
+Terms of Use (EULA): https://egoai.com.br/termos/
+Privacy Policy: https://egoai.com.br/privacidade/
 ```
 
 ## URLs
 
-- Privacy: `[LINK_PRIVACIDADE]`  
-- Marketing: landing `marketing/landing/index.html` quando hospedada
+- Privacy (campo Connect): `https://egoai.com.br/privacidade/`
+- Terms / EULA (obrigatório na Description): `https://egoai.com.br/termos/`
+- Marketing: `https://egoai.com.br`
+
+## 3.1.2(c) — Jul 2026
+
+Ver `marketing/APPLE-FIX-EULA-3.1.2c-14-07.txt` (cola EULA na descrição + reply Apple).

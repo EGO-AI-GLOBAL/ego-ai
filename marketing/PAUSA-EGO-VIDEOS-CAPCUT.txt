@@ -1,8 +1,8 @@
-﻿PAUSA EGO — ROTEIROS VÍDEO (CapCut / Reels / TikTok)
+Calma 1 min — ROTEIROS VÍDEO (CapCut / Reels / TikTok)
 =====================================================
 Para: Marketing · Foco: ansiedade leve/média (ver PUBLICO-ALVO-PAUSA-EGO.md)
 Fila com datas: marketing/FILA-VIDEOS-PAUSA-EGO.txt
-Produto: PAUSA EGO (1 min stress/ansiedade + avatar)
+Produto: Calma 1 min (1 min stress/ansiedade + avatar)
 Links teste:
   Android: https://play.google.com/apps/testing/com.egoai.app
   iPhone:  https://apps.apple.com/app/id6780595396
@@ -20,7 +20,7 @@ CTA comentário fixado: links Android + iPhone
 
 LEGENDA:
 3h da manhã e o peito aperta? 💜
-PAUSA EGO: 60s guiados pela Luna — respirar, ancorar, voltar ao agora.
+Calma 1 min: 60s guiados pela Luna — respirar, ancorar, voltar ao agora.
 Monstrinhos do humor + avatar que ouve.
 Teste grátis 👆 bio
 
@@ -38,7 +38,7 @@ REEL 2 · 30s · DEMO RESPIRAR 60s
 
 LEGENDA:
 Só 2 minutos. Respiração guiada pela voz do teu avatar 🌬️
-PAUSA EGO — alívio de stress sem app complicado.
+Calma 1 min — alívio de stress sem app complicado.
 Teste fechado grátis (Android + iPhone).
 
 #egoai #respiracao #ansiedade #autocuidado #calma
@@ -105,7 +105,7 @@ Frame 3: "Testa tu → link sticker"
 ANÚNCIOS META (2 variantes A/B)
 ────────────────────────────────────────────────────────────
 A) Primary text: "Ansiedade à noite? 60 segundos com a Luna."
-   Headline: PAUSA EGO — teste grátis
+   Headline: Calma 1 min — teste grátis
    Creative: Reel 1
 
 B) Primary text: "Respira. Ancora. Volta ao agora. 2 min/dia."

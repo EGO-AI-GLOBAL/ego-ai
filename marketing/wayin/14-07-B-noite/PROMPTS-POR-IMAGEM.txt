@@ -1,0 +1,81 @@
+WAYIN — vídeo JÁ com VOZ + LEGENDA em português
+================================================
+Pasta: marketing\wayin\14-07-B-noite\
+Site: https://wayin.ai/wayinvideo/
+
+Objetivo: cada clip sai pronto (imagem animada + fala PT + legenda PT).
+No CapCut: só juntar 1→2→3 + música 10–15%. NÃO refazer legenda/voz.
+
+Se o WayIn tiver campos separados:
+• Voice / Narration = texto VOZ
+• Captions / Subtitles = ON · idioma Portuguese
+• Prompt = texto ANIMAÇÃO
+
+Se for um campo só: cola o bloco inteiro de cada imagem.
+
+Duração: 7 segundos · 9:16 · voz feminina BR calmada · legenda grande branca com sombra
+
+-------------------------------------------------
+IMAGEM 1 → 1-chat-desabafo.png
+-------------------------------------------------
+ANIMAÇÃO:
+Animate this exact app screenshot 7 seconds vertical 9:16. Keep chat UI and Luna face identical, no morphing, no extra UI. Soft push-in 5%, gentle glow, subtle handheld. Calm lonely night mood.
+
+VOZ (português BR, feminina, baixa, íntima):
+"Todo mundo dormindo. Eu não. Abri o chat e desabafei sem incomodar ninguém."
+
+LEGENDA (mesmo texto na tela, português, sincronizada com a voz):
+Todo mundo dormindo. Eu não.
+Abri o chat e desabafei sem incomodar ninguém.
+
+EXTRA no prompt (cola no fim):
+Add Portuguese female voiceover and large Portuguese burned-in captions matching the lines above. Soft warm tone. No English. No music (silence under voice — music added later in CapCut).
+
+-------------------------------------------------
+IMAGEM 2 → 2-voz-rosto.png
+-------------------------------------------------
+ANIMAÇÃO:
+Animate this exact app screenshot 7 seconds vertical 9:16. Same avatar face, no morphing. Soft blink, caring micro-smile, glow as if listening. Intimate late-night mood.
+
+VOZ (português BR, feminina, íntima):
+"Falei um minuto. Ela ouviu. Sem 'tá acordado?' no Zap. Sem culpa."
+
+LEGENDA:
+Falei um minuto. Ela ouviu.
+Sem "tá acordado?" no Zap. Sem culpa.
+
+EXTRA:
+Add Portuguese female voiceover and large Portuguese burned-in captions matching the lines above. Soft warm tone. No English. No music.
+
+-------------------------------------------------
+IMAGEM 3 → 3-pausa.png
+-------------------------------------------------
+ANIMAÇÃO:
+Animate this exact Calma 1 min screenshot 7 seconds vertical 9:16. Keep UI readable, no morphing. Slow zoom 3%, calm breathing pulse, soft glow. Relief after anxiety.
+
+VOZ (português BR, feminina, alívio):
+"Depois respirei um minuto. Peito mais leve. E ainda tem vinte dias grátis."
+
+LEGENDA:
+Depois respirei um minuto.
+Peito mais leve. Vinte dias grátis.
+
+EXTRA:
+Add Portuguese female voiceover and large Portuguese burned-in captions matching the lines above. Soft warm tone. No English. No music. End clean for CapCut cut.
+
+-------------------------------------------------
+CAPCUT (só isto)
+-------------------------------------------------
+1. Importar clip1 + clip2 + clip3
+2. Ordem: 1 → 2 → 3 · Dissolve 0,3s
+3. Áudio: baixar um pouco a voz se preciso · música ambient 10–15% por baixo
+4. NÃO adicionar legenda nova (já vem do WayIn)
+5. Export 1080p 9:16
+
+Opcional: broll-luna-speaking.mp4 só se quiseres 1s visual — MUTE (já tens voz do WayIn)
+
+Título do Reel:
+Noite fria, tela acesa… desabafei sem incomodar ninguém 📱
+
+Legenda do post / fixado:
+marketing\POST-REEL-NOITE-FRIA-14-07-B.txt

@@ -1,0 +1,40 @@
+DEPLOY AMANHA — O QUE JÁ ESTÁ NO CÓDIGO (automático)
+==================================================
+
+APP (build amanhã)
+------------------
+[x] Campo cupom no cadastro — sempre visível
+[x] Link ?ref=CODIGO preenche cupom
+[x] Tela Planos: esconde EGO Lançamento se entrou com cupom
+[x] Tela Planos: card "Plano parceiro · 10% na 1ª assinatura"
+[x] fetchPlansCatalog com login (personalizado por usuário)
+
+API (deploy HOJE — sem build)
+-----------------------------
+[x] /plans sem launch_offer para quem tem cupom
+[x] stripe_checkout sem launch_url para quem tem cupom
+[x] 10% no checkout (STRIPE_REFERRAL_PROMO_CODE)
+[x] R$ 10 comissão no 1º pagamento (webhook Stripe)
+[x] E-mail boas-vindas → egoai.com.br
+[x] Lembrete semanal se não logou (4x máx)
+
+HOJE — VOCÊ FAZ (15 min)
+------------------------
+1. Supabase → RUN supabase/COLE-SUPABASE-DEPLOY-AMANHA.sql
+2. Railway → Redeploy API
+3. Confirmar STRIPE_REFERRAL_PROMO_CODE no Railway
+4. regression_guard + smoke_test_api
+
+AMANHA — BUILD
+--------------
+5. EAS Android + iOS
+6. Publicar teste fechado / TestFlight
+
+QUANDO FECHAR INFLUENCER
+------------------------
+CRIAR-PARCEIRO.bat → link signup?ref=CODIGO
+
+VER COMISSÕES
+-------------
+supabase/VER-COMISSOES-PARCEIROS.sql
+python scripts/referral_monthly_report.py --month 2026-06

@@ -1,0 +1,23 @@
+VALIDAR 1.0.44 — Monstrinhos Fase 4
+===================================
+
+API
+---
+[ ] /health ok (Railway 1.0.43 até publicar 1.0.44)
+
+Push Monstrinhos
+----------------
+[ ] Permissão de notificações aceite
+[ ] Sem check-in + streak >= 1 → agenda push 20h (streak em risco)
+[ ] Check-in + missão pendente → agenda push 16h (missões)
+[ ] Toque na notificação → abre Monstrinhos do Humor
+[ ] Após check-in + 3/3 missões → pushes cancelam
+
+Estável
+-------
+[ ] Login + chat texto + voz
+
+Links
+-----
+TestFlight: https://testflight.apple.com/join/eNDKdFWF
+Play: https://play.google.com/apps/testing/com.egoai.app

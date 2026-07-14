@@ -1,0 +1,38 @@
+PEDIDO BUILD — Android 1.0.85 (Stripe PJ · só 4 planos)
+=======================================================
+Marketing → Agente Build / Iury · 12/07/2026
+
+PROBLEMA
+--------
+No Android (teste fechado) o ecrã Planos ainda mostra planos/preços ANTIGOS
+(Equipe, Empresa, R$ 29,90…). Site e API Railway já estão OK com links PJ.
+
+O QUE JÁ ESTÁ NO CÓDIGO (PC — precisa ir no AAB)
+------------------------------------------------
+• app/app/(main)/plans.tsx — só Essencial + Lançamento + Conexão + Premium + Total
+• app/src/constants/stripeMonthly.ts — preços +9,5% (10,94 / 32,74 / 54,64 / 109,39)
+• app/src/utils/planCheckout.ts — fallbacks buy.stripe.com PJ
+• app.config.ts — version **1.0.85** · versionCode **129** · iOS build 87
+
+NÃO FAZER NESTA BUILD
+---------------------
+• Não mudar ficha iOS / IAP
+• Não criar Equipe/Empresa no UI
+• Não eas submit automático Android (upload MANUAL teste fechado)
+
+ORDEM
+-----
+1. git status — garantir plans.tsx + stripeMonthly + planCheckout no commit
+2. regression_guard + smoke_test_api
+3. EAS build Android production
+4. SUBIR-ANDROID-FECHADO-MANUAL.bat → AAB code **129**
+5. Play Console → Teste fechado → Nova versão 1.0.85 (129)
+6. Teste no telemóvel: Planos = 5 cards · preços PJ · Assinar abre Stripe Economizze
+
+NOTAS PLAY
+----------
+marketing/NOTAS-1.0.85-PLAY.txt
+
+LINKS STRIPE (já no Railway)
+----------------------------
+marketing/STRIPE-PJ-LINKS.txt

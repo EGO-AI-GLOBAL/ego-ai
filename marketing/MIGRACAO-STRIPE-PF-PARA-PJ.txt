@@ -1,0 +1,149 @@
+EGO-AI — Migração Stripe PF → PJ (ECONOMIZZE)
+==============================================
+Resposta Stripe: NÃO dá converter CPF→CNPJ na mesma conta.
+Solução: conta NOVA CNPJ + migrar assinantes + agente API troca keys.
+
+Empresa: Economizze Cataguases Representacoes Ltda
+CNPJ: 52.045.624/0001-29
+Banco: Nu 260 · Ag 0001 · Cc 201738722-9
+
+================================================================================
+FASE 1 — VOCÊ (Stripe nova conta) — 1–2 h
+================================================================================
+
+1. Criar conta NOVA: https://dashboard.stripe.com/register
+   • Tipo: **Empresa**
+   • CNPJ: 52.045.624/0001-29
+   • Razão social: Economizze Cataguases Representacoes Ltda
+   • E-mail: contato@egoai.com.br (ou economizzerep@gmail.com)
+   • Representante: Iury Freitas
+
+2. Verificar conta (documentos CNPJ + conta Nu PJ)
+
+3. Configurações → Dados bancários → Nu (260 / 0001 / 201738722-9)
+
+4. Recriar produtos (mesmos nomes do app):
+   | Plano app      | Nome Stripe sugerido     |
+   |----------------|--------------------------|
+   | Conexão        | EGO-AI Conexão           |
+   | Premium        | EGO-AI Premium           |
+   | Total          | EGO-AI Total             |
+
+5. Criar **Links de pagamento** (buy.stripe.com) para cada plano
+   • Metadado: plan_tier = connection | premium | total
+   • Copiar URLs novas num bloco de notas
+
+6. Developers → Webhooks → Add endpoint:
+   URL: https://ego-ai-production-a2c2.up.railway.app/api/v1/stripe/webhook
+   (confirmar URL exacta com agente API)
+   Eventos: checkout.session.completed, customer.subscription.*, invoice.*
+
+7. Copiar da conta NOVA:
+   • Secret key (sk_live_...)
+   • Webhook signing secret (whsec_...)
+   • Price IDs (price_...) se usar env STRIPE_PRICE_*
+
+8. Conta PF antiga: NÃO apagar — só desactivar links de pagamento novos
+
+================================================================================
+FASE 2 — AGENTE API/RELEASE (código + Railway)
+================================================================================
+
+Pedido (copiar no chat API):
+
+```
+Migrar Stripe para conta PJ ECONOMIZZE (CNPJ 52.045.624/0001-29).
+
+Conta PF não converte — URLs e keys novas:
+
+[PASTE sk_live_ novo]
+[PASTE whsec_ novo]
+[PASTE links buy.stripe.com novos — Conexão, Premium, Total]
+
+Actualizar:
+• Railway: STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET
+• STRIPE_CHECKOUT_CONNECTION_URL, PREMIUM, TOTAL (+ INT se houver)
+• marketing/brand/config.json (stripe.*)
+• ego_api/plans.py se price ids mudarem
+• Site planos / landing
+
+Manter webhook a apontar Railway. Testar pagamento teste + webhook.
+Documentar em marketing/STRIPE-CONTA-PJ-ECONOMIZZE.txt (sem secrets no git).
+
+Conta Stripe PF antiga: não apagar — só stop novos checkouts.
+```
+
+================================================================================
+FASE 3 — ASSINANTES ATIVOS (impacto mínimo)
+================================================================================
+
+Na conta PF antiga → Clientes → Assinaturas → contar quantas **ativas**.
+
+POUCAS (0–5) — recomendado agora:
+---------------------------------
+A) No Supabase: plano do user **já está** — não precisa fazer nada até renovar
+B) Quando renovar: user paga no link NOVO ou você cancela sub PF e manda link PJ
+C) Opcional: e-mail/WhatsApp 1 linha:
+   «Renovamos pagamentos para CNPJ da empresa. Se renovar, use o mesmo app — link novo: [planos]»
+
+MÉDIAS (5–20):
+---------------
+• Lista e-mail + plano + data renovação
+• 7 dias antes da renovação: avisar + link novo em egoai.com.br/planos
+• Cancelar sub PF após confirmar pagamento PJ (ou deixar PF até expirar naturalmente)
+
+Muitas (20+):
+-------------
+• Pedir ao Stripe suporte plano de migração bulk (raro no seu estágio)
+
+IMPORTANTE — plano no APP:
+• O app usa Supabase (plan_tier) — webhook PJ novo activa plano
+• Users com plano activo **não perdem acesso** se só mudar Stripe por trás na renovação
+• Não cancelar sub PF **antes** de user ter plano válido no Supabase
+
+================================================================================
+FASE 4 — SITE E LOJAS
+================================================================================
+
+[ ] egoai.com.br/planos → links Stripe novos
+[ ] Privacidade/termos → CNPJ Economizze (texto em DADOS-EMPRESA-ECONOMIZZE.txt)
+[ ] Play Console → organização CNPJ (quando for)
+
+================================================================================
+RESPONDER AO STRIPE (copiar)
+================================================================================
+
+Sim, gostaria de orientação. Tenho [X] assinaturas ativas na conta PF.
+Pretendo:
+1) Abrir conta nova CNPJ 52.045.624/0001-29
+2) Novos clientes só na conta PJ
+3) Manter conta PF até assinaturas actuais terminarem ou renovarem na PJ
+
+Qual a melhor prática para não interromper acesso no período de transição?
+Há alguma forma de exportar lista de customers/subscriptions da conta PF?
+
+(Substituir [X] pelo número real no dashboard PF)
+
+================================================================================
+CHECKLIST GERAL
+================================================================================
+
+[ ] Conta Stripe PJ criada e verificada
+[ ] Conta Nu PJ ligada
+[ ] 3+ payment links novos
+[ ] Webhook PJ testado
+[ ] Agente API Railway + site actualizados
+[ ] Links PF antigos desactivados (novos pagamentos)
+[ ] Assinantes PF contados e plano de renovação
+[ ] Conta PF mantida até fim transição
+
+================================================================================
+ORDEM RESUMIDA
+================================================================================
+
+Hoje:     Criar Stripe PJ + links + webhook
+Amanhã:   Agente API troca keys (1 deploy)
+Paralelo: Conta PF fica — zero assinantes novos lá
+Renovações: link novo em egoai.com.br/planos
+
+Guia empresa: marketing/DADOS-EMPRESA-ECONOMIZZE.txt

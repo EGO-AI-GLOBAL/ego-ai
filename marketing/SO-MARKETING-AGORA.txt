@@ -1,37 +1,39 @@
-EGO-AI — SÓ MARKETING (app pronto 1.0.85)
-==========================================
-Atualizado: 10/07/2026
+EGO-AI — SÓ MARKETING (Calma 1 min)
+====================================
+Atualizado: 14/07/2026
 
-O código está fechado. Tu só fazes isto:
+NOME OFICIAL DA FEATURE: **Calma 1 min** (antes PAUSA EGO)
+Ver: marketing/NOME-CALMA-1-MIN.txt
 
 HOJE / ESTA SEMANA
 ------------------
-1. Apple Search Ads — manter campanha (CPI meta < R$ 10)
-2. Reels PAUSA — fila em marketing/FILA-VIDEOS-PAUSA-EGO.txt
-3. Testadores — mensagem: «push não deve pedir senha na 1.0.85»
+1. Apple Search Ads — manter/ajustar (CPI meta < R$ 10)
+2. Reels — ângulos diferentes · dizer **Calma 1 min** (não PAUSA EGO)
+3. Testadores — nas mensagens: Calma 1 min / Monstrinhos
 
-QUANDO BUILD 1.0.85 TERMINAR
-----------------------------
-1. GERAR-1.0.85.bat (se ainda não correu)
-2. AGUARDAR-E-SUBMETER-1.0.85.bat (iOS auto)
-3. Android: SUBIR-ANDROID-FECHADO-MANUAL.bat
-4. Connect: NOTAS-1.0.85-APP-STORE.txt
-5. Railway: RAILWAY-VARS-1.0.85.txt (banner 1.0.85 só após loja)
+COPY LOJA (próxima versão — NÃO GERAR aqui)
+------------------------------------------
+• marketing/loja/APP_STORE_COPY.md
+• marketing/loja/PLAY_STORE_COPY.md
+Já dizem Calma 1 min — colar no Connect/Play quando Build publicar.
 
-NÃO FAZER AGORA
----------------
-- Novo build de features
-- Mudar preços Stripe (WIP local, fora desta release)
-- EGO_LATEST_APP_VERSION=1.0.85 antes da loja (senão pede update sem ter)
+SITE
+----
+• brand tagline + landing testadores atualizados no repo
+• Publicar FTP quando Iury quiser: egoai.com.br
+
+NÃO FAZER
+---------
+• GERAR-*.bat · eas build · eas submit
+• Mexer em app/ ou ego_api/
 
 LINKS
 -----
 App Store: https://apps.apple.com/app/id6780595396
-Connect: https://appstoreconnect.apple.com/apps/6780595396
-Search Ads: marketing/APPLE-SEARCH-ADS-PAUSA-EGO.txt
+Play teste: https://play.google.com/apps/testing/com.egoai.app
+Search Ads: marketing/APPLE-SEARCH-ADS-PAUSA-EGO.txt (copy já Calma 1 min)
 
-MÉTRICAS A OLHAR
-----------------
-- Installs Search Ads (7 dias)
-- Retenção D1 (volta no dia seguinte)
-- Mensagens testadores: «PAUSA ajudou?» sim/não
+MÉTRICAS
+--------
+• «Calma 1 min ajudou?» sim/não (testadores)
+• Short humor ~230 vs vídeo #1 noite

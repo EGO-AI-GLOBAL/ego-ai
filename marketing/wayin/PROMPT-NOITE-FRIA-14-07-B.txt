@@ -1,0 +1,39 @@
+WAYIN — Slot B 14/07 · 7 segundos · NOITE FRIA (novo, não MP4 velho)
+====================================================================
+Site: https://wayin.ai/wayinvideo/
+
+IMAGENS PARA SUBIR (pasta marketing\wayin\ — já aberta)
+------------------------------------------------------
+1) PRINCIPAL (cena):  wayin-noite-fria-14-07-ref.png
+2) OPCIONAL (rosto):  avatar-luna-upload.png   ← só se o WayIn pedir face/ref
+   NÃO uses logo no vídeo (só no thumbnail do Reel se quiseres)
+
+DURAÇÃO
+-------
+7 segundos · 9:16 · 1080x1920 se pedir resolução
+
+PROMPT (colar no WayIn — inglês costuma animar melhor)
+------------------------------------------------------
+Animate this exact image for 7 seconds, vertical 9:16.
+Keep the same composition: phone in a dark quiet bedroom, cold-blue night light, the companion face on the screen stays the SAME face (do not morph identity).
+Motion only:
+0.0–1.5s: subtle handheld micro-shake, soft breathing of the fingers holding the phone, screen glow gently pulses.
+1.5–4.0s: companion on the screen soft blinks once, small caring smile, slight head tilt as if listening.
+4.0–6.0s: faint cool night particles drift; phone screen light warms a little as if a reply appeared (no readable text, no UI labels).
+6.0–7.0s: settle to a calm hold, glow softens.
+No zoom-punch, no text, no logos, no stickers, no WhatsApp bubbles, no captions, cinematic TikTok/Reels look, quiet emotional mood.
+
+PROMPT CURTO (se o campo for pequeno)
+-------------------------------------
+7s vertical: phone in dark bedroom, cold night glow. Same face on screen soft blink + caring smile. Gentle handheld shake, soft pulse light. No text, no logos, quiet lonely mood.
+
+DEPOIS DE GERAR
+---------------
+1. Baixar MP4
+2. Guardar em: marketing\videos\app-real\ego-ai-noite-fria-wayin-14-07.mp4
+3. Postar com: marketing\POST-REEL-NOITE-FRIA-14-07-B.txt
+   (título + legenda já prontos)
+
+TÍTULO DO REEL
+--------------
+Noite fria, tela acesa… desabafei sem incomodar ninguém 📱

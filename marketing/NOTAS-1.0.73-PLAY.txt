@@ -1,0 +1,9 @@
+1.0.73 — teste fechado Android
+
+• Conversa com o avatar mais rápida — resposta de voz mais ágil
+• Modo chamada ao vivo no chat (quando disponível)
+• App mais fluido ao abrir o chat e o jardim dos Monstrinhos
+• Correções de estabilidade
+
+Teste: abrir chat → microfone → frase curta → ouvir resposta mais rápido.
+Experimentar «Chamada ao vivo» se aparecer no chat.

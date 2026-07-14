@@ -1,100 +1,55 @@
-# Google Play Store — textos prontos (EGO-AI)
+# Google Play Store — textos atuais (Calma 1 min · 2026)
 
-Substitua `[LINK_PRIVACIDADE]` e publique quando o `.aab` estiver pronto.
+> **Fonte completa + iOS:** [`FICHA-LOJAS-IOS-ANDROID-2026.txt`](../FICHA-LOJAS-IOS-ANDROID-2026.txt)  
+> **Onde colar:** Play Console → Presença na loja → Detalhes do app → Português (Brasil)
 
----
-
-## Título (máx. 30 caracteres)
-
-```
-EGO-AI: Luna, Leo e sua rotina
-```
-
-Alternativa: `EGO-AI — Assistente com voz`
-
----
-
-## Descrição curta (máx. 80 caracteres)
+## Nome (máx. 30)
 
 ```
-Assistente com rosto e voz. Organize hábitos. Comece grátis com Luna ou Leo.
+EGO-AI
 ```
 
----
-
-## Descrição longa
+## Breve descrição (máx. 80, sem emoji)
 
 ```
-Chega de telas frias.
-
-O EGO-AI é o companheiro de bolso que você quer abrir ao acordar: conversa por texto e voz, lembra do que importa e ajuda a organizar sua rotina — com um tom humano e acolhedor.
-
-🌙 CONHEÇA A LUNA OU O LEO
-Escolha quem te acompanha: personalidade fixa, avatar animado e voz em português. Não é um robô genérico de empresa — é seu assistente com rosto e coração digital.
-
-💬 CONVERSE DO SEU JEITO
-• Mensagens de texto e áudio
-• Respostas em voz quando você precisa ouvir
-• Escuta ativa para o dia a dia (não substitui médico ou terapeuta)
-
-📅 ROTINA QUE A IA ENTENDE
-• Hábitos na agenda
-• Lembretes inteligentes ligados à conversa
-• Contexto da sua rotina nas respostas
-
-📄 PDF NO CHAT
-• Anexe um PDF e pergunte sobre o conteúdo
-• Resumos e dúvidas sobre contratos, estudos ou documentos
-• O texto fica na sua conta (não substitui advogado ou médico)
-
-📊 USO TRANSPARENTE
-Acompanhe seu plano em percentagem — simples como a bateria do celular. Sem termos técnicos, sem surpresas na assinatura.
-
-✨ COMECE GRÁTIS
-Plano Essencial para conhecer Luna e Leo. Quando o uso crescer, evolua para Conexão, Premium ou Total — preços em reais, feito para o Brasil.
-
-⭐ ESCOLHA DO EDITOR: EGO PREMIUM
-Por menos que uma pizza por mês, conversas e voz generosas para organizar sua vida inteira.
-
-Baixe agora e diga oi para quem realmente te escuta.
-
-Política de privacidade: [LINK_PRIVACIDADE]
+Ansiedade, humor e desabafo. Chat com voz, PAUSA 1 min e agenda.
 ```
 
----
-
-## O que há de novo (template lançamento)
+## Descrição longa (prosa)
 
 ```
-• Luna e Leo — assistentes com voz e avatar
-• Chat por texto e áudio com lembretes e agenda
-• Anexar PDF e conversar sobre o documento
-• Planos em reais e painel de uso em %
-• Melhorias de desempenho e estabilidade
+Quando a ansiedade aperta ou o humor pesa, você não precisa ficar sozinha no celular.
+
+O EGO-AI é companhia com rosto e voz em português: converse com Luna, Leo ou qualquer dos 12 assistentes no plano Essencial grátis. Desabafe por texto ou áudio, sem cobrar ninguém no Zap.
+
+Monstrinhos do Humor: marque como se sente hoje, faça missões leves e acompanhe seu humor. Quando a ansiedade apertar, a Calma 1 min oferece respiração e calma em cerca de um minuto, com atalho para momentos de mal-estar.
+
+No chat, as respostas podem ser ouvidas em voz alta. Dá para anexar PDF ou foto e pedir resumo. Na agenda, crie lembretes, use agenda compartilhada em família e o modo Entre Nós — organização sem briga por esquecer.
+
+Cadastro com e-mail e senha. Recuperação de senha e exclusão de conta no site. Uso gratuito inicial; assinaturas opcionais (Android via Stripe) ampliam limites de chat, voz e agenda.
+
+As respostas são geradas por inteligência artificial. Elas não substituem aconselhamento médico, psicológico, jurídico ou financeiro.
+
+Suporte: contato@egoai.com.br
+Site: https://egoai.com.br
+Política de privacidade: https://egoai.com.br/privacidade/
+Exclusão de conta: https://egoai.com.br/exclusao-conta/
 ```
 
----
-
-## Palavras-chave (separadas por vírgula, SEO interno)
+## Notas da versão (release)
 
 ```
-assistente pessoal, inteligência artificial, chat com voz, lembrete, agenda hábitos, bem estar, produtividade, Luna, Leo, assistente português
+• Ficha da loja alinhada ao app atual: Calma 1 min, Monstrinhos e chat com voz
+• Sessão mantida ao reabrir o app
+• Agenda liberada no plano grátis
+• Melhorias de estabilidade
 ```
 
----
+## URLs
 
-## Classificação de conteúdo
-
-- Público: **16+** ou conforme orientação jurídica (conversas emocionais)  
-- Sem conteúdo médico como promessa principal
-
----
-
-## Gráfico e capturas (sugestão de ordem)
-
-1. Hero: Luna/Leo + frase “Seu assistente com voz e rosto”  
-2. Chat com bolha acolhedora  
-3. Mensagem de voz / resposta em áudio  
-4. Agenda + lembrete  
-5. Tela de planos com Premium em destaque  
-6. Painel de uso em %
+| Campo | URL |
+|-------|-----|
+| Site | https://egoai.com.br |
+| Privacidade | https://egoai.com.br/privacidade/ |
+| Exclusão de conta | https://egoai.com.br/exclusao-conta/ |
+| Suporte | contato@egoai.com.br |

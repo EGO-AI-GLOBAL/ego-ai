@@ -1,0 +1,108 @@
+PEDIDO MARKETING → PAUSA/MONSTRINHOS — clips de reação do pet
+==============================================================
+Data: 14/07/2026 · Agente PAUSA
+Objetivo: monstrinho **vivo** no app (não só no Reel), com animação
+diferente em cada evento — alinhado ao Short ~230 e à tech actual.
+
+COMO FUNCIONA (produto — depois dos assets)
+------------------------------------------
+1. Marketing gera ~6–8 clips curtos (ou Lottie) do MESMO personagem.
+2. App: ao marcar humor / fechar missão → toca o clip certo 1× (ou loop idle).
+3. React Native: `expo-av` (mp4 transparent/WebM) ou `lottie-react-native`.
+4. Preferência EAS-friendly: **Lottie JSON** (leve) OU mp4 2–3s sem áudio.
+5. Personagem = mesmo monstrinho do jardim (formato bola + orelhas + carinha).
+   NÃO precisa ser 1 clip por cada missão do pool (26+) — agrupar por *tipo*.
+
+==============================================================
+PACOTE MÍNIMO (Fase 1 — 7 clips)  ← pedir ISTO primeiro
+==============================================================
+
+Formato comum para TODOS:
+• 9:16 ou 1:1 · fundo transparente OU fundo verde simples (chroma)
+• 2–3 segundos · loop suave ou one-shot
+• Sem texto · sem voz · sem UI do app
+• Estilo: cute pet 3D/2D consistente · warm · playful
+• Mesma criatura em todos (cor muda depois no app por humor)
+
+--- CLIP 01 · idle_breathe ---
+Ficheiro alvo: monster_idle_breathe
+Evento no app: parado no jardim (loop)
+PROMPT:
+Idle loop 2.5s of the EGO Monstrinhos pet (round soft creature, tiny ears,
+simple face). Soft bounce + breathe scale + gentle sway. Warm playful mood.
+Transparent or solid green background. No text. No UI.
+
+--- CLIP 02 · mood_react ---
+Ficheiro alvo: monster_mood_react
+Evento: utilizador marcou humor (1º toque)
+PROMPT:
+2.5s one-shot. Same pet jumps up with soft bounce and warm glow pulse,
+lands happy. Playful. Transparent/green bg. No text. Matches line:
+"O monstrinho reagiu na hora."
+
+--- CLIP 03 · breathe_calm ---
+Ficheiro alvo: monster_breathe_done
+Evento: missão respirar / respiração calma / PAUSA 1 min concluída
+PROMPT:
+2.5s. Pet inhales (inflates gently) then exhales (shrinks), eyes soft,
+sparkles around. Calm warm. Transparent/green bg. No text.
+
+--- CLIP 04 · water_grow ---
+Ficheiro alvo: monster_water_done
+Evento: regar jardim / planta / hidratar
+PROMPT:
+2.5s. Pet gets a tiny water drop splash, shakes happily, little leaf
+or seed pops near feet. Playful. Transparent/green bg. No text.
+
+--- CLIP 05 · gratitude_hug ---
+Ficheiro alvo: monster_kind_done
+Evento: gratidão / gentil por si / abraço (surpresa) / kind_self
+PROMPT:
+2.5s. Pet hugs itself or a small heart appears, then soft wiggle.
+Warm caring mood. Transparent/green bg. No text.
+
+--- CLIP 06 · surprise_party ---
+Ficheiro alvo: monster_surprise_done
+Evento: qualquer missão surpresa (dança, piada, foto…)
+PROMPT:
+2.5s. Pet does a tiny celebratory hop + spin (or confetti burst),
+eyes sparkle. Extra playful. Transparent/green bg. No text.
+
+--- CLIP 07 · goals_complete ---
+Ficheiro alvo: monster_all_goals
+Evento: 5/5 missões do dia
+PROMPT:
+3s. Pet jumps twice, glow ring, mini fireworks or seed rain.
+Bigger celebration than mood_react. Transparent/green bg. No text.
+
+==============================================================
+MAPA APP (PAUSA liga depois)
+==============================================================
+| Evento UI              | Clip              |
+|------------------------|-------------------|
+| Idle no jardim         | 01 idle_breathe   |
+| Check-in humor         | 02 mood_react     |
+| kind breathe / pause   | 03 breathe_calm   |
+| water / plant / hydrate| 04 water_grow     |
+| gratitude / kind_self  | 05 gratitude_hug  |
+| surprise_*             | 06 surprise_party |
+| all_goals_done         | 07 goals_complete |
+
+Missões restantes (stretch, walk, tidy, sun, music, note, window, snack,
+adventure…) → fallback: **02 mood_react** ou **06** se surpresa.
+Não gerar 26 vídeos ainda — ROI mau.
+
+==============================================================
+ENTREGA MARKETING
+==============================================================
+Pasta sugerida:
+marketing/CAPCUT-CLIPS-MONSTRINHO-REACOES/
+  01-idle.mp4 (ou .json Lottie)
+  02-mood-react.mp4
+  …
+Compartilhar também 1 still PNG do personagem (referência cor/forma).
+
+Quando os 7 estiverem prontos → agente PAUSA liga no MoodMonsterScene
+(diff mínimo, Expo AV/Lottie, sem mexer auth/voz/Stripe/EAS).
+
+NÃO: clonar o Reel inteiro da UI no app — só o PET em loop/one-shot.

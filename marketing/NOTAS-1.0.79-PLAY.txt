@@ -1,0 +1,52 @@
+EGO-AI 1.0.79 — Google Play (Android versionCode 124)
+=====================================================
+
+LINK TESTADORES (instalar no celular)
+-------------------------------------
+https://play.google.com/apps/testing/com.egoai.app
+
+(Teste fechado opt-in — Tornar-se testador → Instalar na Play)
+
+LINK TESTE INTERNO (alternativa, se estiver na lista)
+---------------------------------------------------
+https://play.google.com/apps/internaltest/4700773173398888106
+
+PLAY CONSOLE (tu gerires a release)
+-----------------------------------
+https://play.google.com/console
+→ EGO-AI (com.egoai.app)
+→ Testar e publicar → Teste FECHADO (link apps/testing)
+   EAS track "alpha" = teste fechado (eas.json corrigido jul/2026)
+
+IMPORTANTE 06/07 — fechado parado desde 02/07
+----------------------------------------------
+Build 124 foi para TESTE INTERNO. Promover ou:
+PROMOVER-1.0.79-TESTE-FECHADO.bat / SUBMIT-ANDROID-FECHADO-1.0.79.bat
+
+BUILD EAS Android 1.0.79
+--------------------------
+https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/927c31c1-ce23-4d3d-a379-5e80b6634d1e
+
+Submissions EAS:
+https://expo.dev/accounts/iuryfreiras/projects/ego-ai/submissions
+
+SE JÁ SUBMETEU (AGUARDAR-E-SUBMETER-1.0.79)
+---------------------------------------------
+• NÃO fazer upload manual do .aab outra vez — a Play rejeita duplicado
+• Só: Play Console → ver se versionCode 124 aparece → colar notas → Revisar → Publicar
+
+SE NÃO APARECER O 124 NO CONSOLE
+--------------------------------
+cd app
+eas submit --platform android --id 927c31c1-ce23-4d3d-a379-5e80b6634d1e --non-interactive
+
+O QUE HÁ DE NOVO (PT-BR) — colar na Play
+----------------------------------------
+• Calma 1 min — 20 técnicas liberadas para todos os planos
+• Técnica diária de calma no chat e no menu Calma 1 min
+• PAUSA adaptada ao humor (Monstrinhos)
+• Melhorias de estabilidade e desempenho
+
+VERSÃO CURTA
+------------
+Calma 1 min com 20 técnicas para todos, técnica diária no chat e melhorias de estabilidade.

@@ -1,0 +1,61 @@
+EGO-AI — PLANO PARA BOMBAR (siga nesta ordem)
+==============================================
+Atualizado: 25/06/2026 · Reel 2 Agenda venceu · site no ar
+
+HOJE (30 min)
+-------------
+1. NÃO renovar patrocínio Reel 1 Monstrinhos
+2. Re-postar Reel 2 Agenda OU postar Reel 3 curto (~10s, mesmo hook)
+3. Comentário fixado: https://egoai.com.br
+4. Turbinar R$ 25 com meta VISITAS AO SITE → https://egoai.com.br
+   (guia: marketing/TURBINAR-REEL-SITE.txt)
+5. Supabase SQL → ver números (supabase/RESUMO-CAMPANHA-DOWNLOADS.sql)
+
+ESTA SEMANA (todo dia)
+----------------------
+• Responder comentários em 2h ("link na bio 💜")
+• Story: enquete "Você lembra de tudo da casa?" Sim/Não
+• Rodar SQL ou VER-QUANTOS-USUARIOS.bat 1x por dia
+• Anotar: cadastros_hoje · login_hoje · usaram_chat_7_dias
+
+DIA 3–5 (decisão)
+-----------------
+Ver tabela abaixo → continuar ads OU micro-influenciadoras
+
+SE BOMBAR (continuar ads)
+-------------------------
+• Mais R$ 25 no Reel vencedor (site)
+• Reel 3 variante EGO de Bolso (orgânico → turbinar)
+• Seg/Qua/Sex: 1 Reel novo no ângulo Agenda
+
+SE NÃO BOMBAR (influenciadoras)
+-------------------------------
+• 2–3 micro (5k–30k) mulher 30–45, mãe/casada/organização
+• Brief: "testei 3 dias, desabafo + agenda" + link egoai.com.br
+• R$ 150–400 por story + Reel (negociar permuta se possível)
+• NÃO pagar grande influenciador ainda
+
+MÉTRICAS — O QUE É BOM (7 dias pós-ads site)
+--------------------------------------------
+| Métrica SQL              | Fraco      | OK         | Bom        |
+|--------------------------|------------|------------|------------|
+| cadastros_7_dias         | 0–2        | 3–10       | 11+        |
+| login após cadastro      | < 50%      | 50–70%     | 70%+       |
+| usaram_chat_7_dias       | 0–1        | 2–5        | 6+         |
+| Custo/clique site (ads)  | > R$ 2     | R$ 1–2     | < R$ 1     |
+
+Regra simples:
+  cadastros_7_dias ≤ 2 após R$ 50 em ads → testar 2 micro-influenciadoras
+  cadastros OK mas chat = 0 → problema onboarding (não é marketing)
+  cliques site altos, cadastro zero → revisar site/botões no celular
+
+COMO VER NÚMEROS
+----------------
+Opção A — Supabase (recomendado):
+  Dashboard → SQL Editor → colar supabase/RESUMO-CAMPANHA-DOWNLOADS.sql → RUN
+
+Opção B — PC:
+  duplo clique VER-QUANTOS-USUARIOS.bat
+
+Opção C — E-mail automático:
+  RELATORIO-CADASTROS-DIARIO.md (Railway cron 8h)

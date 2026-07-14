@@ -1,0 +1,61 @@
+INSIGHTS REEL 6 — Ads site (egoai.com.br) — 27/06/2026
+======================================================
+
+Vídeo: marketing/videos/app-real/ego-ai-3h-solidao-reels.mp4
+Hook: "3h da manhã e ninguém online pra ouvir? 🌙"
+Duração: 9s · Meta: **VISITAS AO SITE** · Turbinado 27/06 12:23
+
+GASTO
+-----
+  Usado: R$28,16 · orçamento R$25/dia · contínuo
+
+MÉTRICAS (ads site)
+-------------------
+  Visualizações        3.380
+  Visualizadores       2.741
+  Cliques no link      78        CTR 2,4%
+  Custo por clique     R$0,36    🟢 (bom < R$1)
+  Engajamentos         671
+  Reproduções 3s       589
+  Reel plays           3.012
+  ThruPlays            168
+  Tempo médio          2s
+  Atenção inicial      19,6%
+  Retenção             27,3%
+
+PÚBLICO
+-------
+  Mulheres 72,2% · Homens 27,6%
+  25–34 31% · 65+ 27,3% · 35–44 16,6%  → mulher + noite/solidão
+  MG 439 · SP 423 · RJ 258 · BA 246 · RS 232
+
+ONDE RODOU (top)
+----------------
+  Facebook Feed móvel     1.200
+  Instagram Stories       1.100
+  Instagram Reels           342
+  Facebook Reels            186
+
+COMPARAR COM REEL 7 (mesmo dia · ads site)
+------------------------------------------
+                    Reel 6        Reel 7
+  Gasto             R$28,16       R$30,07
+  Cliques link      78            110   ← 7 vence
+  Custo/clique      R$0,36        R$0,27 ← 7 vence
+  CTR               2,4%          3,3%  ← 7 vence
+  Visualizações     3.380         3.261 ≈
+  Retenção          27,3%         27,2% ≈
+  Público           72% mulher    55% homem · 45–65+
+  Onde rodou        FB+Stories    FB Feed dominante
+
+VEREDICTO PARCIAL (cliques)
+---------------------------
+  🥇 **Reel 7 carga mental** — mais cliques, CPC menor
+  🥈 Reel 6 solidão — bom CPC, público mais jovem/mulher
+  ❓ Falta SQL: cadastro + "oi" no chat
+
+PRÓXIMO
+-------
+  Não turbinar os dois ao mesmo tempo de novo.
+  Se continuar ads: **só Reel 7** R$25 site.
+  Rodar CRESCIMENTO-DIARIO.sql antes de gastar mais.

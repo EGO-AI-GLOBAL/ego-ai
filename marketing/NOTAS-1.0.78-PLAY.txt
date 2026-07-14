@@ -1,0 +1,12 @@
+EGO-AI 1.0.78 — SUBMETER (iOS + Play)
+======================================
+
+O QUE HÁ DE NOVO (PT-BR)
+------------------------
+• PAUSA de hoje — técnica diferente cada dia (anti-stress/ansiedade)
+• Planos: Essencial 4 · Conexão 10 · Premium 16 · Total 18 técnicas
+• Premium/Total adaptam ao humor (Monstrinhos)
+• Push PAUSA 10h/18h · SOS + chat
+• Sem push local EGO de Bolso
+
+Build: iOS 76 · Android 123

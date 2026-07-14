@@ -1,0 +1,42 @@
+POST — 14/07 SLOT B · vídeo NOVO via WayIn (não usar MP4 antigo)
+===============================================================
+Antes de postar: gera o MP4 em https://wayin.ai/wayinvideo/
+Prompt + imagens: marketing\wayin\PROMPT-NOITE-FRIA-14-07-B.txt
+
+IMAGEM / PROMPT
+---------------
+Cena: marketing\wayin\wayin-noite-fria-14-07-ref.png
+Avatar (opcional): marketing\wayin\avatar-luna-upload.png
+Prompt 7s: no ficheiro PROMPT-NOITE-FRIA-14-07-B.txt
+
+ARQUIVO DO VÍDEO (depois do WayIn)
+---------------------------------
+marketing\videos\app-real\ego-ai-noite-fria-wayin-14-07.mp4
+
+TÍTULO
+------
+Noite fria, tela acesa… desabafei sem incomodar ninguém 📱
+
+LEGENDA
+-------
+POV: todo mundo dormindo. Você não.
+
+Feed não resolve. Zap = “oi, tá acordado?” e culpa depois.
+
+Abri o EGO-AI → falei 1 minuto → respirei.
+Sem cobrar ninguém. Sem “viu?”.
+
+✅ 20 dias grátis · sem cartão
+
+🍎 iPhone: https://apps.apple.com/app/id6780595396
+🤖 Android (teste): https://play.google.com/apps/testing/com.egoai.app
+(ou manda GMAIL no DM)
+
+🌐 https://egoai.com.br
+
+#egoai #ansiedade #noite #desabafo #saudemental #appbrasileiro
+
+COMENTÁRIO FIXADO
+-----------------
+🌙 Quer testar à noite?
+🍎 App Store + 🤖 Play teste / GMAIL no PRIVADO

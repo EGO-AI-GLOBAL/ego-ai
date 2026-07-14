@@ -1,0 +1,38 @@
+PLAY CONSOLE — Elementos gráficos ATUALIZADOS (app 1.0.81)
+===========================================================
+As capturas antigas (login/agenda genérico) estão desatualizadas.
+
+GERAR PACOTE NOVO NO PC
+-----------------------
+Duplo clique: ATUALIZAR-GRAFICOS-PLAY-1.0.81.bat
+
+Isso cria/atualiza em app/store-assets/:
+
+| Campo Play | Arquivo | Conteúdo |
+|------------|---------|----------|
+| Ícone * | 01-icone-do-aplicativo/icone-512x512.png | Ícone atual do app |
+| Recurso gráfico * | 02-recurso-grafico/banner-1024x500.png | Calma 1 min (texto novo) |
+| Telefone * | 03-capturas-telefone/01–04.png | Fotos REAIS |
+| Tablet 7" * | 04-capturas-tablet-7-pol/ | Mesmas 4 fotos |
+| Tablet 10" * | 05-capturas-tablet-10-pol/ | Mesmas 4 fotos |
+
+Ordem das capturas (telefone):
+1. 01-pausa-ego.png — Calma 1 min
+2. 02-chat-avatar.png — chat com avatar
+3. 03-monstrinhos-jardim.png — humor
+4. 04-monstrinhos-diario.png — missões/diário
+
+UPLOAD NA PLAY (Elementos gráficos)
+-----------------------------------
+1. Ícone → icone-512x512.png
+2. Recurso gráfico → banner-1024x500.png
+3. Telefone → as 4 PNG (apagar antigas primeiro)
+4. Tablet 7" → as 4 PNG
+5. Tablet 10" → as 4 PNG
+6. Vídeo / Chromebook / XR → VAZIO
+7. Salvar
+
+NÃO usar mais
+-------------
+❌ 01-login.png, 02-chat.png antigos (mock)
+❌ Banner «O amigo que não te abandona»

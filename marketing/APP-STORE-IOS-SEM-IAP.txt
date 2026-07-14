@@ -28,5 +28,5 @@ Thank you.
 Checklist App Store Connect (antes de reenviar):
 [ ] Monetização → In-App Purchases: nenhum produto pendente (apagar rascunhos se existirem)
 [ ] App Information: não dizer "in-app purchase" na descrição
-[ ] Novo binary iOS build 60 (1.0.72) com código iosAppStoreBilling
+[ ] Binary iOS build 69 (1.0.72) — EAS 76a4519b — código iosAppStoreBilling
 [ ] App Review Information: conta demo + notas acima

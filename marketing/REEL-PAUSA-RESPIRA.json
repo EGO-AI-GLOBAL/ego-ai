@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "1.0.79",
   "fotos_dir": "marketing/CAPCUT-FOTOS-PAUSA-EGO",
   "output": "marketing/videos/app-real/ego-ai-pausa-respira-reels.mp4",
@@ -34,7 +34,7 @@
       "lines": [["DEPOIS", 58, true], ["60 segundos 🌬️", 48, false]],
       "darken": 0.1,
       "accent": 1,
-      "voice": "Sessenta segundos. PAUSA EGO. Respira com a Luna."
+      "voice": "Sessenta segundos. Calma 1 min. Respira com a Luna."
     },
     {
       "photo": "01-pausa-humor-monstrinhos.png",

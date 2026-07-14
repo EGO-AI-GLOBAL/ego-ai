@@ -1,0 +1,55 @@
+{
+  "version": "1.0.81",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-CHAT-AVATAR-1.0.81",
+  "output": "marketing/videos/app-real/ego-ai-chat-avatar-1.0.81-reels.mp4",
+  "post_file": "marketing/POST-REEL-CHAT-AVATAR-1.0.81.txt",
+  "voice_rate": "+22%",
+  "audio_pad": 0.05,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 56,
+  "title_font_boost": 1.15,
+  "photo_width_ratio": 0.86,
+  "top_bar_h": 280,
+  "bottom_reserve": 200,
+  "badge_text": "DESABAFO 💬",
+  "post": {
+    "title": "Não quis mandar áudio no Zap — falei com meu avatar 💬",
+    "description": "POV: quer desabafar mas não quer incomodar ninguém.\n\nAbri o EGO-AI:\n💬 Avatar com rosto e voz\n🎙️ Texto ou áudio — «Ouvir ao responder»\n🆘 «Desabafo agora» quando aperta\n\nNão substitui terapia. É companhia quando você precisa.\n\n🍎 iPhone: https://apps.apple.com/app/id6780595396\n🤖 Android: GMAIL no DM\n\n#egoai #desabafo #ansiedade #solidão #chat #saúdemental",
+    "hashtags": ["#egoai", "#desabafo", "#ansiedade", "#solidão", "#chat", "#saúdemental"],
+    "pinned_comment": "🍎 App Store: https://apps.apple.com/app/id6780595396\n🤖 Android: GMAIL no PRIVADO"
+  },
+  "scenes": [
+    {
+      "photo": "01-chat-avatar-hana-desabafo.png",
+      "lines": [["Não quis o Zap", 56, true], ["desabei aqui 💬", 48, false]],
+      "darken": 0.12,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Não quis mandar áudio no Zap. Abri o EGO-AI e desabei."
+    },
+    {
+      "photo": "01-chat-avatar-hana-desabafo.png",
+      "lines": [["Avatar com rosto", 54, true], ["e voz 🎙️", 46, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Avatar com rosto. Ouvir ao responder. Como um amigo no bolso."
+    },
+    {
+      "photo": "01-chat-avatar-hana-desabafo.png",
+      "lines": [["Desabafo agora", 52, true], ["sem julgamento", 44, false]],
+      "darken": 0.14,
+      "accent": 1,
+      "voice": "Desabafo agora. Sem julgamento. Só escuta."
+    },
+    {
+      "photo": "01-chat-avatar-hana-desabafo.png",
+      "lines": [["EGO-AI", 52, true], ["na App Store 👇", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "EGO-AI na App Store. Vinte dias grátis no iPhone."
+    }
+  ]
+}

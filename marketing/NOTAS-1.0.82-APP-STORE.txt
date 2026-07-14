@@ -1,4 +1,4 @@
-EGO-AI 1.0.82 — APP STORE (iOS · FICHA PAUSA EGO)
+EGO-AI 1.0.82 — APP STORE (iOS · FICHA Calma 1 min)
 ===================================================
 Marketing · 08/07/2026
 
@@ -33,7 +33,7 @@ VERSÃO 1.0.82 → App Store → Português (Brasil)
 ================================================================================
 
 TEXTO PROMOCIONAL (máx. 170):
-1 minuto de calma quando a ansiedade aperta. PAUSA EGO com Luna ou Leo por voz. Monstrinhos do humor. 20 dias grátis no iPhone.
+1 minuto de calma quando a ansiedade aperta. Calma 1 min com Luna ou Leo por voz. Monstrinhos do humor. 20 dias grátis no iPhone.
 
 PALAVRAS-CHAVE (máx. 100):
 ansiedade,stress,respirar,calma,humor,desabafo,solidão,autocuidado,pausa,avatar
@@ -43,7 +43,7 @@ Quando a ansiedade aperta, você não precisa ficar sozinha no celular.
 
 O EGO-AI é companheiro com rosto e voz: Luna ou Leo ouvem por texto e áudio, ajudam a organizar o dia e oferecem pausas guiadas quando o stress sobe.
 
-• PAUSA EGO — exercícios de respiração e calma em cerca de 1 minuto; botão «Estou mal agora» e apoio SOS
+• Calma 1 min — exercícios de respiração e calma em cerca de 1 minuto; botão «Estou mal agora» e apoio SOS
 • Monstrinhos do Humor — marque como se sente hoje e acompanhe seu humor ao longo dos dias
 • Chat por texto e voz — ouça as respostas quando precisar
 • Agenda pessoal, compartilhada e Entre Nós — lembretes no plano grátis
@@ -54,10 +54,10 @@ Grátis para baixar. Uso em percentagem simples, como a bateria do celular.
 O EGO-AI não substitui médicos, psicólogos ou outros profissionais de saúde.
 
 O QUE HÁ DE NOVO (PT-BR) — colar no Connect; lista o que mudamos na ficha:
-• Subtítulo da loja: de «Companheiro com voz e IA» para foco em ansiedade e PAUSA EGO
-• Descrição da App Store reescrita: PAUSA EGO, Monstrinhos do Humor, Luna/Leo com voz e agenda no grátis
+• Subtítulo da loja: de «Companheiro com voz e IA» para foco em ansiedade e Calma 1 min
+• Descrição da App Store reescrita: Calma 1 min, Monstrinhos do Humor, Luna/Leo com voz e agenda no grátis
 • Palavras-chave novas: ansiedade, stress, respirar, calma, desabafo, autocuidado
-• Texto promocional novo: 1 minuto de calma, PAUSA EGO e 20 dias grátis no iPhone
+• Texto promocional novo: 1 minuto de calma, Calma 1 min e 20 dias grátis no iPhone
 • Ficha alinhada ao app de hoje (não mais texto genérico de assistente do início do projeto)
 • Melhorias de estabilidade
 

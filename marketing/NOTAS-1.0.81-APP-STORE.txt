@@ -7,7 +7,7 @@ O QUE HÁ DE NOVO (PT-BR) — colar no App Store Connect
 ------------------------------------------------------
 • Correção: o app mantém a sessão — não pede senha toda vez que abre
 • Monstrinhos do Humor: marcar o humor é o 1º passo
-• PAUSA EGO: 20 técnicas para todos os planos; link CVV 188 no SOS
+• Calma 1 min: 20 técnicas para todos os planos; link CVV 188 no SOS
 • Agenda pessoal, compartilhada e Entre Nós liberadas no plano grátis
 • Melhorias de estabilidade
 
@@ -32,4 +32,4 @@ TESTE RÁPIDO (obrigatório antes de aprovar)
 --------------------------------------------
 1. Login → fechar app → reabrir → **entra direto no chat** (sem senha)
 2. Monstrinhos → «1º PASSO — MARQUE O HUMOR»
-3. PAUSA EGO → 20 técnicas → SOS
+3. Calma 1 min → 20 técnicas → SOS

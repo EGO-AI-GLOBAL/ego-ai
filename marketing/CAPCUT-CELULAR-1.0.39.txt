@@ -1,0 +1,53 @@
+CAPCUT NO CELULAR — passo a passo 1.0.39
+=====================================
+
+NAO tente "abrir" o .txt no CapCut. Ele e so para COPIAR texto.
+
+PASSO 1 — Fotos no telefone
+---------------------------
+Voce ja tem as 2 capturas no iPhone (Desafio + Jornada).
+Ficam na galeria — nao precisa do PC.
+
+PASSO 2 — Novo projeto
+----------------------
+CapCut - + - Novo projeto - Proporcao 9:16 (vertical)
+
+PASSO 3 — Importar
+------------------
+Adicionar - Fotos:
+  - Print do Desafio Diario
+  - Print da Jornada de Cuidado
+(Opcional: gravar 3 seg de voce falando no inicio — hook)
+
+PASSO 4 — Ordem e duracao
+-------------------------
+Clip 1 (fundo preto OU seu rosto): 4 seg
+  Texto: EU CANSEI DE SER A AGENDA DELE
+
+Clip 2 (fundo preto): 3 seg
+  Texto: Consulta. Escola. Tudo na MINHA cabeça.
+
+Clip 3 (foto Desafio): 8 seg
+  Texto: Desafio Diario - 1 toque no emoji
+
+Clip 4 (foto Jornada): 6 seg
+  Texto: Jornada de Cuidado - nivel a nivel
+
+Clip 5 (roxo): 3 seg
+  Texto: TESTE GRATIS - link na bio
+
+PASSO 5 — Texto no CapCut
+-------------------------
+Texto - fonte grossa - branca - contorno preto
+
+PASSO 6 — Musica
+----------------
+Audio - motivacional - volume 20%
+
+PASSO 7 — Exportar
+------------------
+1080p - 30fps - guardar na galeria
+
+PASSO 8 — Postar Instagram
+--------------------------
+Legenda com links (copiar de VIDEO-LEGENDAS-1.0.39.txt)

@@ -1,10 +1,11 @@
-/** Links Stripe para /planos — lê marketing/brand/config.json no site publicado. */
+/** Links Stripe PJ para /planos — lê marketing/brand/config.json no site publicado. */
 (function () {
   const CONFIG_PATH = "../brand/config.json";
   const FALLBACK = {
-    connection: "https://buy.stripe.com/dRm5kFaYmbTs5TydNE4ow0M",
-    premium: "https://buy.stripe.com/14A7sNgiG6z8chWgZQ4ow02",
-    total: "https://buy.stripe.com/5kQeVf6I60aK95K6lc4ow03",
+    launch: "https://buy.stripe.com/7sY3cu923evNaqP6ovfYY04",
+    connection: "https://buy.stripe.com/4gM5kC6TV4Vd6az3cjfYY05",
+    premium: "https://buy.stripe.com/3cIeVc5PRevN56vcMTfYY02",
+    total: "https://buy.stripe.com/14AeVcdijevN8iH3cjfYY03",
   };
   const UTM = "utm_source=site&utm_medium=planos&utm_campaign=egoai_checkout";
 
@@ -16,6 +17,7 @@
   function apply(cfg) {
     const stripe = cfg.stripe || {};
     const map = {
+      "plan-cta-launch": stripe.launch || FALLBACK.launch,
       "plan-cta-connection": stripe.connection || FALLBACK.connection,
       "plan-cta-premium": stripe.premium || FALLBACK.premium,
       "plan-cta-total": stripe.total || FALLBACK.total,

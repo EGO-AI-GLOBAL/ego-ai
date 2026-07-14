@@ -1,4 +1,4 @@
-﻿{
+{
   "version": "1.0.79",
   "fotos_dir": "marketing/CAPCUT-FOTOS-PAUSA-EGO",
   "output": "marketing/videos/app-real/ego-ai-pausa-humor-reels.mp4",
@@ -14,20 +14,20 @@
   "bottom_reserve": 200,
   "badge_text": "NOVO 🎭",
   "post": {
-    "title": "1 minuto de pausa ligada ao seu humor — PAUSA EGO 🎭",
-    "description": "Ansiedade no meio do dia? Não precisa do Zap.\n\nPAUSA EGO — novo:\n🎭 Pausa do seu humor (ligada aos Monstrinhos)\n🌬️ 1 min — casa, escritório ou ônibus\n🆘 «Estou mal agora» → SOS + chat\n📅 sequência diária\n\n✅ 20 dias grátis · sem cartão\n🤖 Android: manda GMAIL no PRIVADO (DM)\n📱 iPhone: https://apps.apple.com/app/id6780595396\n\n#egoai #ansiedade #humor #saúdemental #appbrasileiro",
+    "title": "1 minuto de pausa ligada ao seu humor — Calma 1 min 🎭",
+    "description": "Ansiedade no meio do dia? Não precisa do Zap.\n\nCalma 1 min — novo:\n🎭 Pausa do seu humor (ligada aos Monstrinhos)\n🌬️ 1 min — casa, escritório ou ônibus\n🆘 «Estou mal agora» → SOS + chat\n📅 sequência diária\n\n✅ 20 dias grátis · sem cartão\n🤖 Android: manda GMAIL no PRIVADO (DM)\n📱 iPhone: https://apps.apple.com/app/id6780595396\n\n#egoai #ansiedade #humor #saúdemental #appbrasileiro",
     "hashtags": ["#egoai", "#ansiedade", "#humor", "#saúdemental", "#appbrasileiro"],
-    "pinned_comment": "🎭 Quer testar PAUSA EGO no Android?\n\nManda teu GMAIL no PRIVADO (DM)\nLibero em 24h · grátis · sem cartão\n\n🍎 iPhone: https://apps.apple.com/app/id6780595396"
+    "pinned_comment": "🎭 Quer testar Calma 1 min no Android?\n\nManda teu GMAIL no PRIVADO (DM)\nLibero em 24h · grátis · sem cartão\n\n🍎 iPhone: https://apps.apple.com/app/id6780595396"
   },
   "scenes": [
     {
       "photo": "01-pausa-humor-monstrinhos.png",
-      "lines": [["PAUSA EGO", 64, true], ["1 min · onde estiver", 46, false]],
+      "lines": [["Calma 1 min", 64, true], ["1 min · onde estiver", 46, false]],
       "darken": 0.12,
       "center": true,
       "badge": true,
       "accent": 1,
-      "voice": "PAUSA EGO. Um minuto de calma, onde você estiver."
+      "voice": "Calma 1 min. Um minuto de calma, onde você estiver."
     },
     {
       "photo": "01-pausa-humor-monstrinhos.png",

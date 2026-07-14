@@ -1,0 +1,120 @@
+EGO-AI — Apple Search Ads · projeto NOVO (pós-ficha 1.0.86)
+============================================================
+Atualizado: 13/07/2026
+
+QUANDO LIGAR
+------------
+• Espera a 1.0.86 **aprovada + na loja** (lançamento automático)
+• Confirma no iPhone: subtítulo novo + screenshots novos
+• Depois: pausa campanha antiga e liga esta
+
+ASA NÃO sobe fotos — puxa a ficha da App Store sozinha.
+Mudar subtítulo/prints = esperar loja atualizar (pode levar horas).
+
+LINK
+----
+https://ads.apple.com
+(campanhas Advanced / Brasil)
+
+================================================================================
+1) PAUSAR A CAMPANHA ANTIGA
+================================================================================
+Campanha actual (ex.: EGO-AI-BR-ansiedade-teste-7d):
+• Status → **Pausar** (não apagar — guarda histórico)
+• Motivo: ficha mudou (humor · desabafo); recomeçar limpo
+
+================================================================================
+2) NOVA CAMPANHA (projeto de marketing)
+================================================================================
+Nome:
+  EGO-AI-BR-humor-desabafo-v1
+
+Tipo:
+  Advanced → **Search Results** apenas
+  (não Search Tab / Today Tab)
+
+País:
+  Brasil
+
+Orçamento diário:
+  $5–10/dia (ou ~R$ 25–50) — mesmo nível do teste actual
+  Sem subir budget até 3–5 dias de dados
+
+================================================================================
+3) GRUPO DE ANÚNCIOS
+================================================================================
+Nome:
+  keywords-humor-desabafo-pt
+
+Público:
+  • Localização: Brasil
+  • Dispositivo: iPhone
+  • Idade: 25–54
+  • Género: **Todos** (já validámos que só feminino matava impressões)
+  • Tipologia clientes: Todos / novos recomendado
+  • Search Match: **OFF**
+
+================================================================================
+4) KEYWORDS (Exact primeiro)
+================================================================================
+EXACT — lance CPT máx. ~$1.50 (ajusta se CPT real subir):
+  ansiedade          ← vencedora antiga — manter
+  desabafo
+  humor
+  stress
+  solidão
+
+EXACT secundárias (lance ~$1.00–1.20):
+  app ansiedade
+  carga mental
+  ansiedade noturna
+  autocuidado
+
+BROAD (só se Exact já der installs):
+  calma
+  respirar
+  como lidar com ansiedade
+
+NEGATIVE (iguais + extras):
+  jogo
+  grátis jogo
+  chatgpt
+  chat gpt
+  psicólogo
+  terapia
+  remédio
+  medico
+  depressão tratamento
+  emochi
+
+================================================================================
+5) CRIATIVO / FICHA
+================================================================================
+• Sem upload de imagem no ASA
+• Custom Product Page: opcional depois (iOS) — por agora ficha principal basta
+• Confirma loja: subtítulo tipo «Ansiedade · humor · desabafo» + foto 1 Monstrinhos
+
+================================================================================
+6) MEDIR (3 / 7 dias)
+================================================================================
+Bom:
+  • CPT médio razoável
+  • TTR > 3%
+  • CPA/install próximo do que tinhas (~$2–3 ou abaixo de ~R$ 15)
+
+Pausar keyword se:
+  • 30+ impressões e 0 taps
+  • taps sem install e gasto a subir
+
+Manter:
+  • ansiedade se continuar a instalar
+
+================================================================================
+ORDEM NO CLICK
+================================================================================
+[ ] 1.0.86 na App Store (vê no telemóvel)
+[ ] Pausar campanha antiga
+[ ] Nova campanha EGO-AI-BR-humor-desabafo-v1
+[ ] Ad group + Exact keywords acima
+[ ] Search Match OFF · género Todos
+[ ] Publicar · rever amanhã impressões/taps/installs

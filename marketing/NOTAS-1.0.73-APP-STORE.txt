@@ -1,0 +1,41 @@
+EGO-AI 1.0.73 — SUBMETER À APP STORE (iOS update performance)
+============================================================
+Base: 1.0.72 (build 69) aprovado ou em revisão — esta versão é update de performance.
+Site planos (fora do app): https://egoai.com.br/planos/
+
+ORDEM (App Store Connect)
+-------------------------
+1. Apps → EGO-AI → App Store → versão **1.0.73**
+2. Compilação → build **1.0.73** (novo EAS após GERAR-1.0.73.bat)
+3. Colar «O que há de novo» (abaixo)
+4. Monetização → IAP → sem produtos / sem rascunhos
+5. App Review Notes → inglês + conta demo (ver 1.0.72 ou APP-STORE-IOS-SEM-IAP.txt)
+6. Enviar para revisão
+
+────────────────────────────────────────────────────────────
+O QUE HÁ DE NOVO (PT-BR) — colar no Connect
+────────────────────────────────────────────────────────────
+• Conversa com o avatar mais rápida — modo chamada ao vivo
+• Respostas de voz mais ágeis no chat
+• App mais fluido ao abrir o chat e o jardim
+• Melhorias de estabilidade
+
+(NÃO mencionar: Stripe, assinar, premium, preços, compra no app iOS)
+
+────────────────────────────────────────────────────────────
+APP REVIEW — NOTES (inglês) — se reenvio ou primeira submissão 1.0.73
+────────────────────────────────────────────────────────────
+This update improves voice response speed and adds optional live call mode with the avatar.
+No In-App Purchase changes. Paid plans are not sold inside the iOS app.
+See marketing/APP-STORE-IOS-SEM-IAP.txt for full reviewer text + demo account.
+
+Se Apple rejeitou o build 69: colar e-mail em marketing/APPLE-REJEICAO-1.0.73.txt
+
+────────────────────────────────────────────────────────────
+CHECKLIST ANTES DE ENVIAR (iOS 1.0.73)
+────────────────────────────────────────────────────────────
+[ ] Menu lateral SEM «Planos» / checkout Stripe
+[ ] Conta SEM botões de compra
+[ ] Chamada ao vivo / microfone funcionam em device real
+[ ] Nenhum link abre buy.stripe.com no iPhone
+[ ] Excluir minha conta visível em Conta

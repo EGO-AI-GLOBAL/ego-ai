@@ -1,16 +1,25 @@
 NOTAS VERSÃO 1.0.65 — TestFlight / Play (teste fechado)
 =====================================================
-iOS build 54+ · Android versionCode 105+ (EAS autoIncrement)
+iOS build 54 · Android versionCode 105
 
-CURTO (O que há de novo — copiar TestFlight / Play)
----------------------------------------------------
-Voz restaurada ao fluxo de 26/06: microfone e seta separados. Corrige a regressão das versões 1.0.62–1.0.64.
+CURTO — copiar em «O que há de novo» (Play / App Store)
+-------------------------------------------------------
+Voz restaurada (mic e seta separados, como 26/06). Reset de senha melhorado: página com olho para ver a senha e entrada automática no app. Excluir conta em Menu → Conta. Mensagens de erro em português.
 
-O QUE TESTAR
-------------
+MÉDIO — TestFlight «O que testar» / notas internas
+--------------------------------------------------
+• Voz: microfone → falar 2–3 s → seta ↑ (botões separados)
+• Texto: escrever → seta ↑
+• Esqueci a senha: link novo → guardar senha → app abre já logado
+• Conta: Menu → Conta → Excluir minha conta (só se for testar apagar)
+
+O QUE TESTAR (checklist)
+------------------------
 1. Atualizar para 1.0.65
-2. Texto: escrever e enviar com seta ↑
-3. Voz: mic → falar 2–3 s → seta ↑ → avatar responde
+2. Texto no chat
+3. Voz no chat
+4. Reset de senha (senha nova, diferente da anterior)
+5. (Opcional) Excluir conta — conta de teste apenas
 
 TEXTO WHATSAPP
 --------------

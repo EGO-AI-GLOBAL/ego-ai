@@ -1,0 +1,49 @@
+NOTAS VERSÃO 1.0.62 — TestFlight / Play (teste fechado)
+=====================================================
+iOS build 51 · Android versionCode 102
+
+CURTO (O que há de novo — copiar TestFlight externo / Play)
+-----------------------------------------------------------
+Voz Android: microfone e seta separados — grave, fale e toque na seta para enviar (sem envio automático). Jardim com aviso de streak e missões. EGO de Bolso: «Falar disso» preenche o chat; pet celebra missões; barra semanal com bónus de estrelas.
+
+MÉDIO
+-----
+• **Voz Android:** microfone e botão enviar lado a lado — não envia sozinho ao tocar no mic
+• **Jardim dos Monstrinhos:** card «Faltam X missões · streak em risco»; widget na home com streak; parabéns ao completar o dia no chat
+• **EGO de Bolso:** «Falar disso» coloca a missão na caixa de mensagem; animação ao concluir missão; desafio semanal 4/4 dias → +10 estrelas
+• **Melhorias:** estabilidade no chat e nos widgets
+
+O QUE TESTAR
+------------
+1. Atualizar para **1.0.62** (iOS build **51** · Android **102**)
+2. **Android — voz:** mic → falar 3 s → **seta ↑** → avatar responde (não deve enviar sozinho no mic)
+3. **Bolso:** «Falar disso» → texto na caixa → enviar
+4. **Jardim:** completar missões → voltar ao chat → parabéns
+5. **Chat:** trocar avatar (ex. Luna + Leo) → voz de cada um
+
+TEXTO CURTO — Play Console / TestFlight (copiar)
+------------------------------------------------
+1.0.62: voz Android corrigida (mic + seta); jardim streak; bolso «Falar disso» e celebração.
+
+---
+
+Mensagem testadores (WhatsApp)
+------------------------------
+Detalhe: marketing/MENSAGEM-TESTADORES-1.0.62.txt
+
+---
+
+Railway (após loja publicar 1.0.62)
+-----------------------------------
+EGO_LATEST_APP_VERSION=1.0.62
+EGO_LATEST_ANDROID_VERSION_CODE=102
+EGO_APP_UPDATE_MESSAGE=1.0.62: Voz Android — toque no mic, fale e use a seta para enviar. Jardim e Bolso melhorados. Toque em Atualizar agora.
+EGO_MAINTENANCE=0
+
+Builds EAS
+----------
+iOS:  03e9b11c-4bf0-4db6-aaf4-82122d376acd
+Android: 956b0c55-06f2-4186-901b-b348db523184
+Ficheiro: builds-1.0.62.ids.json
+
+Próximo: AGUARDAR-E-SUBMETER-1.0.62.bat

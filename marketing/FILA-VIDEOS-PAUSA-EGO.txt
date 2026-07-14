@@ -1,13 +1,13 @@
-EGO-AI — Fila de vídeos PAUSA EGO (foco ansiedade leve/média)
+EGO-AI — Fila de vídeos Calma 1 min (foco ansiedade leve/média)
 ==============================================================
 Público: mulher 25–44 · respiro sem terapia · ver PUBLICO-ALVO-PAUSA-EGO.md
 Regra: 1 hook por vídeo · 2–3 posts/semana · Gmail no DM (Android)
 
 LEGENDA
 -------
-[x] 06/07 — Reel humor + Monstrinhos     GERAR-REEL-PAUSA-EGO.bat  ← postado
-[ ] 07/07 — POV 3h insônia               GERAR-REEL-PAUSA-3H.bat  ← POSTAR HOJE
-[ ] 10/07 — Fila / trabalho / ônibus     GERAR-REEL-PAUSA-FILA.bat
+[x] 06/07 — Reel humor + Monstrinhos     GERAR-REEL-PAUSA-EGO.bat
+[x] 07–08/07 — Lançamento App Store / 3h  ego-ai-lancamento-variedade-reels.mp4 ← postado
+[ ] 10/07 — Fila / trabalho / ônibus     GERAR-REEL-PAUSA-FILA.bat  ← próximo
 [ ] 13/07 — Domingo + PAUSA              GERAR-REEL-PAUSA-DOMINGO.bat
 [ ] 15/07 — Antes/depois 60s             GERAR-REEL-PAUSA-RESPIRA.bat
 [ ] 17/07 — Repost melhor performer

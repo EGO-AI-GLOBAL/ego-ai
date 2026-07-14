@@ -1,0 +1,121 @@
+EGO-AI — FICHA DAS LOJAS (iOS + Android) · ATUAL 2026
+========================================================
+Substitui textos do INÍCIO do projeto. App hoje = Calma 1 min + Monstrinhos + Luna/Leo.
+
+ORDEM DE EXECUÇÃO (atualizado 08/07/2026)
+-----------------------------------------
+1. **iOS PRIMEIRO** — já na App Store → precisa **BUILD 1.0.82** + ficha nova
+2. **Android POR ÚLTIMO** — teste fechado; ficha Play quando produção
+
+⚠️ SEM BUILD NOVA A APPLE NÃO DEIXA EDITAR A FICHA (confirmado pelo utilizador).
+Monstrinhos: marketing/NOTAS-1.0.82-APP-STORE.txt + MENSAGEM-MONSTRINHOS-BUILD-1.0.82-FICHA.txt
+
+LINKS
+-----
+iOS App Store Connect:
+  https://appstoreconnect.apple.com/apps/6780595396/distribution/ios/version/inflight
+  Informações do app:
+  https://appstoreconnect.apple.com/apps/6780595396/appstore
+
+Android Play Console:
+  https://play.google.com/console
+  → EGO-AI → Presença na loja → Páginas de detalhes → Português (Brasil)
+
+Atalhos PC: ABRIR-FICHA-IOS-ANDROID.bat
+
+================================================================================
+PARTE A — iOS (APP STORE) — copiar cada bloco
+================================================================================
+Regras iOS: SEM preços, SEM Stripe, SEM Premium/Upgrade na ficha.
+
+--- A1. Informações do app → Português (Brasil) ---
+
+NOME (não mudar):
+EGO-AI
+
+SUBTÍTULO (máx. 30):
+Ansiedade · respirar · PAUSA
+
+--- A2. Versão 1.0.82 — OBRIGATÓRIO build nova (Monstrinhos) ---
+
+1. EAS build iOS 1.0.82
+2. Connect → + Versão 1.0.82 → anexar build novo
+3. Colar textos abaixo → enviar revisão
+
+Textos completos: marketing/NOTAS-1.0.82-APP-STORE.txt
+
+================================================================================
+PARTE B — ANDROID (GOOGLE PLAY) — copiar cada bloco
+================================================================================
+Regras Google: breve descrição SEM emoji, SEM só slogan; descrição longa em PROSA;
+explicar nomes (Calma 1 min, Monstrinhos).
+
+Onde: Presença na loja → Detalhes do app → Português (Brasil)
+Editar TODOS os idiomas listados (ou apagar tradução vazia).
+
+--- B1. Nome do app (máx. 30) ---
+EGO-AI
+
+--- B2. Breve descrição (máx. 80, sem emoji) ---
+PAUSA guiada, humor e chat por voz com Luna ou Leo. Agenda no celular.
+
+--- B3. Descrição completa (prosa — copiar tudo) ---
+EGO-AI é um aplicativo de companhia e organização pessoal com inteligência artificial em português. Ele foi feito para quem quer desabafar, respirar fundo quando o stress aparece e manter a rotina em dia, com um assistente que tem rosto e voz.
+
+No chat, você conversa por texto ou grava áudio. Pode escolher Luna ou Leo como assistente virtual. As respostas podem ser lidas em voz alta. Também é possível anexar um PDF e pedir resumo ou tirar dúvidas sobre o documento.
+
+A função Calma 1 min oferece pausas guiadas de respiração e calma em cerca de um minuto, com várias técnicas e um atalho para momentos de mal-estar. Os Monstrinhos do Humor são um diário simples: você registra como se sente no dia e acompanha seu humor ao longo da semana.
+
+Na agenda, você cria compromissos com data e hora, usa agenda compartilhada em família e o modo Entre Nós para combinar com outras pessoas que usam o app. Há lista de compras ligada à agenda.
+
+O cadastro é com e-mail e senha. Recuperação de senha e exclusão de conta estão no site do desenvolvedor. O app oferece uso gratuito inicial; planos de assinatura opcionais ampliam chat, voz e agenda.
+
+As respostas são geradas por inteligência artificial. Elas não substituem aconselhamento médico, psicológico, jurídico ou financeiro.
+
+Suporte: contato@egoai.com.br
+Site: https://egoai.com.br
+Privacidade: https://egoai.com.br/privacidade/
+Exclusão de conta: https://egoai.com.br/exclusao-conta/
+
+--- B4. Notas da versão (campo da RELEASE, não da ficha) ---
+• Ficha da loja alinhada ao app atual: Calma 1 min, Monstrinhos e chat com voz
+• Sessão mantida ao reabrir o app
+• Agenda liberada no plano grátis
+• Melhorias de estabilidade
+
+================================================================================
+PARTE C — PASSO A PASSO
+================================================================================
+
+PASSO 1 — Monstrinhos: BUILD 1.0.82 + submit iOS
+------------------------------------------------
+Ver: marketing/MENSAGEM-MONSTRINHOS-BUILD-1.0.82-FICHA.txt
+Textos: marketing/NOTAS-1.0.82-APP-STORE.txt
+
+PASSO 2 — Utilizador: enquanto build corre, preparar capturas PAUSA em 1º lugar
+
+PASSO 3 — Monstrinhos: com build no Connect, colar ficha e enviar revisão
+
+PASSO 4 — Marketing: Apple Search Ads depois da aprovação
+
+PASSO 5 — Android ficha: só quando Play produção (Parte B)
+
+================================================================================
+CHECKLIST — as duas lojas iguais na mensagem
+================================================================================
+[ ] iOS subtítulo: Ansiedade · respirar · PAUSA
+[ ] iOS descrição: PAUSA + Monstrinhos + Luna/Leo (sem preços)
+[ ] Android breve: PAUSA + voz + agenda
+[ ] Android longa: explica Calma 1 min e Monstrinhos em prosa
+[ ] Nenhuma menção a «EGO de Bolso» ou Tamagotchi
+[ ] Nenhuma promessa de cura / substituir terapia
+[ ] URLs egoai.com.br em ambas
+
+================================================================================
+O QUE SAIR (texto antigo — NÃO usar)
+================================================================================
+❌ «Companheiro com voz e IA» (subtítulo velho)
+❌ «Voice companion, not cold AI»
+❌ «O amigo que não te abandona» como descrição principal
+❌ Só agenda/hábitos sem PAUSA
+❌ Premium/pizza/mês na ficha iOS

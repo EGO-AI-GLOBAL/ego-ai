@@ -1,0 +1,124 @@
+EGO-AI 1.0.82 — iOS App Store · SEQUÊNCIA (todos os campos)
+=============================================================
+Quando a build iOS 1.0.82 aparecer no Connect, siga ESTA ordem.
+
+Textos prontos: marketing/NOTAS-1.0.82-APP-STORE.txt
+Fotos novas: ver secção SCREENSHOTS abaixo
+
+LINK:
+https://appstoreconnect.apple.com/apps/6780595396/distribution/ios/version/inflight
+
+================================================================================
+ANTES (Agente API/Release)
+================================================================================
+[ ] Build iOS 1.0.82 no Connect (status: Pronto para envio)
+
+================================================================================
+PASSO 1 — Criar versão
+================================================================================
+1. App Store Connect → EGO-AI → **Distribuição**
+2. Menu esquerdo → **+** ou **Adicionar versão** → **1.0.82**
+3. Ainda NÃO enviar — só criar a versão
+
+================================================================================
+PASSO 2 — Anexar build
+================================================================================
+1. Na versão 1.0.82 → secção **Compilação** / **Build**
+2. Escolher build **1.0.82** (a nova)
+3. Salvar
+
+================================================================================
+PASSO 3 — Informações do app (subtítulo)
+================================================================================
+Link: https://appstoreconnect.apple.com/apps/6780595396/appstore
+
+1. Menu esquerdo → **Informações do app**
+2. **Português (Brasil)**
+3. Nome: **EGO-AI** (não mudar)
+4. Subtítulo → colar:
+   Ansiedade · respirar · PAUSA
+5. **Salvar**
+
+================================================================================
+PASSO 4 — Versão 1.0.82 → textos (descer a página)
+================================================================================
+1. Voltar → **Distribuição** → versão **1.0.82**
+2. Aba **App Store**
+3. **Português (Brasil)**
+
+Colar nesta ordem:
+
+A) **Texto promocional**
+   1 minuto de calma quando a ansiedade aperta. Calma 1 min com Luna ou Leo por voz. Monstrinhos do humor. 20 dias grátis no iPhone.
+
+B) **Descrição**
+   (bloco completo do NOTAS-1.0.82-APP-STORE.txt)
+
+C) **Palavras-chave**
+   ansiedade,stress,respirar,calma,humor,desabafo,solidão,autocuidado,pausa,avatar
+
+D) **O que há de novo**
+   • Subtítulo da loja: de «Companheiro com voz e IA» para foco em ansiedade e Calma 1 min
+   • Descrição da App Store reescrita: Calma 1 min, Monstrinhos do Humor, Luna/Leo com voz e agenda no grátis
+   • Palavras-chave novas: ansiedade, stress, respirar, calma, desabafo, autocuidado
+   • Texto promocional novo: 1 minuto de calma, Calma 1 min e 20 dias grátis no iPhone
+   • Ficha alinhada ao app de hoje (não mais texto genérico de assistente do início do projeto)
+   • Melhorias de estabilidade
+
+4. **Salvar** (ainda não enviar)
+
+================================================================================
+PASSO 5 — Screenshots iPhone (6,5")
+================================================================================
+Ordem sugerida (fotos novas de hoje):
+
+| # | Arquivo | Pasta |
+|---|---------|-------|
+| 1 | 01-pausa-ego-tela-principal.png | CAPCUT-FOTOS-PAUSA-EGO-1.0.81 |
+| 2 | 01-chat-avatar-hana-desabafo.png | CAPCUT-FOTOS-CHAT-AVATAR-1.0.81 |
+| 3 | 01-jardim-sol-humor-hoje.png | CAPCUT-FOTOS-MONSTRINHOS-1.0.81 |
+| 4 | 02-diario-nota-missoes.png | CAPCUT-FOTOS-MONSTRINHOS-1.0.81 |
+| 5 | (agenda — se tiver print) | — |
+| 6 | (login — se quiser manter antigo) | — |
+
+Na versão 1.0.82 → **Pré-visualização e capturas** → iPhone 6,5" → upload na ordem.
+
+================================================================================
+PASSO 6 — Compras no app
+================================================================================
+1. Menu → **Compras dentro do app** / monetização
+2. Confirmar: **vazia** (sem IAP iOS)
+3. Sem rascunhos pendentes
+
+================================================================================
+PASSO 7 — Revisão do app
+================================================================================
+1. Menu → **Revisão de apps** / App Review Information
+2. Conta demo válida (e-mail + senha)
+3. Notas para revisor em inglês (sem Stripe/IAP no iOS)
+4. URL privacidade: https://egoai.com.br/privacidade/
+
+================================================================================
+PASSO 8 — Enviar
+================================================================================
+1. Revisar checklist abaixo
+2. **Adicionar para revisão**
+3. **Enviar para revisão da App**
+
+================================================================================
+CHECKLIST FINAL
+================================================================================
+[ ] Build 1.0.82 anexada
+[ ] Subtítulo: Ansiedade · respirar · PAUSA
+[ ] Promo + descrição + keywords + o que há de novo
+[ ] Screenshots PAUSA em 1º
+[ ] Sem preços/Premium na ficha
+[ ] IAP vazia
+[ ] Conta demo OK
+[ ] Enviado
+
+================================================================================
+DEPOIS DA APROVAÇÃO (Marketing)
+================================================================================
+Apple Search Ads → marketing/APPLE-SEARCH-ADS-PAUSA-EGO.txt
+Android ficha → amanhã (Parte B FICHA-LOJAS-IOS-ANDROID-2026.txt)

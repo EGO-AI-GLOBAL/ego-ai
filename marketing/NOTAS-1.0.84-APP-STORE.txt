@@ -20,7 +20,7 @@ VERSÃO 1.0.84 → O QUE HÁ DE NOVO
 • **PAUSA 60s no jardim** — alívio inline nos dias Nublina/Agita
 • **Jardim da Gentileza** — missões leves + domingo e madrugada mais suaves
 • Sequência de dias difíceis com PAUSA
-• Foco ansiedade, solidão e respiração (PAUSA EGO)
+• Foco ansiedade, solidão e respiração (Calma 1 min)
 • Melhorias de estabilidade
 
 ================================================================================

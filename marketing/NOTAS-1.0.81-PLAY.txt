@@ -6,7 +6,7 @@ NOTAS DA VERSÃO (Play Console)
 ------------------------------
 • Correção: sessão mantida ao reabrir o app
 • Monstrinhos: humor é o 1º passo
-• PAUSA EGO: 20 técnicas + CVV 188 no SOS
+• Calma 1 min: 20 técnicas + CVV 188 no SOS
 • Agenda liberada no plano grátis
 • Melhorias de estabilidade
 

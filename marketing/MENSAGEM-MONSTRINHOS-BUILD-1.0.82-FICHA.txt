@@ -1,0 +1,34 @@
+AGENTE API/RELEASE — BUILD 1.0.82 + FICHA APP STORE (Calma 1 min)
+=========================================================
+Marketing · prioridade iOS downloads · 08/07/2026
+
+PEDIDO DO UTILIZADOR
+--------------------
+Impossível atualizar ficha sem **build nova**. Fazer 1.0.82 com textos abaixo.
+
+TAREFA
+------
+1. Bump `app/app.config.ts` → **1.0.82**
+2. `GERAR-1.0.82.bat` (ou fluxo EAS habitual)
+3. App Store Connect → versão **1.0.82** → build novo
+4. Colar textos de: **marketing/NOTAS-1.0.82-APP-STORE.txt**
+5. Submit iOS
+
+COPY RESUMO (ficha completa no NOTAS)
+-------------------------------------
+Subtítulo:     Ansiedade · respirar · PAUSA
+Keywords:      ansiedade,stress,respirar,calma,humor,desabafo,solidão,autocuidado,pausa,avatar
+Promo:         1 minuto de calma quando a ansiedade aperta. Calma 1 min com Luna ou Leo por voz...
+Descrição:     Calma 1 min + Monstrinhos + Luna/Leo + agenda grátis (sem preços iOS)
+
+ANDROID
+-------
+NÃO neste build — ficha Play fica para quando sair teste fechado.
+Parte B em marketing/FICHA-LOJAS-IOS-ANDROID-2026.txt
+
+CHECKLIST
+---------
+[ ] regression_guard + smoke_test_api
+[ ] commit + push
+[ ] SYNC-AGENTES-API-1.0.82.txt → PRONTO
+[ ] Ficha colada no Connect antes de submit

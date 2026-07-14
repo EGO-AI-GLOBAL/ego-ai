@@ -1,0 +1,43 @@
+EGO-AI — REGRA: NÃO REPETIR REELS
+==================================
+Problema real: mesmo screenshot + mesma voz + 4 cenas iguais = parece spam.
+
+REGRA DE OURO
+-------------
+1. **Cena 1 NUNCA é a mesma foto da semana anterior**
+2. **Cena 1 idealmente NÃO é UI do app** — POV texto grande ou desabafo/voz
+3. **Máximo 1 reel/semana** com foto `01-pausa-humor-monstrinhos.png`
+4. **Rotacionar pastas:**
+   - CAPCUT-FOTOS-CHAT-AVATAR-1.0.81 → chat Hana, desabafo, Ouvir ao responder (NOVO)
+   - CAPCUT-FOTOS-1.0.34 → chat legado (usar pasta CHAT-AVATAR-1.0.81 se existir)
+   - CAPCUT-FOTOS-MONSTRINHOS-1.0.81 → Monstrinhos NOVO (jardim Sol, missões 5/5)
+   - CAPCUT-FOTOS-ENTREGA → legado Monstrinhos (evitar se tiver pasta 1.0.81)
+   - CAPCUT-FOTOS-PAUSA-EGO → só quando o hook É pausa
+   - CAPCUT-FOTOS-VARIEDADE → mix pronto (1 foto de cada)
+
+FORMATOS DIFERENTES (alternar)
+------------------------------
+| # | Formato | Visual | Hook |
+|---|---------|--------|------|
+| A | POV 3h | desabafo gravando | «Ninguém online» |
+| B | App Store | chat + pausa | «Chegou na loja» |
+| C | Fila/trabalho | só PAUSA | «1 min no ônibus» |
+| D | Monstrinhos | jardim + missão | «Como me sinto hoje» |
+| E | Voz | microfone + Luna | «Falei 10s e ela respondeu» |
+
+O QUE O AUTOMÁTICO NÃO SUBSTITUI
+--------------------------------
+• 1 reel/semana **manual CapCut**: mão no telemóvel, quarto escuro, sem screenshot
+• Gravar **ecrã real** PAUSA respirando (10s acelerado)
+• **Tu a falar** 15s para câmara («testei quando a ansiedade aperta»)
+
+FOTOS QUE FALTAM (pedir screenshot no iPhone)
+---------------------------------------------
+[ ] PAUSA respiração — círculo/timer em ação (durante os 50s)
+[ ] Botão «Estou mal agora» / SOS — tela cheia
+[ ] App Store — página do app na loja (print)
+[ ] Sequência 🔥 7 dias
+
+PAUSA tela principal (1.0.81): CAPCUT-FOTOS-PAUSA-EGO-1.0.81/01-pausa-ego-tela-principal.png ✅
+
+Próximo reel variado: REEL-LANCAMENTO-VARIEDADE.json → GERAR-REEL-LANCAMENTO-VARIEDADE.bat

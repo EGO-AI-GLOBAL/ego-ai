@@ -1,4 +1,4 @@
-﻿POST — Reels/TikTok · EGO-AI 1.0.79
+POST — Reels/TikTok · EGO-AI 1.0.79
 =======================================================
 
 ARQUIVO DO VÍDEO
@@ -7,7 +7,7 @@ marketing\videos\app-real\ego-ai-pausa-domingo-reels.mp4
 
 TÍTULO DO REEL
 --------------
-Domingo à noite bate diferente — PAUSA EGO 💜
+Domingo à noite bate diferente — Calma 1 min 💜
 
 LEGENDA (copiar no post)
 ------------------------

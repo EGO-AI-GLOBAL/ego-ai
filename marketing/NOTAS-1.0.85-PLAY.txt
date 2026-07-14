@@ -1,20 +1,26 @@
-EGO-AI 1.0.85 — PLAY STORE (Android · hotfix sessão)
-===================================================
-Marketing · 10/07/2026
+EGO-AI 1.0.85 — PLAY (Android · teste FECHADO · Stripe PJ)
+==========================================================
+versionName: 1.0.85
+Build Expo Android: 221e3c30-bf7a-43cf-9ce8-c1fd8c9e983d (12/07/2026)
+Commit planos: de0f31d
 
-Versão **1.0.85** · versionCode **129**
+STATUS
+------
+[x] AAB enviado → Play teste fechado → **em análise** (12/07)
+[ ] Disponível para testadores → Actualizar no telemóvel
+[ ] Teste Planos: 10,94 / 32,74 / 54,64 / 109,39 · sem Equipe/Empresa
 
-================================================================================
-O QUE HÁ DE NOVO (copiar)
-================================================================================
+NOTAS DA VERSÃO
+---------------
+• Planos Android: só Lançamento, Conexão, Premium e Total (+ Essencial grátis)
+• Preços PJ (+9,5%): R$ 10,94 · 32,74 · 54,64 · 109,39
+• Links Stripe conta Economizze
 
-• Fica logado ao abrir pelo push — não pede senha toda hora
-• Mais estável quando o servidor volta online
-• Tríade Silenciosa PAUSA + Monstrinhos
-• Melhorias de estabilidade
+TESTE (quando sair da análise · 15–60 min típico)
+------------------------------------------------
+1. Play Store → Atualizar EGO-AI
+2. Planos → 5 cards · preços PJ
+3. Assinar Conexão → Stripe Economizze
+4. Conta nova (opcional): cadastro → Luna → chat
 
-================================================================================
-TESTE MANUAL (1 min)
-================================================================================
-1. Login → fechar app → tocar num push PAUSA/Monstrinhos → entra direto
-2. Chat «oi» responde
+Testadores: https://play.google.com/apps/testing/com.egoai.app

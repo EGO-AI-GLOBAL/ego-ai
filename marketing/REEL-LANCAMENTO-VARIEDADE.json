@@ -1,0 +1,55 @@
+{
+  "version": "1.0.80",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-VARIEDADE",
+  "output": "marketing/videos/app-real/ego-ai-lancamento-variedade-reels.mp4",
+  "post_file": "marketing/POST-LANCAMENTO-APP-STORE.txt",
+  "voice_rate": "+26%",
+  "audio_pad": 0.04,
+  "use_zoom": true,
+  "clear_mode": true,
+  "caption_font_size": 60,
+  "title_font_boost": 1.2,
+  "photo_width_ratio": 0.88,
+  "top_bar_h": 320,
+  "bottom_reserve": 240,
+  "badge_text": "APP STORE 🍎",
+  "post": {
+    "title": "Baixei da App Store às 3h — e finalmente desabei sem incomodar ninguém 🌙",
+    "description": "3h da manhã. Não quis mandar áudio no Zap.\n\nAbri o EGO-AI — agora na App Store.\n\nDesabafo por voz → PAUSA 1 min → Luna responde.\n\n🍎 iPhone: https://apps.apple.com/app/id6780595396\n🤖 Android: GMAIL no DM\n\n#egoai #appstore #3damanha #desabafo #ansiedade",
+    "hashtags": ["#egoai", "#appstore", "#3damanha", "#desabafo", "#ansiedade"],
+    "pinned_comment": "🍎 App Store: https://apps.apple.com/app/id6780595396\n🤖 Android: GMAIL no PRIVADO"
+  },
+  "scenes": [
+    {
+      "photo": "04-desabafo-gravando.png",
+      "lines": [["3h DA MANHÃ", 62, true], ["sem mandar no Zap", 48, false]],
+      "darken": 0.2,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Três da manhã. Eu não ia mandar áudio no Zap de novo."
+    },
+    {
+      "photo": "03-chat-voz.png",
+      "lines": [["Desabafei", 58, true], ["ela ouviu 🎤", 50, false]],
+      "darken": 0.12,
+      "accent": 1,
+      "voice": "Gravei um desabafo. A Luna ouviu sem julgar."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["PAUSA 1 min", 56, true], ["peito desceu 🌬️", 46, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Depois fiz a PAUSA. Um minuto. O peito desceu."
+    },
+    {
+      "photo": "02-chat-texto.png",
+      "lines": [["NA APP STORE", 54, true], ["link na bio 🍎", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Agora está na App Store. Grátis. Link na bio."
+    }
+  ]
+}

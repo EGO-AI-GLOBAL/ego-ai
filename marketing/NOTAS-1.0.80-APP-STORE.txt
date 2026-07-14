@@ -6,7 +6,7 @@ App Store: https://apps.apple.com/app/id6780595396
 O QUE HÁ DE NOVO (PT-BR) — TestFlight / «O que há de novo»
 ----------------------------------------------------------
 • Monstrinhos do Humor: marcar o humor é o 1º passo — missões depois
-• PAUSA EGO: 20 técnicas para todos os planos; link CVV 188 no SOS
+• Calma 1 min: 20 técnicas para todos os planos; link CVV 188 no SOS
 • Agenda pessoal, compartilhada e Entre Nós liberadas no plano grátis
 • Melhorias de estabilidade
 
@@ -23,7 +23,7 @@ TestFlight: https://apps.apple.com/app/id6780595396
 TESTE RÁPIDO
 ------------
 1. Monstrinhos → «1º PASSO — MARQUE O HUMOR»
-2. PAUSA EGO → cartão 20 técnicas → SOS
+2. Calma 1 min → cartão 20 técnicas → SOS
 3. Agenda → lembrete sem bloqueio de plano
 
 NOTA

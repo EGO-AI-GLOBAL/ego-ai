@@ -1,0 +1,11 @@
+Play Console — 1.0.44 (versionCode 81)
+
+O que há de novo
+---------------
+• Notificações Monstrinhos: lembrete de missões e streak
+• Toque na notificação abre o jardim
+
+Testar
+------
+Ativar notificações → simular dia sem check-in → push 20h
+Check-in + missão pendente → push 16h

@@ -1,0 +1,138 @@
+EGO-AI — FICHA DAS LOJAS (iOS + Android) · Calma 1 min · 08/07/2026
+==================================================================
+Substitui textos do início do projeto. iOS e Android com a MESMA mensagem.
+
+Situação: todas as versões **aprovadas** (nada em revisão).
+iOS na loja: 1.0.81 · Android: teste fechado (ficha já pode atualizar).
+
+ORDEM (fazer nesta sequência)
+-----------------------------
+1. iOS — subtítulo + promo (você, agora, sem build)
+2. Android — ficha Play Console (você, agora, sem build)
+3. iOS — keywords + descrição (Monstrinhos → versão 1.0.82)
+4. Depois — Apple Search Ads (marketing/APPLE-SEARCH-ADS-PAUSA-EGO.txt)
+
+==================================================================
+PARTE A — iOS (App Store Connect)
+==================================================================
+Link app: https://appstoreconnect.apple.com/apps/6780595396
+
+--- A1. SUBTÍTULO (sem build · agora) ---
+
+Menu: Distribuição → Geral → **Informações do app** → Português (Brasil)
+
+SUBTÍTULO (máx. 30):
+Ansiedade · respirar · PAUSA
+
+Antigo (apagar): Companheiro com voz e IA
+
+→ Salvar
+
+--- A2. TEXTO PROMOCIONAL (sem build · agora) ---
+
+Menu: Distribuição → **1.0.81** (versão live) → descer página → PT-BR
+
+TEXTO PROMOCIONAL (máx. 170):
+1 minuto de calma quando a ansiedade aperta. Calma 1 min com Luna ou Leo. Grátis para começar no iPhone.
+
+→ Salvar (entra na loja em minutos, sem revisão)
+
+--- A3. KEYWORDS + DESCRIÇÃO (precisa versão 1.0.82) ---
+
+Apple só aceita keywords/descrição numa **versão nova**.
+
+Monstrinhos:
+1. Distribuição → **+** ou «Criar versão» → **1.0.82**
+2. Anexar build (último 1.0.81 ou build novo se Apple exigir)
+3. Colar campos abaixo
+4. Enviar para revisão (só metadados — revisão rápida)
+
+PALAVRAS-CHAVE (máx. 100):
+ansiedade,stress,respirar,calma,humor,desabafo,solidão,autocuidado,pausa,avatar
+
+DESCRIÇÃO COMPLETA (PT-BR):
+Quando a ansiedade aperta, você não precisa enfrentar sozinha.
+
+O EGO-AI é companhia com rosto e voz: Luna ou Leo ouvem por texto e áudio, ajudam a organizar o dia e oferecem pausas guiadas quando o stress sobe.
+
+• Calma 1 min — exercícios de respiração e calma em cerca de 1 minuto
+• Monstrinhos do Humor — marque como está hoje e acompanhe a semana
+• Chat por texto e voz; ouça as respostas quando precisar
+• Agenda pessoal, compartilhada e Entre Nós
+• Botão de apoio com link para o CVV 188
+
+Grátis para baixar e experimentar no iPhone.
+
+O EGO-AI não substitui médicos, psicólogos ou outros profissionais de saúde.
+
+O QUE HÁ DE NOVO (1.0.82 — só se subir build novo):
+• Textos da loja atualizados (Calma 1 min e ansiedade)
+• Melhorias de estabilidade
+
+iOS — NÃO colocar na ficha:
+❌ Premium, Stripe, preços, upgrade, compra no app
+
+==================================================================
+PARTE B — ANDROID (Google Play Console)
+==================================================================
+Link: https://play.google.com/console
+Caminho: EGO-AI → Presença na loja → Páginas de detalhes → **Detalhes do app** → PT-BR
+
+Pode editar **agora** (não precisa build para a ficha).
+Editar TODOS os idiomas listados (ou apagar tradução vazia).
+
+--- B1. NOME ---
+EGO-AI
+
+--- B2. BREVE DESCRIÇÃO (máx. 80 · sem emoji · sem «teste grátis») ---
+PAUSA guiada, humor e chat por voz com Luna ou Leo. Agenda no celular.
+
+--- B3. DESCRIÇÃO COMPLETA (prosa · sem emoji) ---
+EGO-AI é um aplicativo de companhia e autocuidado em português para celular. O usuário conversa com um assistente virtual com rosto e voz (Luna ou Leo), organiza compromissos na agenda e usa ferramentas de bem-estar no dia a dia.
+
+No chat, é possível enviar mensagens de texto ou gravar áudio. O assistente responde em português e pode ler a resposta em voz alta. Também é possível anexar um PDF e pedir resumo ou tirar dúvidas sobre o documento.
+
+A função Calma 1 min oferece exercícios guiados de respiração e calma em cerca de um minuto, para momentos de stress ou ansiedade leve. Os Monstrinhos do Humor permitem registrar como a pessoa se sente no dia e acompanhar o humor ao longo da semana.
+
+Na agenda pessoal, o usuário cria compromissos com data e hora. Existe agenda compartilhada para família e o modo Entre Nós para combinar com outras pessoas que usam o app. Há ainda lista de compras ligada à agenda.
+
+O cadastro é feito com e-mail e senha. Há recuperação de senha e exclusão de conta pelo site do desenvolvedor. O app oferece uso gratuito inicial; planos de assinatura opcionais ampliam chat, voz e agenda.
+
+As respostas são geradas por inteligência artificial. Elas não substituem aconselhamento médico, psicológico, jurídico ou financeiro.
+
+Suporte: contato@egoai.com.br
+Site: https://egoai.com.br
+Privacidade: https://egoai.com.br/privacidade/
+Exclusão de conta: https://egoai.com.br/exclusao-conta/
+
+--- B4. NOTAS DA VERSÃO (próximo AAB 1.0.82 — campo separado na release) ---
+• Ficha da loja alinhada com Calma 1 min e Monstrinhos do Humor
+• Melhorias de estabilidade
+
+==================================================================
+TABELA — MESMA MENSAGEM NAS DUAS LOJAS
+==================================================================
+| Tema              | iOS                          | Android                      |
+|-------------------|------------------------------|------------------------------|
+| Gancho            | Ansiedade · PAUSA            | PAUSA guiada + humor         |
+| Personas          | Luna / Leo                    | Luna / Leo                   |
+| Diferencial       | PAUSA 1 min + Monstrinhos    | Idem                         |
+| Grátis            | Sim, sem cartão (iOS)        | Uso inicial grátis + planos  |
+| Preços na ficha   | NÃO                          | Pode mencionar assinatura    |
+
+==================================================================
+CHECKLIST
+==================================================================
+[ ] A1 iOS subtítulo salvo
+[ ] A2 iOS texto promocional salvo
+[ ] B2 Android breve descrição salva
+[ ] B3 Android descrição completa salva
+[ ] A3 Monstrinhos versão 1.0.82 keywords + descrição (se Apple exigir)
+[ ] Screenshots PAUSA em 1º lugar (quando tiver print)
+
+==================================================================
+MENSAGEM PARA MONSTRINHOS (só se precisar 1.0.82)
+==================================================================
+Criar versão 1.0.82 no App Store Connect só para keywords + descrição
+deste ficheiro (secção A3). Textos prontos acima.
+Sem mudar código se Apple aceitar o mesmo build da 1.0.81.

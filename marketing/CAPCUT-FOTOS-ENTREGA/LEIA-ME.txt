@@ -1,0 +1,15 @@
+EGO-AI — FOTOS PARA REEL PRONTO (voce so poe musica e posta)
+=============================================================
+
+COLOQUE AQUI os prints do app (vertical 9:16, do celular).
+
+NOMES OBRIGATORIOS (5 fotos):
+  01-monstrinho-jardim.png   -> jardim com monstrinho
+  02-missao-humor.png        -> check-in de humor
+  03-respirar-3x.png         -> missao respirar 3 vezes
+  04-aventura-monstrinho.png -> barra de aventura
+  05-agenda-luna.png         -> agenda OU chat Luna
+
+DEPOIS: GERAR-REEL-ENTREGA.bat
+
+OU mande as fotos no chat do Cursor.

@@ -9,7 +9,7 @@ SINAIS QUE JÁ ORIENTAM O PRODUTO
 |-------------------------------|------------------------------------|----------|
 | Short ~230 humor/monstrinho   | Humor → monstrinho <2 toques       | PAUSA    |
 | Short ~122 “sou o lembrete”   | Agenda + carga mental clara        | Agenda*  |
-| ASA keyword “ansiedade”       | PAUSA 1 min + 1º chat sem fricção  | PAUSA+API|
+| ASA keyword “ansiedade”       | Calma 1 min + 1º chat sem fricção  | PAUSA+API|
 | ASA 14/07: 5 installs · ~$18  | ansiedade 3 · solidão 1 (CPA $1.64)| Marketing|
 | Ficha humor/desabafo/12avat   | Avatares + chat desabafo estável   | Build/UI |
 | Vídeo #1 noite (testando)     | Chat noite + voz + PAUSA fluido    | PAUSA+UI |
@@ -27,10 +27,10 @@ PEDIDOS ABERTOS AOS AGENTES (não código ainda — observar)
 ---------------------------------------------------------
 [x] PAUSA: 1º humor do dia sensação “ Finch PT ” em <10s
      → 13/07 humor-first + sem Alert + celebração no 1º toque (antes da API)
-     → CTA «PAUSA 1 min» no jardim + ecrã PAUSA (ASA ansiedade / vídeo #1)
-     → SYNC-AGENTES-PAUSA-1.0.86 · a monitorar short ~230 vs vídeo #1 noite
+     → CTA «Calma 1 min» no jardim + ecrã (ASA ansiedade / vídeo #1)
+     → Nome user-facing: Calma 1 min (14/07) · SYNC-AGENTES-PAUSA
 [x] API: funil cadastro→chat — a monitorar (SYNC-AGENTES-API-1.0.86 · health OK 13/07)
-[ ] Marketing: 2 posts/dia diferentes · preencher ficha 24h
-[ ] Build: 1.0.86 live store → ASO + ASA nova · Play 14/14
+[x] Marketing: copy Calma 1 min em loja/Reels/landing (14/07) · 2 posts/dia + ficha 24h
+[ ] Build: 1.0.86 live store → ASO + ASA nova · Play 14/14 · SEM GERAR neste pedido
 
-ÚLTIMA ATUALIZAÇÃO: 13/07/2026 21:20 BRT (PAUSA: reação humor imediata + PAUSA 1 min)
+ÚLTIMA ATUALIZAÇÃO: 14/07/2026 — rename Calma 1 min (tudo excepto build)

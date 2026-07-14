@@ -1,0 +1,63 @@
+INSIGHTS REEL 7 — Ads site (egoai.com.br) — 27/06/2026
+======================================================
+
+Vídeo: marketing/videos/app-real/ego-ai-carga-mental-reels.mp4
+Hook: "Não é que eu esqueço. EU sou o lembrete de todo mundo 😮‍💨"
+Duração: 11s · Meta: **VISITAS AO SITE** · Turbinado 27/06 15:13
+
+NOTA: Plano era Reel 6 orgânico no dia 27 — na prática foi **Reel 7 com ads**.
+Reel 6 ainda sem dados → postar orgânico para completar teste.
+
+GASTO
+-----
+  Usado: R$30,07 · orçamento R$25/dia · contínuo (27–28/jun)
+
+MÉTRICAS (ads site)
+-------------------
+  Visualizações        3.261
+  Visualizadores       2.740
+  Cliques no link      110       CTR 3,3%  🟢
+  Custo por clique     R$0,27    🟢 (meta bom < R$1)
+  Engajamentos         1.081
+  Reproduções 3s       968
+  Reel plays           2.987
+  ThruPlays            270
+  Tempo médio          3s
+  Atenção inicial      32,4%
+  Retenção             27,2%
+
+PÚBLICO
+-------
+  Homens 54,7% · Mulheres 45%
+  65+ 32,4% · 45–54 32,1% · 55–64 20,6%  → público **maduro** (carga mental)
+  SP 920 · RS 471 · MG 347 · PR 253 · RJ 217
+
+ONDE RODOU (top)
+----------------
+  Facebook Feed móvel     2.400  ← maioria do resultado
+  Facebook Reels móvel      417
+  Instagram Reels móvel     152
+  Instagram Feed             72
+  Stories (IG+FB)            24
+
+COMPARAR COM REEL 3 (agenda · ads site · parcial R$14,72)
+---------------------------------------------------------
+                    Reel 3        Reel 7 (R$30)
+  Cliques link      24            110   🟢
+  Custo/clique      R$0,61        R$0,27 🟢
+  CTR               1,6%          3,3%  🟢
+  Retenção          24,8%         27,2% ≈
+  Visualizações     1.538         3.261
+
+VEREDICTO PARCIAL (só cliques — falta SQL cadastros)
+----------------------------------------------------
+  ✅ Melhor custo/clique até agora
+  ✅ Ângulo carga mental + público 45+ valida dor
+  ⚠️ Tempo médio 3s/11s — hook segura pouco, mas clica
+  ❓ Falta: cadastro + "oi" no chat (rodar CRESCIMENTO-DIARIO.sql)
+
+PRÓXIMO
+-------
+  Hoje: Reel 6 ORGÂNICO (sem turbinar) — completar par
+  Amanhã ~12h: SQL + DECISAO-REEL-6-7.txt
+  Se SQL ≥2 cadastros: turbinar Reel 7 de novo R$25 site (não Reel 6 ainda)

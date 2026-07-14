@@ -1,4 +1,4 @@
-TestFlight EXTERNO — EGO-AI 1.0.60 (build 47)
+TestFlight EXTERNO — EGO-AI 1.0.60 (build 49)
 ==============================================
 
 O submit iOS so ENVIA o .ipa.
@@ -15,10 +15,10 @@ https://testflight.apple.com/join/eNDKdFWF
 PASSO A PASSO
 -------------
 
-1) Build 47 visivel em TestFlight > Builds iOS
+1) Build 49 visivel em TestFlight > Builds iOS
    Status: "Pronto para envio" ou "Processando"
 
-2) Export compliance (se pedir no build 47)
+2) Export compliance (se pedir no build 49)
    "Seu app usa criptografia?" → NAO (so HTTPS padrao)
 
 3) Testes EXTERNOS (nao confundir com Internos)
@@ -26,7 +26,7 @@ PASSO A PASSO
    Abra o grupo (ex: "Testadores EGO")
 
 4) Adicionar build ao grupo externo
-   Grupo > Builds > + > versao 1.0.60 / build 47
+   Grupo > Builds > + > versao 1.0.60 / build 49
    Cole o texto "O QUE TESTAR" abaixo
 
 5) Enviar para revisao beta
@@ -47,7 +47,7 @@ O que mudou:
 • EGO de Bolso semanal (herdado)
 
 Como testar:
-1. Atualizar para 1.0.60 (build 47) no TestFlight
+1. Atualizar para 1.0.60 (build 49) no TestFlight
 2. Chat → gravar voz → confirmar resposta do avatar (iPhone regressão)
 3. Se precisar: Esqueci a senha → e-mail Ego-IA → nova senha
 4. Jardim → loja → missões do dia
@@ -61,7 +61,7 @@ Voz Android corrigida; reset senha Ego-IA; loja 34 + missões surpresa.
 
 CHECKLIST
 ---------
-[ ] Build 47 no grupo EXTERNO (nao so interno)
+[ ] Build 49 no grupo EXTERNO (nao so interno)
 [ ] "O que testar" preenchido
 [ ] Enviado para revisao beta
 [ ] Status "Pronto para testar"

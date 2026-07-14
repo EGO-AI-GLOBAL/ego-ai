@@ -1,43 +1,51 @@
 EGO-AI — Play teste fechado · contagem 14 dias
 ===============================================
-Atualizado: 07/07/2026
+Atualizado: 14/07/2026
 
-PLAY CONSOLE (hoje)
--------------------
+PLAY CONSOLE (confirmado pelo Iury)
+-----------------------------------
 ✅ 12 testadores opt-in
-✅ 12 participando continuamente há **6 dias**
-⏳ Faltam **8 dias** para liberar «Solicitar produção»
-🎯 Meta botão verde: ~**14–15/07/2026** (se ninguém sair da lista)
+✅ 12 participando continuamente há **13 dias**
+⏳ Falta **1 dia** para liberar «Solicitar produção»
+🎯 Meta botão verde: **~15/07/2026** (14/14)
 
 REGRA GOOGLE
 ------------
 • Mínimo **12** testadores no fechado
 • **14 dias seguidos** com os 12 participando
-• Conta só o **teste fechado** (não interno aberto)
 • **Não remover** ninguém da lista durante os 14 dias
 • Um opt-out zera o streak — evitar
 
-O QUE FAZER AGORA
------------------
-[ ] Anunciar App Store — MENSAGEM-LANCAMENTO-APP-STORE-07-07.txt
-[ ] Post POST-LANCAMENTO-APP-STORE.txt (Reels/Stories)
-[ ] Manter os 12 na lista Android (6/14 — faltam 8 dias)
-[ ] Pedir API: EGO_TESTFLIGHT_URL=https://apps.apple.com/app/id6780595396
+FOCO AGORA (crítico — último dia)
+---------------------------------
+[x] Stripe PJ + site + Android 1.0.85 planos
+[x] 13/14 confirmado (14/07)
+[ ] **NÃO mexer** na lista de testadores
+[ ] Grupo: msg 13/14 (abaixo)
+[ ] **15/07**: verificar 14/14 → **Solicitar produção** Play
+[ ] Ficha Play já pronta (humor/desabafo) — usar na produção
 
-PRÓXIMA MSG GRUPO (07/07)
--------------------------
-marketing/MENSAGEM-TESTADORES-07-07.txt
+MSG GRUPO
+---------
+Hoje: marketing/MENSAGEM-TESTADORES-14-07.txt (13/14)
+Amanhã: marketing/MENSAGEM-TESTADORES-15-07-PRODUCAO.txt (quando 14/14)
 
-LINHA DO TEMPO (estimada)
--------------------------
+LINHA DO TEMPO
+--------------
 Dia  Play   Data
- 5   ✅     06/07
- 6   ✅     07/07  ← hoje
- 7          08/07  «quase metade»
-10          11/07
-14          14/07  → solicitar produção (estim.)
+11          12/07
+12   ✅     13/07
+13   ✅     14/07  ← hoje (Console: 13 dias)
+14          15/07  → solicitar produção 🎯
 
 Histórico
 ---------
 06/07 — 5/14
 07/07 — 6/14
+08/07 — 7/14
+09/07 — 8/14
+10/07 — 9/14
+11/07 — 10/14
+12/07 — 11/14
+13/07 — 12/14
+14/07 — 13/14 ← Console (hoje)

@@ -1,0 +1,113 @@
+EGO-AI — pedir para AMIGOS postarem o Reel (só ANDROID)
+=========================================================
+Atualizado: 2026-06-27
+
+VÍDEO
+-----
+marketing/videos/app-real/ego-ai-testadores-android-reels.mp4
+
+Gerar de novo: duplo clique GERAR-REEL-TESTADORES-ANDROID.bat
+
+---
+
+MENSAGEM WHATSAPP (enviar + o vídeo)
+------------------------------------
+Oi! Podes postar este Reel no teu Instagram hoje? (só pedido Android)
+
+1) Posta o vídeo no Reels
+2) Copia a LEGENDA abaixo (ou a de marketing/POST-REEL-TESTADORES-ANDROID.txt)
+3) Comentário fixado com o link Play
+4) Tag @egoai.br se quiseres
+
+Leva 2 min. Obrigado! 🙏
+
+---
+
+SE PERGUNTAREM "O LINK NÃO ABRE"
+---------------------------------
+Guia completo: marketing/PLAY-LINK-NAO-ABRE-FAQ.txt
+
+Resposta rápida (copiar):
+
+Precisa ser ANDROID + conta Google (Gmail).
+1) Copia o link
+2) Abre no CHROME (não dentro do WhatsApp)
+3) Tornar-se testador → Aceitar
+4) Play Store → Ego-IA → Instalar
+
+Link: https://play.google.com/apps/testing/com.egoai.app
+
+Se ainda falhar → manda teu e-mail Gmail (conta Google da Play) que eu adiciono na lista.
+
+NÃO é só @gmail.com — é conta GOOGLE. Hotmail/Outlook sozinho não funciona na Play.
+
+iPhone → TestFlight: https://testflight.apple.com/join/eNDKdFWF
+
+---
+Versão curta (WhatsApp/DM):
+
+É o EGO-AI — um app de assistente com inteligência artificial em português. Dá para conversar por texto e voz, organizar agenda e lembretes. Está em teste fechado na Play Store (só Android por agora). O post é só para pedir a quem tem Android que teste em 5 min — não é venda nem spam, é ajuda pra gente validar antes de lançar na loja. Se quiser testar: https://play.google.com/apps/testing/com.egoai.app
+
+Versão ainda mais curta:
+
+App de assistente com IA (chat, voz e agenda). Tá em teste na Play — o Reel pede pra quem tem Android testar 5 min. Link: https://play.google.com/apps/testing/com.egoai.app
+
+Se não tiver Android:
+
+Por agora só Android no teste. iPhone vem depois no TestFlight. Mesmo assim o repost do vídeo ajuda — quem tiver Android no teu público pode clicar no link.
+
+---
+
+NOME DO REEL (título interno / capa)
+------------------------------------
+Quem tem Android — 5 minutos? 🙏 Teste grátis EGO-AI
+
+---
+
+LEGENDA (copiar no Reel — cada pessoa usa a MESMA)
+--------------------------------------------------
+Quem tem ANDROID — me ajuda com 5 minutos? 🙏
+
+EGO-AI: assistente com IA (chat + voz + agenda).
+
+Como testar:
+1️⃣ Link abaixo → Tornar-se testador
+2️⃣ Instalar na Play Store
+3️⃣ Criar conta
+4️⃣ Escrever "oi" no chat
+
+🤖 Só Android (teste fechado):
+https://play.google.com/apps/testing/com.egoai.app
+
+Obrigado! 💜
+
+#egoai #android #teste #organização #ia
+
+---
+
+COMENTÁRIO FIXADO
+-----------------
+🤖 ANDROID — teste grátis (5 min):
+
+1) Tocar no link
+2) Participar do teste → Instalar
+3) Cadastro → chat → escrever "oi"
+
+https://play.google.com/apps/testing/com.egoai.app
+
+---
+
+REGRAS
+------
+• Só ANDROID — não pedir iPhone neste post
+• Link é da PLAY (teste fechado), não só o site
+• Meta: opt-in Play + install + cadastro + "oi"
+• Não prometer "já na loja pública"
+
+---
+
+QUANTOS POSTS?
+--------------
+• Tu: 1 Reel no @egoai.br
+• Amigos: 3–5 Stories OU repost do teu Reel
+• Não precisa 10 pessoas com Reel — 2–3 já ajuda

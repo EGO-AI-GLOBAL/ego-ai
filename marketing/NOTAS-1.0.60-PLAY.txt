@@ -1,6 +1,6 @@
 NOTAS VERSÃO 1.0.60 — TestFlight / Play (teste fechado)
 =====================================================
-iOS build 47 · Android versionCode 99
+iOS build 49 · Android versionCode 99
 
 CURTO (O que há de novo — copiar TestFlight externo / Play)
 -----------------------------------------------------------

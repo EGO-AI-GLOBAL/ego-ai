@@ -1,0 +1,66 @@
+CHAT AVATAR — foto nova pós-atualização (1.0.81) · para vídeos
+=================================================================
+Pasta: marketing/CAPCUT-FOTOS-CHAT-AVATAR-1.0.81/
+Cópia legado: marketing/CAPCUT-FOTOS-1.0.34/01-chat-avatar-hana-desabafo.png
+
+--------------------------------------------------------------------------------
+01-chat-avatar-hana-desabafo.png
+--------------------------------------------------------------------------------
+O que mostra:
+• Avatar Hana em destaque no topo (rosto grande)
+• «2 dias seguidos no chat — orgulho de você»
+• Toggle «Ouvir ao responder» ligado
+• Conversa real: «Oi bom dia» → «Como você está se sentindo hoje?»
+• Botão «Desabafo agora»
+• Microfone + mensagem de texto
+
+Melhor para:
+• Formato E — voz / companhia / desabafo (REGRA-NAO-REPETIR formato E)
+• Hook: «Não quis mandar áudio no Zap»
+• Hook: «Alguém que ouve de verdade»
+• Cena 2 ou 4 em reel variado (mix PAUSA + chat)
+• App Store screenshot #2 ou #3 (depois de PAUSA)
+
+Texto overlay sugerido:
+• «Falei 10 segundos e ela respondeu»
+• «Desabafo sem julgamento»
+• «Ouvir ao responder»
+
+Nota marketing:
+• Na legenda pode dizer «Luna, Leo ou seu avatar» — no print é Hana (ok, mostra variedade)
+
+--------------------------------------------------------------------------------
+ROTEIRO REEL SUGERIDO (formato E — companhia)
+--------------------------------------------------------------------------------
+Cena 1: POV texto «3h da manhã ninguém online» (sem foto OU foto escurecida)
+Cena 2 (esta foto): «Abri o EGO-AI» + avatar
+Cena 3: PAUSA ou Monstrinhos (outra pasta)
+Cena 4 (esta foto): CTA App Store
+
+Gerar só chat: GERAR-REEL-CHAT-AVATAR-1.0.81.bat
+JSON: marketing/REEL-CHAT-AVATAR-1.0.81.json
+
+--------------------------------------------------------------------------------
+COMBINAR COM OUTRAS FOTOS NOVAS (variety reel)
+--------------------------------------------------------------------------------
+| Cena | Pasta | Foto |
+|------|-------|------|
+| 1 | PAUSA-EGO-1.0.81 | 01-pausa-ego-tela-principal |
+| 2 | CHAT-AVATAR-1.0.81 | 01-chat-avatar-hana-desabafo |
+| 3 | MONSTRINHOS-1.0.81 | 01-jardim-sol-humor-hoje |
+| 4 | CHAT-AVATAR-1.0.81 | CTA |
+
+--------------------------------------------------------------------------------
+FOTOS CHAT QUE AINDA FALTAM
+--------------------------------------------------------------------------------
+[ ] Gravando voz (microfone ativo / onda)
+[ ] Luna ou Leo em vez de Hana (se quiser marca fixa nos vídeos)
+[ ] Resposta em áudio tocando
+
+--------------------------------------------------------------------------------
+APP STORE 1.0.82
+--------------------------------------------------------------------------------
+Ordem screenshots sugerida:
+1. Calma 1 min
+2. Chat avatar (esta foto)
+3. Monstrinhos jardim

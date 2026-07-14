@@ -1,24 +1,55 @@
-EGO-AI 1.0.85 — APP STORE (iOS · hotfix sessão)
-================================================
-Marketing · 10/07/2026
+EGO-AI 1.0.85 — APP STORE (iOS · ASO humor/desabafo + hotfix)
+==============================================================
+Marketing · 13/07/2026
 
-ORDEM — iOS auto · Android manual
----------------------------------
+ORDEM — iOS agora
+-----------------
 1. Connect → versão **1.0.85** → anexar build **87**
-2. Colar **O que há de novo** abaixo
-3. IAP vazia → Enviar para revisão
+2. Confirmar subtítulo + texto promocional (já mudaste ✅)
+3. Screenshots: pasta **marketing/APP-STORE-FICHA-1.0.85/** (01→05)
+4. Colar **O que há de novo** abaixo
+5. Keywords (opcional melhorar) + descrição 1ª linha
+6. IAP vazia → Enviar para revisão
 
 LINK Connect:
 https://appstoreconnect.apple.com/apps/6780595396/distribution/ios/version/inflight
+
+Pasta fotos (já aberta / Explorer):
+marketing\APP-STORE-FICHA-1.0.85\
+
+================================================================================
+O QUE JÁ MUDASTE
+================================================================================
+[x] Subtítulo (ex.: Ansiedade · humor · desabafo)
+[x] Texto promocional
+
+================================================================================
+O QUE AINDA MELHORAR NESTA SUBIDA (rápido)
+================================================================================
+[ ] Screenshots na ordem 01→05 da pasta APP-STORE-FICHA-1.0.85
+[ ] Keywords — preferir (máx. 100, vírgula sem espaço):
+    ansiedade,humor,desabafo,stress,respirar,calma,solidão,autocuidado,monstrinhos,voz
+    (tira «pausa,avatar» se precisares de espaço; «ansiedade» NÃO repetir se já está no subtítulo — Apple junta subtítulo+keywords)
+[ ] Descrição — 1ª frase alinhada aos Reels:
+    Quando a ansiedade aperta ou o humor pesa, você não precisa ficar sozinha no celular.
+[ ] «O que há de novo» — colar bloco abaixo
+[ ] IAP / Compras no app = VAZIA
+[ ] Conta demo em Informações para a revisão
+
+NÃO precisa nesta build:
+• Traduzir EN/ES
+• Mudar nome EGO-AI
+• Pré-registro Android (é outro fluxo)
 
 ================================================================================
 VERSÃO 1.0.85 → O QUE HÁ DE NOVO
 ================================================================================
 
-• **Fica logado** — abrir pelo push não pede senha de novo
-• **Mais estável** quando o servidor volta após manutenção
-• Menos e-mails duplicados ao recuperar senha
-• Tríade Silenciosa PAUSA + Monstrinhos (1.0.84)
+• Ficha renovada: humor, desabafo e calma na ansiedade
+• Monstrinhos do Humor + chat com voz
+• Fica logado — abrir pelo push não pede senha de novo
+• Mais estável quando o servidor volta após manutenção
+• Tríade Silenciosa PAUSA + Monstrinhos
 • Melhorias de estabilidade
 
 ================================================================================

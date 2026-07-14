@@ -1,0 +1,60 @@
+EGO-AI — POST DE HOJE (29/06) · REEL GMAIL + TESTFLIGHT · ORGÂNICO
+====================================================================
+
+NOVA REGRA (vídeo de hoje)
+--------------------------
+• ANDROID: pessoa manda GMAIL → tu add no teste fechado → ela baixa
+• IPHONE: link TestFlight — entra sozinha (sem mandar e-mail)
+• ANÚNCIO PAGO: PAUSADO até teste aberto ou fluxo Gmail no criativo
+
+VÍDEO
+-----
+marketing\videos\app-real\ego-ai-gmail-android-ios-reels.mp4
+
+Gerar: duplo clique GERAR-REEL-GMAIL-ANDROID-IOS.bat
+
+---
+
+PASSO A PASSO (15 min)
+----------------------
+1. Duplo clique GERAR-REEL-GMAIL-ANDROID-IOS.bat (se MP4 não existir)
+2. CapCut → importar MP4 → música 12–15% → exportar 1080p
+3. Instagram Reels → colar LEGENDA (POST-REEL-GMAIL-ANDROID-IOS.txt)
+4. Comentário FIXADO (mesmo ficheiro)
+5. Story: «Android ou iPhone?» + instruções
+6. NÃO turbinar hoje (orgânico — validar Gmails + installs)
+
+---
+
+QUANDO CHEGAR GMAIL (Android)
+-----------------------------
+1. Play Console → Teste fechado → Testadores → add e-mail
+2. Responder:
+
+Liberado! Abre no CHROME:
+https://play.google.com/apps/testing/com.egoai.app
+Tornar-se testador → Instalar → Luna → «oi»
+
+---
+
+LINKS
+-----
+Android (só depois de add Gmail):
+https://play.google.com/apps/testing/com.egoai.app
+
+iPhone (link público):
+https://testflight.apple.com/join/eNDKdFWF
+
+Site:
+https://egoai.com.br
+
+---
+
+MÉTRICA (anotar amanhã)
+-----------------------
+[ ] Quantos Gmails recebidos
+[ ] Quantos add na Play
+[ ] Quantos instalaram + «oi»
+[ ] TestFlight novos (iOS)
+
+SQL: supabase/CRESCIMENTO-DIARIO.sql

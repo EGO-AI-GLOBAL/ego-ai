@@ -1,0 +1,26 @@
+EGO-AI — STRIPE PJ · SÓ 4 PLANOS NESTE LANÇAMENTO
+=================================================
+Aguardar Stripe liberar conta Economizze → criar estes 4 → passar links ao agente API.
+
+| # | Produto        | Preço/mês | plan_tier  |
+|---|----------------|-----------|------------|
+| 1 | EGO Lançamento | R$ 10,94  | connection |
+| 2 | EGO Conexão    | R$ 32,74  | connection |
+| 3 | EGO Premium    | R$ 54,64  | premium    |
+| 4 | EGO Total      | R$ 109,39 | total      |
+
+= 4 produtos + 4 links de pagamento
+
+NÃO CRIAR AGORA (fase 2 — se houver procura)
+--------------------------------------------
+• EGO Empresa (individual R$ 218,89)
+• Equipes 10/20/30/40/50/100 (18 planos)
+• USD internacional
+
+APP / SITE
+----------
+• Android: só estes 4 + Essencial grátis (já no código)
+• Site /planos e home: idem
+• iPhone: 3 IAP Apple (sem Lançamento Stripe) — não mexer
+
+Guia clique a clique: marketing/STRIPE-PJ-COPIAR-IGUAL-CONTA-ANTIGA.txt (só planos 1–4)

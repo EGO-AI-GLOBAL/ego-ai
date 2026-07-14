@@ -1,0 +1,99 @@
+EGO-AI — STRIPE PJ · PLANO 1 · EGO LANÇAMENTO (clique a clique)
+================================================================
+Conta: Economizze · CNPJ 52.045.624/0001-29
+Preço: R$ 10,94/mês · plan_tier = connection
+
+ANTES DE COMEÇAR
+----------------
+• Modo **Produção** ligado (canto superior direito do Stripe — NÃO «Teste»)
+• URL: https://dashboard.stripe.com
+
+================================================================================
+PARTE A — CRIAR O PRODUTO
+================================================================================
+
+PASSO 1
+  Abrir: https://dashboard.stripe.com/products
+  Clicar botão azul: **+ Adicionar produto** (ou «+ Add product»)
+
+PASSO 2 — Nome e descrição
+  Nome: EGO Lançamento
+  Descrição (colar):
+    Oferta de lançamento: R$ 10,94/mês (inclui impostos e taxas) por 6 meses.
+    Depois R$ 19,90/mês por 6 meses. Depois R$ 32,74/mês (EGO Conexão).
+    Cancele quando quiser. Sem cupons adicionais.
+
+PASSO 3 — Imagem (opcional)
+  Imagem do produto → Carregar
+  Ficheiro: marketing/brand/logo-site.png
+Imagem:
+FOTOS-STRIPE/br/launch/01-capa.png
+
+PASSO 4 — Preço (na mesma página, secção Preço)
+  Modelo de preços: **Padrão** (Standard pricing)
+  Preço: 10,94
+  Moeda: **BRL** (Real brasileiro)
+  Tipo: **Recorrente**
+  Período de faturamento: **Mensal**
+
+PASSO 5 — Impostos
+  NÃO activar «Cobrar imposto» / Stripe Tax
+  (impostos já estão no preço)
+
+PASSO 6 — Metadados do PRODUTO (rolar até Metadados)
+  Chave: plan_tier
+  Valor: connection
+  Clicar **+ Adicionar mais**
+
+PASSO 7
+  Clicar **Adicionar produto** (botão azul no fim da página)
+  → Anotar o **Price ID** (começa com price_...) — opcional para API
+
+================================================================================
+PARTE B — LINK DE PAGAMENTO
+================================================================================
+
+PASSO 8
+  Menu lateral: **Pagamentos** → **Links de pagamento**
+  (ou https://dashboard.stripe.com/payment-links)
+  Clicar **+ Novo** (ou «+ New»)
+
+PASSO 9
+  Tipo: **Assinatura** (Subscription) — NÃO pagamento único
+  Produto: escolher **EGO Lançamento** · R$ 10,94/mês
+  Quantidade: 1 (fixo)
+
+PASSO 10 — Opções do link
+  • Códigos promocionais: **DESLIGADO** (obrigatório no Lançamento)
+  • Coletar endereço: conforme preferência (pode deixar só país)
+  • Descrição no extrato do cartão: **EGO-AI** (se pedir)
+
+PASSO 11 — Metadados do LINK
+  Chave: plan_tier
+  Valor: connection
+
+PASSO 12
+  Clicar **Criar link**
+  Copiar URL (https://buy.stripe.com/....)
+  Colar num bloco de notas com o título:
+    STRIPE_CHECKOUT_LAUNCH_URL = [URL]
+
+================================================================================
+PARTE C — CONFIRMAR (30 segundos)
+================================================================================
+
+PASSO 13 — Abrir o link numa aba anónima
+  Deve mostrar: EGO Lançamento · R$ 10,94/mês · Assinatura
+
+PASSO 14 — NÃO pagar ainda
+  Só confirmar que o preço está certo
+  Dizer «feito» no chat → passamos ao Plano 2 (EGO Conexão R$ 32,74)
+
+================================================================================
+GUARDAR PARA O AGENTE API (não commitar no git)
+================================================================================
+
+STRIPE_CHECKOUT_LAUNCH_URL=https://buy.stripe.com/XXXX
+EGO_LAUNCH_OFFER_PRICE_BRL=10.94
+
+(Reajuste 19,90 → 32,74 manual em Assinaturas — ver LEMBRETE-STRIPE-PRECOS-MANUAL.txt)

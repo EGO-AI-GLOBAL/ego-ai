@@ -1,0 +1,65 @@
+MONSTRINHO ANIMS — mapa no app (humor é o hub)
+==============================================
+14/07/2026 · Inventário Iury: **35 clips** prontos
+
+PASTA
+-----
+marketing/CAPCUT-CLIPS-MONSTRINHO-REACOES/
+  sol/     → mood good   (amarelo)
+  brisa/   → mood calm   (azul)
+  neutro/  → mood ok     (cinza)
+  nublina/ → mood heavy  (roxo)
+  agita/   → mood anxious (laranja)
+
+REGRA DE PRODUTO (o que Iury pediu)
+-----------------------------------
+Humor está ligado a TUDO no jardim.
+Animação **não cria um sistema paralelo** — ela **chama o humor**:
+
+  todayMood = last_mood (ou preview do check-in)
+  clip = pasta(todayMood) / evento.mp4
+
+Ex.: Nublina + regar → nublina/04-water-heavy.mp4
+     Sol + dia completo → sol/07-all-goals-good.mp4
+
+EVENTOS → ficheiro (igual em todas pastas)
+-----------------------------------------
+| Evento app                         | Clip               |
+|------------------------------------|--------------------|
+| Idle no jardim (loop)              | 01-idle-*.mp4      |
+| Marcou humor (1º toque)            | 02-mood-react-*.mp4|
+| Missão breathe / calm_breath / PAUSA| 03-breathe-*.mp4  |
+| Missão water / plant / hydrate     | 04-water-*.mp4     |
+| Missão gratitude / kind_self / hug | 05-kind-*.mp4      |
+| Missão surprise_*                  | 06-surprise-*.mp4  |
+| Todas missões do dia               | 07-all-goals-*.mp4 |
+| Outras missões (stretch, walk…)    | 02-mood-react fallback |
+
+Contagem: 5 humores × 7 eventos = **35** ✓
+
+INTEGRAÇÃO (agente PAUSA — próximo)
+-----------------------------------
+1. Copiar clips leves para app/assets/monstrinho-clips/{mood}/
+   (ou require dinâmico — cuidado com bundle size ~70MB total; pode
+    usar subset Fase 1: só humor do dia + react + all-goals)
+2. MoodMonsterScene / DailyCareChallenge:
+   - onPickMood → play 02 mood-react do mood escolhido
+   - onMissionDone(kind) → play 03–06 pelo kind
+   - all goals → 07
+   - idle → 01 loop só se sem celebrate
+3. Preferir mutado (clips sem voz no app; voz fica no Reel)
+4. Sem tocar auth/voz chat/Stripe/EAS — só UI monstrinhos
+5. Build sobe quando Iury pedir
+
+FASE 1 SUGERIDA (bundle menor)
+------------------------------
+Se 35×~2MB for pesado no EAS:
+• Embarcar só **02 + 07** nos 5 humores (10 clips) + idle 01
+• Restantes em download lazy / fase 2
+OU comprimir e deixar os 35 se teste AAB aceitar.
+
+STATUS
+------
+[x] Assets gerados (35)
+[ ] Ligar no app (PAUSA)
+[ ] Build release

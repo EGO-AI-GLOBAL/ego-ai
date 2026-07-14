@@ -1,0 +1,43 @@
+EGO-AI — Stripe PJ Economizze · links (produção)
+================================================
+Conta: Economizze · CNPJ 52.045.624/0001-29
+Atualizado: 12/07/2026 — 4/4 links OK · webhook criado
+
+NÃO commitar chaves secretas — só URLs públicas buy.stripe.com
+
+| Plano            | Preço    | Env Railway                         | URL |
+|------------------|----------|-------------------------------------|-----|
+| EGO Lançamento   | R$ 10,94 | STRIPE_CHECKOUT_LAUNCH_URL          | https://buy.stripe.com/7sY3cu923evNaqP6ovfYY04 |
+| EGO Conexão      | R$ 32,74 | STRIPE_CHECKOUT_CONNECTION_URL      | https://buy.stripe.com/4gM5kC6TV4Vd6az3cjfYY05 |
+| EGO Premium      | R$ 54,64 | STRIPE_CHECKOUT_PREMIUM_URL         | https://buy.stripe.com/3cIeVc5PRevN56vcMTfYY02 |
+| EGO Total        | R$ 109,39| STRIPE_CHECKOUT_TOTAL_URL           | https://buy.stripe.com/14AeVcdijevN8iH3cjfYY03 |
+
+Lançamento substituído (não usar):
+https://buy.stripe.com/6oU3cu3HJbjBfL9fZ5fYY01
+
+Webhook:
+  Nome: EGO-AI Railway
+  URL:  https://ego-ai-production-a2c2.up.railway.app/stripe/webhook
+  Eventos: checkout.session.completed, customer.subscription.created/updated/deleted,
+           invoice.paid, invoice.payment_failed
+  [x] Criado na conta PJ
+  [x] Signing secret (whsec_) copiado pelo utilizador (não neste ficheiro)
+
+================================================================================
+COLAR NO RAILWAY (agente API) — secrets à parte
+================================================================================
+STRIPE_CHECKOUT_LAUNCH_URL=https://buy.stripe.com/7sY3cu923evNaqP6ovfYY04
+STRIPE_CHECKOUT_CONNECTION_URL=https://buy.stripe.com/4gM5kC6TV4Vd6az3cjfYY05
+STRIPE_CHECKOUT_PREMIUM_URL=https://buy.stripe.com/3cIeVc5PRevN56vcMTfYY02
+STRIPE_CHECKOUT_TOTAL_URL=https://buy.stripe.com/14AeVcdijevN8iH3cjfYY03
+EGO_LAUNCH_OFFER_PRICE_BRL=10.94
+STRIPE_SECRET_KEY=sk_live_...   (Desenvolvedores → Chaves da API · conta PJ)
+STRIPE_WEBHOOK_SECRET=whsec_... (do webhook EGO-AI Railway)
+
+Checklist:
+[x] 4 links
+[x] Webhook PJ
+[ ] sk_live_ PJ no Railway
+[ ] whsec_ no Railway
+[ ] Build Android só 4 planos
+[ ] Site /planos/ com links activos
