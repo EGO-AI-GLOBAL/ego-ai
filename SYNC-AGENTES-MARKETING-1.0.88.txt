@@ -3,7 +3,7 @@ SYNC MARKETING — 1.0.88
 ✅ PRONTO
 
 Data: 14/07/2026
-Commit: (preencher após push)
+Commit: **12f52d2**
 
 ZONA MARKETING — FECHO PARA BUILD 1.0.88
 ---------------------------------------
