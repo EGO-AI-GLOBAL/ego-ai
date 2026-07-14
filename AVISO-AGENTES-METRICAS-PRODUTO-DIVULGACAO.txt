@@ -1,0 +1,101 @@
+AVISO A TODOS OS AGENTES — métricas · produto · divulgação
+==========================================================
+Data: 13/07/2026 · Versão app em curso: 1.0.86
+Lê isto antes de mexer em copy, PAUSA, monstrinhos, chat, funil ou ASA.
+
+META DO IURY (todos alinhados)
+------------------------------
+Ser o **melhor app do segmento** (companheiro de bolso / humor / desabafo / agenda /
+PAUSA — não “mais um ChatGPT”) **e** ter a **melhor divulgação**.
+Divulgação alimenta o produto: o que reten no Reel = o que o app tem de reforçar.
+Produto alimenta a divulgação: features estáveis e lindas = assets reais nas lojas/Reels.
+
+----------------------------------------------------------
+1) O QUE A DIVULGAÇÃO JÁ PROVOU (usar / não inventar contra)
+----------------------------------------------------------
+Tops orgânicos (YT Shorts históricos):
+• ~230 views — humor / monstrinho / “viciei” 🥚  (Finch-like PT)
+• ~122 views — carga mental / “eu sou o lembrete”
+
+Apple Search Ads:
+• Keyword forte: **ansiedade** (CPT ~$1.50 — CPA installs bom)
+• Campanha nova pós-ASO 1.0.86: humor / desabafo / stress / solidão
+
+Ficha lojas (já alinhada):
+• Humor · desabafo · 12 avatares · PAUSA · agenda · anti-Zap
+• NÃO empurrar “tokens / IA genérica / ChatGPT” no marketing
+
+Vídeo #1 NOVO método (WayIn 3 clips + CapCut + voz/legenda PT) — ACOMPANHAR:
+• IG:  https://www.instagram.com/reel/DawHABqR3xX/
+• YT:  https://youtube.com/shorts/nS8XvfvgIGI
+• TT:  https://vt.tiktok.com/ZSX6KNwyD/   ← 2 curtidas cedo (13/07)
+• Ficha: marketing/ACOMPANHAR-VIDEO-01-NOITE-FRIA.txt
+• Ângulo: noite / desabafo / chat → voz → PAUSA (SEM monstrinho neste #1)
+
+Regra divulgação: **2 posts/dia · ângulos DIFERENTES · só turbinar o vencedor**.
+Recursos: ficha Apple 1.0.85 + CAPCUT-FOTOS-* + avatar-*-speaking.mp4
+Nunca reciclar o mesmo MP4 pronto como se fosse conteúdo novo.
+
+----------------------------------------------------------
+2) O QUE CADA AGENTE DEVE MONITORAR / MELHORAR NO PRODUTO
+----------------------------------------------------------
+
+### PAUSA (jardim / monstrinhos / daily_care / PausaEgo*)
+Monitorar se o conteúdo que RENDE mostra o feature estável:
+• Humor do dia → reação do monstrinho em <2 toques
+• Missões 3/dia claras · jardim que “parece vivo”
+• PAUSA 1 min: abrir rápido, sem crash, sem cores inválidas (bgCard)
+Pedido produto (prioridade se métricas #1 forem fracas no humor mas fortes na noite):
+• Primeiros 30s do utilizador novo: humor OU desabafo devem “clicar”
+• Onboarding não pode crashar (cadastro → Luna → chat → oi)
+
+### API / Segurança
+Monitorar funil pós-divulgação (cadastro sobe ≠ retenção):
+• /api/health sem maintenance
+• Login / refresh / forgot-password (SMTP + redirect) — cadastros de Reel morrem aqui
+• Play Integrity / RLS quando produção Android abrir (~15/07 alvo 14/14)
+• Limites de plano não devem bloquear trial de 20 dias no 1º “oi”
+Pedido: alertar se spike de 401/500 após campanha ASA ou Reel forte.
+
+### Marketing (esta zona + copy)
+• Preencher checkpoints 1h / 24h / 48h no ACOMPANHAR-VIDEO-01
+• Próximo ângulo diferente (carga mental / agenda) — fotos NÃO usadas no #1
+• ASA: pausar campanha antiga quando 1.0.86 live; nova campanha humor/desabafo
+• NÃO GERAR/EAS — só Build + Iury
+
+### Build (Iury + agente principal)
+• 1.0.86 iOS build 88 em curso — ASO subtitle/screenshots só após aprovação
+• Android 1.0.85 fechado → produção após 14/14 (~15/07)
+• Paridade Android+iOS em qualquer UI ligada a features que o Reel mostra
+
+----------------------------------------------------------
+3) LOOP MÉTRICA → PRODUTO (obrigatório)
+----------------------------------------------------------
+Semanal (ou após cada vídeo com pico):
+1. Marketing anota: views · likes · DMs Gmail · installs ASA
+2. Se ÂNGULO X ganha → PAUSA/API/Build reforçam a feature X no produto (diff mínimo)
+3. Se ÂNGULO Y falha 2× → não culpar só o Reel; testar se o ecrã no app é lento/feio/confuso
+4. Nunca turbinar post fraco “por esperança”
+
+Tabela viva (atualizar):
+marketing/METRICAS-LOOP-PRODUTO.txt  (criar/atualizar junto deste aviso)
+
+----------------------------------------------------------
+4) PROIBIDO CRUZAR ZONAS
+----------------------------------------------------------
+• PAUSA/API/Marketing: sem eas build / GERAR-*.bat
+• Ninguém “refatora auth/voz” sem pedido + regression_guard
+• Marketing não muda jardim UI; PAUSA não muda ASA keywords
+
+----------------------------------------------------------
+5) FICHEIROS A LER
+----------------------------------------------------------
+• Este aviso (raiz)
+• marketing/ACOMPANHAR-VIDEO-01-NOITE-FRIA.txt
+• marketing/REELS-TESTE-DIARIO-ATE-VENCEDOR.txt
+• marketing/wayin/CAPCUT-MELHOR-VERSAO-RECURSOS.txt
+• marketing/APPLE-SEARCH-ADS-NOVO-1.0.86.txt (se existir)
+• AGENTS.md — zonas ESTÁVEIS vs EXTENSÍVEIS
+
+Quando outro agente fechar tarefa: mencionar no seu SYNC
+“Vi AVISO-AGENTES-METRICAS-PRODUTO-DIVULGACAO.txt — a acompanhar métricas X”

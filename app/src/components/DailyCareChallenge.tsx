@@ -94,28 +94,26 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
   const onPickMood = async (key: string) => {
     if (busy) return;
     setBusy(true);
-    setHoverMood(undefined);
+    // Reação imediata (Short ~230 humor/monstrinho — Finch PT <10s, sem esperar API).
+    setHoverMood(key);
+    setCelebrate(true);
+    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
     try {
       const res = await submitDailyCareCheckin(key);
       if (!res?.daily_care) {
+        setCelebrate(false);
+        setHoverMood(undefined);
         Alert.alert("Monstrinhos", "Não foi possível guardar. Tente de novo.");
         return;
       }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
-      setCelebrate(true);
       setTimeout(() => setCelebrate(false), 900);
       onUpdate(res.daily_care, res.wellness_journey);
+      setHoverMood(undefined);
+      // Sem Alert no 1º humor — métricas Finch: <2 toques, sem modal.
       if (!care.checked_today) {
-        const r = res.daily_care.ranking;
-        const tier = r ? `${r.tier_emoji} ${r.tier_label}` : "";
-        Alert.alert(
-          "Monstrinho domado! ✓",
-          `${res.daily_care.monster_line}\n\n${res.daily_care.current} dias · ${tier}`,
-          [
-            { text: "Depois", style: "cancel" },
-            { text: "Postar", onPress: () => setShareOpen(true) },
-          ]
-        );
+        const line = res.daily_care.monster_line?.trim();
+        if (line) void queueMonsterChatNotice(line);
       }
     } finally {
       setBusy(false);
@@ -147,7 +145,7 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
       <Text style={[styles.question, { color: colors.text }]}>{care.question.text}</Text>
       <Text style={[styles.hint, { color: colors.textMuted }]}>
         {needsCheckin
-          ? "Toque abaixo — seu monstrinho muda de cor e as missões abrem"
+          ? "1 toque — o monstrinho reage agora · missões abrem a seguir"
           : "Toque para mudar o humor de hoje"}
       </Text>
 
@@ -233,6 +231,9 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
 
         <MoodGentlenessRibbon colors={colors} gentleness={care.gentleness} />
 
+        {/* Humor primeiro se ainda não marcou — 1º toque sem scroll (loop métricas humor ~230). */}
+        {needsCheckin ? moodCheckIn : null}
+
         <MoodMonsterScene
           colors={colors}
           care={care}
@@ -240,7 +241,7 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
           previewMood={hoverMood}
         />
 
-        {moodCheckIn}
+        {!needsCheckin ? moodCheckIn : null}
 
         <MoodCrisisBridgeCard colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
 

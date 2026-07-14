@@ -34,7 +34,9 @@ export function MoodGardenWidgetCard({ colors, care }: Props) {
         return `Faltam ${remaining} missões · ${streak} dias em risco`;
       }
     }
-    if (!care.checked_today) return "Toque para registrar humor e cuidar o pet";
+    if (!care.checked_today) {
+      return "1 toque: marque o humor — o monstrinho reage já";
+    }
     if (remaining > 0) return `Faltam ${remaining} missões · ${seeds} sementes · ${streak} dias`;
     return `Dia completo · ${streak} dias seguidos`;
   }, [
@@ -79,9 +81,13 @@ export function MoodGardenWidgetCard({ colors, care }: Props) {
             Faltam {remaining} missões hoje
           </Text>
         ) : null}
-        <Text style={[styles.widgetHint, { color: colors.textMuted }]}>
-          Widget na home: segure o ícone → Widgets → Jardim
-        </Text>
+        {care.checked_today ? (
+          <Text style={[styles.widgetHint, { color: colors.textMuted }]}>
+            Widget na home: segure o ícone → Widgets → Jardim
+          </Text>
+        ) : (
+          <Text style={[styles.cta, { color: colors.primary }]}>Abrir jardim → humor</Text>
+        )}
       </View>
       <View style={styles.pet}>
         {care.checked_today && care.last_mood ? (
@@ -110,6 +116,7 @@ const styles = StyleSheet.create({
   sub: { fontSize: 13, marginTop: 4, lineHeight: 18 },
   risk: { fontSize: 12, fontWeight: "600", marginTop: 6 },
   widgetHint: { fontSize: 10, fontWeight: "600", marginTop: 6, lineHeight: 14 },
+  cta: { fontSize: 12, fontWeight: "800", marginTop: 6 },
   pet: { alignItems: "center", justifyContent: "center", width: 64 },
   gardenEmoji: { fontSize: 40 },
 });

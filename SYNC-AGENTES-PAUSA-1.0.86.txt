@@ -1,0 +1,24 @@
+AGENTE PAUSA / MONSTRINHOS — 1.0.86
+===================================
+Estado: ✅ Vi AVISO métricas — a monitorar Monstrinhos/PAUSA
+
+Vi AVISO-AGENTES-METRICAS-PRODUTO-DIVULGACAO.txt — a acompanhar métricas
+humor/monstrinho (~230) + ASA ansiedade + vídeo #1 noite.
+
+Zona (só isto):
+• daily_care / Monstrinhos jardim humor missões
+• PausaEgo* · MoodCrisisBridge · gentleness
+
+Diff mínimo 13/07 (sem auth/voz/Stripe/GERAR):
+• DailyCareChallenge — monstrinho celebra no 1º toque (antes da API) · hint Finch PT
+• MoodCrisisBridgeCard — CTA «PAUSA 1 min» (ASA ansiedade + Reel noite)
+• PausaEgoScreen — botão «Começar PAUSA 1 min»
+
+A monitorar (não inventar contra divulgação):
+• Short ~230 → humor → reação monstrinho <2 toques / <10s
+• ASA «ansiedade» → PAUSA 1 min abre rápido, sem crash, bgCard OK
+• Vídeo #1 noite → PAUSA fluido + silêncio opcional no jardim
+
+NÃO MEXER: auth · voz · Stripe · marketing copy · EAS/GERAR
+
+Git: (local após commit desta tarefa)

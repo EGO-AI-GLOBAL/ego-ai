@@ -1,0 +1,18 @@
+SYNC MESTRE — 1.0.86
+====================
+Versão app: 1.0.86 · iOS buildNumber 88 · Android versionCode 130
+
+| Agente        | Sync file                              | Estado |
+|---------------|----------------------------------------|--------|
+| PAUSA         | SYNC-AGENTES-PAUSA-1.0.86.txt          | ✅ Vi AVISO métricas — a monitorar Monstrinhos/PAUSA |
+| API/Segurança | SYNC-AGENTES-API-1.0.86.txt            | ✅ Vi AVISO — a monitorar API/funil |
+| Marketing     | SYNC-AGENTES-MARKETING-1.0.86.txt      | ✅ PRONTO (aviso métricas) |
+| Build         | (este + Iury)                          | 🔄 iOS 1.0.86 em curso |
+
+LEITURA OBRIGATÓRIA (todos os chats/agentes):
+AVISO-AGENTES-METRICAS-PRODUTO-DIVULGACAO.txt
+marketing/METRICAS-LOOP-PRODUTO.txt
+
+Meta Iury: melhor app do segmento + melhor divulgação.
+Métricas de Reel/ASA → melhorias de produto na zona certa.
+Build: NÃO GERAR release nova até 3× ✅ (exceto fluxo iOS 1.0.86 já enfileirado).

@@ -24,8 +24,10 @@ export default function DailyCareScreen() {
 
   useFocusEffect(
     useCallback(() => {
+      // Já tem pergunta do dia → não forçar spinner ao abrir (Finch: humor em <10s).
+      if (data.daily_care?.question) return;
       void refresh();
-    }, [refresh])
+    }, [refresh, data.daily_care?.question])
   );
 
   return (
