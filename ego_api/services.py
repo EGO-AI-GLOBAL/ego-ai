@@ -126,10 +126,27 @@ def _session_payload(res: object) -> dict[str, Any]:
     user = getattr(res, "user", None)
     if not session or not user:
         return {}
+    expires_at = getattr(session, "expires_at", None)
+    expires_in = getattr(session, "expires_in", None)
+    try:
+        if expires_at is not None:
+            expires_at = int(expires_at)
+    except (TypeError, ValueError):
+        expires_at = None
+    try:
+        if expires_in is not None:
+            expires_in = int(expires_in)
+    except (TypeError, ValueError):
+        expires_in = None
+    if expires_at is None and isinstance(expires_in, int) and expires_in > 0:
+        import time as _time
+
+        expires_at = int(_time.time()) + expires_in
     return {
         "access_token": str(getattr(session, "access_token", "") or ""),
         "refresh_token": str(getattr(session, "refresh_token", "") or ""),
-        "expires_at": getattr(session, "expires_at", None),
+        "expires_at": expires_at,
+        "expires_in": expires_in,
         "user": {
             "id": str(getattr(user, "id", "") or ""),
             "email": str(getattr(user, "email", "") or ""),

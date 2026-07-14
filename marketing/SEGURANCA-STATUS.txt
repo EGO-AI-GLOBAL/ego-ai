@@ -1,0 +1,18 @@
+EGO-AI — monitor segurança · 2026-07-13 21:08
+=======================================================
+
+PRODUÇÃO (/health)
+  ok=True build=2026-07-10-auth-session-push-hotfix
+  maintenance=False
+  sentry=True webhook=True
+  play_integrity enabled=True mode=monitor
+
+INTEGRIDADE (/integrity/status)
+  {"enabled": true, "mode": "monitor", "ok": true, "package_name": "com.egoai.app", "project_number": "206751400391", "server_configured": true}
+
+CÓDIGO LOCAL (security_prelaunch_audit): OK
+
+ERROS SUPABASE (24h): sem credenciais Supabase local
+
+AVISOS:
+  [~] Play Integrity em modo monitor (normal até enforce)

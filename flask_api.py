@@ -431,7 +431,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-10-auth-session-push-hotfix",
+        "api_build": "2026-07-14-auth-session-persist-ios-android",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -903,7 +903,21 @@ def auth_refresh():
     token = data.get("refresh_token") or request.headers.get("X-Refresh-Token", "")
     payload, err = services.refresh_session(token)
     if err:
-        return _json_error(err, 401)
+        low = (err or "").lower()
+        # 401 só quando o refresh token morreu de verdade — senão o app
+        # desloga iOS+Android em qualquer falha transitória do Supabase.
+        hard = any(
+            k in low
+            for k in (
+                "expirad",
+                "inválid",
+                "invalid",
+                "not found",
+                "em falta",
+                "session not found",
+            )
+        )
+        return _json_error(err, 401 if hard else 503)
     return _json_ok({"session": payload})
 
 

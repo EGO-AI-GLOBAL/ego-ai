@@ -1,18 +1,20 @@
-SYNC MESTRE — 1.0.86
-====================
-Versão app: 1.0.86 · iOS buildNumber 88 · Android versionCode 130
+SYNC MESTRE — 1.0.86+
+=====================
+Versão app em curso: ver app.config.ts (Build bumpa no GERAR)
+Hotfix crítico API: sessão persistente iOS+Android
 
 | Agente        | Sync file                              | Estado |
 |---------------|----------------------------------------|--------|
-| PAUSA         | SYNC-AGENTES-PAUSA-1.0.86.txt          | ✅ Vi AVISO métricas — a monitorar Monstrinhos/PAUSA |
-| API/Segurança | SYNC-AGENTES-API-1.0.86.txt            | ✅ Vi AVISO — a monitorar API/funil |
+| PAUSA         | SYNC-AGENTES-PAUSA-1.0.86.txt          | ✅ Vi AVISO métricas |
+| API/Segurança | SYNC-AGENTES-API-1.0.86.txt            | ✅ PRONTO — hotfix sessão iOS+Android |
 | Marketing     | SYNC-AGENTES-MARKETING-1.0.86.txt      | ✅ PRONTO (aviso métricas) |
-| Build         | (este + Iury)                          | 🔄 iOS 1.0.86 em curso |
+| Build         | (este + Iury)                          | ⏳ depois dos outros — NÃO GERAR ainda |
 
-LEITURA OBRIGATÓRIA (todos os chats/agentes):
+LEITURA OBRIGATÓRIA:
 AVISO-AGENTES-METRICAS-PRODUTO-DIVULGACAO.txt
 marketing/METRICAS-LOOP-PRODUTO.txt
 
-Meta Iury: melhor app do segmento + melhor divulgação.
-Métricas de Reel/ASA → melhorias de produto na zona certa.
-Build: NÃO GERAR release nova até 3× ✅ (exceto fluxo iOS 1.0.86 já enfileirado).
+Incluir no próximo build: sessão SecureStore + refresh 503 soft (commit API).
+Deploy Railway recomendado ANTES ou junto do EAS (api_build 2026-07-14-auth-session-persist-ios-android).
+
+Build: fazer EAS só quando Iury pedir / após sync OK.

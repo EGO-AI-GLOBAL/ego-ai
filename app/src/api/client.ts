@@ -59,11 +59,54 @@ export function isAuthHydrationComplete(): boolean {
   return authHydrationComplete;
 }
 
-/** Só desloga quando o refresh prova que o token morreu — não em 404/offline (Railway). */
-function shouldClearSessionOnRefreshFailure(refreshStatus?: number): boolean {
-  return (
-    refreshStatus === 401 || refreshStatus === 403 || refreshStatus === 400
-  );
+/** Só desloga quando o refresh prova que o token morreu — não em 404/offline/503. */
+function shouldClearSessionOnRefreshFailure(
+  refreshStatus?: number,
+  errMessage?: string
+): boolean {
+  if (
+    refreshStatus !== 401 &&
+    refreshStatus !== 403 &&
+    refreshStatus !== 400
+  ) {
+    return false;
+  }
+  const low = (errMessage || "").toLowerCase();
+  if (
+    low.includes("tente de novo") ||
+    low.includes("tente novamente") ||
+    low.includes("supabase não configurado") ||
+    low.includes("supabase nao configurado") ||
+    low.includes("muitas tentativas")
+  ) {
+    return false;
+  }
+  return true;
+}
+
+/** Um refresh de cada vez — evita invalidar refresh token (rotação Supabase). */
+let refreshInFlight: Promise<AuthSession> | null = null;
+let refreshInFlightToken: string | null = null;
+
+function coerceExpiresAt(
+  raw: unknown,
+  expiresIn?: unknown
+): number | null {
+  if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
+    return Math.floor(raw);
+  }
+  if (typeof raw === "string" && /^\d+$/.test(raw.trim())) {
+    const n = parseInt(raw.trim(), 10);
+    return n > 0 ? n : null;
+  }
+  if (typeof expiresIn === "number" && Number.isFinite(expiresIn) && expiresIn > 0) {
+    return Math.floor(Date.now() / 1000) + Math.floor(expiresIn);
+  }
+  if (typeof expiresIn === "string" && /^\d+$/.test(expiresIn.trim())) {
+    const n = parseInt(expiresIn.trim(), 10);
+    return n > 0 ? Math.floor(Date.now() / 1000) + n : null;
+  }
+  return null;
 }
 
 export function setSession(session: AuthSession | null) {
@@ -214,9 +257,12 @@ api.interceptors.response.use(
         applyAuthHeaders(original.headers, next);
         return api(original);
       } catch (refreshErr) {
-        const ax = refreshErr as AxiosError;
+        const ax = refreshErr as AxiosError<ApiErr>;
         const refreshStatus = ax.response?.status;
-        if (shouldClearSessionOnRefreshFailure(refreshStatus)) {
+        const errMsg =
+          ax.response?.data?.error ||
+          (typeof ax.message === "string" ? ax.message : "");
+        if (shouldClearSessionOnRefreshFailure(refreshStatus, errMsg)) {
           setSession(null);
           onAuthFailure?.();
         }
@@ -375,7 +421,7 @@ function normalizeSession(raw: unknown): AuthSession {
   return {
     access_token: access,
     refresh_token: refresh,
-    expires_at: (nested.expires_at as number) ?? null,
+    expires_at: coerceExpiresAt(nested.expires_at, nested.expires_in),
     user: {
       id: String(userRaw.id || ""),
       email: String(userRaw.email || ""),
@@ -522,19 +568,53 @@ export async function refreshSessionToken(
   refresh_token: string,
   prior?: AuthSession | null
 ): Promise<AuthSession> {
-  const { data } = await axios.post(
-    `${apiBase}auth/refresh`,
-    { refresh_token },
-    { timeout: 20000, headers: { "Content-Type": "application/json" } }
-  );
-  const body = unwrap<{ session: AuthSession }>(data);
-  const session = normalizeSession(body.session ?? body);
-  return {
-    ...session,
-    refresh_token: session.refresh_token || prior?.refresh_token || refresh_token,
-    user: session.user?.id ? session.user : prior?.user ?? session.user,
-    expires_at: session.expires_at ?? prior?.expires_at ?? null,
-  };
+  const tok = (refresh_token || "").trim();
+  if (!tok) {
+    throw new ApiClientError("refresh_token em falta.", 400);
+  }
+  if (refreshInFlight && refreshInFlightToken === tok) {
+    return refreshInFlight;
+  }
+  const memory = getSession();
+  if (
+    refreshInFlight &&
+    memory?.access_token &&
+    memory.refresh_token &&
+    memory.refresh_token !== tok
+  ) {
+    // Outro refresh já gravou tokens novos — evita reutilizar token antigo.
+    return memory;
+  }
+
+  const run = (async (): Promise<AuthSession> => {
+    const { data } = await axios.post(
+      `${apiBase}auth/refresh`,
+      { refresh_token: tok },
+      { timeout: 20000, headers: { "Content-Type": "application/json" } }
+    );
+    const body = unwrap<{ session: AuthSession }>(data);
+    const session = normalizeSession(body.session ?? body);
+    const next: AuthSession = {
+      ...session,
+      refresh_token:
+        session.refresh_token || prior?.refresh_token || tok,
+      user: session.user?.id ? session.user : prior?.user ?? session.user,
+      expires_at: session.expires_at ?? prior?.expires_at ?? null,
+    };
+    setSession(next);
+    return next;
+  })();
+
+  refreshInFlight = run;
+  refreshInFlightToken = tok;
+  try {
+    return await run;
+  } finally {
+    if (refreshInFlight === run) {
+      refreshInFlight = null;
+      refreshInFlightToken = null;
+    }
+  }
 }
 
 export async function requestPasswordReset(email: string): Promise<string> {

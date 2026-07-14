@@ -128,6 +128,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             const parsed = JSON.parse(raw) as AuthSession;
             if (parsed?.access_token) {
+              // Restaura já na UI/memória antes do refresh de rede —
+              // senão falha/timeout de refresh deixa parecer "deslogado".
+              setSession(parsed);
+              setLocalSession(parsed);
               const uid = parsed.user?.id?.trim();
               if (uid) await consumeSecureWipeIfNeeded(uid);
               const next = await refreshSessionIfNeeded(parsed);

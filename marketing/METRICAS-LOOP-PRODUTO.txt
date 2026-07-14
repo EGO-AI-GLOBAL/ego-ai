@@ -10,6 +10,7 @@ SINAIS QUE JÁ ORIENTAM O PRODUTO
 | Short ~230 humor/monstrinho   | Humor → monstrinho <2 toques       | PAUSA    |
 | Short ~122 “sou o lembrete”   | Agenda + carga mental clara        | Agenda*  |
 | ASA keyword “ansiedade”       | PAUSA 1 min + 1º chat sem fricção  | PAUSA+API|
+| ASA 14/07: 5 installs · ~$18  | ansiedade 3 · solidão 1 (CPA $1.64)| Marketing|
 | Ficha humor/desabafo/12avat   | Avatares + chat desabafo estável   | Build/UI |
 | Vídeo #1 noite (testando)     | Chat noite + voz + PAUSA fluido    | PAUSA+UI |
 
