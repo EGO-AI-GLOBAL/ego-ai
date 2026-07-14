@@ -2,7 +2,7 @@ SYNC PAUSA — 1.0.86
 ===================
 Estado: ✅ PRONTO — pet sticky + vídeos idle/missões
 
-Commit: (preencher após push)
+Commit: 42f18e9
 Push: origin main
 
 ENTREGA

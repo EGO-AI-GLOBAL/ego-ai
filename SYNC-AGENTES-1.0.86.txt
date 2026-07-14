@@ -5,7 +5,7 @@ Hotfix crítico API: sessão persistente iOS+Android
 
 | Agente        | Sync file                              | Estado |
 |---------------|----------------------------------------|--------|
-| PAUSA         | SYNC-AGENTES-PAUSA-1.0.86.txt          | ✅ Vi AVISO métricas |
+| PAUSA         | SYNC-AGENTES-PAUSA-1.0.86.txt          | ✅ PRONTO 42f18e9 — pet sticky + vídeos idle/missões |
 | API/Segurança | SYNC-AGENTES-API-1.0.86.txt            | ✅ PRONTO 89733df — hotfix sessão iOS+Android |
 | Marketing     | SYNC-AGENTES-MARKETING-1.0.86.txt      | ✅ PRONTO bb5215c — Calma 1 min copy |
 | Build         | (este + Iury)                          | ⏳ depois dos outros — NÃO GERAR ainda |
