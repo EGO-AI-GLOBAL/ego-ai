@@ -1,0 +1,91 @@
+APPLE 3.1.2(c) — FIX EULA (14/07/2026)
+======================================
+Submission: 1cbfb540-730a-467a-b654-a34a94ca15b5
+Reviewed as: 1.0.85 (88) · iPad Air 11"
+Issue: falta link funcional de Terms of Use (EULA) nos METADADOS
+
+NÃO é preciso (só por isto) novo binary se a descrição ganhar o EULA agora.
+App já tem título/preço/duração no ecrã Planos; drawer tem Termos.
+Reforço in-app (links https) já preparado em plans.tsx para o PRÓXIMO build.
+
+------------------------------------------------
+1) APP STORE CONNECT — metadados (FAZ AGORA)
+------------------------------------------------
+Chrome → https://appstoreconnect.apple.com/apps/6780595396/distribution/ios
+
+A) App Information → Privacy Policy URL (confirmar):
+   https://egoai.com.br/privacidade/
+
+B) Versão em revisão (1.0.85 ou 1.0.86) → Description (PT-BR)
+   No FINAL da descrição, cola isto (obrigatório):
+
+---
+Terms of Use (EULA): https://egoai.com.br/termos/
+Privacy Policy: https://egoai.com.br/privacidade/
+---
+
+   (Ou em português:)
+---
+Termos de Uso (EULA): https://egoai.com.br/termos/
+Política de Privacidade: https://egoai.com.br/privacidade/
+---
+
+C) Opcional mais sólido: App Information → License Agreement →
+   Custom EULA → colar URL ou texto dos Termos
+   (se não souberes, a descrição basta para a Apple nestes casos)
+
+D) Salva a versão.
+
+------------------------------------------------
+2) RESPONDER À MENSAGEM DA APPLE (Resolution Center)
+------------------------------------------------
+Cola em inglês:
+
+Hello,
+
+Thank you for the feedback on Guideline 3.1.2(c).
+
+We updated the App Store metadata to include functional links:
+
+• Terms of Use (EULA): https://egoai.com.br/termos/
+• Privacy Policy: https://egoai.com.br/privacidade/
+
+Privacy Policy is also set in the Privacy Policy URL field.
+
+Inside the app (Planos / subscriptions): each plan shows title, monthly length,
+and price; Restore Purchases is available; legal links to Terms and Privacy
+are accessible (drawer Termos + subscription screen).
+
+Please continue the review of this submission.
+
+Thank you,
+EGO-AI Team
+
+------------------------------------------------
+3) APP REVIEW NOTES (campo Notes — próximo envio)
+------------------------------------------------
+Subscriptions (3.1.2c):
+EULA https://egoai.com.br/termos/
+Privacy https://egoai.com.br/privacidade/
+Path: open app → Planos → see plan name, 1 month, price → links Termos/Privacidade
+Restore: Planos → Restaurar compras
+
+------------------------------------------------
+4) SCREEN RECORDING (se pedirem / se quiseres anexar)
+------------------------------------------------
+iPhone/iPad: Planos → scroll até ver preços + abrir
+https://egoai.com.br/termos/ no Safari a partir do link (ou menu Termos).
+Grava 20–30s · responde na mensagem com o vídeo se Connect deixar upload.
+
+------------------------------------------------
+5) CÓDIGO (já feito — próximo EAS)
+------------------------------------------------
+app/app/(main)/plans.tsx → links tappable EULA + Privacidade (https)
+app/src/utils/iosAppStoreBilling.ts → URLs + texto legal
+Incluir no próximo binary 1.0.86/87 se a Apple pedir de novo in-app.
+
+Checklist:
+[ ] Descrição com EULA+Privacy
+[ ] Privacy Policy field OK
+[ ] Reply Resolution Center
+[ ] (depois) commit plans.tsx + novo build se necessário

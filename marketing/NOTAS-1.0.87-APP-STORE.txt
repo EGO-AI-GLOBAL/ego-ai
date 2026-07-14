@@ -1,0 +1,63 @@
+EGO-AI 1.0.87 — APP STORE (iOS · nova versão + EULA 3.1.2c)
+===========================================================
+Marketing / Build · 14/07/2026
+
+PORQUÊ 1.0.87
+-------------
+Apple não aceita reenviar a mesma versão (1.0.85/86 já usada na review).
+Nova versão: **1.0.87** · iOS buildNumber **89** · Android versionCode 131 (paridade)
+
+O QUE MUDA NESTE BUILD
+----------------------
+• Links Termos (EULA) + Privacidade no ecrã Planos (Guideline 3.1.2c in-app)
+• Metadados: EULA na descrição (obrigatório — ver clique a clique)
+
+ORDEM
+-----
+1. Duplo-clique: GERAR-IOS-1.0.87.bat
+2. Quando Finished: AGUARDAR-IOS-E-SUBMETER-1.0.87.bat
+3. Connect: seguir marketing\APPLE-1.0.87-CLIQUE-A-CLIQUE.txt
+4. Screenshots: marketing\APP-STORE-FICHA-1.0.85-APPLE\ (01→05)
+5. Enviar para revisão
+
+LINKS
+-----
+Connect: https://appstoreconnect.apple.com/apps/6780595396/distribution/ios
+EULA: https://egoai.com.br/termos/
+Privacy: https://egoai.com.br/privacidade/
+
+================================================================================
+O QUE HÁ DE NOVO (colar na 1.0.87)
+================================================================================
+
+• Links de Termos de Uso (EULA) e Privacidade no ecrã de planos
+• Cumprimento App Store 3.1.2(c) para assinaturas
+• Ficha humor / desabafo / PAUSA
+• Melhorias de estabilidade
+
+================================================================================
+APP REVIEW NOTES (inglês — colar em Informações para a revisão)
+================================================================================
+
+Guideline 3.1.2(c):
+• Terms of Use (EULA): https://egoai.com.br/termos/
+• Privacy Policy: https://egoai.com.br/privacidade/
+• In-app: Planos → plan title, 1 month length, price → tappable EULA + Privacy links
+• Restore: Planos → Restaurar compras
+
+Path: Login → Planos → scroll to subscriptions
+Demo: (conta demo nas Informações para a revisão)
+
+================================================================================
+DESCRIÇÃO — COLAR NO FIM (obrigatório)
+================================================================================
+
+Terms of Use (EULA): https://egoai.com.br/termos/
+Privacy Policy: https://egoai.com.br/privacidade/
+
+================================================================================
+REGRAS iOS
+================================================================================
+• Compras no app = IAP anexadas (não vazio se usas assinaturas)
+• NÃO «Carregar» docs de criptografia (ITSAppUsesNonExemptEncryption false)
+• Age rating social: No

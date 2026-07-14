@@ -34,7 +34,14 @@ import {
   launchCheckoutUrl,
   withCheckoutUserRef,
 } from "@/utils/planCheckout";
-import { allowsInAppPlanPurchase, IOS_SUBSCRIPTION_LEGAL, usesAppleIap, usesStripeCheckout } from "@/utils/iosAppStoreBilling";
+import {
+  allowsInAppPlanPurchase,
+  IOS_PRIVACY_POLICY_URL,
+  IOS_SUBSCRIPTION_LEGAL,
+  IOS_TERMS_OF_USE_URL,
+  usesAppleIap,
+  usesStripeCheckout,
+} from "@/utils/iosAppStoreBilling";
 import { iosIapCatalog, useIosIap } from "@/hooks/useIosIap";
 import { IOS_APP_STORE_PRICE_NOTE } from "@/constants/iapProducts";
 
@@ -447,6 +454,25 @@ export default function PlansScreen() {
                 <Text style={[styles.legalFoot, { color: colors.textMuted }]}>
                   {IOS_SUBSCRIPTION_LEGAL}
                 </Text>
+                <View style={styles.legalLinksRow}>
+                  <Pressable
+                    onPress={() => void Linking.openURL(IOS_TERMS_OF_USE_URL)}
+                    hitSlop={8}
+                  >
+                    <Text style={[styles.legalLink, { color: colors.primary }]}>
+                      Termos de Uso (EULA)
+                    </Text>
+                  </Pressable>
+                  <Text style={{ color: colors.textMuted }}> · </Text>
+                  <Pressable
+                    onPress={() => void Linking.openURL(IOS_PRIVACY_POLICY_URL)}
+                    hitSlop={8}
+                  >
+                    <Text style={[styles.legalLink, { color: colors.primary }]}>
+                      Privacidade
+                    </Text>
+                  </Pressable>
+                </View>
               </>
             ) : null}
 
@@ -526,6 +552,13 @@ const styles = StyleSheet.create({
   },
   restoreText: { fontSize: 15, fontWeight: "700" },
   legalFoot: { fontSize: 11, lineHeight: 16, marginBottom: 8 },
+  legalLinksRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  legalLink: { fontSize: 12, fontWeight: "700", textDecorationLine: "underline" },
   errorBanner: { marginBottom: 16 },
   error: { fontSize: 14 },
   link: { fontSize: 14, marginTop: 8, fontWeight: "600" },

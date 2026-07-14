@@ -1,0 +1,74 @@
+APPLE 1.0.87 — CLIQUE A CLIQUE (nova versão iOS)
+================================================
+Faz DEPOIS do EAS finish + AGUARDAR (ou quando o build 89 aparecer no Connect).
+
+Chrome: https://appstoreconnect.apple.com/apps/6780595396/distribution/ios
+
+------------------------------------------------
+1) Criar versão 1.0.87
+------------------------------------------------
+1. Login App Store Connect (Chrome)
+2. Apps → EGO-AI
+3. Esquerda: Distribuição / App Store
+4. Canto superior esquerdo / + junto a iOS App
+   → clica **+ Versão** / **Add Version**
+5. Número da versão: **1.0.87**
+6. Criar / Create
+
+------------------------------------------------
+2) Anexar o build 89
+------------------------------------------------
+7. Na página 1.0.87, secção **Build** / Compilação
+8. Clica **+** ou **Selecionar um build**
+9. Escolhe **1.0.87 (89)**  [pode demorar 5–30 min a aparecer após submit]
+10. Concluído
+
+Se o build não aparecer: espera, refresca (F5). Confirma no Expo que o submit terminou.
+
+------------------------------------------------
+3) EULA na descrição (obrigatório — 3.1.2c)
+------------------------------------------------
+11. Desce até **Descrição**
+12. No FINAL, cola:
+
+Terms of Use (EULA): https://egoai.com.br/termos/
+Privacy Policy: https://egoai.com.br/privacidade/
+
+13. Guardar (Save)
+
+------------------------------------------------
+4) Privacy URL + O que há de novo
+------------------------------------------------
+14. Esquerda: Informações da app → Privacy Policy URL =
+    https://egoai.com.br/privacidade/ → Guardar
+15. Volta à 1.0.87 → **O que há de novo** → cola de
+    marketing\NOTAS-1.0.87-APP-STORE.txt
+16. **Informações para a revisão** → Notes → cola App Review Notes do mesmo ficheiro
+17. Conta demo: email + senha (as que já usas)
+
+------------------------------------------------
+5) Screenshots (se a página pedir)
+------------------------------------------------
+18. Pasta: marketing\APP-STORE-FICHA-1.0.85-APPLE\
+19. Ordem 01 → 05 (telefone). iPad se pedir as do tablet.
+
+------------------------------------------------
+6) IAP + Enviar
+------------------------------------------------
+20. Compras no app: confirma assinaturas ligadas (não “vazia” se vendes IAP)
+21. Exportação criptografia: isenta / HTTPS — NÃO carregar docs
+22. **Adicionar para revisão** → **Enviar para revisão**
+
+------------------------------------------------
+CHECKLIST
+------------------------------------------------
+[ ] Versão 1.0.87 criada
+[ ] Build 89 anexado
+[ ] EULA + Privacy no fim da descrição
+[ ] Privacy Policy URL OK
+[ ] What’s New + Review Notes
+[ ] Enviado para revisão
+
+GERAR build (no PC):
+Duplo-clique GERAR-IOS-1.0.87.bat
+Depois: AGUARDAR-IOS-E-SUBMETER-1.0.87.bat

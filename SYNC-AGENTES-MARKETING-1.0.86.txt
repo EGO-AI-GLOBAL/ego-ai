@@ -1,0 +1,32 @@
+SYNC MARKETING — 1.0.86 · AVISO MÉTRICAS A TODOS
+================================================
+✅ PRONTO (aviso cruzado + pipeline Reels)
+
+Data: 13/07/2026
+
+O QUE FECHEI
+------------
+1. AVISO-AGENTES-METRICAS-PRODUTO-DIVULGACAO.txt (RAIZ)
+   → PAUSA / API / Build / Marketing devem LER e monitorar métricas
+2. marketing/METRICAS-LOOP-PRODUTO.txt — tabela sinal→feature→agente
+3. Pipeline divulgação:
+   • 2 posts/dia · ângulos diferentes · turbo só no vencedor
+   • WayIn (voz+legenda PT) + CapCut + recursos ficha Apple 1.0.85
+4. Vídeo #1 no ar (acompanhar 24h):
+   IG https://www.instagram.com/reel/DawHABqR3xX/
+   YT https://youtube.com/shorts/nS8XvfvgIGI
+   TT https://vt.tiktok.com/ZSX6KNwyD/  (2 curtidas cedo)
+   Ficha: marketing/ACOMPANHAR-VIDEO-01-NOITE-FRIA.txt
+
+PEDIDO AOS OUTROS AGENTES
+-------------------------
+Ao abrir o chat, lerem o AVISO na raiz e responderem no seu SYNC:
+“Vi AVISO métricas — a monitorar [zona].”
+Usar insights (humor/monstrinho, carga mental, ansiedade/PAUSA, desabafo noite)
+para melhorar o produto com diff mínimo — não refatorar estáveis.
+
+ZONA MARKETING — NÃO CORRER: GERAR / eas build / eas submit
+App/UI produto: só Build+Iury ou zona certa (PAUSA/API).
+
+Próximo reel: ângulo DIFERENTE (carga mental) — ver
+marketing/wayin/CAPCUT-MELHOR-VERSAO-RECURSOS.txt

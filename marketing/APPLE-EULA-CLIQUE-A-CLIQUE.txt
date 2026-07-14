@@ -1,0 +1,155 @@
+APPLE EULA — CLIQUE A CLIQUE (faz isto agora)
+==============================================
+Problema: falta o link Termos (EULA) na descrição da App Store.
+NÃO precisas de build novo para este passo.
+Tempo: ~5–10 minutos.
+
+Preparação
+----------
+1. Abre o Google Chrome (só Chrome).
+2. Vai a: https://appstoreconnect.apple.com
+3. Faz login com a conta Apple Developer (a do EGO-AI).
+4. Se pedir 2FA / código do iPhone → põe o código.
+
+================================================
+PARTE A — Colar EULA na descrição
+================================================
+
+A1. No menu de cima, clica em **Apps**
+    (ícone / texto "Apps")
+
+A2. Clica no app **EGO-AI**
+    (ícone do app na lista)
+
+A3. No menu ESQUERDO, clica em **Distribuição**
+    (ou "Distribution" / "App Store")
+    → deve abrir a ficha iOS.
+
+A4. No meio / lista de versões, clica na versão que está
+    **Em revisão** / **Waiting for Review** / **Rejected** /
+    ou **Pending Developer Release**
+    → é a **1.0.85** ou **1.0.86** (a que a Apple mencionou).
+    Se vires várias, escolhe a que tem o aviso vermelho / amarelo da review.
+
+A5. Desce a página até ao bloco **Descrição**
+    (à esquerda pode dizer "Description" / "Descrição")
+    → clica dentro da caixa de texto grande.
+
+A6. Vai ao **FINAL** do texto (ultima linha).
+    Carrega Enter 2× (linha em branco).
+
+A7. Copia EXACTAMENTE isto (Ctrl+C):
+
+Terms of Use (EULA): https://egoai.com.br/termos/
+Privacy Policy: https://egoai.com.br/privacidade/
+
+A8. Cola no final da descrição (Ctrl+V).
+
+A9. Clica **Guardar** / **Save**
+    (canto superior direito, botão azul ou cinza "Guardar")
+    → tem de aparecer confirmação / o botão deixa de estar activo.
+
+================================================
+PARTE B — Confirmar Política de Privacidade
+================================================
+
+B1. No menu ESQUERDO (ainda no EGO-AI), procura
+    **Informações da app** / **App Information**
+    e clica.
+
+B2. Procura o campo **Privacy Policy URL** /
+    **URL da política de privacidade**
+
+B3. Tem de estar exactamente:
+    https://egoai.com.br/privacidade/
+
+B4. Se estiver vazio ou errado:
+    - apaga o que está
+    - cola: https://egoai.com.br/privacidade/
+    - clica **Guardar** / **Save**
+
+================================================
+PARTE C — Responder à Apple
+================================================
+
+C1. No menu ESQUERDO, clica em **App Review**
+    ou **Revisão da App**
+    (por vezes chama-se **Resolution Center**)
+
+C2. Clica na mensagem / thread da Apple de hoje
+    (Guideline 3.1.2(c) · Subscriptions)
+
+C3. Clica em **Reply** / **Responder**
+
+C4. Cola EXACTAMENTE isto:
+
+Hello,
+
+Thank you for the feedback on Guideline 3.1.2(c).
+
+We updated the App Store metadata to include functional links:
+
+• Terms of Use (EULA): https://egoai.com.br/termos/
+• Privacy Policy: https://egoai.com.br/privacidade/
+
+Privacy Policy is also set in the Privacy Policy URL field.
+
+Inside the app (Planos): each subscription shows title, length (1 month), and price. Restore Purchases is available. Terms and Privacy are linked.
+
+Please continue the review.
+
+Thank you,
+EGO-AI Team
+
+C5. Clica **Send** / **Enviar**
+    (NÃO precisas de vídeo nesta resposta — só se a Apple pedir outra vez)
+
+================================================
+PARTE D — Se a versão estiver "Rejeitada" e pedir Reenviar
+================================================
+
+D1. Volta à página da versão (como A4).
+
+D2. Procura botão azul **Add for Review** /
+    **Enviar para revisão** /
+    **Resubmit** / **Submit for Review**
+
+D3. Clica nele.
+    Confirma IAP / export compliance se perguntar
+    (criptografia: isenta / HTTPS only — NÃO "Carregar" docs).
+
+D4. Confirma envio.
+
+Se NÃO vires botão de reenvio e só "Waiting for Review"
+depois do Reply → OK, a Apple reabre sozinha.
+
+================================================
+ONDE FICO PRESO? (erros comuns)
+================================================
+• Não acho "Descrição"
+  → Estás em App Information. Volta a Distribuição → clica a VERSÃO (1.0.85/86).
+
+• Não deixa guardar
+  → Falta algum campo obrigatório na versão (screenshot, etc.). Scroll sobe e vê aviso vermelho.
+
+• Versão diz 1.0.85 mas eu queria 1.0.86
+  → Corrige a descrição DA versão que a Apple está a rever AGORA (a do e-mail). Depois tratamos do número.
+
+• Só vejo "Prepare for Submission" sem review
+  → Diz-me o que aparece na lista de versões (print) e guiamos.
+
+================================================
+CHECKLIST
+================================================
+[ ] Login Connect no Chrome
+[ ] Apps → EGO-AI → Distribuição → versão em review
+[ ] Descrição termina com EULA + Privacy links
+[ ] Guardar
+[ ] App Information → Privacy Policy URL OK
+[ ] App Review → Reply enviado
+[ ] (se rejeitada) Submit for Review outra vez
+
+URLs que tens de usar:
+EULA:     https://egoai.com.br/termos/
+Privacy:  https://egoai.com.br/privacidade/
+Connect:  https://appstoreconnect.apple.com/apps/6780595396/distribution/ios

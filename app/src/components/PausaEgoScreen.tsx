@@ -209,9 +209,9 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
 
         <Text style={styles.primaryBtnText}>
 
-          {pausa.today_done ? "Repetir pausa de hoje" : "Começar pausa de hoje"} ·{" "}
-
-          {formatPausaDuration(daily.duration_seconds)}
+          {pausa.today_done
+            ? `Repetir PAUSA · ${formatPausaDuration(daily.duration_seconds)}`
+            : `Começar PAUSA 1 min · ${formatPausaDuration(daily.duration_seconds)}`}
 
         </Text>
 

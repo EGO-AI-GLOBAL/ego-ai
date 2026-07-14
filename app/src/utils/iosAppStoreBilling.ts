@@ -21,7 +21,11 @@ export function showsPlansNavigation(): boolean {
 }
 
 export const IOS_SUBSCRIPTION_LEGAL =
-  "Assinatura renova automaticamente. Cancele em Ajustes → Apple ID → Assinaturas até 24h antes do fim do período.";
+  "Assinatura renova automaticamente. Cancele em Ajustes → Apple ID → Assinaturas até 24h antes do fim do período. Termos de Uso (EULA) e Privacidade: links abaixo.";
+
+/** Links públicos exigidos pela Guideline 3.1.2(c) no fluxo de assinatura. */
+export const IOS_TERMS_OF_USE_URL = "https://egoai.com.br/termos/";
+export const IOS_PRIVACY_POLICY_URL = "https://egoai.com.br/privacidade/";
 
 export const IOS_TRIAL_END_ALERT =
   "Seu teste grátis terminou. Assine um plano para continuar.";

@@ -49,16 +49,20 @@ export function MoodCrisisBridgeCard({ colors, care, assistantName = "Luna", onU
   return (
     <>
       <View style={[styles.wrap, { borderColor: colors.primary, backgroundColor: colors.primaryTint }]}>
-        <Text style={[styles.step, { color: colors.primary }]}>2º PASSO — ALÍVIO AGORA</Text>
-        <Text style={[styles.title, { color: colors.text }]}>{bridge.title}</Text>
-        <Text style={[styles.sub, { color: colors.textMuted }]}>{bridge.subtitle}</Text>
+        <Text style={[styles.step, { color: colors.primary }]}>2º PASSO — PAUSA 1 MIN</Text>
+        <Text style={[styles.title, { color: colors.text }]}>
+          {bridge.title?.trim() || "PAUSA 1 min"}
+        </Text>
+        <Text style={[styles.sub, { color: colors.textMuted }]}>
+          {bridge.subtitle?.trim() || "Respiração agora — sem sair do jardim. Conversar é opcional."}
+        </Text>
 
         <Pressable
           onPress={() => setPausaOpen(true)}
           style={[styles.primaryBtn, { backgroundColor: colors.primary }]}
         >
           <Text style={styles.primaryText}>
-            {doneToday ? "Repetir PAUSA 60s" : "Começar PAUSA 60s aqui"}
+            {doneToday ? "Repetir PAUSA 1 min" : "Começar PAUSA 1 min"}
           </Text>
         </Pressable>
 
