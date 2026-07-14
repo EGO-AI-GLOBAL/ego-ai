@@ -6,7 +6,7 @@ Inclui: sessão persistente · Calma 1 min UI · clips Calma · Monstrinhos pet/
 | Agente        | Sync file                              | Estado |
 |---------------|----------------------------------------|--------|
 | PAUSA         | SYNC-AGENTES-PAUSA-1.0.88.txt          | ⏳ aguarda fecho + clips Calma |
-| API/Segurança | SYNC-AGENTES-API-1.0.88.txt            | ⏳ confirma Railway + ✅ |
+| API/Segurança | SYNC-AGENTES-API-1.0.88.txt            | ✅ PRONTO 89733df · Railway OK |
 | Marketing     | SYNC-AGENTES-MARKETING-1.0.88.txt      | ⏳ confirma push + ✅ |
 | Build         | (este + Iury)                          | ⏳ após 3× ✅ → GERAR-1.0.88 |
 

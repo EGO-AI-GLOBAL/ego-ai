@@ -1,0 +1,28 @@
+SYNC — API / SEGURANÇA · 1.0.88
+================================
+Estado: ✅ PRONTO
+Commit referência: 89733df (hotfix sessão) · tip main após sync docs
+Data: 14/07/2026 20:48 BRT
+Proibido: GERAR / EAS / app.config.ts / marketing Reels
+
+CHECKLIST FECHO HOJE
+--------------------
+1. git pull origin main — OK (Already up to date)
+2. Hotfix sessão 89733df no histórico main — OK
+3. Railway /api/v1/health:
+     ok=true
+     maintenance=false (ausente)
+     api_build=2026-07-14-auth-session-persist-ios-android  ← hotfix deployado
+     sentry=true · play_integrity monitor · trial_days=20
+     password_reset Brevo OK
+4. smoke_test_api.py — OK
+5. Diffs locais zona API — nenhum pendente (só SYNC)
+6. Sem GERAR/EAS
+
+INCLUI NO BUILD 1.0.88
+---------------------
+• Sessão persistente iOS+Android (89733df)
+• Refresh soft 503 (não desloga)
+• SecureStore mirror-first + chunks
+
+✅ API PRONTO — commit 89733df · Railway OK
