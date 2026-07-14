@@ -72,7 +72,7 @@ export function PausaStepSession({
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <View style={[styles.backdrop, { backgroundColor: "rgba(8,6,20,0.88)" }]}>
         <View style={[styles.card, { backgroundColor: colors.bgCard, borderColor: colors.primary }]}>
-          <Text style={[styles.badge, { color: colors.primary }]}>PAUSA DE HOJE</Text>
+          <Text style={[styles.badge, { color: colors.primary }]}>CALMA DE HOJE</Text>
           <Text style={[styles.title, { color: colors.text }]}>{title}</Text>
           <Text style={[styles.sub, { color: colors.textMuted }]}>{subtitle}</Text>
 

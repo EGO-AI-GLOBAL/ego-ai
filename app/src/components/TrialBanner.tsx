@@ -46,13 +46,13 @@ export function TrialBanner({ colors, access, journey }: Props) {
 
     urgent && journey && (journey.level ?? 0) > 0
 
-      ? `PAUSA EGO — nível ${journey.level} de calma. Aproveite os dias grátis restantes.`
+      ? `Calma 1 min — nível ${journey.level}. Aproveite os dias grátis restantes.`
 
       : urgent
 
         ? allowsInAppPlanPurchase()
 
-          ? "Não perca Monstrinhos e PAUSA EGO — assine Conexão e continue."
+          ? "Não perca Monstrinhos e Calma 1 min — assine Conexão e continue."
 
           : "Aproveite os dias grátis restantes no app."
 

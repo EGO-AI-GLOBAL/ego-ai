@@ -78,7 +78,7 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
 
       <View style={[styles.hero, { backgroundColor: colors.primaryTint, borderColor: colors.primary }]}>
 
-        <Text style={[styles.heroBadge, { color: colors.primary }]}>PAUSA EGO 🌬️</Text>
+        <Text style={[styles.heroBadge, { color: colors.primary }]}>Calma 1 min 🌬️</Text>
 
         {pausa.moment_key === "late_night" || pausa.moment_key === "evening" ? (
           <Text style={[styles.momentBanner, { color: colors.primary }]}>
@@ -125,7 +125,7 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
 
             : pausa.today_done
 
-              ? "PAUSA de hoje feita ✓"
+              ? "Calma de hoje feita ✓"
 
               : "Comece sua sequência hoje"}
 
@@ -210,8 +210,8 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
         <Text style={styles.primaryBtnText}>
 
           {pausa.today_done
-            ? `Repetir PAUSA · ${formatPausaDuration(daily.duration_seconds)}`
-            : `Começar PAUSA 1 min · ${formatPausaDuration(daily.duration_seconds)}`}
+            ? `Repetir Calma 1 min · ${formatPausaDuration(daily.duration_seconds)}`
+            : `Começar Calma 1 min · ${formatPausaDuration(daily.duration_seconds)}`}
 
         </Text>
 
@@ -256,7 +256,7 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
 
           void Share.share({
 
-            message: `${pausa.share_line}\n\nEGO-AI — PAUSA anti-stress.`,
+            message: `${pausa.share_line}\n\nEGO-AI — Calma 1 min.`,
 
           })
 

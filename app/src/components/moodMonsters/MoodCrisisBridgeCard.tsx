@@ -51,7 +51,7 @@ export function MoodCrisisBridgeCard({ colors, care, assistantName = "Luna", onU
       <View style={[styles.wrap, { borderColor: colors.primary, backgroundColor: colors.primaryTint }]}>
         <Text style={[styles.step, { color: colors.primary }]}>2º PASSO — PAUSA 1 MIN</Text>
         <Text style={[styles.title, { color: colors.text }]}>
-          {bridge.title?.trim() || "PAUSA 1 min"}
+          {bridge.title?.trim() || "Calma 1 min"}
         </Text>
         <Text style={[styles.sub, { color: colors.textMuted }]}>
           {bridge.subtitle?.trim() || "Respiração agora — sem sair do jardim. Conversar é opcional."}
@@ -62,13 +62,13 @@ export function MoodCrisisBridgeCard({ colors, care, assistantName = "Luna", onU
           style={[styles.primaryBtn, { backgroundColor: colors.primary }]}
         >
           <Text style={styles.primaryText}>
-            {doneToday ? "Repetir PAUSA 1 min" : "Começar PAUSA 1 min"}
+            {doneToday ? "Repetir Calma 1 min" : "Começar Calma 1 min"}
           </Text>
         </Pressable>
 
         <View style={styles.row}>
           <Pressable onPress={openFullPausa} style={[styles.secondaryBtn, { borderColor: colors.border }]}>
-            <Text style={[styles.secondaryText, { color: colors.text }]}>Mais técnicas PAUSA</Text>
+            <Text style={[styles.secondaryText, { color: colors.text }]}>Mais técnicas Calma 1 min</Text>
           </Pressable>
           <Pressable onPress={openChat} style={[styles.secondaryBtn, { borderColor: colors.border }]}>
             <Text style={[styles.secondaryText, { color: colors.text }]}>Falar com {assistantName}</Text>

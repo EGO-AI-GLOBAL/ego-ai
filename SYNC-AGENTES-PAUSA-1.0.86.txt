@@ -1,31 +1,25 @@
 SYNC PAUSA — 1.0.86
 ===================
-Estado: ✅ PRONTO — Vi AVISO métricas — a monitorar PAUSA
+Estado: 🔧 WIP local — pet sticky + vídeos idle/missões (ainda sem commit)
 
-✅ Vi AVISO-AGENTES-METRICAS-PRODUTO-DIVULGACAO.txt — a monitorar PAUSA
-✅ Vi marketing/METRICAS-LOOP-PRODUTO.txt
-Commit: c3833f2 · push origin main
+Último commit remoto: c3833f2 (métricas Finch)
 
-Meta Iury: melhor app do segmento + melhor divulgação.
-Zona: humor / monstrinhos / jardim / PAUSA 1 min.
+NOVO (local — testar no Expo)
+-----------------------------
+• 35 MP4 em app/assets/monstrinhos/{brisa,sol,neutro,agita,nublina}/
+• MoodMonsterStickyPet — pet FIXO no topo; idle 01 em loop da cor do dia
+• Humor = 1º item no scroll (logo sob o pet); define cor
+• Check-in → 02-mood-react; missão → 03..06; bónus todas → 07
+• daily-care.tsx: sticky fora do ScrollView
 
-SINAIS
-------
-• Short ~230 humor/monstrinho → 1º humor Finch <10s · <2 toques
-• ASA «ansiedade» → PAUSA 1 min estável
-• Vídeo #1 noite → acompanhar 24h (SEM monstrinho neste #1)
+Nota: chroma verde (#00FF00) ainda visível até remaster sem fundo verde.
 
-DIFF MÍNIMO (c3833f2)
----------------------
-• DailyCareChallenge — humor ANTES da cena se !checked_today; sem Alert no 1º check-in
-• MoodGardenWidgetCard — CTA «1 toque / Abrir jardim → humor»
-• daily-care — sem refresh forçado se question já existe
+RENOME UI (14/07 — pedido Iury / testadores)
+-------------------------------------------
+• Nome user-facing: **Calma 1 min** (antes PAUSA EGO)
+• Drawer, ecrã, cartões chat, bridge jardim, notificações, push API, prompt LLM
+• Código interno continua `pausa_ego` / rotas wellness-journey (sem breaking)
 
 NÃO TOQUEI: auth / voz / Stripe / app.config / EAS / GERAR
 
-PRÓXIMO (só se métricas pedirem)
---------------------------------
-• Humor inline no card do chat (1 toque total)
-• Se #1 noite forte → bridge PAUSA ainda mais óbvio
-
-Build: NÃO — agente Build + Iury
+Build: NÃO — agente Build + Iury (rename entra na próxima release)

@@ -23,11 +23,11 @@ function pausaNotificationCopy(pausa: PausaEgoInfo, slot: "morning" | "evening")
     if (isSunday) {
       return {
         title: "☀️ Domingo no jardim",
-        body: "Sem pressa — PAUSA de 1 min antes do dia pesar",
+        body: "Sem pressa — Calma 1 min antes do dia pesar",
       };
     }
     return {
-      title: `${daily.emoji} PAUSA de hoje`,
+      title: `${daily.emoji} Calma de hoje`,
       body: `${daily.title} · ${dur} — casa, escritório ou onde estiver`,
     };
   }
@@ -35,17 +35,17 @@ function pausaNotificationCopy(pausa: PausaEgoInfo, slot: "morning" | "evening")
   if (hour >= 22 || hour < 5) {
     return {
       title: "🌌 Madrugada difícil?",
-      body: "PAUSA 60s no corpo — falar no chat é opcional",
+      body: "Calma 1 min no corpo — falar no chat é opcional",
     };
   }
   if (streak >= 2) {
     return {
-      title: `${daily.emoji} Falta sua PAUSA`,
+      title: `${daily.emoji} Falta sua Calma 1 min`,
       body: `${daily.title} · sequência 🔥 ${streak} dias`,
     };
   }
   return {
-    title: `${daily.emoji} Pausa da tarde`,
+    title: `${daily.emoji} Calma da tarde`,
     body: `${daily.title} · ${dur} — em casa, no trabalho ou na rua`,
   };
 }

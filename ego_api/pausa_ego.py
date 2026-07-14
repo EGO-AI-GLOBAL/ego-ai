@@ -104,13 +104,13 @@ def bolso_replaced_by_pausa() -> bool:
 
 def pausa_chat_prompt_block() -> str:
     return (
-        "\n\nPAUSA EGO (use com leveza — máx. 1 frase se couber):\n"
+        "\n\nCalma 1 min (use com leveza — máx. 1 frase se couber):\n"
         "- Se o utilizador mencionar ansiedade, stress, pressão, solidão, «estou mal», "
         "«cabeça não para», domingo difícil ou madrugada, valide com empatia e convide à "
-        "PAUSA (respirar 60s no cartão PAUSA ou menu PAUSA EGO).\n"
-        "- Se disser que não quer falar ou desabafar, respeite: ofereça PAUSA no corpo "
+        "Calma 1 min (respirar 60s no cartão ou menu Calma 1 min).\n"
+        "- Se disser que não quer falar ou desabafar, respeite: ofereça calma no corpo "
         "ou Monstrinhos (cartinha no jardim) — não force conversa longa.\n"
-        "- Não mencione EGO de Bolso, missões, ovo, níveis ou Tamagotchi.\n"
+        "- Não mencione EGO de Bolso, missões, ovo, níveis, Tamagotchi nem «PAUSA EGO».\n"
         "- Não diagnostique depressão/ansiedade; não substitua terapia. CVV 188 só se risco agudo.\n"
     )
 
@@ -272,9 +272,9 @@ def get_pausa(supabase: Client | None, user_id: str) -> dict[str, Any]:
         today_key=str(daily.get("key") or ""),
     )
     share_line = (
-        f"Hoje cuidei de mim 🔥 {streak} dias — {daily.get('title', 'PAUSA')}"
+        f"Hoje cuidei de mim 🔥 {streak} dias — {daily.get('title', 'Calma 1 min')}"
         if streak >= 2
-        else f"PAUSA de hoje: {daily.get('title', 'calma')} 🌬️"
+        else f"Calma de hoje: {daily.get('title', 'calma')} 🌬️"
     )
     retention_line = (
         f"Amanhã: {tomorrow.get('emoji', '🌬️')} {tomorrow.get('title', 'nova técnica')}"
@@ -381,7 +381,7 @@ def default_payload() -> dict[str, Any]:
         "moment_emoji": moment["emoji"],
         "moment_title": moment["title"],
         "moment_prompt": moment["prompt"],
-        "share_line": f"PAUSA de hoje: {daily.get('title', 'calma')} 🌬️",
+        "share_line": f"Calma de hoje: {daily.get('title', 'calma')} 🌬️",
         "week_dots": _week_dots([], today),
         "last_kind": None,
         "daily_exercise": daily,

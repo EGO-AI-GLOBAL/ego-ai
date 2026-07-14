@@ -66,7 +66,7 @@ function defaultPausa(): PausaEgoInfo {
 
     moment_prompt: "Antes do dia: solte os ombros e respire com calma.",
 
-    share_line: "Minha PAUSA EGO de hoje 🌬️",
+    share_line: "Minha Calma 1 min de hoje 🌬️",
 
     week_dots: [],
 
@@ -116,7 +116,7 @@ export function PausaEgoChatCard({
 
     }
 
-    if (info.today_done) return "PAUSA de hoje feita ✓";
+    if (info.today_done) return "Calma de hoje feita ✓";
 
     if (streak >= 1) return `Sequência: ${streak} dia${streak > 1 ? "s" : ""} · falta hoje`;
 
@@ -154,7 +154,7 @@ export function PausaEgoChatCard({
 
     void Share.share({
 
-      message: `${info.share_line}\n\nEGO-AI — PAUSA anti-stress com ${assistantName}.`,
+      message: `${info.share_line}\n\nEGO-AI — Calma 1 min com ${assistantName}.`,
 
     });
 
@@ -202,7 +202,7 @@ export function PausaEgoChatCard({
 
           <View style={styles.body}>
 
-            <Text style={[styles.badge, { color: colors.primary }]}>PAUSA DE HOJE 🌬️</Text>
+            <Text style={[styles.badge, { color: colors.primary }]}>CALMA DE HOJE 🌬️</Text>
 
             <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
 

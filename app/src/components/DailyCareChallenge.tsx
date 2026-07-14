@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { submitDailyCareCheckin } from "@/api/client";
@@ -15,6 +15,11 @@ import { MoodGoalsCompleteBurst } from "./moodMonsters/MoodGoalsCompleteBurst";
 import { MoodJournalTodayNote } from "./moodMonsters/MoodJournalTodayNote";
 import { MoodJournalWeek } from "./moodMonsters/MoodJournalWeek";
 import { MoodMonsterScene } from "./moodMonsters/MoodMonsterScene";
+import {
+  requestGoalClip,
+  requestMoodReact,
+  type MonsterPetPlayRequest,
+} from "./moodMonsters/MoodMonsterStickyPet";
 import { MoodSeedShop } from "./moodMonsters/MoodSeedShop";
 import { MoodSocialInviteCard } from "./moodMonsters/MoodSocialInviteCard";
 import { MoodWeeklyQuizCard } from "./moodMonsters/MoodWeeklyQuizCard";
@@ -26,6 +31,12 @@ type Props = {
   care?: DailyCareInfo;
   userId?: string;
   onUpdate: (care: DailyCareInfo, journey?: import("@/api/types").WellnessJourney) => void;
+  /** Preview de humor (PressIn) → muda cor do idle sticky. */
+  onPetMoodPreview?: (moodKey: string | undefined) => void;
+  /** One-shot no pet sticky. */
+  onPetPlay?: (req: MonsterPetPlayRequest) => void;
+  /** Conteúdo após o humor (banner/lead) — humor fica 1º sob o pet. */
+  afterMood?: React.ReactNode;
 };
 
 function RankingLadder({ colors, care }: { colors: AppColors; care: DailyCareInfo }) {
@@ -68,15 +79,33 @@ function RankingLadder({ colors, care }: { colors: AppColors; care: DailyCareInf
   );
 }
 
-/** Monstrinhos do Humor — jardim + pet ilustrado (estilo Finch). */
-export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
+/** Monstrinhos do Humor — jardim + pet vídeo sticky (idle loop + reações). */
+export function DailyCareChallenge({
+  colors,
+  care,
+  userId,
+  onUpdate,
+  onPetMoodPreview,
+  onPetPlay,
+  afterMood,
+}: Props) {
   const [busy, setBusy] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [goalsBurst, setGoalsBurst] = useState(false);
   const [burstCongrats, setBurstCongrats] = useState<string | undefined>();
   const [hoverMood, setHoverMood] = useState<string | undefined>();
+  const playNonce = useRef(0);
+  const pickingMood = useRef(false);
 
+  const setPreview = (key: string | undefined) => {
+    setHoverMood(key);
+    onPetMoodPreview?.(key);
+  };
+
+  const playPet = (req: MonsterPetPlayRequest) => {
+    onPetPlay?.(req);
+  };
   if (!care?.question) {
     return (
       <View style={[styles.wrap, { borderColor: colors.border, backgroundColor: colors.bgCard, opacity: 0.92 }]}>
@@ -94,28 +123,32 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
   const onPickMood = async (key: string) => {
     if (busy) return;
     setBusy(true);
+    pickingMood.current = true;
     // Reação imediata (Short ~230 humor/monstrinho — Finch PT <10s, sem esperar API).
-    setHoverMood(key);
+    setPreview(key);
     setCelebrate(true);
+    playNonce.current += 1;
+    playPet(requestMoodReact(playNonce.current));
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
     try {
       const res = await submitDailyCareCheckin(key);
       if (!res?.daily_care) {
         setCelebrate(false);
-        setHoverMood(undefined);
+        setPreview(undefined);
         Alert.alert("Monstrinhos", "Não foi possível guardar. Tente de novo.");
         return;
       }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
-      setTimeout(() => setCelebrate(false), 900);
+      setTimeout(() => setCelebrate(false), 1200);
       onUpdate(res.daily_care, res.wellness_journey);
-      setHoverMood(undefined);
+      setPreview(undefined);
       // Sem Alert no 1º humor — métricas Finch: <2 toques, sem modal.
       if (!care.checked_today) {
         const line = res.daily_care.monster_line?.trim();
         if (line) void queueMonsterChatNotice(line);
       }
     } finally {
+      pickingMood.current = false;
       setBusy(false);
     }
   };
@@ -156,8 +189,10 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
           return (
             <Pressable
               key={m.key}
-              onPressIn={() => setHoverMood(m.key)}
-              onPressOut={() => setHoverMood(undefined)}
+              onPressIn={() => setPreview(m.key)}
+              onPressOut={() => {
+                if (!pickingMood.current) setPreview(undefined);
+              }}
               onPress={() => void onPickMood(m.key)}
               disabled={busy}
               style={[
@@ -204,6 +239,9 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
 
   return (
     <>
+      {/* 1º no scroll sob o pet sticky — define a cor do monstrinho. */}
+      {moodCheckIn}
+
       <View style={[styles.wrap, { borderColor, backgroundColor: colors.bgCard }]}>
         <MoodGoalsCompleteBurst
           colors={colors}
@@ -231,17 +269,15 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
 
         <MoodGentlenessRibbon colors={colors} gentleness={care.gentleness} />
 
-        {/* Humor primeiro se ainda não marcou — 1º toque sem scroll (loop métricas humor ~230). */}
-        {needsCheckin ? moodCheckIn : null}
+        {afterMood}
 
         <MoodMonsterScene
           colors={colors}
           care={care}
           celebrate={celebrate}
           previewMood={hoverMood}
+          hidePet
         />
-
-        {!needsCheckin ? moodCheckIn : null}
 
         <MoodCrisisBridgeCard colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
 
@@ -256,7 +292,7 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
         {needsCheckin ? (
           <Text style={[styles.missionsLocked, { color: colors.textMuted }]}>
             {care.gentleness?.crisis_bridge?.show
-              ? "3º passo — missões gentis depois da PAUSA"
+              ? "3º passo — missões gentis depois da Calma 1 min"
               : "2º passo — complete as missões depois de marcar o humor"}
           </Text>
         ) : null}
@@ -266,6 +302,10 @@ export function DailyCareChallenge({ colors, care, userId, onUpdate }: Props) {
           care={care}
           userId={userId}
           onUpdate={(next) => onUpdate(next)}
+          onGoalCompleted={(goal, allGoalsBonus) => {
+            playNonce.current += 1;
+            playPet(requestGoalClip(goal.key, goal.surprise, playNonce.current, allGoalsBonus));
+          }}
           onGoalsBonus={(line) => {
             setBurstCongrats(line);
             setGoalsBurst(true);
@@ -326,6 +366,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 14,
     borderWidth: 1.5,
+    backgroundColor: "rgba(255,255,255,0.04)",
   },
   stepBadge: { fontSize: 10, fontWeight: "900", letterSpacing: 0.5, marginBottom: 6 },
   missionsLocked: { fontSize: 11, fontWeight: "700", marginBottom: 6, marginTop: 4 },

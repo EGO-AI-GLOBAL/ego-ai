@@ -116,7 +116,7 @@ export function PausaBreathSession({
     <Modal visible={visible} animationType="fade" transparent onRequestClose={onClose}>
       <View style={[styles.backdrop, { backgroundColor: "rgba(8,6,20,0.88)" }]}>
         <View style={[styles.card, { backgroundColor: colors.bgCard, borderColor: colors.primary }]}>
-          <Text style={[styles.badge, { color: colors.primary }]}>PAUSA EGO 🌬️</Text>
+          <Text style={[styles.badge, { color: colors.primary }]}>Calma 1 min 🌬️</Text>
           <Text style={[styles.title, { color: colors.text }]}>
             {title ? title : `${titleSec} com ${assistantName}`}
           </Text>

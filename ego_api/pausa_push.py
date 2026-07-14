@@ -71,7 +71,7 @@ def morning_notification_copy(
 ) -> tuple[str, str, str]:
     avatar = (avatar_name or "EGO-AI").strip() or "EGO-AI"
     daily = pausa.get("daily_exercise") if isinstance(pausa.get("daily_exercise"), dict) else {}
-    title_ex = str(daily.get("title") or "PAUSA de hoje").strip()
+    title_ex = str(daily.get("title") or "Calma de hoje").strip()
     emoji = str(daily.get("emoji") or "🌬️").strip()
     title = f"{avatar} · bom dia {emoji}"
     body = f"{title_ex} — alívie stress em poucos minutos"
@@ -84,13 +84,13 @@ def evening_notification_copy(
     avatar = (avatar_name or "EGO-AI").strip() or "EGO-AI"
     streak = max(0, int(pausa.get("streak_current") or 0))
     daily = pausa.get("daily_exercise") if isinstance(pausa.get("daily_exercise"), dict) else {}
-    ex_title = str(daily.get("title") or "PAUSA de hoje").strip()
+    ex_title = str(daily.get("title") or "Calma de hoje").strip()
     hour = local_hour if local_hour is not None else 18
     if hour >= 22 or hour < 5:
         title = f"{avatar} · madrugada 🌌"
-        body = "Ansiedade à noite? PAUSA 60s — falar é opcional depois"
+        body = "Ansiedade à noite? Calma 1 min — falar é opcional depois"
         return title, body, PAUSA_SCREEN
-    title = f"{avatar} · pausa da tarde 🌙"
+    title = f"{avatar} · calma da tarde 🌙"
     if streak >= 2:
         body = f"{ex_title} — sequência 🔥 {streak} dias"
     elif streak == 1:

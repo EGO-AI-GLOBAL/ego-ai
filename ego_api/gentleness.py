@@ -37,7 +37,7 @@ MIRROR_LINES: dict[str, list[str]] = {
     ],
     "anxious_week": [
         "Agita percebeu ansiedade frequente — vamos devagar hoje.",
-        "Semana agitada: PAUSA e respiração vêm antes das missões.",
+        "Semana agitada: Calma 1 min e respiração vêm antes das missões.",
         "Corpo em alerta? Seu jardim fica mais suave agora.",
     ],
     "mixed_stress": [
@@ -57,11 +57,11 @@ MIRROR_LINES: dict[str, list[str]] = {
         "Domingo sozinha é difícil. O jardim fica suave hoje.",
     ],
     "lonely_night": [
-        "Madrugada difícil? PAUSA 60s — você não precisa desabafar agora.",
+        "Madrugada difícil? Calma 1 min — você não precisa desabafar agora.",
         "3h da manhã permitido. Respire antes de qualquer conversa.",
     ],
     "first_stress_today": [
-        "Hoje pesa — PAUSA de 60s está aqui, sem julgamento.",
+        "Hoje pesa — Calma 1 min está aqui, sem julgamento.",
         "Dia difícil permitido. Respire antes de qualquer missão.",
     ],
 }
@@ -251,8 +251,8 @@ def survival_streak_line(current: int) -> str:
     if current <= 0:
         return ""
     if current == 1:
-        return "1 dia difícil com PAUSA — você cuidou de si"
-    return f"{current} dias difíceis com PAUSA — sequência de sobrevivência"
+        return "1 dia difícil com Calma 1 min — você cuidou de si"
+    return f"{current} dias difíceis com Calma 1 min — sequência de sobrevivência"
 
 
 def compute_calm_streak(raw: dict[str, Any], journal: list[dict[str, Any]]) -> dict[str, int]:
@@ -284,22 +284,22 @@ def crisis_bridge(
     if lonely_note and night:
         subtitle = "Madrugada difícil? 60s no corpo — falar é opcional depois."
     elif lonely_note:
-        subtitle = "Solidão pesa — PAUSA no corpo antes de qualquer conversa."
+        subtitle = "Solidão pesa — Calma 1 min no corpo antes de qualquer conversa."
     chat_draft = ""
     if show:
         if lonely_note:
             chat_draft = (
-                "Escrevi uma carta no jardim e fiz a PAUSA. "
+                "Escrevi uma carta no jardim e fiz a Calma 1 min. "
                 "Não quero desabafar muito — só um pouco de companhia agora."
             )
         else:
             chat_draft = (
-                "Marquei Nublina/Agita no jardim e fiz a PAUSA. "
+                "Marquei Nublina/Agita no jardim e fiz a Calma 1 min. "
                 "Quero falar sobre como estou me sentindo agora."
             )
     return {
         "show": show,
-        "title": "PAUSA 60s",
+        "title": "Calma 1 min",
         "subtitle": subtitle,
         "exercise_key": "breath44",
         "duration_seconds": 60,

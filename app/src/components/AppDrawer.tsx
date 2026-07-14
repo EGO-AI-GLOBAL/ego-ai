@@ -40,9 +40,9 @@ const NAV: NavItem[] = [
     caption: "1 toque/dia · ranking · Stories",
   },
   {
-    label: "PAUSA EGO 🌬️",
+    label: "Calma 1 min 🌬️",
     href: "/(main)/wellness-journey",
-    caption: "Respirar · SOS · sequência 🔥",
+    caption: "Stress e ansiedade · SOS · sequência 🔥",
   },
   { label: "Agenda", href: "/(main)/agenda", caption: "Lembretes e hábitos" },
   { label: "Uso", href: "/(main)/usage", caption: "Limite do plano (%)" },

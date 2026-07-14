@@ -100,7 +100,7 @@ EXERCISE_POOL: list[dict[str, Any]] = [
         "key": "pause1",
         "tier": PLAN_ESSENTIAL,
         "emoji": "⏸️",
-        "title": "Pausa de 1 minuto",
+        "title": "Calma de 1 minuto",
         "subtitle": "Olhos abertos — casa, escritório ou fila",
         "duration_seconds": 60,
         "mode": "steps",
@@ -342,7 +342,7 @@ _EXERCISE_BY_KEY = {str(e["key"]): e for e in EXERCISE_POOL}
 PLAN_BENEFITS: dict[str, dict[str, Any]] = {
     PLAN_ESSENTIAL: {
         "plan_label": "Essencial",
-        "headline": "1 PAUSA/dia · 6 técnicas · em qualquer lugar",
+        "headline": "1 Calma 1 min/dia · 6 técnicas · em qualquer lugar",
         "detail": "1 minuto em casa, no escritório, no ônibus ou na fila. Técnica nova quase todo dia.",
         "techniques_unlocked": 6,
         "upgrade_tier": PLAN_CONNECTION,
@@ -350,7 +350,7 @@ PLAN_BENEFITS: dict[str, dict[str, Any]] = {
     },
     PLAN_CONNECTION: {
         "plan_label": "Conexão",
-        "headline": "12 técnicas · pausa onde estiver",
+        "headline": "12 técnicas · calma onde estiver",
         "detail": "Grounding e respiração — casa, escritório, transporte. Sem tapete nem silêncio.",
         "techniques_unlocked": 12,
         "upgrade_tier": PLAN_PREMIUM,
@@ -358,15 +358,15 @@ PLAN_BENEFITS: dict[str, dict[str, Any]] = {
     },
     PLAN_PREMIUM: {
         "plan_label": "Premium",
-        "headline": "18 técnicas · pausa inteligente",
+        "headline": "18 técnicas · calma inteligente",
         "detail": "Agita ou Nublina? Priorizamos a técnica certa para hoje.",
         "techniques_unlocked": 18,
         "upgrade_tier": PLAN_TOTAL,
-        "upgrade_hint": "Total: 20 técnicas + pausa personalizada com avatar.",
+        "upgrade_hint": "Total: 20 técnicas + calma personalizada com avatar.",
     },
     PLAN_TOTAL: {
         "plan_label": "Total",
-        "headline": "20 técnicas · pausa completa",
+        "headline": "20 técnicas · calma completa",
         "detail": "Tudo desbloqueado + humor Monstrinhos + frase do avatar.",
         "techniques_unlocked": 20,
         "upgrade_tier": None,
@@ -391,8 +391,8 @@ def plan_benefits_payload(tier: str | None) -> dict[str, Any]:
     total = len(EXERCISE_POOL)
     return {
         "plan_tier": normalize_plan_tier(tier),
-        "plan_label": "PAUSA EGO",
-        "headline": f"{total} técnicas · pausa completa para todos",
+        "plan_label": "Calma 1 min",
+        "headline": f"{total} técnicas · calma completa para todos",
         "detail": "Grátis em todos os planos — 1 minuto onde estiver, técnica nova quase todo dia.",
         "techniques_unlocked": total,
         "techniques_total": total,

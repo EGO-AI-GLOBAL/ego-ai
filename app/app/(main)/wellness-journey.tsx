@@ -26,12 +26,12 @@ function defaultPausa(): PausaEgoInfo {
     moment_emoji: "🌅",
     moment_title: "Manhã",
     moment_prompt: "Antes do dia: solte os ombros e respire com calma.",
-    share_line: "Minha PAUSA EGO de hoje 🌬️",
+    share_line: "Minha Calma 1 min de hoje 🌬️",
     week_dots: [],
   };
 }
 
-/** PAUSA EGO — alívio de stress/ansiedade (substitui ecrã EGO de Bolso). */
+/** Calma 1 min — alívio de stress/ansiedade (substitui ecrã EGO de Bolso). */
 export default function WellnessJourneyScreen() {
   const colors = useColors();
   const { data, loading, refreshing, error, refresh, mergePausaEgo } = useDashboard();
@@ -65,7 +65,7 @@ export default function WellnessJourneyScreen() {
   }, []);
 
   return (
-    <ScreenShell title="PAUSA EGO" subtitle="1 min · casa, escritório ou onde estiver">
+    <ScreenShell title="Calma 1 min" subtitle="casa, escritório ou onde estiver">
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
