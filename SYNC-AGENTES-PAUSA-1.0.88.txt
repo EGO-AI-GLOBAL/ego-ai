@@ -1,23 +1,22 @@
 SYNC PAUSA — 1.0.88
 ===================
-Estado: ✅ PRONTO — 4dbf2f7
+Estado: ✅ PRONTO
 
-Commit: 4dbf2f7 · push origin main
-Msg: feat(calma): ligar 21 clips WayIn nas sessoes (pronto, sem EAS)
+ENTREGA (este commit)
+---------------------
+• Monstrinhos clips 08–24 no app (mapa 1:1 missões)
+  — Sol: 17/17 · Brisa: 17/17 · Neutro: 17/17
+  — Agita: 08–11 (4); 12–24 fallback core até gerar
+  — Nublina: só 01–07 (extras fallback)
+• `monsterClipAssets.ts` — stretch/smile/…/shop/letter
+• shop → clip 24 · carta → clip 23
+• Assets: `app/assets/monstrinhos/` (~189 MB total pasta)
+• Fonte WayIn: `marketing/wayin/MONSTRINHO-24-CLIPS/`
 
-ENTREGA
--------
-• Calma 1 min: 21 clips → app/assets/calma-clips/ (~53 MB)
-  mapa: calmaClipAssets.ts (breath44 … sos)
-  UI: CalmaClipPlayer em PausaBreath / PausaStep / SOS
-  + MoodCrisisBridgeCard (jardim inline)
-• Monstrinhos: pet sticky + 35 clips já em main (42f18e9) — confirmado
-
-PESO AAB
---------
-• calma ~53 MB + monstrinhos ~71 MB ≈ +124 MB
-• Fase 1 (se otimizar depois): breath44 + sos + 3 keys do dia; resto lazy — NÃO feito agora
+Testes: regression_guard + smoke_test_api OK
 
 NÃO TOQUEI: auth / voz / Stripe / app.config / EAS / GERAR
 
 Build: NÃO — agente Build + Iury
+
+PAUSA WayIn (créditos): retomar Agita 12-window → Nublina 08–24
