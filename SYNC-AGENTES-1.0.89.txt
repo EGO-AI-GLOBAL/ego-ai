@@ -1,18 +1,12 @@
-SYNC MESTRE — 1.0.89
+﻿SYNC MESTRE — 1.0.89
 =====================
-Versão: **1.0.89** · iOS buildNumber **91** · Android versionCode **133**
+Versão: **1.0.89** · iOS **91** · Android **133**
+EAS: ENFILEIRADO · AGUARDAR a correr (iOS auto)
 
-Inclui (tudo no main após 1.0.88):
-• Monstrinhos clips 08–24 (f160fb2 / 787a88c) + pet sticky
-• Calma 21 clips + mesocycle API (4dbf2f7 / 0981ac9)
-• Sessão persistente (89733df)
-• Marketing fichas Calma 1.0.88 já feitas
+| Plataforma | Build ID |
+|------------|----------|
+| iOS | 93dff5b7-c900-489e-90e6-67a087bc2167 |
+| Android | 3c44eecc-950a-4148-a569-d141695472f4 |
 
-| Agente        | Estado |
-|---------------|--------|
-| Monstrinhos/PAUSA | ✅ f160fb2 |
-| API           | ✅ |
-| Marketing     | ✅ |
-| Build         | 🚀 GERAR 1.0.89 |
-
-Nota AAB: pasta monstrinhos ~189 MB — monitorar tamanho EAS.
+No binário: Monstrinhos clips 08–24 · Calma 21 clips · sessão · mesocycle API (API já no Railway para mesocycle).
+Android: subir manual quando AAB ok.
