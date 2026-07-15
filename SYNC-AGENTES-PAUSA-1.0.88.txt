@@ -1,6 +1,7 @@
 SYNC PAUSA — 1.0.88
 ===================
-Estado: ✅ PRONTO
+Estado: ✅ PRONTO — f160fb2
+Commit: f160fb2 · push origin main
 
 ENTREGA (este commit)
 ---------------------
