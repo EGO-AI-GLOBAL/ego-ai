@@ -3,21 +3,22 @@ SYNC PAUSA — 1.0.88
 Estado: ✅ PRONTO — f160fb2
 Commit: f160fb2 · push origin main
 
-ENTREGA (este commit)
----------------------
+ENTREGA
+-------
 • Monstrinhos clips 08–24 no app (mapa 1:1 missões)
   — Sol: 17/17 · Brisa: 17/17 · Neutro: 17/17
   — Agita: 08–11 (4); 12–24 fallback core até gerar
   — Nublina: só 01–07 (extras fallback)
 • `monsterClipAssets.ts` — stretch/smile/…/shop/letter
 • shop → clip 24 · carta → clip 23
-• Assets: `app/assets/monstrinhos/` (~189 MB total pasta)
-• Fonte WayIn: `marketing/wayin/MONSTRINHO-24-CLIPS/`
+• Assets: `app/assets/monstrinhos/` (~189 MB pasta)
+• Fonte: `marketing/wayin/MONSTRINHO-24-CLIPS/`
+• Docs atualizados: PROGRESSO · LISTA · CODIGO-PRONTO-SEM-EAS · mestre 1.0.88 (nota post-enqueue)
 
 Testes: regression_guard + smoke_test_api OK
 
 NÃO TOQUEI: auth / voz / Stripe / app.config / EAS / GERAR
 
-Build: NÃO — agente Build + Iury
+Build: NÃO — agente Build + Iury (próximo bump puxa main)
 
 PAUSA WayIn (créditos): retomar Agita 12-window → Nublina 08–24

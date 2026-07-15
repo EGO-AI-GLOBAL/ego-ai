@@ -1,0 +1,30 @@
+CÓDIGO PRONTO — MONSTRINHOS CLIPS (sem EAS)
+==========================================
+Data: 15/07/2026
+Commits: f160fb2 · bd32723 (sync) · main
+
+O QUE JÁ ESTÁ EM MAIN (para o próximo build loja)
+-------------------------------------------------
+• app/assets/monstrinhos/ — Sol+Brisa+Neutro 08–24 · Agita 08–11
+• app/src/constants/monsterClipAssets.ts — missões 1:1 + shop/carta
+• marketing/wayin/MONSTRINHO-24-CLIPS/ — fonte + PROGRESSO + LISTA
+• SYNC-AGENTES-PAUSA-1.0.88.txt ✅
+
+TESTES
+------
+python / _ego_run_python: regression_guard + smoke_test_api OK
+
+NÃO FAZER AQUI
+--------------
+• Não bump app.config.ts
+• Não GERAR-*.bat / eas build / eas submit
+
+QUANDO IURY PEDIR BUILD
+-----------------------
+1. Bump versão (ex. 1.0.89) + buildNumber / versionCode
+2. PREPARAR → GERAR Android+iOS → AGUARDAR-E-SUBMETER
+3. Binário passa a incluir os clips novos (~189 MB pasta monstrinhos)
+
+PENDENTE CONTEÚDO (créditos WayIn)
+----------------------------------
+Agita 12–24 · Nublina 08–24 → depois ligar extras sem fallback

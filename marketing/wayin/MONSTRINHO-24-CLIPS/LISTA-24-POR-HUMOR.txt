@@ -2,48 +2,47 @@ CLIPES MONSTRINHO — META 24 / HUMOR (sem partilha)
 ==================================================
 5 humores × 24 = 120 MP4 no total.
 
-Já tens (7): 01-idle · 02-mood · 03-breathe · 04-water · 05-kind · 06-surprise · 07-all-goals
-Falta gerar (~17 novos) por humor → depois ligar no app.
+Já no app (7 core): 01-idle · 02-mood · 03-breathe · 04-water · 05-kind · 06-surprise · 07-all-goals
 
-PASTA alvo (quando Iury gerar):
+APP LIGADO (main · f160fb2 · 15/07/2026)
+• Sol / Brisa / Neutro: 08–24 no assets + mapa 1:1
+• Agita: 08–11; resto fallback · Nublina: fallback
+• Falta gerar: Agita 12–24 + Nublina 08–24 (~30) — créditos WayIn mês seguinte
+
+PASTA fonte:
 marketing/wayin/MONSTRINHO-24-CLIPS/{brisa|sol|neutro|agita|nublina}/
+PASTA app:
+app/assets/monstrinhos/{brisa|sol|neutro|agita|nublina}/
 
 LISTA POR HUMOR (nome ficheiro · ação app)
 ------------------------------------------
 [x] 01-idle-{mood}.mp4          · idle loop
 [x] 02-mood-{mood}.mp4          · marcar/mudar humor
-[x] 03-breathe-{mood}.mp4       · breathe / calm_breath / pause / music
-[x] 04-water-{mood}.mp4         · water / hydrate / plant / walk…
-[x] 05-kind-{mood}.mp4          · gratitude / kind_self / note / CARTA
-[x] 06-surprise-{mood}.mp4      · missão surpresa do dia
-[x] 07-all-goals-{mood}.mp4     · bónus todas + LOJA
---- novos (1 a 1 amanhã) ---
-[ ] 08-stretch-{mood}.mp4       · stretch
-[ ] 09-smile-{mood}.mp4         · smile
-[ ] 10-tidy-{mood}.mp4          · tidy
-[ ] 11-sun-{mood}.mp4           · sun
-[ ] 12-window-{mood}.mp4        · window
-[ ] 13-snack-{mood}.mp4         · snack
-[ ] 14-adventure-{mood}.mp4     · adventure
-[ ] 15-walk-{mood}.mp4          · walk (sair do 04 genérico)
-[ ] 16-hydrate-{mood}.mp4       · hydrate
-[ ] 17-plant-{mood}.mp4         · plant
-[ ] 18-pause-{mood}.mp4         · pause
-[ ] 19-music-{mood}.mp4         · music
-[ ] 20-gratitude-{mood}.mp4     · gratitude
-[ ] 21-note-{mood}.mp4          · note
-[ ] 22-kind-self-{mood}.mp4     · kind_self
-[ ] 23-letter-{mood}.mp4        · guardar carta (sair do 05)
-[ ] 24-shop-{mood}.mp4          · compra loja (sair do 07)
+[x] 03-breathe-{mood}.mp4       · breathe / calm_breath
+[x] 04-water-{mood}.mp4         · water
+[x] 05-kind-{mood}.mp4          · kind genérico
+[x] 06-surprise-{mood}.mp4      · missão surpresa
+[x] 07-all-goals-{mood}.mp4     · bónus 5/5
+--- novos 08–24 (1:1 no mapa) ---
+[x] 08-stretch-{mood}.mp4       · stretch     (falta: Agita ok| Nublina)
+[x] 09-smile-{mood}.mp4         · smile
+[x] 10-tidy-{mood}.mp4          · tidy
+[x] 11-sun-{mood}.mp4           · sun
+[~] 12-window-{mood}.mp4        · window      (Sol/Brisa/Neutro ✓ · Agita/Nublina pendente)
+[~] 13-snack-{mood}.mp4         · snack
+[~] 14-adventure-{mood}.mp4     · adventure
+[~] 15-walk-{mood}.mp4          · walk
+[~] 16-hydrate-{mood}.mp4       · hydrate
+[~] 17-plant-{mood}.mp4         · plant
+[~] 18-pause-{mood}.mp4         · pause
+[~] 19-music-{mood}.mp4         · music
+[~] 20-gratitude-{mood}.mp4     · gratitude
+[~] 21-note-{mood}.mp4          · note
+[~] 22-kind-self-{mood}.mp4     · kind_self
+[~] 23-letter-{mood}.mp4        · carta
+[~] 24-shop-{mood}.mp4          · loja
 
-mood no nome = calm|good|ok|anxious|heavy
-pasta = brisa|sol|neutro|agita|nublina
+mood = calm|good|ok|anxious|heavy
+[~] = completo em Sol+Brisa+Neutro; falta Agita e/ou Nublina
 
-ORDEM DE GERAÇÃO SUGERIDA (um humor de cada vez OU um slot em todos)
-1. Escolher humor (ex.: Sol/good)
-2. Gerar 08…24 com referência do pet dessa cor
-3. Fundo jardim suave — SEM chroma #00FF00
-4. ~7s · voz PT nos one-shots · idle sem voz
-5. Dizer ao agente: «pronto 08 sol» → agente guarda + marca
-
-QUANDO 24/humor OK → agente liga mapa 1:1 no app (monsterClipAssets).
+Build loja: NÃO neste fecho — próximo GERAR (ex. 1.0.89) puxa o que já está em main.

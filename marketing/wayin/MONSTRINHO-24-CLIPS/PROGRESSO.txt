@@ -2,16 +2,24 @@ PROGRESSO — Monstrinho 24 clips
 ================================
 Meta: 17 novos × 5 humores = 85 (01–07 já existem no app)
 
-SOL (good) — COMPLETO ✓
-BRISA (calm) — COMPLETO ✓
-NEUTRO (ok) — COMPLETO ✓
+APP (código main) — LIGADO 15/07/2026 · commit f160fb2
+• monsterClipAssets.ts mapa 1:1 missões → clips
+• Sol / Brisa / Neutro: 08–24 no binário (quando houver EAS novo)
+• Agita: 08–11 no app; 12–24 fallback core
+• Nublina: extras fallback core
+• shop → 24 · carta → 23
+• Sem GERAR/EAS neste fecho (pedido Iury)
 
-AGITA (anxious / amarelo nervoso) — a seguir
+SOL (good) — COMPLETO ✓ (gerado + no app)
+BRISA (calm) — COMPLETO ✓ (gerado + no app)
+NEUTRO (ok) — COMPLETO ✓ (gerado + no app)
+
+AGITA (anxious) — 4/17 gerados (+ no app)
 [x] 08-stretch-anxious.mp4
 [x] 09-smile-anxious.mp4
 [x] 10-tidy-anxious.mp4
 [x] 11-sun-anxious.mp4
-[ ] 12-window-anxious.mp4   ← RETOMAR AQUI (próximo mês — créditos WayIn)
+[ ] 12-window-anxious.mp4   ← RETOMAR (créditos WayIn)
 [ ] 13-snack-anxious.mp4
 [ ] 14-adventure-anxious.mp4
 [ ] 15-walk-anxious.mp4
@@ -25,9 +33,9 @@ AGITA (anxious / amarelo nervoso) — a seguir
 [ ] 23-letter-anxious.mp4
 [ ] 24-shop-anxious.mp4
 
-NUBLINA (heavy) — 17 novos (depois da Agita)
+NUBLINA (heavy) — 0/17 novos (depois da Agita)
 
-PAUSA WayIn: créditos esgotados (15/07/2026). Retomar → Agita 12-window.
+PAUSA WayIn: créditos esgotados (15/07/2026).
 
 REGRAS
 • Fundo chroma verde (como os 01–07)
