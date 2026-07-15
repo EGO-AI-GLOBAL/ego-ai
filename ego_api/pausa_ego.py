@@ -183,6 +183,17 @@ def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
         d = str(item or "").strip()[:10]
         if len(d) == 10 and d not in clean_recent:
             clean_recent.append(d)
+    recent_keys_raw = raw.get("recent_exercise_keys")
+    if not isinstance(recent_keys_raw, list):
+        recent_keys_raw = []
+    clean_keys: list[str] = []
+    for item in recent_keys_raw:
+        k = str(item or "").strip()[:32]
+        if k and k not in clean_keys:
+            clean_keys.append(k)
+    last_ex = str(raw.get("last_exercise_key") or "").strip()[:32]
+    if last_ex and last_ex not in clean_keys:
+        clean_keys.append(last_ex)
     return {
         "streak_current": streak_current,
         "streak_longest": max(streak_longest, streak_current),
@@ -190,7 +201,8 @@ def _load_state(supabase: Client | None, user_id: str) -> dict[str, Any]:
         "total_sessions": total_sessions,
         "recent_dates": clean_recent[-RECENT_DAYS_MAX:],
         "last_kind": str(raw.get("last_kind") or "").strip()[:16],
-        "last_exercise_key": str(raw.get("last_exercise_key") or "").strip()[:16],
+        "last_exercise_key": last_ex[:16],
+        "recent_exercise_keys": clean_keys[-19:],
     }
 
 
@@ -201,6 +213,11 @@ def _save_state(
         return
     prof = db.load_profile(supabase, user_id) or {}
     ui = db._parse_ui_state(prof)  # noqa: SLF001
+    recent_keys = [
+        str(k).strip()[:32]
+        for k in (state.get("recent_exercise_keys") or [])
+        if str(k or "").strip()
+    ]
     ui["pausa_ego"] = {
         "streak_current": max(0, int(state.get("streak_current") or 0)),
         "streak_longest": max(0, int(state.get("streak_longest") or 0)),
@@ -209,6 +226,7 @@ def _save_state(
         "recent_dates": list(state.get("recent_dates") or [])[-RECENT_DAYS_MAX:],
         "last_kind": str(state.get("last_kind") or "").strip()[:16],
         "last_exercise_key": str(state.get("last_exercise_key") or "").strip()[:16],
+        "recent_exercise_keys": recent_keys[-19:],
     }
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})
 
@@ -242,16 +260,16 @@ def get_pausa(supabase: Client | None, user_id: str) -> dict[str, Any]:
     tier = _profile_plan_tier(supabase, user_id)
     mood_key = _profile_mood_key(supabase, user_id)
     lonely_today = _profile_lonely_today(supabase, user_id, today)
+    recent_keys = list(state.get("recent_exercise_keys") or [])
     avoid = str(state.get("last_exercise_key") or "").strip() or None
     yesterday = _yesterday(today)
     if yesterday:
-        from ego_api.pausa_exercises import pick_daily_exercise as _pick
-
-        yday = _pick(
+        yday = pick_daily_exercise(
             user_id=user_id or "anon",
             local_date=yesterday,
             tier=tier,
             mood_key=mood_key,
+            avoid_keys=recent_keys,
         )
         ykey = str(yday.get("key") or "").strip()
         if ykey:
@@ -262,6 +280,7 @@ def get_pausa(supabase: Client | None, user_id: str) -> dict[str, Any]:
         tier=tier,
         mood_key=mood_key,
         avoid_key=avoid,
+        avoid_keys=recent_keys,
         lonely_note=lonely_today,
     )
     tomorrow = pick_tomorrow_teaser(
@@ -270,6 +289,7 @@ def get_pausa(supabase: Client | None, user_id: str) -> dict[str, Any]:
         tier=tier,
         mood_key=mood_key,
         today_key=str(daily.get("key") or ""),
+        recent_keys=recent_keys,
     )
     share_line = (
         f"Hoje cuidei de mim 🔥 {streak} dias — {daily.get('title', 'Calma 1 min')}"
@@ -335,6 +355,14 @@ def complete_session(
     longest = max(int(state.get("streak_longest") or 0), current)
     recent = [d for d in state.get("recent_dates") or [] if d != today]
     recent.append(today)
+    done_key = (exercise_key or session_kind or "").strip()[:32]
+    recent_keys = [
+        str(k).strip()[:32]
+        for k in (state.get("recent_exercise_keys") or [])
+        if str(k or "").strip() and str(k).strip() != done_key
+    ]
+    if done_key and done_key not in {"breath60", "breath120", "sos"}:
+        recent_keys.append(done_key)
     state.update(
         {
             "streak_current": current,
@@ -343,7 +371,8 @@ def complete_session(
             "total_sessions": int(state.get("total_sessions") or 0) + 1,
             "recent_dates": recent[-RECENT_DAYS_MAX:],
             "last_kind": session_kind,
-            "last_exercise_key": exercise_key or session_kind,
+            "last_exercise_key": (done_key or session_kind)[:16],
+            "recent_exercise_keys": recent_keys[-19:],
         }
     )
     _save_state(supabase, user_id, state)

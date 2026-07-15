@@ -1,8 +1,10 @@
-"""PAUSA EGO — técnicas anti-stress/ansiedade por plano + rotação diária."""
+"""Calma 1 min — técnicas anti-stress + programação tipo mesocycle (~84 dias)."""
 
 from __future__ import annotations
 
+import datetime as dt
 import hashlib
+import random
 from typing import Any
 
 from ego_api.plans import (
@@ -22,6 +24,115 @@ TIER_RANK: dict[str, int] = {
 }
 
 MOOD_STRESS_KEYS = frozenset({"heavy", "anxious"})
+
+# CrossFit-style: bloco ~3 meses; ordem nova por utilizador a cada mesocycle.
+MESOCYCLE_DAYS = 84
+# Evitar as últimas N técnicas quando o pool permite (até quase o ciclo inteiro).
+AVOID_RECENT_MAX = 19
+
+# Quando a mesma key volta (~a cada 20 dias), muda o “sabor” do texto — parece novo.
+SUBTITLE_SPICES: dict[str, tuple[str, ...]] = {
+    "breath44": (
+        "Acalma o corpo em 1 minuto",
+        "Quatro no peito · quatro soltos",
+        "Ritmo simples — ansiedade baixa",
+    ),
+    "long_exh": (
+        "Solte o ar devagar — ativa o relaxamento",
+        "A expiração longa é o truque",
+        "Inspira curto · solta bem lento",
+    ),
+    "phys_sigh": (
+        "Duas inspirações curtas + expiração longa",
+        "O suspiro que o corpo entende",
+        "Dois puxinhos · um soltar profundo",
+    ),
+    "shoulders": (
+        "Tensione 3s e deixe cair",
+        "Ombros duros? Solta agora",
+        "Sobe · segura · deixa cair",
+    ),
+    "feet_floor": (
+        "30s — sentado ou em pé, em qualquer lugar",
+        "Volta aos pés — você está aqui",
+        "Chão firme · mente menos rápida",
+    ),
+    "pause1": (
+        "Olhos abertos — casa, escritório ou fila",
+        "Um minuto sem mudar de sítio",
+        "Olhos abertos · ombros abaixo · pronto",
+    ),
+    "box_breath": (
+        "4–4–4–4 para foco e calma",
+        "Quadrado: inspira · segura · solta · pausa",
+        "Caixa de ar — mente sob controlo",
+    ),
+    "ground543": (
+        "Volte ao presente com os sentidos",
+        "Olha · toca · ouve — agora",
+        "Cinco sentidos · zero stress spiral",
+    ),
+    "sounds3": (
+        "Ouça sem julgar",
+        "Três sons · só nomear",
+        "Ouve o mundo — para de ruminar",
+    ),
+    "colors3": (
+        "Micro-pausa visual",
+        "Três cores · um respiro",
+        "Olhos a caçar cor = mente ocupada bem",
+    ),
+    "jaw_relax": (
+        "Onde o stress costuma acumular",
+        "Mandíbula mole · pescoço leve",
+        "Solta a cara — o corpo segue",
+    ),
+    "belly_br": (
+        "Mão na barriga — sobe e desce",
+        "Respira baixo · calma sobe",
+        "Barriga macia · peito leve",
+    ),
+    "worry_later": (
+        "Adie a ruminação com gentileza",
+        "Preocupação nas 20h — agora não",
+        "Guarda o worry · vive este minuto",
+    ),
+    "compassion": (
+        "Uma frase para você hoje",
+        "Gentileza também é treino",
+        "Mão no peito · «está bem assim»",
+    ),
+    "control1": (
+        "Uma ação pequena agora",
+        "Solta o resto · uma coisinha",
+        "Só o que cabe na tua mão",
+    ),
+    "hand_press": (
+        "Ancoragem táctil rápida",
+        "Aperta · sente · solta",
+        "Palmas juntas — volta ao corpo",
+    ),
+    "feet_rel": (
+        "Relaxamento muscular rápido",
+        "Tenciona os pés · e livre",
+        "Pés pesados · cabeça leve",
+    ),
+    "pace4": (
+        "Corpo e mente juntos",
+        "Quatro passos inspira · quatro solta",
+        "Marcha lenta — stress não acompanha",
+    ),
+    "mood_link": (
+        "Ligada ao Monstrinhos de hoje",
+        "Seu humor de hoje merece este minuto",
+        "Respirar com o monstrinho do dia",
+    ),
+    "avatar_1": (
+        "Presença guiada personalizada",
+        "Só este minuto — não resolve tudo agora",
+        "Frase de presença · ombros abaixo",
+    ),
+}
 
 EXERCISE_POOL: list[dict[str, Any]] = [
     {
@@ -393,7 +504,7 @@ def plan_benefits_payload(tier: str | None) -> dict[str, Any]:
         "plan_tier": normalize_plan_tier(tier),
         "plan_label": "Calma 1 min",
         "headline": f"{total} técnicas · calma completa para todos",
-        "detail": "Grátis em todos os planos — 1 minuto onde estiver, técnica nova quase todo dia.",
+        "detail": "Grátis em todos os planos — 1 minuto onde estiver. Programação ~84 dias (ordem nova por temporada — menos repetitivo).",
         "techniques_unlocked": total,
         "techniques_total": total,
         "upgrade_tier": None,
@@ -401,21 +512,65 @@ def plan_benefits_payload(tier: str | None) -> dict[str, Any]:
     }
 
 
+def _parse_local_date(local_date: str) -> dt.date:
+    try:
+        return dt.datetime.strptime(str(local_date or "")[:10], "%Y-%m-%d").date()
+    except ValueError:
+        return dt.date.today()
+
+
+def _mesocycle_index(day: dt.date) -> int:
+    """Bloco ~84 dias (tipo temporada CrossFit)."""
+    return day.toordinal() // MESOCYCLE_DAYS
+
+
+def _day_in_mesocycle(day: dt.date) -> int:
+    return day.toordinal() % MESOCYCLE_DAYS
+
+
+def _seeded_order(user_id: str, mesocycle: int, keys: list[str]) -> list[str]:
+    """Ordem única por utilizador + temporada — shuffle determinístico."""
+    order = list(keys)
+    if len(order) <= 1:
+        return order
+    seed_src = f"{user_id}|calma-meso|{mesocycle}|{','.join(sorted(keys))}"
+    seed = int(hashlib.sha256(seed_src.encode()).hexdigest()[:16], 16)
+    rng = random.Random(seed)
+    rng.shuffle(order)
+    return order
+
+
+def _spice_index(user_id: str, local_date: str, key: str) -> int:
+    dig = hashlib.sha256(f"{user_id}|spice|{local_date}|{key}".encode()).hexdigest()
+    return int(dig[:8], 16)
+
+
 def _serialize_exercise(
-    raw: dict[str, Any], *, mood_boosted: bool = False, lonely_boosted: bool = False
+    raw: dict[str, Any],
+    *,
+    mood_boosted: bool = False,
+    lonely_boosted: bool = False,
+    spice_index: int = 0,
+    mesocycle: int | None = None,
 ) -> dict[str, Any]:
+    key = str(raw["key"])
+    spices = SUBTITLE_SPICES.get(key) or (str(raw.get("subtitle") or ""),)
+    subtitle = spices[spice_index % len(spices)]
     out: dict[str, Any] = {
-        "key": raw["key"],
+        "key": key,
         "emoji": raw["emoji"],
         "title": raw["title"],
-        "subtitle": raw["subtitle"],
+        "subtitle": subtitle,
         "duration_seconds": int(raw.get("duration_seconds") or 60),
         "mode": raw.get("mode") or "breath",
         "focus": (raw.get("tags") or ["stress"])[0],
         "mood_boosted": mood_boosted,
         "lonely_boosted": lonely_boosted,
         "anywhere_friendly": raw.get("anywhere", True) is not False,
+        "programming": "mesocycle",
     }
+    if mesocycle is not None:
+        out["mesocycle"] = mesocycle
     if out["mode"] == "breath":
         out["breath_inhale"] = int(raw.get("breath_inhale") or 4)
         out["breath_exhale"] = int(raw.get("breath_exhale") or 4)
@@ -436,13 +591,21 @@ def pick_daily_exercise(
     tier: str | None,
     mood_key: str | None = None,
     avoid_key: str | None = None,
+    avoid_keys: list[str] | None = None,
     lonely_note: bool = False,
 ) -> dict[str, Any]:
-    eligible = exercises_for_tier(tier)
+    """
+    Programação tipo CrossFit:
+    - Mesocycle ~84 dias → nova ordem baralhada por utilizador (parece temporada nova).
+    - Dentro do bloco: caminha a ordem sem repetir até esgotar o pool.
+    - avoid_keys: não volta às últimas técnicas se ainda houver alternativas.
+    - Spices: mesmo vídeo, subtítulo diferente na 2.ª/3.ª volta do ciclo.
+    """
+    del tier  # todas liberadas
+    eligible = exercises_for_tier(None)
     if not eligible:
         eligible = [EXERCISE_POOL[0]]
 
-    tier_norm = normalize_plan_tier(tier)
     mood_boosted = False
     lonely_boosted = False
     mood = str(mood_key or "").strip().lower()
@@ -452,7 +615,6 @@ def pick_daily_exercise(
         if tagged:
             eligible = tagged
             mood_boosted = True
-
         mood_linked = [e for e in eligible if e.get("mood_linked")]
         if mood_linked:
             eligible = mood_linked
@@ -466,14 +628,43 @@ def pick_daily_exercise(
             lonely_boosted = True
             mood_boosted = True
 
-    if avoid_key and len(eligible) > 1:
-        filtered = [e for e in eligible if str(e.get("key")) != avoid_key]
-        if filtered:
-            eligible = filtered
+    by_key = {str(e["key"]): e for e in eligible}
+    keys = list(by_key.keys())
+    day = _parse_local_date(local_date)
+    meso = _mesocycle_index(day)
+    day_i = _day_in_mesocycle(day)
+    order = _seeded_order(str(user_id or "anon"), meso, keys)
 
-    digest = hashlib.sha256(f"{user_id}:{local_date}".encode()).hexdigest()
-    idx = int(digest[:8], 16) % len(eligible)
-    return _serialize_exercise(eligible[idx], mood_boosted=mood_boosted, lonely_boosted=lonely_boosted)
+    banned: list[str] = []
+    if avoid_key:
+        banned.append(str(avoid_key).strip())
+    for k in avoid_keys or []:
+        kk = str(k or "").strip()
+        if kk and kk not in banned:
+            banned.append(kk)
+    # Manter pelo menos 1 opção.
+    max_ban = max(0, len(order) - 1)
+    banned = banned[: min(AVOID_RECENT_MAX, max_ban)]
+
+    pick_key: str | None = None
+    # Preferir slot do dia na ordem da temporada; se banido, próximo livre.
+    for offset in range(len(order)):
+        candidate = order[(day_i + offset) % len(order)]
+        if candidate not in banned:
+            pick_key = candidate
+            break
+    if not pick_key:
+        pick_key = order[day_i % len(order)]
+
+    raw = by_key[pick_key]
+    spice = _spice_index(str(user_id or "anon"), str(local_date)[:10], pick_key)
+    return _serialize_exercise(
+        raw,
+        mood_boosted=mood_boosted,
+        lonely_boosted=lonely_boosted,
+        spice_index=spice,
+        mesocycle=meso,
+    )
 
 
 def pick_tomorrow_teaser(
@@ -483,21 +674,24 @@ def pick_tomorrow_teaser(
     tier: str | None,
     mood_key: str | None = None,
     today_key: str | None = None,
+    recent_keys: list[str] | None = None,
 ) -> dict[str, str]:
     """Gancho de retenção — amanhã vem outra técnica."""
-    import datetime as dt
-
     try:
         day = dt.datetime.strptime(local_date, "%Y-%m-%d").date()
         tomorrow = (day + dt.timedelta(days=1)).isoformat()
     except ValueError:
         tomorrow = local_date
+    avoid = list(recent_keys or [])
+    if today_key:
+        avoid = [str(today_key), *avoid]
     nxt = pick_daily_exercise(
         user_id=user_id,
         local_date=tomorrow,
         tier=tier,
         mood_key=mood_key,
         avoid_key=today_key,
+        avoid_keys=avoid,
     )
     return {
         "emoji": str(nxt.get("emoji") or "🌬️"),
