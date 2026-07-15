@@ -1,0 +1,18 @@
+SYNC MESTRE — 1.0.89
+=====================
+Versão: **1.0.89** · iOS buildNumber **91** · Android versionCode **133**
+
+Inclui (tudo no main após 1.0.88):
+• Monstrinhos clips 08–24 (f160fb2 / 787a88c) + pet sticky
+• Calma 21 clips + mesocycle API (4dbf2f7 / 0981ac9)
+• Sessão persistente (89733df)
+• Marketing fichas Calma 1.0.88 já feitas
+
+| Agente        | Estado |
+|---------------|--------|
+| Monstrinhos/PAUSA | ✅ f160fb2 |
+| API           | ✅ |
+| Marketing     | ✅ |
+| Build         | 🚀 GERAR 1.0.89 |
+
+Nota AAB: pasta monstrinhos ~189 MB — monitorar tamanho EAS.

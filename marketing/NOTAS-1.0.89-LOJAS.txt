@@ -1,0 +1,8 @@
+EGO-AI 1.0.89 — O QUE HÁ DE NOVO (colar lojas)
+==============================================
+
+• Monstrinhos mais vivos — mais clips nas missões e no jardim
+• Calma 1 min com animações guiadas
+• Sessão mantida ao reabrir o app
+• Técnicas da Calma com rotação menos repetitiva
+• Melhorias de estabilidade
