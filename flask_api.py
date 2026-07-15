@@ -88,6 +88,7 @@ CORS(
         "X-Refresh-Token",
         "X-Play-Integrity",
         "X-EGO-Platform",
+        "X-EGO-App-Version",
         "X-Admin-Key",
     ],
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -395,6 +396,12 @@ def require_auth(f: Callable) -> Callable:
                         timezone=str(sess.timezone or ""),
                         tz_offset_min=sess.tz_offset_min,
                     )
+                services.persist_client_device_meta(
+                    client,
+                    uid,
+                    platform=str(request.headers.get("X-EGO-Platform") or ""),
+                    app_version=str(request.headers.get("X-EGO-App-Version") or ""),
+                )
         except Exception as exc:  # noqa: BLE001
             from ego_api.monitoring import log_api_exception
 
@@ -1052,6 +1059,15 @@ def app_bootstrap():
                 db.update_profile_fields(g.supabase, g.user_id, {"ui_state": ui})
         except Exception:
             pass
+    try:
+        services.persist_client_device_meta(
+            g.supabase,
+            g.user_id,
+            platform=str(request.headers.get("X-EGO-Platform") or ""),
+            app_version=str(request.headers.get("X-EGO-App-Version") or ""),
+        )
+    except Exception:
+        pass
     return _dashboard_payload()
 
 
@@ -1060,7 +1076,6 @@ def app_bootstrap():
 def app_dashboard_get():
     """Mesmo payload que bootstrap (compatível se o Flask não foi reiniciado após atualizar)."""
     return _dashboard_payload()
-
 
 @app.get("/api/v1/me")
 @require_auth

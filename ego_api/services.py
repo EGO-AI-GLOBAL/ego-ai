@@ -2242,6 +2242,48 @@ def persist_client_timezone(
         pass
 
 
+def _normalize_client_platform(raw: str) -> str:
+    p = (raw or "").strip().lower()
+    if p in ("ios", "iphone", "ipad"):
+        return "ios"
+    if p in ("android",):
+        return "android"
+    if p in ("web", "browser"):
+        return "web"
+    return ""
+
+
+def persist_client_device_meta(
+    supabase: Client | None,
+    user_id: str,
+    *,
+    platform: str = "",
+    app_version: str = "",
+) -> None:
+    """Grava last_platform / last_app_version (header X-EGO-* no bootstrap/requests)."""
+    if not supabase or not user_id:
+        return
+    plat = _normalize_client_platform(platform)
+    ver = (app_version or "").strip()[:32]
+    if not plat and not ver:
+        return
+    try:
+        import datetime as _dt
+
+        prof = db.load_profile(supabase, user_id) or {}
+        patch: dict = {}
+        if plat and (prof.get("last_platform") or "").strip().lower() != plat:
+            patch["last_platform"] = plat
+        if ver and (prof.get("last_app_version") or "").strip() != ver:
+            patch["last_app_version"] = ver
+        if not prof.get("first_app_open_at"):
+            patch["first_app_open_at"] = _dt.datetime.now(_dt.timezone.utc).isoformat()
+        if patch:
+            db.update_profile_fields(supabase, user_id, patch)
+    except Exception:
+        pass
+
+
 # Campos que só o servidor/Stripe podem gravar — nunca aceitar do app.
 UI_STATE_SERVER_ONLY_KEYS = frozenset(
     {

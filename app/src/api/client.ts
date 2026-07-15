@@ -1,4 +1,5 @@
 import axios, { AxiosError, type AxiosInstance, type InternalAxiosRequestConfig } from "axios";
+import Constants from "expo-constants";
 import * as FileSystem from "expo-file-system";
 import { Platform } from "react-native";
 import { API_V1 } from "@/constants/config";
@@ -200,6 +201,10 @@ api.interceptors.request.use(async (config) => {
   applyAuthHeaders(config.headers);
   const h = config.headers as Record<string, string>;
   h["X-EGO-Platform"] = Platform.OS;
+  const appVer = String(Constants.expoConfig?.version || "").trim();
+  if (appVer) {
+    h["X-EGO-App-Version"] = appVer;
+  }
   if (routeNeedsIntegrity(config.url, config.method)) {
     const token = await getPlayIntegrityToken();
     if (token) {
@@ -1149,6 +1154,10 @@ async function ensureFreshSessionForPost(): Promise<void> {
 async function buildVoiceUploadHeaders(): Promise<Record<string, string>> {
   const headers = voiceUploadAuthHeaders();
   headers["X-EGO-Platform"] = Platform.OS;
+  const appVer = String(Constants.expoConfig?.version || "").trim();
+  if (appVer) {
+    headers["X-EGO-App-Version"] = appVer;
+  }
   const integrity = await getPlayIntegrityToken();
   if (integrity) {
     headers["X-Play-Integrity"] = integrity;
