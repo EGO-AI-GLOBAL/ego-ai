@@ -44,7 +44,8 @@ def get_supabase_admin() -> Client:
 def _resolve_team_seats_from_session(session: dict) -> int | None:
     from ego_api.team_stripe_checkout import parse_team_seats
 
-    meta = session.get("metadata") or {}
+    raw = session.get("metadata") if isinstance(session, dict) else None
+    meta = raw if isinstance(raw, dict) else {}
     for key in ("team_seats", "seats", "seat_count"):
         if meta.get(key) is not None:
             return parse_team_seats(meta.get(key))
@@ -52,7 +53,8 @@ def _resolve_team_seats_from_session(session: dict) -> int | None:
 
 
 def _resolve_tier_from_session(session: dict) -> str:
-    meta = session.get("metadata") or {}
+    raw = session.get("metadata") if isinstance(session, dict) else None
+    meta = raw if isinstance(raw, dict) else {}
     for key in ("plan_tier", "plan", "tier"):
         if meta.get(key):
             return normalize_plan_tier(str(meta[key]))
@@ -62,6 +64,8 @@ def _resolve_tier_from_session(session: dict) -> str:
         data = line_items.get("data") or []
         for item in data:
             price = (item or {}).get("price") or {}
+            if not isinstance(price, dict):
+                price = {}
             pid = str(price.get("id") or "")
             prod = str(price.get("product") or (item or {}).get("product") or "")
             tier = stripe_object_to_tier(price_id=pid, product_id=prod)
@@ -76,6 +80,34 @@ def _resolve_tier_from_session(session: dict) -> str:
 
 
 from ego_api.plan_grant import apply_plan_to_profile
+
+
+def _as_plain_dict(value: object) -> dict:
+    """Stripe API 2026+ pode devolver objetos sem .get() → AttributeError('get')."""
+    if value is None:
+        return {}
+    if isinstance(value, dict):
+        return value
+    to_dict = getattr(value, "to_dict", None)
+    if callable(to_dict):
+        try:
+            out = to_dict()
+            if isinstance(out, dict):
+                return out
+        except Exception:  # noqa: BLE001
+            pass
+    try:
+        return json.loads(json.dumps(value, default=lambda o: dict(o) if hasattr(o, "keys") else str(o)))
+    except Exception:  # noqa: BLE001
+        try:
+            return dict(value)  # type: ignore[arg-type]
+        except Exception:  # noqa: BLE001
+            return {}
+
+
+def _meta_dict(obj: dict) -> dict:
+    meta = obj.get("metadata") if isinstance(obj, dict) else None
+    return _as_plain_dict(meta) if meta is not None else {}
 
 
 def handle_stripe_webhook_payload(
@@ -97,19 +129,24 @@ def handle_stripe_webhook_payload(
         return {"ok": False, "error": "Payload inválido."}, 400
 
     try:
-        body = _process_stripe_event(event)
+        body = _process_stripe_event(_as_plain_dict(event))
     except StripeWebhookError as exc:
         return {"ok": False, "error": exc.detail}, exc.status_code
     except Exception as exc:  # noqa: BLE001
-        return {"ok": False, "error": str(exc)[:200]}, 500
+        return {
+            "ok": False,
+            "error": f"{type(exc).__name__}: {exc}"[:200],
+        }, 500
     return body, 200
 
 
 def _process_stripe_event(event: dict) -> dict:
+    event = _as_plain_dict(event)
     event_type = event.get("type")
+    data = _as_plain_dict(event.get("data"))
 
     if event_type in ("invoice.paid", "charge.refunded"):
-        obj = event["data"]["object"]
+        obj = _as_plain_dict(data.get("object"))
         try:
             from ego_api.finance_revenue import (
                 record_charge_refunded,
@@ -157,8 +194,9 @@ def _process_stripe_event(event: dict) -> dict:
     ):
         return {"ok": True, "ignored": event_type}
 
-    obj = event["data"]["object"]
-    user_id = obj.get("client_reference_id") or (obj.get("metadata") or {}).get("user_id")
+    obj = _as_plain_dict(data.get("object"))
+    meta = _meta_dict(obj)
+    user_id = obj.get("client_reference_id") or meta.get("user_id")
     if not user_id and event_type != "checkout.session.completed":
         return {"ok": True, "ignored": "sem user_id"}
 
@@ -174,10 +212,11 @@ def _process_stripe_event(event: dict) -> dict:
 
     if event_type == "customer.subscription.updated":
         status = str(obj.get("status") or "")
+        # cancel_at_period_end ainda vem status=active — não rebaixar até deleted
+        if obj.get("cancel_at_period_end") and status in ("active", "trialing"):
+            return {"ok": True, "ignored": "cancel_at_period_end"}
         if status in ("active", "trialing") and user_id:
-            tier = normalize_plan_tier(
-                str((obj.get("metadata") or {}).get("plan_tier") or PLAN_CONNECTION)
-            )
+            tier = normalize_plan_tier(str(meta.get("plan_tier") or PLAN_CONNECTION))
         elif status in ("canceled", "unpaid", "past_due") and user_id:
             tier = PLAN_ESSENTIAL
         else:
@@ -207,7 +246,7 @@ def _process_stripe_event(event: dict) -> dict:
                     session["id"],
                     expand=["line_items.data.price.product"],
                 )
-                full_d = dict(full)
+                full_d = _as_plain_dict(full)
                 tier = _resolve_tier_from_session(full_d)
                 team_seats = _resolve_team_seats_from_session(full_d) or team_seats
                 sub_id = sub_id or full_d.get("subscription")
