@@ -1,15 +1,14 @@
 SYNC MESTRE — 1.0.88
 =====================
-Versão alvo: **1.0.88**
-Inclui: sessão persistente · Calma 1 min clips · Monstrinhos pet/vídeos · copy Calma
+Versão: **1.0.88** · iOS buildNumber **90** · Android versionCode **132**
+Inclui: sessão persistente · Calma 21 clips · Monstrinhos pet/35 · copy Calma
 
 | Agente / chat     | Sync file                              | Estado |
 |-------------------|----------------------------------------|--------|
-| PAUSA / Monstrinhos | SYNC-AGENTES-PAUSA-1.0.88.txt        | ✅ PRONTO 4dbf2f7 — Calma 21 clips + sticky |
-| API/Segurança     | SYNC-AGENTES-API-1.0.88.txt            | ✅ PRONTO 89733df · Railway OK (bb464a5) |
-| Marketing         | SYNC-AGENTES-MARKETING-1.0.88.txt      | ✅ PRONTO 12f52d2 — site/ASA; screenshots loja pendentes |
-| Build (eu + Iury) | (este)                                 | ⏳ após «pode build» → GERAR-1.0.88 |
+| Monstrinhos/PAUSA | SYNC-AGENTES-PAUSA-1.0.88.txt          | ✅ |
+| API/Segurança     | SYNC-AGENTES-API-1.0.88.txt            | ✅ |
+| Marketing         | SYNC-AGENTES-MARKETING-1.0.88.txt      | ✅ (screenshots loja depois) |
+| Calma             | SYNC-AGENTES-CALMA-1.0.88.txt          | ✅ |
+| Build (eu + Iury) | (este)                                 | 🚀 GERAR em curso |
 
-Nota: 4dbf2f7 também criou SYNC-AGENTES-CALMA-1.0.88.txt (mesmo fecho clips).
-
-Build: **NÃO GERAR** até Iury confirmar.
+Marketing: ficha loja com fotos Calma pode colar depois do binário — não bloqueia EAS.
