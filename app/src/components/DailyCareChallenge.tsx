@@ -16,8 +16,7 @@ import { MoodJournalTodayNote } from "./moodMonsters/MoodJournalTodayNote";
 import { MoodJournalWeek } from "./moodMonsters/MoodJournalWeek";
 import { MoodMonsterScene } from "./moodMonsters/MoodMonsterScene";
 import {
-  requestGoalClip,
-  requestMoodReact,
+  requestGardenClip,
   type MonsterPetPlayRequest,
 } from "./moodMonsters/MoodMonsterStickyPet";
 import { MoodSeedShop } from "./moodMonsters/MoodSeedShop";
@@ -25,6 +24,8 @@ import { MoodSocialInviteCard } from "./moodMonsters/MoodSocialInviteCard";
 import { MoodWeeklyQuizCard } from "./moodMonsters/MoodWeeklyQuizCard";
 import { SeasonalEventBanner } from "./moodMonsters/SeasonalEventBanner";
 import { SocialFollowBar } from "./SocialFollowBar";
+import type { MonsterClipAction } from "@/constants/monsterClipAssets";
+import { pickNonRepeatingClip, preferredClipForGardenEvent } from "@/constants/monsterClipAssets";
 
 type Props = {
   colors: AppColors;
@@ -97,14 +98,18 @@ export function DailyCareChallenge({
   const [hoverMood, setHoverMood] = useState<string | undefined>();
   const playNonce = useRef(0);
   const pickingMood = useRef(false);
+  const recentClips = useRef<MonsterClipAction[]>([]);
 
   const setPreview = (key: string | undefined) => {
     setHoverMood(key);
     onPetMoodPreview?.(key);
   };
 
-  const playPet = (req: MonsterPetPlayRequest) => {
-    onPetPlay?.(req);
+  const playUnique = (preferred: MonsterClipAction) => {
+    const action = pickNonRepeatingClip(preferred, recentClips.current);
+    recentClips.current = [...recentClips.current, action].slice(-4);
+    playNonce.current += 1;
+    onPetPlay?.(requestGardenClip(action, playNonce.current));
   };
   if (!care?.question) {
     return (
@@ -127,8 +132,7 @@ export function DailyCareChallenge({
     // Reação imediata (Short ~230 humor/monstrinho — Finch PT <10s, sem esperar API).
     setPreview(key);
     setCelebrate(true);
-    playNonce.current += 1;
-    playPet(requestMoodReact(playNonce.current));
+    playUnique(preferredClipForGardenEvent("mood"));
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
     try {
       const res = await submitDailyCareCheckin(key);
@@ -283,7 +287,12 @@ export function DailyCareChallenge({
 
         <MoodJournalWeek colors={colors} entries={care.mood_journal} moods={care.moods} />
 
-        <MoodJournalTodayNote colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
+        <MoodJournalTodayNote
+          colors={colors}
+          care={care}
+          onUpdate={(next) => onUpdate(next)}
+          onLetterSaved={() => playUnique(preferredClipForGardenEvent("journal"))}
+        />
 
         {care.adventure?.active || care.adventure?.collected ? (
           <MoodAdventureBanner colors={colors} adventure={care.adventure} />
@@ -303,8 +312,13 @@ export function DailyCareChallenge({
           userId={userId}
           onUpdate={(next) => onUpdate(next)}
           onGoalCompleted={(goal, allGoalsBonus) => {
-            playNonce.current += 1;
-            playPet(requestGoalClip(goal.key, goal.surprise, playNonce.current, allGoalsBonus));
+            playUnique(
+              preferredClipForGardenEvent(
+                allGoalsBonus ? "goals-bonus" : "goal",
+                goal.key,
+                goal.surprise
+              )
+            );
           }}
           onGoalsBonus={(line) => {
             setBurstCongrats(line);
@@ -324,7 +338,12 @@ export function DailyCareChallenge({
 
         <MoodSocialInviteCard colors={colors} invite={care.social_invite} />
 
-        <MoodSeedShop colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
+        <MoodSeedShop
+          colors={colors}
+          care={care}
+          onUpdate={(next) => onUpdate(next)}
+          onPurchase={() => playUnique(preferredClipForGardenEvent("shop"))}
+        />
 
         <RankingLadder colors={colors} care={care} />
 

@@ -170,6 +170,13 @@ export function requestMoodReact(nonce: number): MonsterPetPlayRequest {
   return { action: "mood-react", nonce };
 }
 
+export function requestGardenClip(
+  action: MonsterClipAction,
+  nonce: number
+): MonsterPetPlayRequest {
+  return { action, nonce };
+}
+
 export function requestGoalClip(
   goalKey: string,
   surprise: boolean | undefined,

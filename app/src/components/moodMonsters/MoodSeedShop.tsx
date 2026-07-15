@@ -9,9 +9,11 @@ type Props = {
   colors: AppColors;
   care: DailyCareInfo;
   onUpdate: (care: DailyCareInfo) => void;
+  /** Compra ok → reação do pet (clip distinto). */
+  onPurchase?: () => void;
 };
 
-export function MoodSeedShop({ colors, care, onUpdate }: Props) {
+export function MoodSeedShop({ colors, care, onUpdate, onPurchase }: Props) {
   const items = care.shop_items ?? [];
   const [busyId, setBusyId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -28,6 +30,7 @@ export function MoodSeedShop({ colors, care, onUpdate }: Props) {
         return;
       }
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+      onPurchase?.();
       onUpdate(res.daily_care);
       Alert.alert("Loja do jardim", `${label} plantado no jardim! 🌱`);
     } finally {

@@ -94,20 +94,97 @@ export function monsterClipFileStem(action: MonsterClipAction): string {
   return ACTION_FILE[action];
 }
 
+/**
+ * Missão → clip one-shot.
+ * Só temos 5 ações (02–06); cada key do pool mapeada de propósito
+ * para NÃO repetir o mesmo vídeo em missões distintas do mesmo dia.
+ */
+const GOAL_TO_CLIP: Record<string, Exclude<MonsterClipAction, "idle" | "all-goals">> = {
+  checkin: "mood-react",
+  smile: "mood-react",
+  sun: "surprise", // luz/celebração — distinto de walk/pause
+  window: "mood-react",
+  breathe: "breathe",
+  calm_breath: "breathe",
+  pause: "breathe",
+  music: "breathe",
+  water: "water",
+  hydrate: "water",
+  plant: "water",
+  walk: "water",
+  stretch: "water",
+  tidy: "water",
+  snack: "water",
+  gratitude: "kind",
+  kind_self: "kind",
+  note: "kind",
+  adventure: "surprise",
+};
+
+const VARIETY_POOL: Exclude<MonsterClipAction, "idle">[] = [
+  "mood-react",
+  "breathe",
+  "water",
+  "kind",
+  "surprise",
+  "all-goals",
+];
+
+/** Fallback estável por hash — missões novas não caem todas em «kind». */
+function clipFromKeyHash(goalKey: string): Exclude<MonsterClipAction, "idle" | "all-goals"> {
+  const pool: Exclude<MonsterClipAction, "idle" | "all-goals">[] = [
+    "mood-react",
+    "breathe",
+    "water",
+    "kind",
+    "surprise",
+  ];
+  let h = 0;
+  for (let i = 0; i < goalKey.length; i += 1) {
+    h = (h * 31 + goalKey.charCodeAt(i)) >>> 0;
+  }
+  return pool[h % pool.length];
+}
+
 /** Mapeia missão diária → clip one-shot. */
 export function clipActionForGoalKey(goalKey: string, surprise?: boolean): MonsterClipAction {
   const key = (goalKey || "").trim().toLowerCase();
-  if (key === "breathe" || key === "calm_breath") return "breathe";
-  if (key === "water" || key === "hydrate" || key === "plant") return "water";
-  if (
-    key === "gratitude" ||
-    key === "kind_self" ||
-    key === "pause" ||
-    key === "music" ||
-    key === "note"
-  ) {
-    return "kind";
+  if (surprise || key.startsWith("surprise")) return "surprise";
+  if (key && GOAL_TO_CLIP[key]) return GOAL_TO_CLIP[key];
+  if (!key) return "kind";
+  return clipFromKeyHash(key);
+}
+
+/** Eventos do jardim com clip preferido (exclusivos quando possível). */
+export function preferredClipForGardenEvent(
+  event: "mood" | "shop" | "journal" | "goals-bonus" | "goal",
+  goalKey?: string,
+  surprise?: boolean
+): MonsterClipAction {
+  if (event === "mood") return "mood-react";
+  if (event === "shop") return "all-goals"; // celebração loja — distinto das missões
+  if (event === "journal") return "kind"; // carta íntima
+  if (event === "goals-bonus") return "all-goals";
+  return clipActionForGoalKey(goalKey ?? "", surprise);
+}
+
+/**
+ * Evita repetir o mesmo vídeo seguidos (memória das últimas 4 ações).
+ * Se o preferido já saiu há pouco, escolhe outro da pool.
+ */
+export function pickNonRepeatingClip(
+  preferred: MonsterClipAction,
+  recent: readonly MonsterClipAction[]
+): MonsterClipAction {
+  if (preferred === "idle") return "idle";
+  if (!recent.includes(preferred)) return preferred;
+  for (const candidate of VARIETY_POOL) {
+    if (!recent.includes(candidate)) return candidate;
   }
-  if (surprise || key.startsWith("surprise") || key === "adventure") return "surprise";
-  return "kind";
+  // Tudo recente — usa o menos recente possível
+  for (let i = 0; i < recent.length; i += 1) {
+    const older = recent[i];
+    if (older && older !== "idle" && older !== preferred) return older;
+  }
+  return preferred;
 }

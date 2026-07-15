@@ -17,9 +17,11 @@ type Props = {
   colors: AppColors;
   care: DailyCareInfo;
   onUpdate: (care: DailyCareInfo) => void;
+  /** Carta guardada → reação do pet (clip distinto). */
+  onLetterSaved?: () => void;
 };
 
-export function MoodJournalTodayNote({ colors, care, onUpdate }: Props) {
+export function MoodJournalTodayNote({ colors, care, onUpdate, onLetterSaved }: Props) {
   const todayEntry = (care.mood_journal ?? []).find((e) => e.date === care.last_date);
   const [draft, setDraft] = useState(todayEntry?.note ?? "");
   const [busy, setBusy] = useState(false);
@@ -41,6 +43,7 @@ export function MoodJournalTodayNote({ colors, care, onUpdate }: Props) {
       if (!res?.daily_care) return;
       onUpdate(res.daily_care);
       setSaved(true);
+      onLetterSaved?.();
     } finally {
       setBusy(false);
     }
