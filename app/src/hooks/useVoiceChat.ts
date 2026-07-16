@@ -24,6 +24,32 @@ import { RealtimePhoneCall, warmupPhoneCall } from "@/utils/openaiRealtimeCall";
 
 const isWeb = Platform.OS === ("web" as typeof Platform.OS);
 
+/** iOS: após gravar, a sessão AVAudio precisa reactivar antes do TTS. */
+async function ensureNativePlaybackAudioMode(): Promise<void> {
+  const Audio = getExpoAudio();
+  if (!Audio) return;
+  await Audio.setAudioModeAsync({
+    allowsRecordingIOS: false,
+    playsInSilentModeIOS: true,
+    shouldDuckAndroid: true,
+    playThroughEarpieceAndroid: false,
+  });
+  if (Platform.OS === "ios") {
+    await new Promise((r) => setTimeout(r, 120));
+  }
+}
+
+function isAudioSessionInactiveError(err: unknown): boolean {
+  const msg = String(err instanceof Error ? err.message : err).toLowerCase();
+  return (
+    msg.includes("sessão de áudio") ||
+    msg.includes("audio session") ||
+    msg.includes("not activated") ||
+    msg.includes("não ativada") ||
+    msg.includes("nao ativada")
+  );
+}
+
 function deviceSupportsLiveCall(): boolean {
   if (isWeb) return true;
   try {
@@ -563,33 +589,47 @@ export function useVoiceChat() {
         await FileSystem.writeAsStringAsync(path, b64, {
           encoding: FileSystem.EncodingType.Base64,
         });
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: false,
-          playsInSilentModeIOS: true,
-          shouldDuckAndroid: true,
-          playThroughEarpieceAndroid: false,
-        });
-        const { sound } = await Audio.Sound.createAsync({ uri: path });
-        soundRef.current = sound;
-        await sound.setRateAsync(rate, true);
-        setIsSpeaking(true);
-        await new Promise<void>((resolve, reject) => {
-          const safety = setTimeout(() => resolve(), 120_000);
-          sound.setOnPlaybackStatusUpdate((status) => {
-            if (!status.isLoaded) return;
-            if (status.didJustFinish) {
+        const playOnce = async () => {
+          await ensureNativePlaybackAudioMode();
+          const { sound } = await Audio.Sound.createAsync(
+            { uri: path },
+            { shouldPlay: false, progressUpdateIntervalMillis: 250 }
+          );
+          soundRef.current = sound;
+          await sound.setRateAsync(rate, true);
+          setIsSpeaking(true);
+          await new Promise<void>((resolve, reject) => {
+            const safety = setTimeout(() => resolve(), 120_000);
+            sound.setOnPlaybackStatusUpdate((status) => {
+              if (!status.isLoaded) return;
+              if (status.didJustFinish) {
+                clearTimeout(safety);
+                resolve();
+              }
+            });
+            void sound.playAsync().catch((err) => {
               clearTimeout(safety);
-              resolve();
-            }
+              reject(err);
+            });
           });
-          void sound.playAsync().catch((err) => {
-            clearTimeout(safety);
-            reject(err);
-          });
-        });
+        };
+        try {
+          await playOnce();
+        } catch (firstErr) {
+          if (!isAudioSessionInactiveError(firstErr)) throw firstErr;
+          // 2ª tentativa: típico no iOS logo após soltar o microfone
+          await stopPlayback({ keepSpeaking: true });
+          await ensureNativePlaybackAudioMode();
+          await playOnce();
+        }
         await stopPlayback();
       } catch (e) {
         setIsSpeaking(false);
+        if (isAudioSessionInactiveError(e)) {
+          throw new Error(
+            "Áudio do iPhone ainda a preparar. Toca de novo em Ouvir (ou espera 1s após gravar)."
+          );
+        }
         throw e;
       }
     },
