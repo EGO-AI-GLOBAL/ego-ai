@@ -2261,7 +2261,7 @@ def persist_client_device_meta(
     app_version: str = "",
 ) -> None:
     """Grava last_platform / last_app_version (header X-EGO-* no bootstrap/requests)."""
-    if not supabase or not user_id:
+    if not user_id:
         return
     plat = _normalize_client_platform(platform)
     ver = (app_version or "").strip()[:32]
@@ -2270,7 +2270,13 @@ def persist_client_device_meta(
     try:
         import datetime as _dt
 
-        prof = db.load_profile(supabase, user_id) or {}
+        from ego_api.supabase_client import create_service_client
+
+        # update_profile_fields NÃO permite estas colunas (só full_name/ui_state/…).
+        client = create_service_client() or supabase
+        if not client:
+            return
+        prof = db.load_profile(supabase or client, user_id) or {}
         patch: dict = {}
         if plat and (prof.get("last_platform") or "").strip().lower() != plat:
             patch["last_platform"] = plat
@@ -2278,8 +2284,9 @@ def persist_client_device_meta(
             patch["last_app_version"] = ver
         if not prof.get("first_app_open_at"):
             patch["first_app_open_at"] = _dt.datetime.now(_dt.timezone.utc).isoformat()
-        if patch:
-            db.update_profile_fields(supabase, user_id, patch)
+        if not patch:
+            return
+        client.table(db.SUPABASE_PROFILES_TABLE).update(patch).eq("id", user_id).execute()
     except Exception:
         pass
 
