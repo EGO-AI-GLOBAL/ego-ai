@@ -1,4 +1,4 @@
-import type { ExpoConfig } from "expo/config";
+﻿import type { ExpoConfig } from "expo/config";
 
 const apiUrl = (process.env.EXPO_PUBLIC_API_URL || "").trim();
 const appEnv = (process.env.APP_ENV || process.env.NODE_ENV || "development").toLowerCase();
@@ -11,13 +11,13 @@ const allowHttp =
   (apiUrl.startsWith("http://") && process.env.NODE_ENV !== "production");
 
 if (isProd && apiUrl && !apiUrl.startsWith("https://")) {
-  throw new Error("Produção exige EXPO_PUBLIC_API_URL com https://");
+  throw new Error("ProduÃ§Ã£o exige EXPO_PUBLIC_API_URL com https://");
 }
 
 const config: ExpoConfig = {
   name: "Ego-IA",
   slug: "ego-ai",
-  version: "1.0.89",
+  version: "1.0.90",
   orientation: "portrait",
   scheme: "egoai",
   userInterfaceStyle: "automatic",
@@ -32,7 +32,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.egoai.app",
-    buildNumber: "91",
+    buildNumber: "92",
     entitlements: {
       "com.apple.security.application-groups": ["group.com.egoai.app.widget"],
     },
@@ -44,16 +44,16 @@ const config: ExpoConfig = {
       NSMicrophoneUsageDescription:
         "O EGO-AI usa o microfone para mensagens de voz e chamada ao vivo com o assistente.",
       NSPhotoLibraryUsageDescription:
-        "O EGO-AI acede às fotos para ler texto em imagens que anexar ao chat.",
+        "O EGO-AI acede Ã s fotos para ler texto em imagens que anexar ao chat.",
       NSCameraUsageDescription:
-        "O EGO-AI usa a câmara para fotografar documentos e extrair o texto.",
+        "O EGO-AI usa a cÃ¢mara para fotografar documentos e extrair o texto.",
     },
   },
   android: {
-    versionCode: 133,
+    versionCode: 134,
     package: "com.egoai.app",
     adaptiveIcon: {
-      /** Mesmo PNG do iOS — evita ícone minúsculo dentro do círculo no launcher. */
+      /** Mesmo PNG do iOS â€” evita Ã­cone minÃºsculo dentro do cÃ­rculo no launcher. */
       foregroundImage: "./assets/icon.png",
       backgroundColor: "#121c2c",
     },
@@ -83,7 +83,7 @@ const config: ExpoConfig = {
             minHeight: "110dp",
             targetCellWidth: 4,
             targetCellHeight: 2,
-            description: "Humor, missões e sequência do jardim.",
+            description: "Humor, missÃµes e sequÃªncia do jardim.",
             updatePeriodMillis: 1800000,
           },
           {
@@ -93,7 +93,7 @@ const config: ExpoConfig = {
             minHeight: "110dp",
             targetCellWidth: 4,
             targetCellHeight: 2,
-            description: "Missões do dia e desafio semanal do companheiro.",
+            description: "MissÃµes do dia e desafio semanal do companheiro.",
             updatePeriodMillis: 1800000,
           },
         ],
@@ -111,9 +111,9 @@ const config: ExpoConfig = {
       "expo-image-picker",
       {
         photosPermission:
-          "O EGO-AI acede às fotos para ler texto em imagens anexadas ao chat.",
+          "O EGO-AI acede Ã s fotos para ler texto em imagens anexadas ao chat.",
         cameraPermission:
-          "O EGO-AI usa a câmara para fotografar páginas e extrair o texto.",
+          "O EGO-AI usa a cÃ¢mara para fotografar pÃ¡ginas e extrair o texto.",
       },
     ],
     [
@@ -162,3 +162,4 @@ const config: ExpoConfig = {
 };
 
 export default config;
+
