@@ -1,0 +1,111 @@
+ANDROID — APROVAR DE PRIMEIRA (16/07/2026)
+==========================================
+Regra: igual ao iOS. Stripe = SÓ site. App Android = Google Play Billing.
+
+ESTADO HOJE
+-----------
+✅ Teste fechado 12×14 dias + pedido produção (15/07) — Google a analisar
+✅ Privacy / exclusão conta no app.config
+✅ Play Integrity (modo monitor)
+✅ Ficha Calma 1.0.88 pronta
+❌ Play Billing NO CÓDIGO (Android ainda abre Stripe)
+❌ Produtos assinatura na Play Console (Iury a criar — guia abaixo)
+⏳ Acesso produção Google (e-mail owner)
+
+═══════════════════════════════════════
+A) PAGAMENTOS (igual iOS) — OBRIGATÓRIO
+═══════════════════════════════════════
+
+1. CONSOLE (Iury — AGORA)
+   Guia: marketing/PLAY-BILLING-CLIQUE-A-CLIQUE-IGUAL-IOS.txt
+   IDs:  marketing/PLAY-BILLING-IDS-IGUAL-IOS.txt
+
+   | Plano        | Product ID                           | Preço   |
+   |--------------|--------------------------------------|---------|
+   | EGO Conexão  | com.egoai.app.sub.connection.monthly | R$ 39,90|
+   | EGO Premium  | com.egoai.app.sub.premium.monthly    | R$ 69,90|
+   | EGO Total    | com.egoai.app.sub.total.monthly      | R$129,90|
+   Intro Conexão: 6× R$ 19,90 (como Apple)
+
+   [ ] 3 assinaturas Active
+   [ ] Merchant / pagamentos Play OK
+   [ ] License testers (teu Gmail)
+
+2. CÓDIGO (agente app + API — depois dos produtos Active)
+   Espelhar iOS:
+   • Client: useIosIap → useStoreIap / Platform android também
+   • Gate: usesAppleIap → usesStoreIap (iOS|android); usesStripeCheckout = web only
+   • API: ego_api/google_play_billing.py + POST /billing/google/verify
+   • plans.tsx: Android = loja (não buy.stripe.com)
+   • Restaurar compras no Android
+   • Stripe links: só site egoai.com.br/planos (e web se houver)
+
+3. BUILD
+   [ ] Nova versão EAS Android (ex. 1.0.90) COM Billing ligado
+   [ ] NÃO promover para produção AAB antiga com Stripe in-app
+
+═══════════════════════════════════════
+B) O QUE MAIS A PLAY OLHA (1ª aprovação)
+═══════════════════════════════════════
+
+LOJA / FICHA
+[ ] Capturas + texto Calma 1 min (PLAY-1.0.88-FICHA)
+[ ] Ícone / feature graphic actualizados
+[ ] Categoria + contacto + site
+[ ] Política privacidade URL (já: egoai.com.br/privacidade)
+[ ] Formulário Segurança dos dados (Data safety) — completo e honesto
+[ ] Classificação de conteúdo (questionário)
+[ ] Público-alvo / ads (se aplicável)
+
+APP / POLÍTICA
+[ ] Conta: criar, entrar, EXCLUIR conta (já existe)
+[ ] Sem “compre fora” para conteúdo digital no app
+[ ] Login / onboarding sem crash (regression_guard + conta nova)
+[ ] Permissões: só o necessário (mic, notif) — justificar na ficha se pedir
+[ ] Declaração de anúncios / ads SDK se usares
+
+PRODUÇÃO
+[ ] Google aprovar «acesso produção»
+[ ] Upload AAB COM billing (não o Stripe-only)
+[ ] Países: Brasil (+ os do iOS)
+[ ] Notas da versão (NOTAS-1.0.89-LOJAS ou nova)
+
+═══════════════════════════════════════
+C) ORDEM (não perder tempo)
+═══════════════════════════════════════
+HOJE / AMANHÃ (Iury)
+  1. Criar 3 assinaturas Play (clique a clique)
+  2. Confirmar e-mail produção Google
+  3. Data safety + classificação se ainda incompletos
+
+QUANDO PRODUTOS ACTIVE
+  4. Pedir ao agente app/API: «Play Billing igual iOS»
+  5. regression_guard + smoke
+  6. Build EAS Android
+  7. Teste: comprar Conexão com license tester
+  8. Só então → Produção → enviar revisão
+
+STRIPE
+  ✅ Site / web
+  ❌ Remover do fluxo de planos no app Android na build de produção
+
+═══════════════════════════════════════
+D) CHECKLIST RÁPIDO
+═══════════════════════════════════════
+[ ] 3 IDs Play = iOS
+[ ] Código Billing + verify API
+[ ] Stripe só site
+[ ] Data safety OK
+[ ] Produção Google liberada
+[ ] AAB nova testada
+[ ] Ficha Calma
+[ ] Conta nova: cadastro → Luna → chat → planos loja
+
+Ficheiros
+---------
+PLAY-BILLING-CLIQUE-A-CLIQUE-IGUAL-IOS.txt
+PLAY-BILLING-IDS-IGUAL-IOS.txt
+PLAY-1.0.88-FICHA-CLIQUE-A-CLIQUE.txt
+APPLE-PRECOS-IAP-CONNECT.txt (referência preços)
+app/src/constants/iapProducts.ts
+app/src/hooks/useIosIap.ts (modelo a espelhar)

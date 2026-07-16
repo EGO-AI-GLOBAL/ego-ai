@@ -1124,6 +1124,39 @@ def billing_apple_verify():
     return _json_ok(result)
 
 
+@app.post("/api/v1/billing/google/verify")
+@require_auth
+@rate_limit(12, 60, scope="user")
+def billing_google_verify():
+    """Valida compra Google Play Billing e activa plano no perfil."""
+    from ego_api.google_play_billing import (
+        GooglePlayBillingError,
+        verify_and_grant_plan,
+    )
+    from ego_api.stripe_webhook_handler import get_supabase_admin
+
+    data = request.get_json(silent=True) or {}
+    purchase_token = str(
+        data.get("purchase_token") or data.get("purchaseToken") or ""
+    ).strip()
+    product_id = str(data.get("product_id") or data.get("productId") or "").strip() or None
+    order_id = str(data.get("order_id") or data.get("orderId") or "").strip() or None
+    try:
+        supabase = get_supabase_admin()
+        result = verify_and_grant_plan(
+            supabase,
+            g.user_id,
+            purchase_token=purchase_token,
+            product_id=product_id,
+            order_id=order_id,
+        )
+    except GooglePlayBillingError as exc:
+        return _json_error(str(exc), exc.status_code)
+    except Exception as exc:  # noqa: BLE001
+        return _json_error(str(exc)[:200], 500)
+    return _json_ok(result)
+
+
 @app.get("/api/v1/chat/messages")
 @require_auth
 def chat_list():

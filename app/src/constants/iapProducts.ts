@@ -1,11 +1,11 @@
 import type { PlanTier } from "@/api/types";
 
 /**
- * Assinaturas In-App Purchase (iOS). Preço iOS = +30% do site/Android para cobrir
- * a taxa da Apple. Android/web continuam via Stripe (não usam este ficheiro).
+ * Assinaturas In-App (lojas). Preço loja = +30% do site/Stripe para cobrir
+ * taxa Apple/Google. Site/web continuam via Stripe.
  *
- * Os IDs abaixo têm de ser criados IGUAIS no App Store Connect
- * (Assinaturas → grupo → auto-renováveis).
+ * IDs IGUAIS no App Store Connect e no Google Play Console
+ * (Assinaturas → auto-renováveis / Play Billing).
  */
 
 export type IapProduct = {
@@ -51,6 +51,10 @@ export const IAP_PRODUCTS: IapProduct[] = [
 ];
 
 export const IAP_PRODUCT_IDS = IAP_PRODUCTS.map((p) => p.productId);
+
+/** Nota curta no cartão de plano: o preço mostrado vem da loja. */
+export const IOS_APP_STORE_PRICE_NOTE =
+  "Preço cobrado pela loja (App Store / Google Play).";
 
 export function iapProductForTier(tier: string): IapProduct | undefined {
   return IAP_PRODUCTS.find((p) => p.tier === tier);

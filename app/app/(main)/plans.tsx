@@ -37,9 +37,11 @@ import {
 import {
   allowsInAppPlanPurchase,
   IOS_PRIVACY_POLICY_URL,
-  IOS_SUBSCRIPTION_LEGAL,
   IOS_TERMS_OF_USE_URL,
-  usesAppleIap,
+  storeCancelHint,
+  storeSubscriptionLegal,
+  usesGooglePlayIap,
+  usesStoreIap,
   usesStripeCheckout,
 } from "@/utils/iosAppStoreBilling";
 import { iosIapCatalog, useIosIap } from "@/hooks/useIosIap";
@@ -60,7 +62,7 @@ export default function PlansScreen() {
     data.access?.referral_benefit?.active === true;
 
   const showIosLaunchOffer =
-    usesAppleIap() &&
+    usesStoreIap() &&
     !referralActive &&
     isLaunchCampaignActive() &&
     (data.access?.plan_tier || "essential") === "essential";
@@ -259,8 +261,8 @@ export default function PlansScreen() {
         priceOverride="Grátis"
         footnote={
           currentTier !== "essential"
-            ? usesAppleIap()
-              ? "Para voltar ao grátis, cancele em Ajustes → Apple ID → Assinaturas."
+            ? usesStoreIap()
+              ? `Para voltar ao grátis, ${storeCancelHint().charAt(0).toLowerCase()}${storeCancelHint().slice(1)}`
               : allowsInAppPlanPurchase()
                 ? "Assinatura mensal: cancele no Stripe para voltar ao grátis."
                 : "Plano ativo nesta conta."
@@ -372,8 +374,10 @@ export default function PlansScreen() {
     <ScreenShell
       title="Planos"
       subtitle={
-        usesAppleIap()
-          ? "Assinatura mensal · compra na App Store"
+        usesStoreIap()
+          ? usesGooglePlayIap()
+            ? "Assinatura mensal · compra na Google Play"
+            : "Assinatura mensal · compra na App Store"
           : "Lançamento, Conexão, Premium e Total · mensal"
       }
     >
@@ -417,21 +421,23 @@ export default function PlansScreen() {
               <Text style={[styles.currentHint, { color: colors.textMuted }]}>
                 {currentTier === "essential"
                   ? `Grátis · ${formatMonthlyPrice(0)}`
-                  : usesAppleIap()
-                    ? "Assinatura mensal · App Store"
-                    : "Assinatura mensal · você pode mudar de plano abaixo a qualquer momento"}
+                  : usesGooglePlayIap()
+                    ? "Assinatura mensal · Google Play"
+                    : usesStoreIap()
+                      ? "Assinatura mensal · App Store"
+                      : "Assinatura mensal · você pode mudar de plano abaixo a qualquer momento"}
               </Text>
             </View>
 
-            {usesAppleIap() ? (
+            {usesStoreIap() ? (
               <>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
                   Assinaturas mensais
                 </Text>
                 <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
                   {showIosLaunchOffer
-                    ? `EGO Conexão com oferta de lançamento na App Store: R$ 19,90/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses (quem nunca assinou), depois R$ 39,90/mês. Renovação automática até cancelar.`
-                    : "Pagamento via App Store. Conexão R$ 39,90 · Premium R$ 69,90 · Total R$ 129,90/mês. Pode mudar de plano quando quiser."}
+                    ? `EGO Conexão com oferta de lançamento: R$ 19,90/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses (quem nunca assinou), depois R$ 39,90/mês. Renovação automática até cancelar.`
+                    : `Pagamento via ${usesGooglePlayIap() ? "Google Play" : "App Store"}. Conexão R$ 39,90 · Premium R$ 69,90 · Total R$ 129,90/mês. Pode mudar de plano quando quiser.`}
                 </Text>
                 {renderEssentialBr()}
                 {renderIosIapPlans()}
@@ -452,7 +458,7 @@ export default function PlansScreen() {
                   </Text>
                 </Pressable>
                 <Text style={[styles.legalFoot, { color: colors.textMuted }]}>
-                  {IOS_SUBSCRIPTION_LEGAL}
+                  {storeSubscriptionLegal()}
                 </Text>
                 <View style={styles.legalLinksRow}>
                   <Pressable

@@ -1,0 +1,35 @@
+EGO-AI — Google Play Billing = MESMOS preços/IDs do iOS
+=======================================================
+Objetivo: produção Android sem Stripe in-app (política Play).
+Espelhar App Store Connect — não inventar preços Stripe.
+
+PACKAGE: com.egoai.app
+
+PRODUTOS (iguais ao iOS)
+------------------------
+| Nome no app  | Product ID (Play)                      | Preço/mês BR |
+|--------------|----------------------------------------|--------------|
+| EGO Conexão  | com.egoai.app.sub.connection.monthly   | R$ 39,90     |
+| EGO Premium  | com.egoai.app.sub.premium.monthly      | R$ 69,90     |
+| EGO Total    | com.egoai.app.sub.total.monthly        | R$ 129,90    |
+
+OFERTA INTRO (Conexão — como Apple)
+----------------------------------
+• 6 meses · R$ 19,90/mês · depois R$ 39,90
+• Só novos assinantes (se a Play permitir no base plan)
+
+NÃO usar na Play (Stripe / site):
+• R$ 10,94 lançamento · 32,74 · 54,64 · 109,39
+
+Fonte iOS: marketing/APPLE-PRECOS-IAP-CONNECT.txt
+Código IDs: app/src/constants/iapProducts.ts
+
+DEPOIS DE CRIAR NA CONSOLE
+--------------------------
+[ ] 3 assinaturas Active / Available
+[ ] Preços BR correctos
+[ ] Licença teste (License testers) com a tua conta Google
+[ ] Agente app: ligar Play Billing (espelho useIosIap) — build nova
+[ ] API: verificar compra Play → apply_plan_to_profile (como apple_iap)
+
+Stripe continua no SITE e (temporário) links fora do fluxo Play.

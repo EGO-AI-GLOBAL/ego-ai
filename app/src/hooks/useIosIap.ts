@@ -1,20 +1,24 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert } from "react-native";
 import type { PlanTier } from "@/api/types";
-import { verifyAppleIapPurchase } from "@/api/client";
+import { verifyAppleIapPurchase, verifyGooglePlayPurchase } from "@/api/client";
 import {
   IAP_PRODUCT_IDS,
   IAP_PRODUCTS,
   iapProductForTier,
   type IapProduct,
 } from "@/constants/iapProducts";
-import { usesAppleIap } from "@/utils/iosAppStoreBilling";
+import { usesGooglePlayIap, usesStoreIap } from "@/utils/iosAppStoreBilling";
 import {
   buildIosIapCardDisplay,
   type IosIapCardDisplay,
   type IosStoreSubscription,
 } from "@/utils/iosIapPricing";
-import { fetchIosSubscriptionProducts, requestIosSubscription } from "@/utils/iosIapStorekit";
+import {
+  androidOfferToken,
+  fetchIosSubscriptionProducts,
+  requestIosSubscription,
+} from "@/utils/iosIapStorekit";
 
 type IapModule = typeof import("react-native-iap");
 
@@ -38,6 +42,7 @@ export function useIosIap(
     Partial<Record<IapProduct["tier"], IosIapCardDisplay>>
   >({});
   const iapRef = useRef<IapModule | null>(null);
+  const storeProductsRef = useRef<Map<string, IosStoreSubscription>>(new Map());
   const purchaseInFlight = useRef(false);
   const onActivatedRef = useRef(onActivated);
   const showLaunchOffer = options?.showLaunchOffer === true;
@@ -48,21 +53,36 @@ export function useIosIap(
       productId?: string | null;
       transactionId?: string | null;
       transactionReceipt?: string | null;
+      purchaseToken?: string | null;
     }) => {
       const iap = iapRef.current;
       if (!iap || !purchase.productId) return;
-      let receipt = (purchase.transactionReceipt || "").trim();
-      if (!receipt && iap.getReceiptIOS) {
-        receipt = (await iap.getReceiptIOS()) || "";
+
+      if (usesGooglePlayIap()) {
+        const token = (purchase.purchaseToken || "").trim();
+        if (!token) {
+          throw new Error("Token da Google Play indisponível. Tente restaurar compras.");
+        }
+        await verifyGooglePlayPurchase({
+          purchase_token: token,
+          product_id: purchase.productId,
+          order_id: purchase.transactionId ?? undefined,
+        });
+      } else {
+        let receipt = (purchase.transactionReceipt || "").trim();
+        if (!receipt && iap.getReceiptIOS) {
+          receipt = (await iap.getReceiptIOS()) || "";
+        }
+        if (!receipt) {
+          throw new Error("Recibo da App Store indisponível. Tente restaurar compras.");
+        }
+        await verifyAppleIapPurchase({
+          receipt_data: receipt,
+          product_id: purchase.productId,
+          transaction_id: purchase.transactionId ?? undefined,
+        });
       }
-      if (!receipt) {
-        throw new Error("Recibo da App Store indisponível. Tente restaurar compras.");
-      }
-      await verifyAppleIapPurchase({
-        receipt_data: receipt,
-        product_id: purchase.productId,
-        transaction_id: purchase.transactionId ?? undefined,
-      });
+
       await iap.finishTransaction({ purchase, isConsumable: false });
       onActivatedRef.current?.();
       Alert.alert(
@@ -74,7 +94,7 @@ export function useIosIap(
   );
 
   useEffect(() => {
-    if (!usesAppleIap()) return;
+    if (!usesStoreIap()) return;
 
     let purchaseUpdateSub: { remove: () => void } | null = null;
     let purchaseErrorSub: { remove: () => void } | null = null;
@@ -92,6 +112,7 @@ export function useIosIap(
           const id = String(item.productId || "").trim();
           if (id) byId.set(id, item);
         }
+        storeProductsRef.current = byId;
         const display: Partial<Record<IapProduct["tier"], IosIapCardDisplay>> = {};
         for (const product of IAP_PRODUCTS) {
           display[product.tier] = buildIosIapCardDisplay(
@@ -157,24 +178,27 @@ export function useIosIap(
 
   const purchaseTier = useCallback(
     async (tier: Exclude<PlanTier, "essential" | "enterprise">) => {
-      if (!usesAppleIap() || purchaseInFlight.current) return;
+      if (!usesStoreIap() || purchaseInFlight.current) return;
       const product = iapProductForTier(tier);
       const iap = iapRef.current;
       if (!product || !iap) {
-        Alert.alert("Planos", "Loja da App Store indisponível. Tente de novo em instantes.");
+        Alert.alert("Planos", "Loja indisponível. Tente de novo em instantes.");
         return;
       }
       if (!ready) {
         Alert.alert(
           "Planos",
-          "Ainda a ligar à App Store. Aguarde 2 segundos e tente de novo."
+          "Ainda a ligar à loja. Aguarde 2 segundos e tente de novo."
         );
         return;
       }
       purchaseInFlight.current = true;
       setBusy(true);
       try {
-        await requestIosSubscription(iap, product.productId);
+        const offerToken = androidOfferToken(
+          storeProductsRef.current.get(product.productId)
+        );
+        await requestIosSubscription(iap, product.productId, { offerToken });
       } catch (e) {
         purchaseInFlight.current = false;
         setBusy(false);
@@ -188,7 +212,7 @@ export function useIosIap(
   );
 
   const restorePurchases = useCallback(async () => {
-    if (!usesAppleIap()) return;
+    if (!usesStoreIap()) return;
     const iap = iapRef.current;
     if (!iap) {
       Alert.alert("Restaurar", "Loja indisponível. Tente de novo em instantes.");
@@ -201,7 +225,12 @@ export function useIosIap(
         IAP_PRODUCT_IDS.includes(String(p.productId || ""))
       );
       if (!ours.length) {
-        Alert.alert("Restaurar", "Nenhuma assinatura EGO-AI encontrada nesta Apple ID.");
+        Alert.alert(
+          "Restaurar",
+          usesGooglePlayIap()
+            ? "Nenhuma assinatura EGO-AI encontrada nesta conta Google."
+            : "Nenhuma assinatura EGO-AI encontrada nesta Apple ID."
+        );
         return;
       }
       const latest = ours[ours.length - 1];
@@ -216,7 +245,7 @@ export function useIosIap(
     }
   }, [confirmPurchase]);
 
-  if (!usesAppleIap()) {
+  if (!usesStoreIap()) {
     return {
       ready: false,
       busy: false,

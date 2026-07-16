@@ -22,7 +22,7 @@ import { accountPersona } from "@/constants/personas";
 import { isProductionApiOk } from "@/constants/config";
 import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
-import { allowsInAppPlanPurchase, usesAppleIap } from "@/utils/iosAppStoreBilling";
+import { allowsInAppPlanPurchase, usesAppleIap, usesGooglePlayIap } from "@/utils/iosAppStoreBilling";
 import { useColors } from "@/theme/ThemeContext";
 import { getInstalledAppVersion } from "@/utils/appVersion";
 
@@ -54,9 +54,11 @@ export default function AccountScreen() {
     const subHint = hasPaidPlan
       ? usesAppleIap()
         ? "\n\nTem plano pago: cancele a assinatura em Ajustes → Apple ID → Assinaturas antes de excluir."
-        : allowsInAppPlanPurchase()
-          ? "\n\nTem plano pago: cancele a assinatura em Planos ou no portal Stripe antes de excluir."
-          : "\n\nTem plano pago: cancele a assinatura onde assinou antes de excluir a conta."
+        : usesGooglePlayIap()
+          ? "\n\nTem plano pago: cancele a assinatura na Google Play → Assinaturas antes de excluir."
+          : allowsInAppPlanPurchase()
+            ? "\n\nTem plano pago: cancele a assinatura em Planos ou no portal Stripe antes de excluir."
+            : "\n\nTem plano pago: cancele a assinatura onde assinou antes de excluir a conta."
       : "";
     Alert.alert(
       "Excluir minha conta?",

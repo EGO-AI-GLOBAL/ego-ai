@@ -14,6 +14,8 @@ export type IosStoreSubscription = {
   introductoryPriceAsAmountIOS?: string | null;
   introductoryPriceNumberOfPeriodsIOS?: string | null;
   introductoryPriceSubscriptionPeriodIOS?: string | null;
+  /** Google Play Billing 5+: base plans e ofertas (contém offerToken). */
+  subscriptionOfferDetails?: Array<Record<string, unknown>> | null;
 };
 
 export type IosIapCardDisplay = {

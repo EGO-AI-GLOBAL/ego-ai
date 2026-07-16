@@ -1,0 +1,90 @@
+PLAY BILLING — CLIQUE A CLIQUE (iguais ao iOS)
+==============================================
+Data: 16/07/2026
+Package: com.egoai.app
+Abrir Chrome: https://play.google.com/console/
+
+Pré: conta Play com app EGO-AI · merchant / pagamentos configurados
+     (Monetização → Conta de comerciante se pedir)
+
+═══════════════════════════════════════
+PARTE 0 — Preparação
+═══════════════════════════════════════
+1. Play Console → app **EGO-AI**
+2. Menu esquerdo: **Monetizar com a Play** → **Produtos** → **Assinaturas**
+   (Subscriptions)
+3. Se pedir «criar conta de comerciante» → completa primeiro (Google Payments)
+
+═══════════════════════════════════════
+PARTE 1 — Assinatura 1 · EGO Conexão
+═══════════════════════════════════════
+1. **Criar assinatura** / Create subscription
+2. Product ID (exacto, minúsculas):
+   com.egoai.app.sub.connection.monthly
+   ⚠️ Não dá para mudar depois — copia igual ao iOS
+3. Nome: EGO Conexão
+4. Descrição: Chat com avatar, Calma 1 min, Monstrinhos e rotina leve.
+5. Guardar / Continuar → **Base plan** (plano base)
+6. Base plan ID: connection-monthly  (ou monthly — o que a UI pedir)
+7. Tipo: Renovação automática · período **1 mês**
+8. Preço: Brasil → **R$ 39,90**
+9. Disponibilidade: Brasil (e países que já usas no iOS, se aplicável)
+10. OFERTA INTRODUTÓRIA (se aparecer «Offers» / Ofertas):
+    • Tipo: introdutória / preço reduzido por tempo
+    • Duração: **6 meses**
+    • Preço: **R$ 19,90**/mês
+    • Elegibilidade: novos assinantes
+11. Activar / Activate a assinatura (estado Active)
+
+═══════════════════════════════════════
+PARTE 2 — Assinatura 2 · EGO Premium
+═══════════════════════════════════════
+1. Criar assinatura
+2. Product ID:
+   com.egoai.app.sub.premium.monthly
+3. Nome: EGO Premium
+4. Descrição: Mais uso, voz e recursos Premium do EGO-AI.
+5. Base plan: 1 mês · Brasil **R$ 69,90**
+6. Activar
+
+═══════════════════════════════════════
+PARTE 3 — Assinatura 3 · EGO Total
+═══════════════════════════════════════
+1. Criar assinatura
+2. Product ID:
+   com.egoai.app.sub.total.monthly
+3. Nome: EGO Total
+4. Descrição: Plano completo sem limites do EGO-AI.
+5. Base plan: 1 mês · Brasil **R$ 129,90**
+6. Activar
+
+═══════════════════════════════════════
+PARTE 4 — Testadores de licença
+═══════════════════════════════════════
+1. Configuração → **Licença de teste** / License testing
+2. Adiciona o teu Gmail (e 1–2 testers)
+3. No telemóvel: conta Google = essa · app instalado do teste fechado / interno
+
+═══════════════════════════════════════
+PARTE 5 — Checklist
+═══════════════════════════════════════
+[ ] connection.monthly · R$ 39,90 (+ intro 19,90×6 se der)
+[ ] premium.monthly · R$ 69,90
+[ ] total.monthly · R$ 129,90
+[ ] Os 3 Active
+[ ] License testers OK
+[ ] Foto / print dos 3 IDs → avisar agente para ligar código Play Billing
+
+PROIBIDO
+--------
+• Product IDs diferentes dos do iOS (complica a API)
+• Preços Stripe (32,74 / 54,64…) nesta loja
+• Publicar produção só com Stripe in-app
+
+PRÓXIMO (código — outro passo / agente)
+--------------------------------------
+Espelhar useIosIap.ts → Play Billing Library / expo-iap
+API: endpoint tipo /billing/google/verify (como apple_iap)
+Build EAS nova depois do código
+
+IDs: marketing/PLAY-BILLING-IDS-IGUAL-IOS.txt

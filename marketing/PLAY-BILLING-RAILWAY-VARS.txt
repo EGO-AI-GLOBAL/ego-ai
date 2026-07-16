@@ -1,0 +1,61 @@
+EGO-AI — Google Play Billing · variáveis Railway + credenciais
+==============================================================
+Objetivo: a API validar as compras Android (POST /api/v1/billing/google/verify)
+como já faz com a Apple. Sem isto, o Android compra na Play mas o plano NÃO activa.
+
+════════════════════════════════════════
+O QUE O AGENTE JÁ FEZ (código, no git)
+════════════════════════════════════════
+[x] ego_api/google_play_billing.py  (valida purchase token, activa plano)
+[x] flask_api.py  → rota POST /api/v1/billing/google/verify
+[x] requirements-api.txt → google-api-python-client
+[x] app: usesStoreIap() (iOS + Android), hook Android, client verifyGooglePlayPurchase
+[x] plans/chat/account: Android usa a loja (não Stripe)
+
+════════════════════════════════════════
+FALTA HUMANO — 1x (Google Cloud + Railway)
+════════════════════════════════════════
+
+PASSO A — Conta de serviço Google (para ler compras)
+----------------------------------------------------
+1. Google Play Console → Configurações → **Acesso à API** (API access)
+2. Liga a um projeto Google Cloud (cria se pedir)
+3. Cria **Conta de serviço** (Service account) no Google Cloud
+4. Dá o papel/permissão para ver compras financeiras
+5. Volta à Play Console → concede acesso a essa conta de serviço:
+   permissão **Ver dados financeiros / Gerir pedidos e assinaturas**
+6. No Google Cloud → a conta de serviço → **Chaves** → Criar chave **JSON**
+   → guarda o ficheiro .json
+
+PASSO B — Colar no Railway (serviço da API EGO-AI)
+--------------------------------------------------
+Railway → projeto EGO-AI (API) → Variables → New variable:
+
+  GOOGLE_PLAY_SERVICE_ACCOUNT_JSON
+    = (cola TODO o conteúdo do .json numa linha)
+
+  GOOGLE_PLAY_PACKAGE_NAME
+    = com.egoai.app
+
+(Alternativa ao JSON inline: GOOGLE_PLAY_SERVICE_ACCOUNT_FILE = caminho do .json)
+
+Depois: Railway faz redeploy sozinho. Confirmar /api/health sem maintenance.
+
+════════════════════════════════════════
+TESTAR (com license tester)
+════════════════════════════════════════
+1. Telemóvel com conta Google que está no Teste de licença (passo 10)
+2. App do teste interno/fechado (build NOVA com Play Billing)
+3. Cadastro novo → Luna → Planos → Assinar Conexão (compra sandbox)
+4. Plano deve activar após verify (puxar para atualizar)
+5. Restaurar compras funciona
+6. Android NÃO deve abrir buy.stripe.com
+
+════════════════════════════════════════
+NOTAS
+════════════════════════════════════════
+• Product IDs iguais iOS: com.egoai.app.sub.{connection|premium|total}.monthly
+• Stripe continua só no SITE (web) — não muda
+• A build Android nova é só do agente de build/Iury (não este agente)
+• Renovação automática: verify-on-purchase activa; renovações futuras podem
+  precisar RTDN/cron numa fase 2 (como a Apple hoje)

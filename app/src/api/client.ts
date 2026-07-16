@@ -674,6 +674,20 @@ export async function verifyAppleIapPurchase(payload: {
   return { plan_tier: body.plan_tier, product_id: body.product_id };
 }
 
+export async function verifyGooglePlayPurchase(payload: {
+  purchase_token: string;
+  product_id: string;
+  order_id?: string;
+}): Promise<{ plan_tier: string; product_id?: string }> {
+  const { data } = await api.post("billing/google/verify", payload, { timeout: 30000 });
+  const body = unwrap<{
+    plan_tier: string;
+    product_id?: string;
+    ok?: boolean;
+  }>(data);
+  return { plan_tier: body.plan_tier, product_id: body.product_id };
+}
+
 export async function fetchPlansCatalog(): Promise<{
   plans: PlanCatalogItem[];
   launchOffer: LaunchPlanOffer | null;

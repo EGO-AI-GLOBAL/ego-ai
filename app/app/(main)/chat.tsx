@@ -18,7 +18,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { checkoutUrlForTier } from "@/utils/planCheckout";
-import { allowsInAppPlanPurchase, IOS_CHAT_BLOCKED_PLACEHOLDER, IOS_TRIAL_END_ALERT, IOS_DAILY_LIMIT_ALERT, usesAppleIap } from "@/utils/iosAppStoreBilling";
+import { allowsInAppPlanPurchase, IOS_CHAT_BLOCKED_PLACEHOLDER, IOS_TRIAL_END_ALERT, IOS_DAILY_LIMIT_ALERT, usesStoreIap } from "@/utils/iosAppStoreBilling";
 import { IAP_PRODUCTS } from "@/constants/iapProducts";
 import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText, completePausaEgoSession } from "@/api/client";
 import type { ChatMessage, SendChatResult } from "@/api/types";
@@ -518,7 +518,7 @@ function ChatScreenInner() {
     return `${url}${sep}client_reference_id=${encodeURIComponent(userId)}`;
   };
 
-  const planOffers = usesAppleIap()
+  const planOffers = usesStoreIap()
     ? IAP_PRODUCTS.map((p) => ({
         id: p.tier,
         label: p.label.replace(/^EGO\s+/i, ""),
@@ -555,7 +555,7 @@ function ChatScreenInner() {
       ].filter((p) => Boolean(p.url));
 
   const openCheckout = (url: string | null) => {
-    if (usesAppleIap()) {
+    if (usesStoreIap()) {
       void router.push("/(main)/plans");
       return;
     }

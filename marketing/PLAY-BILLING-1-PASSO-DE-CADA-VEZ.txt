@@ -1,0 +1,472 @@
+ANDROID PLAY BILLING — 1 PASSO DE CADA VEZ
+==========================================
+Regra: o agente diz UM passo → tu fazes → respondes «feito» → próximo.
+
+O QUE O AGENTE FAZ SOZINHO
+-------------------------
+• Abrir Chrome na Play Console
+• Textos / IDs / preços para colar
+• Depois: código Billing (quando pedires)
+
+O QUE SÓ TU FAZES
+-----------------
+• Login Play Console
+• Criar assinaturas / Data safety / clique na UI Google
+
+[x] PASSO 1 — Assinaturas abertas
+[!] BLOQUEIO — falta conta de comerciante Google Payments
+    (escolha: EMPRESA / CNPJ — nota + dinheiro na empresa)
+
+────────────────────────────────────────
+PASSO 1B (AGORA) — Abrir criação do comerciante EMPRESA
+────────────────────────────────────────
+Na tela «Faltam requisitos…»:
+
+1. Clica o link azul:
+   **Configure uma conta de comerciante**
+
+2. Se perguntar tipo de conta / negócio, escolhe:
+   **Organização / Empresa / Business**
+   (NÃO «Individual / Pessoa física»)
+
+3. Para aí — ainda NÃO envies documentos neste passo.
+   Só confirma que entrou no formulário Google Payments
+   e que o tipo é empresa.
+
+Quando estiver no formulário (tipo empresa),
+responde: **feito passo 1B**
+
+────────────────────────────────────────
+PASSO 1C (AGORA) — Tipo + CNPJ
+────────────────────────────────────────
+1. Tipo: **Pessoa jurídica** (certo)
+2. Campo CNPJ — cola exactamente:
+
+   52.045.624/0001-29
+
+   (Economizze Cataguases Representacoes Ltda — igual Stripe/iOS)
+
+3. Continuar / Avançar — ainda NÃO fills endereço/banco neste passo se a tela for só CNPJ.
+
+Quando o CNPJ for aceite e fores à tela seguinte,
+responde: **feito passo 1C**
+
+────────────────────────────────────────
+PASSO 1D (AGORA) — Perfil público de comerciante
+────────────────────────────────────────
+Cola (igual Stripe/site):
+
+  Nome do comerciante / público:  EGO-AI
+  Site:                           https://egoai.com.br
+  E-mail de suporte:              contato@egoai.com.br
+  Telefone:                       +55 32 98864-4798
+
+  Endereço (se pedir no perfil público — sede Economizze):
+  Rua Reverendo Felipe Revale de Carvalho, 253
+  Independência — Cataguases/MG
+  CEP 36774-130 — Brasil
+
+Guarda / Continuar. Ainda NÃO configures banco se for outra tela.
+
+Quando guardar o perfil público, responde: **feito passo 1D**
+
+────────────────────────────────────────
+PASSO 1E (AGORA) — O que você vende
+────────────────────────────────────────
+Escolhe / escreve algo nesta linha (Google Play + assinaturas digitais):
+
+  Categoria:  Software / Apps digitais / Conteúdo digital
+              (ou «Assinaturas digitais» se existir)
+
+  O que vende (texto curto, cola):
+  Assinaturas digitais do aplicativo EGO-AI
+  (assistente de bem-estar e organização no celular).
+
+NÃO marques: produtos físicos, loja física, marketplace de terceiros.
+
+Quando passar desta pergunta, responde: **feito passo 1E**
+
+────────────────────────────────────────
+PASSO 1F (AGORA) — Contato principal
+────────────────────────────────────────
+  Nome:     Iury Freitas
+  Cargo:    Representante legal / Sócio (se pedir)
+  E-mail:   contato@egoai.com.br
+  Telefone: +55 32 98864-4798
+
+Quando guardar, responde: **feito passo 1F**
+
+[x] PERFIL PARA PAGAMENTOS criado:
+    ECONOMIZZE CATAGUASES REPRESENTACOES LTDA
+
+────────────────────────────────────────
+PASSO 1G (AGORA) — Adicionar forma de pagamento/recebimento PJ
+────────────────────────────────────────
+Na tela Perfil para pagamentos:
+
+1. Clica **Adicionar forma de pagamento**
+2. Usa a conta PJ Nu:
+
+   Banco:   260 — Nu Pagamentos S.A.
+   Agência: 0001
+   Conta:   201738722-9
+   Titular: ECONOMIZZE CATAGUASES REPRESENTACOES LTDA
+   CNPJ:    52.045.624/0001-29
+
+3. Guarda / Avança.
+
+Se pedir tipo de conta: **Conta corrente PJ**.
+Se pedir dígito separado: conta **201738722** e dígito **9**.
+
+Quando a conta bancária ficar adicionada,
+responde: **feito passo 1G**
+
+[x] Conta corrente ••••722 · ECONOMIZZE · Verificação pendente
+
+────────────────────────────────────────
+PASSO 1H (AGORA) — Esperar depósito de verificação
+────────────────────────────────────────
+Google deposita uns centavos na Nu PJ para confirmar a conta.
+Costuma demorar **algumas horas até 1–3 dias úteis** (não é instantâneo).
+
+Enquanto espera:
+1. Abre o app Nu da conta **PJ Economizze**
+2. Olha Extrato / Notificações por depósito pequeno (ex.: R$ 0,01 a R$ 0,99)
+  ou descrição tipo Google / Google Payments
+3. NÃO cries assinaturas ainda se Assinaturas continuar bloqueada
+4. NÃO removes a conta bancária
+
+Quando o depósito aparecer no extrato Nu,
+responde: **apareceu o depósito** (e o valor, se vires)
+→ aí te digo o passo de confirmar o valor na Play.
+
+Se passar **3 dias úteis** sem nada: responde **ainda nada** → vamos em Ajuda / reenviar verificação.
+
+[x] Assinaturas abertas de novo (comerciante criado; banco pode continuar «verificação pendente»)
+
+────────────────────────────────────────
+PASSO 2 (AGORA) — Criar 1ª assinatura (só o cabeçalho)
+────────────────────────────────────────
+Na página Assinaturas:
+
+1. Clica **Criar assinatura** (Create subscription)
+2. Product ID (cola exacto, sem espaços):
+
+   com.egoai.app.sub.connection.monthly
+
+3. Nome:
+   EGO Conexão
+
+4. Descrição:
+   Chat com avatar, Calma 1 min, Monstrinhos e rotina leve.
+
+5. Clica **Criar** / Continuar
+   (ainda NÃO configures preço — isso é o passo seguinte)
+
+Quando o Product ID estiver criado e fores para Base plan / preço,
+responde: **feito passo 2**
+
+[x] PASSO 2 — Assinatura EGO Conexão criada
+    ID: com.egoai.app.sub.connection.monthly
+
+────────────────────────────────────────
+PASSO 3 (AGORA) — Adicionar plano básico Conexão
+────────────────────────────────────────
+Na página EGO Conexão (a que estás agora):
+
+1. Clica **Adicionar plano básico**
+2. ID do plano básico (cola):
+   connection-monthly
+3. Tipo: **Renovação automática**
+4. Período de cobrança: **1 mês** / Mensal
+5. Preço Brasil: **R$ 39,90**
+   (não uses 32,74 — esse é Stripe/site)
+6. Disponibilidade: Brasil (e outros países se já usas no iOS; se duvidar, só Brasil por agora)
+7. Guarda / Continuar — ainda NÃO actives se a UI separar «guardar» de «activar»
+   (activar = passo seguinte; oferta intro 19,90×6 também depois)
+
+Quando o plano básico estiver criado com R$ 39,90,
+responde: **feito passo 3**
+
+[x] PASSO 3 — Plano básico connection-monthly · R$ 39,90 · ATIVADO
+
+────────────────────────────────────────
+PASSO 4 (AGORA) — Oferta introdutória Conexão (igual iOS)
+────────────────────────────────────────
+Na assinatura EGO Conexão → plano básico connection-monthly:
+
+1. Clica **Adicionar oferta** / Ofertas (já deve estar desbloqueado)
+2. Tipo: **Preço introdutório** / Introductory price
+   (NÃO teste gratuito, a menos que queiras 0 — iOS usa preço reduzido)
+3. Duração: **6 meses**
+4. Preço Brasil: **R$ 19,90**/mês
+5. Elegibilidade: **Novos assinantes** (se pedir)
+6. Actualiza preços nos outros países a partir do Brasil (igual ao passo 3)
+7. Activa / Publica a oferta
+
+Depois dos 6 meses a Play cobra o preço base **R$ 39,90**.
+
+Quando a oferta 19,90×6 estiver activa,
+responde: **feito passo 4**
+
+Se a UI não deixar oferta intro agora, responde: **sem oferta** → saltamos para Premium.
+
+ID da oferta (cola exacto):
+  connection-intro-6m
+
+Nome / descrição (se pedir):
+  Conexão intro 6 meses
+
+[x] PASSO 4 — Oferta connection-intro-6m · R$ 19,90 × 6 meses · ATIVADA
+
+────────────────────────────────────────
+PASSO 5 (AGORA) — Criar assinatura EGO Premium (só o cabeçalho)
+────────────────────────────────────────
+Volta a: Monetizar → Produtos → Assinaturas → **Criar assinatura**
+
+1. Product ID (cola exacto):
+   com.egoai.app.sub.premium.monthly
+
+2. Nome:
+   EGO Premium
+
+3. Descrição:
+   Mais uso, voz e recursos Premium do EGO-AI.
+
+4. Cria / Continuar — ainda NÃO configures preço
+
+Quando estiver criado, responde: **feito passo 5**
+
+[x] PASSO 5 — Assinatura EGO Premium criada
+    ID: com.egoai.app.sub.premium.monthly
+
+────────────────────────────────────────
+PASSO 6 (AGORA) — Plano básico Premium
+────────────────────────────────────────
+1. Clica **Adicionar plano básico**
+2. ID do plano:
+   premium-monthly
+3. Renovação automática · **1 mês**
+4. Preço Brasil: **R$ 69,90**
+5. Actualiza preços nos outros países a partir do Brasil
+6. Activa o plano básico
+
+Sem oferta intro no Premium (só Conexão tem).
+
+Quando estiver activo a R$ 69,90, responde: **feito passo 6**
+
+[x] PASSO 6 — Premium · premium-monthly · R$ 69,90 · ATIVADO
+
+────────────────────────────────────────
+PASSO 7 (AGORA) — Criar assinatura EGO Total (só o cabeçalho)
+────────────────────────────────────────
+Assinaturas → **Criar assinatura**
+
+1. Product ID:
+   com.egoai.app.sub.total.monthly
+
+2. Nome:
+   EGO Total
+
+3. Descrição:
+   Plano completo sem limites do EGO-AI.
+
+4. Criar — ainda sem preço
+
+Quando estiver criado, responde: **feito passo 7**
+
+[x] PASSO 7 — Assinatura EGO Total criada
+    ID: com.egoai.app.sub.total.monthly
+
+────────────────────────────────────────
+PASSO 8 (AGORA) — Plano básico Total
+────────────────────────────────────────
+1. **Adicionar plano básico**
+2. ID do plano:
+   total-monthly
+3. Renovação automática · **1 mês**
+4. Preço Brasil: **R$ 129,90**
+5. Actualiza preços nos outros países
+6. Activa
+
+Sem oferta intro no Total.
+
+Quando estiver activo a R$ 129,90, responde: **feito passo 8**
+
+[x] PASSO 8 — Total · total-monthly · R$ 129,90 · ATIVADO
+[x] 3 assinaturas activas: Conexão, Premium e Total
+
+────────────────────────────────────────
+PASSO 9 (AGORA) — Abrir testadores de licença
+────────────────────────────────────────
+1. Volta à página inicial da Play Console
+2. Menu esquerdo: **Configurações**
+3. Abre **Teste de licença** / **License testing**
+
+Ainda NÃO adiciones e-mail neste passo.
+
+Quando estiveres nessa página, responde: **estou no teste de licença**
+
+[x] PASSO 9 — Página Teste de licença aberta
+    (listas existem mas NENHUMA está marcada)
+
+────────────────────────────────────────
+PASSO 10 (AGORA) — Activar listas de licença
+────────────────────────────────────────
+Na página Teste de licença:
+
+1. Marca o checkbox de **Testadores EGO** (1 membro)
+2. Marca também **Testadores EGO 3** (50) se a tua conta Google do telemóvel estiver nessa lista
+3. Deixa **Resposta da licença** = **RESPOND_NORMALLY**
+4. Clica **Salvar alterações** (fica azul depois de marcar)
+
+Quando guardar com sucesso, responde: **feito passo 10**
+
+[x] PASSO 10 — Listas de licença salvas
+
+────────────────────────────────────────
+PASSO 11 (AGORA) — Serviços vinculados
+────────────────────────────────────────
+Em Configurações (a lista que viste), clica:
+
+  **Serviços vinculados**
+
+(é o sítio onde a Play liga Google Cloud / Firebase —
+preciso disso para a API validar compras Android)
+
+Quando abrir a página, diz o que aparece
+(ou manda foto / «feito passo 11»).
+
+Alternativa se não houver Google Cloud lá:
+  menu ESQUERDO (fora de Configurações) → **Usuários e permissões**
+  e responde «estou em usuários».
+
+[x] PASSO 11 — Serviços vinculados (não é o sítio certo para billing verify)
+[x] PASSO 12 — Projeto Google Cloud: usar **egoai** (já existe)
+
+────────────────────────────────────────
+PASSO 13 (AGORA) — Criar conta de serviço
+────────────────────────────────────────
+1. No seletor de projeto (topo), confirma que está **egoai**
+2. Já abri: IAM → Contas de serviço
+3. Clica **+ Criar conta de serviço**
+4. Nome:
+   ego-ai-play-billing
+5. ID: deixa o que o Google gerar (ou ego-ai-play-billing)
+6. Descrição (opcional):
+   Validar compras Google Play no Railway
+7. Clica **Criar e continuar**
+8. Em «Conceder acesso a este projeto»: **podes saltar** (pular / Continuar sem papel)
+9. Clica **Concluído**
+
+Quando a conta aparecer na lista, responde: **feito passo 13**
+(e copia o e-mail tipo ...@....iam.gserviceaccount.com se vires)
+
+[!] Já existe conta de serviço no projeto egoai — reutilizar (não criar outra)
+
+────────────────────────────────────────
+PASSO 13B (AGORA) — Abrir a conta existente
+────────────────────────────────────────
+Na lista Contas de serviço:
+
+1. Clica na conta que já existe
+   (se houver várias, escolhe a que parecer Play / Firebase / EGO / Android)
+2. Copia o e-mail completo (termina em @....iam.gserviceaccount.com)
+
+Cola o e-mail aqui e responde: **feito passo 13B**
+
+(Se houver várias e não souberes qual, cola TODOS os e-mails da lista.)
+
+[x] PASSO 13B — Conta:
+    ego-play-integrity@gen-lang-client-0061896096.iam.gserviceaccount.com
+    (já usada no Play Integrity — reutilizar JSON do Railway)
+
+────────────────────────────────────────
+PASSO 14 (AGORA) — Convidar conta na Play Console
+────────────────────────────────────────
+Abri: Usuários e permissões.
+
+1. Clica **Convidar novos usuários** / Invite users
+2. E-mail (cola exacto):
+   ego-play-integrity@gen-lang-client-0061896096.iam.gserviceaccount.com
+3. Permissões (marca estas, se existirem):
+   · Ver dados financeiros / View financial data
+   · Gerir pedidos e assinaturas / Manage orders and subscriptions
+   · (se pedir) Ver informações do app / View app information
+4. Envia / Convidar
+
+Quando o convite estiver enviado / a conta aparecer na lista,
+responde: **feito passo 14**
+
+[x] PASSO 14 — Conta ego-play-integrity JÁ está em Usuários e permissões
+    App EGO-AI · com.egoai.app · 13 permissões
+
+────────────────────────────────────────
+PASSO 15 (AGORA) — Confirmar permissões financeiras
+────────────────────────────────────────
+Na página da conta ego-play-integrity (a que estás):
+
+1. Clica na linha **EGO-AI** (ou no número **13** / Gerenciar permissões)
+2. Procura e MARCA (se ainda não estiver):
+   · Ver dados financeiros / View financial data
+   · Gerir pedidos e assinaturas / Manage orders and subscriptions
+   · (se existir) Ver informações do app
+3. Clica **Salvar alterações** (botão azul)
+
+Quando salvar, responde: **feito passo 15**
+(ou diz quais permissões financeiras já via marcadas)
+
+[x] PASSO 15 — Permissões EGO-AI: Administrador + Ver dados financeiros
+    + Gerenciar pedidos e assinaturas (tudo marcado)
+
+────────────────────────────────────────
+PASSO 16 (AGORA) — Activar Google Play Android Developer API
+────────────────────────────────────────
+Abri a página no Google Cloud (projeto Ego-AI):
+
+1. Se o botão for **ATIVAR** / Enable → clica
+2. Se já disser **GERENCIAR** / Manage → já está activa (OK)
+
+Quando estiver activa, responde: **feito passo 16**
+
+[x] PASSO 16 — Google Play Android Developer API ATIVADA
+
+────────────────────────────────────────
+PASSO 17 (AGORA) — Confirmar variável no Railway
+────────────────────────────────────────
+Railway → projeto da API EGO-AI → Variables
+
+Procura se JÁ existe:
+  GOOGLE_SERVICE_ACCOUNT_JSON
+  (a mesma do Play Integrity — deve ter um JSON grande)
+
+Se existir → responde: **json ok**
+Se NÃO existir → responde: **json falta**
+
+Opcional (se quiseres criar agora):
+  GOOGLE_PLAY_PACKAGE_NAME = com.egoai.app
+  (não obrigatório — o código já assume com.egoai.app)
+
+Depois: preciso do teu OK para commit + push
+(para a API com /billing/google/verify subir no Railway).
+Build Android nova = agente de build / Iury.
+
+[x] PASSO 14 — Conta ego-play-integrity JÁ está em Usuários e permissões
+
+────────────────────────────────────────
+PASSO 15 (AGORA) — Activar API Android Publisher
+────────────────────────────────────────
+Abri a página da API no Google Cloud (projeto gen-lang-client…):
+
+1. Confirma projeto **egoai** / gen-lang-client no topo
+2. Se o botão disser **ATIVAR** / Enable → clica
+3. Se já disser **GERENCIAR** / API activada → está OK
+
+Quando estiver activada (ou já estava), responde: **feito passo 15**
+
+Nota: se a conta já está na Play, confirma que tem
+«Ver dados financeiros» + «Gerir pedidos/assinaturas».
+Se não tiver, edita o utilizador e marca essas permissões.
+
+Nota: a conta Google no telemóvel (Play Store) tem de ser um e-mail dessas listas
+para compras de teste sem cobrança real.
