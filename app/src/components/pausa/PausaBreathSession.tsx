@@ -50,7 +50,8 @@ export function PausaBreathSession({
   const [secondsLeft, setSecondsLeft] = useState(total);
   const [phase, setPhase] = useState<Phase>("inhale");
   const [phaseCount, setPhaseCount] = useState(phaseDur);
-  const [ambientOn, setAmbientOn] = useState(true);
+  /** false = ouvir som do clip + vibração; true = silêncio. */
+  const [discreteMode, setDiscreteMode] = useState(false);
   const scale = useRef(new Animated.Value(0.72)).current;
   const finishedRef = useRef(false);
   const tickRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -87,7 +88,7 @@ export function PausaBreathSession({
           setPhase((p) => {
             const np = p === "inhale" ? "exhale" : "inhale";
             nextDur = np === "inhale" ? phaseDur : exhaleDur;
-            if (ambientOn) {
+            if (!discreteMode) {
               void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }
             return np;
@@ -101,7 +102,7 @@ export function PausaBreathSession({
     return () => {
       if (tickRef.current) clearInterval(tickRef.current);
     };
-  }, [visible, onComplete, scale, total, ambientOn, phaseDur, exhaleDur]);
+  }, [visible, onComplete, scale, total, discreteMode, phaseDur, exhaleDur]);
 
   useEffect(() => {
     if (!visible) return;
@@ -131,14 +132,14 @@ export function PausaBreathSession({
               Modo discreto (sem vibração / som do clip)
             </Text>
             <Switch
-              value={ambientOn}
-              onValueChange={setAmbientOn}
+              value={discreteMode}
+              onValueChange={setDiscreteMode}
               trackColor={{ false: colors.border, true: colors.primarySoft }}
-              thumbColor={ambientOn ? colors.primary : colors.textMuted}
+              thumbColor={discreteMode ? colors.primary : colors.textMuted}
             />
           </View>
 
-          <CalmaClipPlayer clipKey={videoKey} playing={visible} muted={!ambientOn} />
+          <CalmaClipPlayer clipKey={videoKey} playing={visible} muted={discreteMode} />
 
           <View style={styles.circleWrap}>
             <Animated.View

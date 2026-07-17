@@ -25,6 +25,7 @@ export function CalmaClipPlayer({ clipKey, playing, muted = false, height = 168 
   const av = useMemo(() => loadExpoAv(), []);
   const [uri, setUri] = useState<string | null>(null);
   const [error, setError] = useState(false);
+  const [audioReady, setAudioReady] = useState(muted);
 
   useEffect(() => {
     let cancelled = false;
@@ -44,6 +45,33 @@ export function CalmaClipPlayer({ clipKey, playing, muted = false, height = 168 
     };
   }, [clipKey]);
 
+  // iPhone no modo silencioso corta o áudio do Video sem isto.
+  useEffect(() => {
+    if (!playing || muted || !av?.Audio) {
+      setAudioReady(muted || !playing);
+      return;
+    }
+    let cancelled = false;
+    setAudioReady(false);
+    void (async () => {
+      try {
+        await av.Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          playsInSilentModeIOS: true,
+          staysActiveInBackground: false,
+          shouldDuckAndroid: true,
+          playThroughEarpieceAndroid: false,
+        });
+      } catch {
+        /* segue — som pode falhar no silent switch */
+      }
+      if (!cancelled) setAudioReady(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [playing, muted, av]);
+
   if (!av?.Video || error || Platform.OS === "web" || !uri || !playing) {
     return <View style={[styles.placeholder, { height }]} />;
   }
@@ -57,7 +85,8 @@ export function CalmaClipPlayer({ clipKey, playing, muted = false, height = 168 
         style={styles.video}
         resizeMode={ResizeMode.COVER}
         isLooping
-        isMuted={muted}
+        isMuted={muted || !audioReady}
+        volume={muted ? 0 : 1}
         shouldPlay={playing}
         useNativeControls={false}
         onError={() => setError(true)}
