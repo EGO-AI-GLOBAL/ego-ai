@@ -2,13 +2,12 @@ SYNC MESTRE — 1.0.91
 =====================
 Versão: **1.0.91** · iOS **93** · Android **135**
 Motivo hotfix: sessão «expirada» ao abrir + som dos clips Calma no iPhone silencioso.
+EAS: ENFILEIRADO · AGUARDAR a correr (iOS auto)
 
-| Zona | Estado |
-|------|--------|
-| Build (este) | a enfileirar EAS |
-| PAUSA / Calma | ✅ no binário (som + switch) |
-| API | sem mudança obrigatória |
-| Marketing | N/A hotfix |
+| Plataforma | Build ID |
+|------------|----------|
+| iOS | 778fa207-55e6-49d9-947e-71831801248e |
+| Android | 5f4990db-d937-4149-939e-e1f84ad890d9 |
 
 No binário: fix(session) refresh race · fix(calma) playsInSilentModeIOS.
 Android: subir manual quando AAB ok.
