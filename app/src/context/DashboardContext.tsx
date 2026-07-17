@@ -151,15 +151,20 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     if (!enabled) {
       setData(empty);
       setLoading(false);
+      setError(null);
       setPersonaLocalOk(false);
       void cancelAllReminderLocalNotifications();
       void cancelMoodMonsterNotifications();
       void cancelPausaLocalNotifications();
       return;
     }
+    // Corrida ao abrir: React já tem sessão, memória do client ainda vazia.
     if (!getSession()?.access_token?.trim()) {
-      setError("Sessão expirada. Saia e entre novamente.");
-      return;
+      await new Promise((r) => setTimeout(r, 80));
+      if (!getSession()?.access_token?.trim()) {
+        setError("Sessão expirada. Saia e entre novamente.");
+        return;
+      }
     }
     setError(null);
     try {
@@ -283,6 +288,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     if (!enabled) {
       setData(empty);
       setLoading(false);
+      setError(null);
       setPersonaLocalOk(false);
       void cancelAllReminderLocalNotifications();
       void cancelMoodMonsterNotifications();

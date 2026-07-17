@@ -99,15 +99,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const refreshTok = current.refresh_token?.trim();
       if (!refreshTok) return current;
       if (!opts?.force && !sessionNeedsRefresh(current)) return current;
-      if (refreshInFlight.current) return current;
+      // Não retornar cedo sem esperar: outro caminho pode estar a renovar.
+      // refreshSessionToken deduplica; esperar evita 401 com token antigo.
+      if (refreshInFlight.current) {
+        try {
+          const joined = await refreshSessionToken(refreshTok, current);
+          const mem = getSession();
+          return mem?.access_token ? mem : joined;
+        } catch {
+          return getSession() ?? current;
+        }
+      }
       refreshInFlight.current = true;
       try {
         const next = await refreshSessionToken(refreshTok, current);
-        await persist(next);
-        return next;
+        const mem = getSession();
+        const toSave = mem?.access_token ? mem : next;
+        await persist(toSave);
+        return toSave;
       } catch {
         /* rede ou refresh inválido — mantém sessão; interceptor trata 401 */
-        return current;
+        return getSession() ?? current;
       } finally {
         refreshInFlight.current = false;
       }

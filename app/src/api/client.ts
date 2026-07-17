@@ -221,64 +221,106 @@ api.interceptors.request.use(async (config) => {
 
 type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
+function bearerFromConfig(config?: InternalAxiosRequestConfig): string {
+  if (!config?.headers) return "";
+  const h = config.headers as Record<string, unknown> & {
+    get?: (key: string) => unknown;
+  };
+  const raw =
+    (typeof h.get === "function" ? h.get("Authorization") : null) ??
+    h.Authorization ??
+    h.authorization;
+  if (typeof raw !== "string") return "";
+  return raw.replace(/^Bearer\s+/i, "").trim();
+}
+
 api.interceptors.response.use(
   (res) => res,
   async (err: AxiosError<ApiErr>) => {
     const original = err.config as RetryConfig | undefined;
     const status = err.response?.status;
-    const session = getSession();
+    const sessionAtFail = getSession();
 
-    if (
-      status === 401 &&
-      original &&
-      !original._retry &&
-      session?.refresh_token
-    ) {
+    if (status === 401 && original && !original._retry) {
       original._retry = true;
-      try {
-        let next: AuthSession;
-        try {
-          next = await refreshSessionToken(session.refresh_token, session);
-        } catch (firstErr) {
-          const ax0 = firstErr as AxiosError;
-          const st0 = ax0.response?.status;
-          const retryable =
-            !ax0.response ||
-            ax0.code === "ERR_NETWORK" ||
-            ax0.code === "ECONNABORTED" ||
-            ax0.code === "ETIMEDOUT" ||
-            st0 === 404 ||
-            st0 === 502 ||
-            st0 === 503 ||
-            (typeof st0 === "number" && st0 >= 500);
-          if (!retryable) throw firstErr;
-          await new Promise((r) => setTimeout(r, 400));
-          next = await refreshSessionToken(session.refresh_token, session);
-        }
-        setSession(next);
-        if (onSessionPersist) {
-          await onSessionPersist(next);
-        }
-        applyAuthHeaders(original.headers, next);
+      const failedAccess = bearerFromConfig(original);
+      const latestBefore = getSession();
+      // Sessão já renovada em paralelo (hydrate / AppState) — só repetir o pedido.
+      if (
+        latestBefore?.access_token?.trim() &&
+        failedAccess &&
+        latestBefore.access_token.trim() !== failedAccess
+      ) {
+        applyAuthHeaders(original.headers, latestBefore);
         return api(original);
-      } catch (refreshErr) {
-        const ax = refreshErr as AxiosError<ApiErr>;
-        const refreshStatus = ax.response?.status;
-        const errMsg =
-          ax.response?.data?.error ||
-          (typeof ax.message === "string" ? ax.message : "");
-        if (shouldClearSessionOnRefreshFailure(refreshStatus, errMsg)) {
-          setSession(null);
-          onAuthFailure?.();
-        }
       }
-    } else if (
-      status === 401 &&
-      !session?.refresh_token &&
-      authHydrationComplete
-    ) {
-      setSession(null);
-      onAuthFailure?.();
+      const refreshTok = latestBefore?.refresh_token?.trim();
+      if (refreshTok) {
+        try {
+          let next: AuthSession;
+          try {
+            next = await refreshSessionToken(refreshTok, latestBefore);
+          } catch (firstErr) {
+            const recovered = getSession();
+            if (
+              recovered?.access_token?.trim() &&
+              failedAccess &&
+              recovered.access_token.trim() !== failedAccess
+            ) {
+              applyAuthHeaders(original.headers, recovered);
+              return api(original);
+            }
+            const ax0 = firstErr as AxiosError;
+            const st0 = ax0.response?.status;
+            const retryable =
+              !ax0.response ||
+              ax0.code === "ERR_NETWORK" ||
+              ax0.code === "ECONNABORTED" ||
+              ax0.code === "ETIMEDOUT" ||
+              st0 === 404 ||
+              st0 === 502 ||
+              st0 === 503 ||
+              (typeof st0 === "number" && st0 >= 500);
+            if (!retryable) throw firstErr;
+            await new Promise((r) => setTimeout(r, 400));
+            const tok2 = getSession()?.refresh_token?.trim() || refreshTok;
+            next = await refreshSessionToken(tok2, getSession() || latestBefore);
+          }
+          setSession(next);
+          if (onSessionPersist) {
+            await onSessionPersist(next);
+          }
+          applyAuthHeaders(original.headers, next);
+          return api(original);
+        } catch (refreshErr) {
+          const recovered = getSession();
+          if (
+            recovered?.access_token?.trim() &&
+            failedAccess &&
+            recovered.access_token.trim() !== failedAccess
+          ) {
+            applyAuthHeaders(original.headers, recovered);
+            return api(original);
+          }
+          const ax = refreshErr as AxiosError<ApiErr>;
+          const refreshStatus = ax.response?.status;
+          const errMsg =
+            ax.response?.data?.error ||
+            (typeof ax.message === "string" ? ax.message : "");
+          if (shouldClearSessionOnRefreshFailure(refreshStatus, errMsg)) {
+            const still = getSession();
+            const stillRefresh = still?.refresh_token?.trim() || "";
+            // Só desloga se ninguém gravou tokens novos entretanto.
+            if (!still?.access_token?.trim() || stillRefresh === refreshTok) {
+              setSession(null);
+              onAuthFailure?.();
+            }
+          }
+        }
+      } else if (authHydrationComplete && !sessionAtFail?.refresh_token) {
+        setSession(null);
+        onAuthFailure?.();
+      }
     }
 
     const timedOut =
@@ -581,13 +623,13 @@ export async function refreshSessionToken(
     return refreshInFlight;
   }
   const memory = getSession();
+  // Outro refresh (Auth ao abrir / AppState) já rodou e rotacionou o token —
+  // reutilizar o antigo no Supabase falha e desloga à toa.
   if (
-    refreshInFlight &&
-    memory?.access_token &&
-    memory.refresh_token &&
-    memory.refresh_token !== tok
+    memory?.access_token?.trim() &&
+    memory.refresh_token?.trim() &&
+    memory.refresh_token.trim() !== tok
   ) {
-    // Outro refresh já gravou tokens novos — evita reutilizar token antigo.
     return memory;
   }
 
