@@ -71,7 +71,7 @@ const ACTION_FILE: Record<MonsterClipAction, string> = {
 
 /**
  * require() estáticos — Metro precisa de caminhos literais.
- * Core: 5 × 7 = 35. Extra Sol/Brisa/Neutro: 3 × 17. Agita parcial: 4.
+ * Core: 5 × 7 = 35. Extra Sol/Brisa/Neutro/Agita: 4 × 17. Nublina extras → FALLBACK.
  */
 const CORE: Record<MoodKey, Record<MonsterClipCoreAction, number>> = {
   calm: {
@@ -121,8 +121,8 @@ const CORE: Record<MoodKey, Record<MonsterClipCoreAction, number>> = {
   },
 };
 
-/** Extra completo: Sol / Brisa / Neutro (08–24). */
-const EXTRA_FULL: Record<"calm" | "good" | "ok", Record<MonsterClipExtraAction, number>> = {
+/** Extra completo: Sol / Brisa / Neutro / Agita (08–24). Nublina → FALLBACK até gerar. */
+const EXTRA_FULL: Record<"calm" | "good" | "ok" | "anxious", Record<MonsterClipExtraAction, number>> = {
   calm: {
     stretch: require("../../assets/monstrinhos/brisa/08-stretch-calm.mp4"),
     smile: require("../../assets/monstrinhos/brisa/09-smile-calm.mp4"),
@@ -180,17 +180,28 @@ const EXTRA_FULL: Record<"calm" | "good" | "ok", Record<MonsterClipExtraAction, 
     letter: require("../../assets/monstrinhos/neutro/23-letter-ok.mp4"),
     shop: require("../../assets/monstrinhos/neutro/24-shop-ok.mp4"),
   },
+  anxious: {
+    stretch: require("../../assets/monstrinhos/agita/08-stretch-anxious.mp4"),
+    smile: require("../../assets/monstrinhos/agita/09-smile-anxious.mp4"),
+    tidy: require("../../assets/monstrinhos/agita/10-tidy-anxious.mp4"),
+    sun: require("../../assets/monstrinhos/agita/11-sun-anxious.mp4"),
+    window: require("../../assets/monstrinhos/agita/12-window-anxious.mp4"),
+    snack: require("../../assets/monstrinhos/agita/13-snack-anxious.mp4"),
+    adventure: require("../../assets/monstrinhos/agita/14-adventure-anxious.mp4"),
+    walk: require("../../assets/monstrinhos/agita/15-walk-anxious.mp4"),
+    hydrate: require("../../assets/monstrinhos/agita/16-hydrate-anxious.mp4"),
+    plant: require("../../assets/monstrinhos/agita/17-plant-anxious.mp4"),
+    pause: require("../../assets/monstrinhos/agita/18-pause-anxious.mp4"),
+    music: require("../../assets/monstrinhos/agita/19-music-anxious.mp4"),
+    gratitude: require("../../assets/monstrinhos/agita/20-gratitude-anxious.mp4"),
+    note: require("../../assets/monstrinhos/agita/21-note-anxious.mp4"),
+    "kind-self": require("../../assets/monstrinhos/agita/22-kind-self-anxious.mp4"),
+    letter: require("../../assets/monstrinhos/agita/23-letter-anxious.mp4"),
+    shop: require("../../assets/monstrinhos/agita/24-shop-anxious.mp4"),
+  },
 };
 
-/** Agita parcial (08–11). Restantes → EXTRA_FALLBACK. */
-const EXTRA_ANXIOUS: Partial<Record<MonsterClipExtraAction, number>> = {
-  stretch: require("../../assets/monstrinhos/agita/08-stretch-anxious.mp4"),
-  smile: require("../../assets/monstrinhos/agita/09-smile-anxious.mp4"),
-  tidy: require("../../assets/monstrinhos/agita/10-tidy-anxious.mp4"),
-  sun: require("../../assets/monstrinhos/agita/11-sun-anxious.mp4"),
-};
-
-/** Sem ficheiro extra → clip core equivalente (Agita restante / Nublina). */
+/** Sem ficheiro extra → clip core equivalente (Nublina até gerar 08–24). */
 const EXTRA_FALLBACK: Record<MonsterClipExtraAction, MonsterClipCoreAction> = {
   stretch: "water",
   smile: "mood-react",
@@ -228,12 +239,8 @@ export function monsterClipModule(moodKey?: string, action: MonsterClipAction = 
   if (isCoreAction(action)) {
     return CORE[key][action] ?? CORE.ok.idle;
   }
-  if (key === "calm" || key === "good" || key === "ok") {
+  if (key === "calm" || key === "good" || key === "ok" || key === "anxious") {
     return EXTRA_FULL[key][action] ?? CORE[key][EXTRA_FALLBACK[action]] ?? CORE.ok.idle;
-  }
-  if (key === "anxious") {
-    const partial = EXTRA_ANXIOUS[action];
-    if (partial != null) return partial;
   }
   return CORE[key][EXTRA_FALLBACK[action]] ?? CORE.ok.idle;
 }

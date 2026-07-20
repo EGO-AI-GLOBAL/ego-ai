@@ -4,40 +4,38 @@ Meta: 17 novos × 5 humores = 85 (01–07 já existem no app)
 
 APP (código main) — LIGADO 15/07/2026 · commit f160fb2
 • monsterClipAssets.ts mapa 1:1 missões → clips
-• Sol / Brisa / Neutro: 08–24 no binário (quando houver EAS novo)
-• Agita: 08–11 no app; 12–24 fallback core
-• Nublina: extras fallback core
+• Sol / Brisa / Neutro: 08–24 no binário
+• Agita: 08–24 COMPLETO (20/07/2026) — ligar requires no próximo commit
+• Nublina: 01–07 core; 08–24 a gerar
 • shop → 24 · carta → 23
-• Sem GERAR/EAS neste fecho (pedido Iury)
 
-SOL (good) — COMPLETO ✓ (gerado + no app)
-BRISA (calm) — COMPLETO ✓ (gerado + no app)
-NEUTRO (ok) — COMPLETO ✓ (gerado + no app)
+SOL (good) — COMPLETO ✓
+BRISA (calm) — COMPLETO ✓
+NEUTRO (ok) — COMPLETO ✓
 
-AGITA (anxious) — 4/17 gerados (+ no app)
-[x] 08-stretch-anxious.mp4
-[x] 09-smile-anxious.mp4
-[x] 10-tidy-anxious.mp4
-[x] 11-sun-anxious.mp4
-[ ] 12-window-anxious.mp4   ← RETOMAR (créditos WayIn)
-[ ] 13-snack-anxious.mp4
-[ ] 14-adventure-anxious.mp4
-[ ] 15-walk-anxious.mp4
-[ ] 16-hydrate-anxious.mp4
-[ ] 17-plant-anxious.mp4
-[ ] 18-pause-anxious.mp4
-[ ] 19-music-anxious.mp4
-[ ] 20-gratitude-anxious.mp4
-[ ] 21-note-anxious.mp4
-[ ] 22-kind-self-anxious.mp4
-[ ] 23-letter-anxious.mp4
-[ ] 24-shop-anxious.mp4
+AGITA (anxious) — COMPLETO ✓ 17/17 (20/07/2026)
+[x] 08–24 anxious
 
-NUBLINA (heavy) — 0/17 novos (depois da Agita)
-
-PAUSA WayIn: créditos esgotados (15/07/2026).
+NUBLINA (heavy) — 0/17 novos ← AGORA
+[ ] 08-stretch-heavy.mp4   ← AGORA
+[ ] 09-smile-heavy.mp4
+[ ] 10-tidy-heavy.mp4
+[ ] 11-sun-heavy.mp4
+[ ] 12-window-heavy.mp4
+[ ] 13-snack-heavy.mp4
+[ ] 14-adventure-heavy.mp4
+[ ] 15-walk-heavy.mp4
+[ ] 16-hydrate-heavy.mp4
+[ ] 17-plant-heavy.mp4
+[ ] 18-pause-heavy.mp4
+[ ] 19-music-heavy.mp4
+[ ] 20-gratitude-heavy.mp4
+[ ] 21-note-heavy.mp4
+[ ] 22-kind-self-heavy.mp4
+[ ] 23-letter-heavy.mp4
+[ ] 24-shop-heavy.mp4
 
 REGRAS
 • Fundo chroma verde (como os 01–07)
 • ~4–6s · voz PT no mesmo bloco
-• Referência = cor do humor
+• Referência = cor do humor (Nublina = roxo/nuvem pesada, nunca assustadora)

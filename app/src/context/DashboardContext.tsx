@@ -4,9 +4,16 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
-import { fetchAccessInfo, fetchDashboard, getSession } from "@/api/client";
+import {
+  fetchAccessInfo,
+  fetchDashboard,
+  getSession,
+  refreshSessionToken,
+  setSession,
+} from "@/api/client";
 import { normalizeAccessInfo } from "@/constants/planLimits";
 import type { AccessInfo } from "@/api/types";
 import { loadLocalChatHistory } from "@/storage/chatHistoryLocal";
@@ -140,35 +147,19 @@ async function mergeStoredProfilePhone(
 
 export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
-  const enabled = Boolean(session?.access_token?.trim());
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+  const accessTok = session?.access_token?.trim() || "";
+  const enabled = Boolean(accessTok);
   const [data, setData] = useState<DashboardData>(empty);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [personaLocalOk, setPersonaLocalOk] = useState(false);
 
-  const load = useCallback(async (options?: RefreshOptions) => {
-    if (!enabled) {
-      setData(empty);
-      setLoading(false);
-      setError(null);
-      setPersonaLocalOk(false);
-      void cancelAllReminderLocalNotifications();
-      void cancelMoodMonsterNotifications();
-      void cancelPausaLocalNotifications();
-      return;
-    }
-    // Corrida ao abrir: React já tem sessão, memória do client ainda vazia.
-    if (!getSession()?.access_token?.trim()) {
-      await new Promise((r) => setTimeout(r, 80));
-      if (!getSession()?.access_token?.trim()) {
-        setError("Sessão expirada. Saia e entre novamente.");
-        return;
-      }
-    }
-    setError(null);
-    try {
-      let dashboard = await fetchDashboard();
+  const applyDashboard = useCallback(
+    async (dashboardIn: DashboardData, options?: RefreshOptions) => {
+      let dashboard = dashboardIn;
       const uid = resolveUserId(getSession(), dashboard.me?.user_id);
       const localChoice = uid ? await getLocalPersonaChoice(uid) : null;
       if (localChoice) {
@@ -254,9 +245,61 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           runBackgroundSyncs();
         }
       }
+    },
+    []
+  );
+
+  const load = useCallback(async (options?: RefreshOptions) => {
+    if (!enabled) {
+      setData(empty);
+      setLoading(false);
+      setError(null);
+      setPersonaLocalOk(false);
+      void cancelAllReminderLocalNotifications();
+      void cancelMoodMonsterNotifications();
+      void cancelPausaLocalNotifications();
+      return;
+    }
+    // Corrida ao abrir: React tem sessão, memória do axios ainda vazia —
+    // semear e esperar (80ms era curto demais e gerava falso «expirada»).
+    const authSession = sessionRef.current;
+    if (authSession?.access_token?.trim() && !getSession()?.access_token?.trim()) {
+      setSession(authSession);
+    }
+    for (let i = 0; i < 20 && !getSession()?.access_token?.trim(); i++) {
+      const s = sessionRef.current;
+      if (s?.access_token?.trim()) setSession(s);
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    if (!getSession()?.access_token?.trim()) {
+      if (!sessionRef.current?.access_token?.trim()) {
+        setError("Sessão expirada. Saia e entre novamente.");
+      }
+      return;
+    }
+    setError(null);
+    try {
+      const dashboard = await fetchDashboard();
+      await applyDashboard(dashboard, options);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar dados.";
-      const uid = resolveUserId(getSession());
+      const looksAuth = /token ausente|sessão inválida|sessão expirada/i.test(msg);
+      if (looksAuth) {
+        const cur = getSession() || sessionRef.current;
+        const refreshTok = cur?.refresh_token?.trim();
+        if (refreshTok) {
+          try {
+            const next = await refreshSessionToken(refreshTok, cur);
+            setSession(next);
+            const dashboard = await fetchDashboard();
+            await applyDashboard(dashboard, options);
+            return;
+          } catch {
+            /* refresh falhou de verdade — cai no erro abaixo */
+          }
+        }
+      }
+      const uid = resolveUserId(getSession() || sessionRef.current);
       if (uid) {
         const local = await getLocalPersonaChoice(uid);
         if (local) {
@@ -265,7 +308,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
             ...prev,
             me: prev.me ?? {
               user_id: uid,
-              email: getSession()?.user?.email ?? null,
+              email: (getSession() || sessionRef.current)?.user?.email ?? null,
               persona,
               persona_configured: true,
               profile: {},
@@ -276,13 +319,18 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           setPersonaLocalOk(true);
         }
       }
-      if (/token ausente|sessão inválida|sessão expirada/i.test(msg)) {
-        setError("Sessão expirada. Saia e entre novamente.");
+      if (looksAuth) {
+        const stillRefresh = (getSession() || sessionRef.current)?.refresh_token?.trim();
+        if (stillRefresh) {
+          setError("Não foi possível sincronizar. Puxe para atualizar.");
+        } else {
+          setError("Sessão expirada. Saia e entre novamente.");
+        }
       } else if (!uid || !(await isPersonaConfiguredLocal(uid))) {
         setError(msg);
       }
     }
-  }, [enabled]);
+  }, [enabled, accessTok, applyDashboard]);
 
   useEffect(() => {
     if (!enabled) {

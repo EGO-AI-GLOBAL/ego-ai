@@ -1,0 +1,12 @@
+SYNC MESTRE — 1.0.92
+=====================
+Versão: **1.0.92** · iOS **97** · Android **137**
+Motivo: Agita missões 08–24 completas + fix sessão «expirada» (Dashboard) mais robusto.
+Nublina 08–24: amanhã.
+
+| Zona | Estado |
+|------|--------|
+| Build | a enfileirar EAS quando Iury autorizar |
+| PAUSA/Monstrinhos | Agita ✅ · Nublina pendente |
+
+Não deixar EGO_MAINTENANCE=1.
