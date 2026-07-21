@@ -1,0 +1,88 @@
+PROMPTS NUBLINA (heavy) 08–24 — WayIn
+=====================================
+Referência: mesma foto/look dos 01–07 Nublina (roxo/lavanda, nuvem pesada fofa).
+Fundo chroma verde · ~4–6s · voz PT no vídeo · sem texto/legendas/watermark.
+
+Cabeçalho comum (cola no início de cada prompt):
+---
+Cria animação 3D curto do mascote NUBLINA (corpo roxo/lavanda suave pastel, nuvem pesada fofa, olhos grandes, expressão cansada mas carinhosa — nunca assustadora). Fundo chroma verde puro. Duração ~4–6s. Loop suave.
+---
+
+08-stretch-heavy.mp4  ← AGORA
+Ação: Nublina acena, alonga os braços para cima com cuidado (como a soltar peso), e termina com um pulinho leve de alívio.
+Voz: "Alonga comigo… um minutinho. Boa!"
+
+09-smile-heavy.mp4
+Ação: Nublina respira fundo, um sorrisinho suave aparece no rosto cansado, olhos aquecem — leveza sem exagero.
+Voz: "Um sorrisinho… mesmo assim. Boa!"
+
+10-tidy-heavy.mp4
+Ação: Nublina arruma um cantinho pequenino (almofada/objeto), deixa ordenado e suspira aliviada.
+Voz: "Um cantinho arrumado… já ajuda. Boa!"
+
+11-sun-heavy.mp4
+Ação: Nublina procura um raio de sol suave, fecha os olhos e aquece a nuvem — sem brilho agressivo.
+Voz: "Um pouquinho de sol… aquece. Boa!"
+
+12-window-heavy.mp4
+Ação: Nublina abre uma janela simples, o ar fresco mexe a nuvem, inspira fundo e fica um pouco mais leve.
+Voz: "Abre a janela… ar fresco. Boa!"
+
+13-snack-heavy.mp4
+Ação: Nublina segura um lanchinho saudável (fatia de maçã), dá uma mordida consciente e satisfeita.
+Voz: "Lanche gostoso… cuidando de você. Boa!"
+
+14-adventure-heavy.mp4
+Ação: Nublina põe uma mochilinha pequenina, explora um trechinho curioso, encontra um brilho suave e celebra com calma.
+Voz: "Aventura no jardim… te achei! Boa!"
+
+15-walk-heavy.mp4
+Ação: Nublina caminha no mesmo sítio / caminho curto, bounce suave, depois para e sorri um pouco mais leve.
+Voz: "Dois minutinhos a caminhar… isso. Boa!"
+
+16-hydrate-heavy.mp4
+Ação: Nublina segura um copinho de água, bebe com calma, fica renovada com brilhinhos d'água suaves.
+Voz: "Um copo d'água… refresca. Boa!"
+
+17-plant-heavy.mp4
+Ação: Nublina cuida de um vasinho — rega ou ajeita a plantinha, as folhas acordam um pouco; orgulho calmo.
+Voz: "Cuida da plantinha… ela agradece. Boa!"
+
+18-pause-heavy.mp4
+Ação: Nublina guarda/vira um telefone pequenino de bruços, senta quieta, respira — presença sem tela.
+Voz: "Um minuto sem tela… só estar. Boa!"
+
+19-music-heavy.mp4
+Ação: Nublina ouve uma musiquinha suave (fones ou notinhas no ar), balança a nuvem com ritmo calmo.
+Voz: "Uma musiquinha… alivia. Boa!"
+
+20-gratitude-heavy.mp4
+Ação: Nublina põe a mãozinha no peito, olha para cima com gratidão suave, um brilho quente aparece.
+Voz: "Obrigada por hoje… de verdade. Boa!"
+
+21-note-heavy.mp4
+Ação: Nublina escreve num bloquinho pequenino, guarda a notinha e respira aliviada.
+Voz: "Anota o que pesa… e solta. Boa!"
+
+22-kind-self-heavy.mp4
+Ação: Nublina dá um abraço em si mesma / envoltório de nuvem carinhoso, olhos fechados em auto-cuidado.
+Voz: "Gentileza consigo… você merece. Boa!"
+
+23-letter-heavy.mp4
+Ação: Nublina escreve/envia uma cartinha pequenina com carinho e um sorrisinho cansado mas doce.
+Voz: "Uma cartinha… com carinho. Boa!"
+
+24-shop-heavy.mp4
+Ação: Nublina escolhe um item fofo na lojinha do jardim, celebra com um pulinho leve (sem agitação).
+Voz: "Escolhi um mimo… pro jardim. Boa!"
+
+Modelo completo (exemplo 08):
+```
+Cria animação 3D curto do mascote NUBLINA (corpo roxo/lavanda suave pastel, nuvem pesada fofa, olhos grandes, expressão cansada mas carinhosa — nunca assustadora). Fundo chroma verde puro. Duração ~4–6s. Loop suave.
+
+Ação: Nublina acena, alonga os braços para cima com cuidado (como a soltar peso), e termina com um pulinho leve de alívio.
+
+Voz do mascote (obrigatório no vídeo, fala em português do Brasil, tom calmo e doce): "Alonga comigo… um minutinho. Boa!"
+
+Sem texto na tela. Sem legendas. Sem watermark.
+```

@@ -71,7 +71,7 @@ const ACTION_FILE: Record<MonsterClipAction, string> = {
 
 /**
  * require() estáticos — Metro precisa de caminhos literais.
- * Core: 5 × 7 = 35. Extra Sol/Brisa/Neutro/Agita: 4 × 17. Nublina extras → FALLBACK.
+ * Core: 5 × 7 = 35. Extra Sol/Brisa/Neutro/Agita/Nublina: 5 × 17.
  */
 const CORE: Record<MoodKey, Record<MonsterClipCoreAction, number>> = {
   calm: {
@@ -121,8 +121,11 @@ const CORE: Record<MoodKey, Record<MonsterClipCoreAction, number>> = {
   },
 };
 
-/** Extra completo: Sol / Brisa / Neutro / Agita (08–24). Nublina → FALLBACK até gerar. */
-const EXTRA_FULL: Record<"calm" | "good" | "ok" | "anxious", Record<MonsterClipExtraAction, number>> = {
+/** Extra completo: Sol / Brisa / Neutro / Agita / Nublina (08–24). */
+const EXTRA_FULL: Record<
+  "calm" | "good" | "ok" | "anxious" | "heavy",
+  Record<MonsterClipExtraAction, number>
+> = {
   calm: {
     stretch: require("../../assets/monstrinhos/brisa/08-stretch-calm.mp4"),
     smile: require("../../assets/monstrinhos/brisa/09-smile-calm.mp4"),
@@ -199,9 +202,28 @@ const EXTRA_FULL: Record<"calm" | "good" | "ok" | "anxious", Record<MonsterClipE
     letter: require("../../assets/monstrinhos/agita/23-letter-anxious.mp4"),
     shop: require("../../assets/monstrinhos/agita/24-shop-anxious.mp4"),
   },
+  heavy: {
+    stretch: require("../../assets/monstrinhos/nublina/08-stretch-heavy.mp4"),
+    smile: require("../../assets/monstrinhos/nublina/09-smile-heavy.mp4"),
+    tidy: require("../../assets/monstrinhos/nublina/10-tidy-heavy.mp4"),
+    sun: require("../../assets/monstrinhos/nublina/11-sun-heavy.mp4"),
+    window: require("../../assets/monstrinhos/nublina/12-window-heavy.mp4"),
+    snack: require("../../assets/monstrinhos/nublina/13-snack-heavy.mp4"),
+    adventure: require("../../assets/monstrinhos/nublina/14-adventure-heavy.mp4"),
+    walk: require("../../assets/monstrinhos/nublina/15-walk-heavy.mp4"),
+    hydrate: require("../../assets/monstrinhos/nublina/16-hydrate-heavy.mp4"),
+    plant: require("../../assets/monstrinhos/nublina/17-plant-heavy.mp4"),
+    pause: require("../../assets/monstrinhos/nublina/18-pause-heavy.mp4"),
+    music: require("../../assets/monstrinhos/nublina/19-music-heavy.mp4"),
+    gratitude: require("../../assets/monstrinhos/nublina/20-gratitude-heavy.mp4"),
+    note: require("../../assets/monstrinhos/nublina/21-note-heavy.mp4"),
+    "kind-self": require("../../assets/monstrinhos/nublina/22-kind-self-heavy.mp4"),
+    letter: require("../../assets/monstrinhos/nublina/23-letter-heavy.mp4"),
+    shop: require("../../assets/monstrinhos/nublina/24-shop-heavy.mp4"),
+  },
 };
 
-/** Sem ficheiro extra → clip core equivalente (Nublina até gerar 08–24). */
+/** Sem ficheiro extra → clip core equivalente (fallback genérico). */
 const EXTRA_FALLBACK: Record<MonsterClipExtraAction, MonsterClipCoreAction> = {
   stretch: "water",
   smile: "mood-react",
@@ -239,7 +261,7 @@ export function monsterClipModule(moodKey?: string, action: MonsterClipAction = 
   if (isCoreAction(action)) {
     return CORE[key][action] ?? CORE.ok.idle;
   }
-  if (key === "calm" || key === "good" || key === "ok" || key === "anxious") {
+  if (key === "calm" || key === "good" || key === "ok" || key === "anxious" || key === "heavy") {
     return EXTRA_FULL[key][action] ?? CORE[key][EXTRA_FALLBACK[action]] ?? CORE.ok.idle;
   }
   return CORE[key][EXTRA_FALLBACK[action]] ?? CORE.ok.idle;
