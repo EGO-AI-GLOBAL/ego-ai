@@ -33,7 +33,7 @@ export function MoodMonsterScene({
     (care.checked_today
       ? `${displayLabel} está no jardim hoje.`
       : "Quem vai aparecer no jardim hoje?");
-  const mirrorLine = gentleness?.mirror_line?.trim();
+  // mirror_line fica só na MoodGentlenessRibbon (evita texto duplicado sobre o jardim)
   const heldNote = gentleness?.held_note?.trim();
 
   return (
@@ -54,9 +54,6 @@ export function MoodMonsterScene({
       )}
       {hidePet ? null : <Text style={styles.name}>{displayLabel}</Text>}
       <Text style={[styles.line, { color: colors.text }]}>{line}</Text>
-      {mirrorLine ? (
-        <Text style={[styles.mirror, { color: colors.primary }]}>{mirrorLine}</Text>
-      ) : null}
       {heldNote ? (
         <View style={[styles.heldNote, { backgroundColor: "rgba(255,255,255,0.5)" }]}>
           <Text style={styles.heldLabel}>💌 Carta guardada — só seu monstrinho</Text>
@@ -92,14 +89,6 @@ const styles = StyleSheet.create({
     textAlign: "center",
     paddingHorizontal: 12,
     lineHeight: 18,
-  },
-  mirror: {
-    marginTop: 6,
-    fontSize: 12,
-    fontWeight: "700",
-    textAlign: "center",
-    paddingHorizontal: 14,
-    lineHeight: 17,
   },
   heldNote: {
     marginTop: 10,

@@ -49,14 +49,14 @@ export function MoodGentlenessRibbon({ colors, gentleness }: Props) {
         },
       ]}
     >
-      <View style={styles.head}>
-        <Text style={[styles.badge, { color: colors.primary }]}>
-          {emoji} {tagline.toUpperCase()}
+      <Text style={[styles.badge, { color: colors.primary }]} numberOfLines={2}>
+        {emoji} {tagline.toUpperCase()}
+      </Text>
+      {streakLine ? (
+        <Text style={[styles.calmStreak, { color: colors.textMuted }]} numberOfLines={2}>
+          ✨ {streakLine}
         </Text>
-        {streakLine ? (
-          <Text style={[styles.calmStreak, { color: colors.textMuted }]}>✨ {streakLine}</Text>
-        ) : null}
-      </View>
+      ) : null}
       {gentleness.mirror_line ? (
         <Text style={[styles.mirror, { color: colors.text }]}>{gentleness.mirror_line}</Text>
       ) : gentleness.gentle_mode ? (
@@ -74,14 +74,21 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     padding: 12,
     marginBottom: 10,
+    alignSelf: "stretch",
   },
-  head: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    gap: 8,
+  badge: {
+    fontSize: 10,
+    fontWeight: "900",
+    letterSpacing: 0.4,
+    lineHeight: 14,
+    flexShrink: 1,
   },
-  badge: { fontSize: 10, fontWeight: "900", letterSpacing: 0.4, flex: 1 },
-  calmStreak: { fontSize: 11, fontWeight: "700" },
+  calmStreak: {
+    marginTop: 6,
+    fontSize: 11,
+    fontWeight: "700",
+    lineHeight: 15,
+    flexShrink: 1,
+  },
   mirror: { marginTop: 8, fontSize: 13, fontWeight: "600", lineHeight: 18 },
 });
