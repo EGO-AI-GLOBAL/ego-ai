@@ -8,9 +8,9 @@ const {
  * Play Console (prazo 31/08/2026): updates precisam de Play Billing Library 8+.
  * react-native-iap@12 traz 7.0.0 — forçamos 8.0.0 no Gradle.
  *
- * Expo SDK 52 / Kotlin 1.9: billing-ktx 8 traz metadata Kotlin 2.1 —
- * -Xskip-metadata-version-check tem de aplicar a TODOS os subprojects
- * (incl. :react-native-iap), não só ao app.
+ * Expo SDK 52 / Kotlin 1.9: billing-ktx 8 traz metadata Kotlin 2.1.
+ * O skip-metadata tem de chegar ao :react-native-iap (não só ao app).
+ * Evitar sub.afterEvaluate — falha se o projeto já foi evaluated.
  */
 function withPlayBilling8(config) {
   config = withGradleProperties(config, (cfg) => {
@@ -45,13 +45,19 @@ function withPlayBilling8(config) {
       }
     }
 
-    if (!contents.includes("Xskip-metadata-version-check")) {
+    // Remove bloco antigo com afterEvaluate (quebra o Gradle)
+    contents = contents.replace(
+      /\n*\/\/ @generated begin play-billing-8-kotlin-skip[\s\S]*?\/\/ @generated end play-billing-8-kotlin-skip\n*/g,
+      "\n"
+    );
+
+    if (!contents.includes("play-billing-8-kotlin-skip")) {
       contents += `
 
 // @generated begin play-billing-8-kotlin-skip - expo prebuild
-// Billing 8 (Kotlin 2.1 metadata) no Expo SDK 52 / Kotlin 1.9 — aplica a todos os módulos
+// Billing 8 (Kotlin 2.1 metadata) no Expo SDK 52 / Kotlin 1.9
 subprojects { sub ->
-    sub.afterEvaluate {
+    def applyBilling8Workarounds = {
         sub.tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
             kotlinOptions {
                 freeCompilerArgs += ["-Xskip-metadata-version-check"]
@@ -63,6 +69,11 @@ subprojects { sub ->
                 force "com.android.billingclient:billing-ktx:8.0.0"
             }
         }
+    }
+    if (sub.state.executed) {
+        applyBilling8Workarounds()
+    } else {
+        sub.afterEvaluate { applyBilling8Workarounds() }
     }
 }
 // @generated end play-billing-8-kotlin-skip
