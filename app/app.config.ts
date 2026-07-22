@@ -137,8 +137,7 @@ const config: ExpoConfig = {
       },
     ],
     "./plugins/withXcode26FmtFix",
-    "./plugins/withPlayBilling8",
-    "react-native-iap",
+    "expo-iap",
   ],
   experiments: {
     typedRoutes: true,

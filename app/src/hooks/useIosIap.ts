@@ -20,7 +20,7 @@ import {
   requestIosSubscription,
 } from "@/utils/iosIapStorekit";
 
-type IapModule = typeof import("react-native-iap");
+type IapModule = typeof import("expo-iap");
 
 export type IosIapState = {
   ready: boolean;
@@ -31,6 +31,14 @@ export type IosIapState = {
 };
 
 const noopAsync = async () => {};
+
+function purchaseProductId(purchase: Record<string, unknown>): string {
+  return String(purchase.productId || purchase.id || "").trim();
+}
+
+function purchaseTokenOf(purchase: Record<string, unknown>): string {
+  return String(purchase.purchaseToken || purchase.purchaseTokenAndroid || "").trim();
+}
 
 export function useIosIap(
   onActivated?: () => void,
@@ -49,28 +57,24 @@ export function useIosIap(
   onActivatedRef.current = onActivated;
 
   const confirmPurchase = useCallback(
-    async (purchase: {
-      productId?: string | null;
-      transactionId?: string | null;
-      transactionReceipt?: string | null;
-      purchaseToken?: string | null;
-    }) => {
+    async (purchase: Record<string, unknown>) => {
       const iap = iapRef.current;
-      if (!iap || !purchase.productId) return;
+      const productId = purchaseProductId(purchase);
+      if (!iap || !productId) return;
 
       if (usesGooglePlayIap()) {
-        const token = (purchase.purchaseToken || "").trim();
+        const token = purchaseTokenOf(purchase);
         if (!token) {
           throw new Error("Token da Google Play indisponível. Tente restaurar compras.");
         }
         await verifyGooglePlayPurchase({
           purchase_token: token,
-          product_id: purchase.productId,
-          order_id: purchase.transactionId ?? undefined,
+          product_id: productId,
+          order_id: String(purchase.transactionId || "").trim() || undefined,
         });
       } else {
-        let receipt = (purchase.transactionReceipt || "").trim();
-        if (!receipt && iap.getReceiptIOS) {
+        let receipt = String(purchase.transactionReceipt || "").trim();
+        if (!receipt && typeof iap.getReceiptIOS === "function") {
           receipt = (await iap.getReceiptIOS()) || "";
         }
         if (!receipt) {
@@ -78,12 +82,15 @@ export function useIosIap(
         }
         await verifyAppleIapPurchase({
           receipt_data: receipt,
-          product_id: purchase.productId,
-          transaction_id: purchase.transactionId ?? undefined,
+          product_id: productId,
+          transaction_id: String(purchase.transactionId || "").trim() || undefined,
         });
       }
 
-      await iap.finishTransaction({ purchase, isConsumable: false });
+      await iap.finishTransaction({
+        purchase: purchase as never,
+        isConsumable: false,
+      });
       onActivatedRef.current?.();
       Alert.alert(
         "Plano ativado",
@@ -102,7 +109,7 @@ export function useIosIap(
 
     const boot = async () => {
       try {
-        const iap = await import("react-native-iap");
+        const iap = await import("expo-iap");
         if (cancelled) return;
         iapRef.current = iap;
         await iap.initConnection();
@@ -141,12 +148,12 @@ export function useIosIap(
 
     void boot();
 
-    void import("react-native-iap").then((iap) => {
+    void import("expo-iap").then((iap) => {
       if (cancelled) return;
       purchaseUpdateSub = iap.purchaseUpdatedListener(async (purchase) => {
         if (!purchaseInFlight.current) return;
         try {
-          await confirmPurchase(purchase);
+          await confirmPurchase(purchase as unknown as Record<string, unknown>);
         } catch (e) {
           Alert.alert(
             "Compra",
@@ -222,7 +229,7 @@ export function useIosIap(
     try {
       const purchases = await iap.getAvailablePurchases();
       const ours = purchases.filter((p) =>
-        IAP_PRODUCT_IDS.includes(String(p.productId || ""))
+        IAP_PRODUCT_IDS.includes(purchaseProductId(p as unknown as Record<string, unknown>))
       );
       if (!ours.length) {
         Alert.alert(
@@ -234,7 +241,7 @@ export function useIosIap(
         return;
       }
       const latest = ours[ours.length - 1];
-      await confirmPurchase(latest);
+      await confirmPurchase(latest as unknown as Record<string, unknown>);
     } catch (e) {
       Alert.alert(
         "Restaurar",

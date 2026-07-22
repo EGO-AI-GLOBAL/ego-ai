@@ -6,16 +6,19 @@ import {
 } from "@/constants/iapProducts";
 import { formatMonthlyPrice } from "@/constants/plans";
 
-/** Campos opcionais devolvidos pela App Store via react-native-iap. */
+/** Campos opcionais devolvidos pela loja via expo-iap. */
 export type IosStoreSubscription = {
   productId?: string | null;
+  id?: string | null;
   localizedPrice?: string | null;
+  displayPrice?: string | null;
   introductoryPrice?: string | null;
   introductoryPriceAsAmountIOS?: string | null;
   introductoryPriceNumberOfPeriodsIOS?: string | null;
   introductoryPriceSubscriptionPeriodIOS?: string | null;
   /** Google Play Billing 5+: base plans e ofertas (contém offerToken). */
   subscriptionOfferDetails?: Array<Record<string, unknown>> | null;
+  subscriptionOfferDetailsAndroid?: Array<Record<string, unknown>> | null;
 };
 
 export type IosIapCardDisplay = {
@@ -44,7 +47,8 @@ function introPriceLine(product?: IosStoreSubscription | null): string {
 }
 
 function regularPriceLine(product: IapProduct, store?: IosStoreSubscription | null): string {
-  const fromStore = store?.localizedPrice?.trim();
+  const fromStore =
+    store?.localizedPrice?.trim() || store?.displayPrice?.trim();
   if (fromStore) {
     const hasPerMonth = /m[eê]s|month/i.test(fromStore);
     return hasPerMonth ? fromStore : `${fromStore}/mês`;
