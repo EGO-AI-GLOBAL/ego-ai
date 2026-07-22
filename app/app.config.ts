@@ -137,6 +137,7 @@ const config: ExpoConfig = {
       },
     ],
     "./plugins/withXcode26FmtFix",
+    "./plugins/withKotlinSkipMetadata",
     "expo-iap",
   ],
   experiments: {
