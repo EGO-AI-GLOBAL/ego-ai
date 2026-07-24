@@ -217,6 +217,17 @@
     .speech strong { color: var(--primary); }
     .speech p { color: var(--muted); font-size: 0.95rem; }
     .plans { padding: 8px 0 48px; }
+    .invite {
+      padding: 8px 0 40px;
+    }
+    .invite-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 20px;
+      max-width: 560px;
+    }
+    .invite-card p { color: var(--muted); font-size: 0.92rem; margin-top: 8px; }
     .plan-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -292,6 +303,7 @@
         <a href="#funcoes">Funções</a>
         <a href="#amigos">Avatares</a>
         <a href="#planos">Planos</a>
+        <a href="#indique">Indique</a>
         <a href="contato/">Suporte</a>
       </nav>
     </div>
@@ -404,6 +416,22 @@
           </div>
         </div>
         <p class="section-sub" style="margin-top:14px;font-size:0.75rem">* Dentro do pacote mensal de tokens. Ver termos.</p>
+      </div>
+    </section>
+
+    <section class="invite" id="indique">
+      <div class="wrap">
+        <h2>Indique um amigo</h2>
+        <p class="section-sub">No app → Conta · quem indica ganha 1 mês · o amigo assina no Stripe</p>
+        <div class="invite-card">
+          <p>
+            No EGO-AI, abra <strong style="color:var(--text)">Conta</strong> e use
+            <strong style="color:var(--text)">Indique um amigo representante</strong>.
+            O amigo recebe o link do Stripe (Premium) e assina por lá — não pela App Store nem pela Play.
+            Se ele pagar, você ganha <strong style="color:var(--text)">1 mês grátis</strong>.
+            Só dá para indicar quem ainda não tem e-mail ou telefone cadastrado no EGO.
+          </p>
+        </div>
       </div>
     </section>
 

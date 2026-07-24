@@ -63,7 +63,7 @@ export function FriendReferralCard({ colors }: Props) {
       await load();
       const link = res.stripe_checkout_url || res.share_url;
       const message = [
-        "Indiquei-te no EGO-AI — preço especial no Stripe (não App Store/Play).",
+        "Indiquei-te no EGO-AI — assina o Premium no Stripe (não App Store/Play).",
         "1) Cria conta com este e-mail/telefone.",
         `Cadastro: ${res.share_url}`,
         res.stripe_checkout_url ? `2) Assina aqui: ${res.stripe_checkout_url}` : "",
@@ -73,7 +73,7 @@ export function FriendReferralCard({ colors }: Props) {
         .join("\n");
       Alert.alert(
         "Convite ok",
-        "Só podes indicar quem ainda não tem e-mail ou telefone no EGO. Partilha o link Stripe (mais barato).",
+        "Só podes indicar quem ainda não tem e-mail ou telefone no EGO. Partilha o link Stripe.",
         [
           { text: "Fechar", style: "cancel" },
           {
@@ -105,7 +105,7 @@ export function FriendReferralCard({ colors }: Props) {
       "Junta-te ao EGO-AI com a minha indicação.",
       `Cadastro: ${status.share_url}`,
       status.stripe_checkout_url
-        ? `Assina no Stripe (preço especial): ${status.stripe_checkout_url}`
+        ? `Assina o Premium no Stripe: ${status.stripe_checkout_url}`
         : "",
       status.code ? `Código: ${status.code}` : "",
     ]
@@ -121,7 +121,7 @@ export function FriendReferralCard({ colors }: Props) {
       </Text>
       <Text style={[styles.hint, { color: colors.textMuted }]}>
         {status?.tagline ||
-          "Se ele assinar no Stripe (preço especial), você ganha 1 mês grátis. Não dá para indicar quem já tem e-mail ou telefone no EGO."}
+          "Se ele assinar o Premium no Stripe, você ganha 1 mês grátis. Não dá para indicar quem já tem e-mail ou telefone no EGO."}
       </Text>
 
       {loading ? (

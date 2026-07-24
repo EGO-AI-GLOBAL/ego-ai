@@ -1,4 +1,4 @@
-"""Indicação amigo→amigo: link Stripe (preço menor) + 1 mês grátis para quem indica."""
+"""Indicação amigo→amigo: link Stripe Premium + 1 mês grátis para quem indica."""
 
 from __future__ import annotations
 
@@ -220,7 +220,7 @@ def create_friend_invite(
         "invited_email": email_norm,
         "message": (
             "Convite ok. Partilha o link — o amigo cria conta e assina no Stripe "
-            "(preço especial). Se ele pagar, ganhas 1 mês grátis."
+            "(Premium). Se ele pagar, ganhas 1 mês grátis."
         ),
     }, None
 
@@ -266,7 +266,7 @@ def friend_referral_status(supabase: Client, user_id: str) -> dict[str, Any]:
         "referral_bonus_until": bonus_until,
         "invites": list(invites.data or []),
         "tagline": (
-            "Indique um amigo representante. Se ele assinar no Stripe (preço especial), "
+            "Indique um amigo representante. Se ele assinar o Premium no Stripe, "
             "você ganha 1 mês grátis. Só quem ainda não tem e-mail ou telefone no EGO."
         ),
     }
