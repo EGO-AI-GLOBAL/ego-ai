@@ -60,7 +60,10 @@ export function formatTokenLimit(n: number): string {
 }
 
 export function formatDailyLimit(n: number, unit: string): string {
-  if (n <= 0) return `${unit} ilimitado`;
+  if (n <= 0) {
+    const feminine = /mensagem|resposta/i.test(unit);
+    return feminine ? `${unit} ilimitadas` : `${unit} ilimitados`;
+  }
   return `${n} ${unit}/dia`;
 }
 

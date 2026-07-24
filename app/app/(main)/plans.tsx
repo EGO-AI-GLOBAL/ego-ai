@@ -22,7 +22,8 @@ import {
   fallbackLimitsForTier,
   type MonthlyMarket,
 } from "@/constants/stripeMonthly";
-import { formatMonthlyPrice, subscribeLabelForTier } from "@/constants/plans";
+import { formatMonthlyPrice } from "@/constants/plans";
+import { IOS_APP_STORE_PRICE_NOTE } from "@/constants/iapProducts";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 import { checkoutUrlForTier, withCheckoutUserRef } from "@/utils/planCheckout";
@@ -36,7 +37,6 @@ import {
   usesStripeCheckout,
 } from "@/utils/iosAppStoreBilling";
 import { iosIapCatalog, useIosIap } from "@/hooks/useIosIap";
-import { IOS_APP_STORE_PRICE_NOTE } from "@/constants/iapProducts";
 
 export default function PlansScreen() {
   const colors = useColors();
@@ -53,6 +53,7 @@ export default function PlansScreen() {
   const checkout = data.me?.stripe_checkout;
   const userId = data.me?.user_id?.trim() ?? "";
   const isPaid = currentTier !== "essential";
+  const storeName = usesGooglePlayIap() ? "Google Play" : "App Store";
 
   const loadCatalog = useCallback(async () => {
     setCatalogLoading(true);
@@ -81,54 +82,19 @@ export default function PlansScreen() {
     return map;
   }, [catalog]);
 
-  const essentialPlan = catalog.find((p) => p.tier === "essential");
+  const premiumLimits =
+    limitsByTier.get("premium") ??
+    (isPaid ? limitsByTier.get(currentTier) : undefined) ??
+    fallbackLimitsForTier("premium");
 
-  const onIapSubscribe = async (
-    tier: Exclude<PlanTier, "essential" | "enterprise">,
-    busyKey: string
-  ) => {
+  const onIapSubscribe = async (busyKey: string) => {
     setOpeningKey(busyKey);
     try {
-      await iap.purchaseTier(tier);
+      await iap.purchaseTier("premium");
     } finally {
       setOpeningKey(null);
     }
   };
-
-  const renderIosIapPlans = () =>
-    iosIapCatalog()
-      .filter((offer) => offer.tier === "premium")
-      .map((offer) => {
-        const key = `iap-${offer.tier}`;
-        const display = iap.productDisplay[offer.tier];
-        return (
-          <PlanCard
-            key={key}
-            colors={colors}
-            plan={{
-              tier: offer.tier,
-              label: offer.label,
-              price_brl: offer.priceBrl,
-              limits: limitsByTier.get(offer.tier) ?? fallbackLimitsForTier(offer.tier),
-            }}
-            isCurrent={currentTier === offer.tier || (isPaid && offer.tier === "premium")}
-            highlighted
-            badgeLabel={display?.badgeLabel}
-            checkoutUrl={null}
-            onSubscribe={() => {}}
-            purchaseViaIap
-            onIapPurchase={(tier) => {
-              if (tier === "essential" || tier === "enterprise") return;
-              void onIapSubscribe(tier, key);
-            }}
-            busy={iap.busy || openingKey === key}
-            priceOverride={display?.priceLine ?? formatMonthlyPrice(offer.priceBrl)}
-            priceNote={IOS_APP_STORE_PRICE_NOTE}
-            subscribeLabel={subscribeLabelForTier(offer.tier, currentTier)}
-            footnote={display?.footnote}
-          />
-        );
-      });
 
   const onSubscribe = async (busyKey: string, url: string) => {
     if (!usesStripeCheckout()) return;
@@ -172,32 +138,39 @@ export default function PlansScreen() {
   const busy = loading || catalogLoading;
   const showErrorBanner = Boolean(error);
 
-  const renderEssential = () => {
-    const key = "essential";
+  const renderPremiumIap = () => {
+    const offer = iosIapCatalog().find((o) => o.tier === "premium");
+    if (!offer) return null;
+    const key = "iap-premium";
+    const display = iap.productDisplay.premium;
     return (
       <PlanCard
         key={key}
         colors={colors}
         plan={{
-          tier: "essential",
-          label: essentialPlan?.label || "EGO Essencial",
-          price_brl: 0,
-          limits:
-            essentialPlan?.limits ??
-            limitsByTier.get("essential") ??
-            fallbackLimitsForTier("essential"),
+          tier: "premium",
+          label: "EGO Premium",
+          price_brl: offer.priceBrl,
+          limits: premiumLimits,
         }}
-        isCurrent={currentTier === "essential"}
+        isCurrent={isPaid}
+        highlighted
+        badgeLabel={isPaid ? "Seu plano" : "Recomendado"}
         checkoutUrl={null}
         onSubscribe={() => {}}
-        busy={false}
-        priceOverride="Grátis · 3 dias"
+        purchaseViaIap
+        onIapPurchase={() => {
+          if (isPaid) return;
+          void onIapSubscribe(key);
+        }}
+        busy={iap.busy || openingKey === key}
+        priceOverride={display?.priceLine ?? formatMonthlyPrice(offer.priceBrl)}
+        priceNote={IOS_APP_STORE_PRICE_NOTE}
+        subscribeLabel={isPaid ? "Plano atual" : "Assinar Premium"}
         footnote={
-          currentTier !== "essential"
-            ? usesStoreIap()
-              ? `Para voltar ao grátis, ${storeCancelHint().charAt(0).toLowerCase()}${storeCancelHint().slice(1)}`
-              : "Assinatura mensal: cancele no Stripe para voltar ao grátis."
-            : "Depois do teste, assine o EGO Premium para continuar."
+          isPaid
+            ? `Para cancelar: ${storeCancelHint()}`
+            : "3 dias grátis no teste · depois renovação automática até cancelar."
         }
       />
     );
@@ -216,18 +189,23 @@ export default function PlansScreen() {
         colors={colors}
         plan={{
           tier: "premium",
-          label: offer.label,
+          label: "EGO Premium",
           price_brl: priceNum,
-          limits:
-            limitsByTier.get("premium") ?? fallbackLimitsForTier("premium"),
+          limits: premiumLimits,
         }}
         isCurrent={isPaid}
         highlighted
+        badgeLabel={isPaid ? "Seu plano" : "Recomendado"}
         checkoutUrl={url}
         onSubscribe={(_, u) => onSubscribe(key, u)}
         busy={openingKey === key}
         priceOverride={market === "int" ? offer.displayPrice : undefined}
-        subscribeLabel={subscribeLabelForTier("premium", currentTier)}
+        subscribeLabel={isPaid ? "Plano atual" : "Assinar Premium"}
+        footnote={
+          isPaid
+            ? "Para cancelar, use o portal Stripe com o mesmo e-mail da conta."
+            : offer.tagline
+        }
       />
     );
   };
@@ -237,9 +215,7 @@ export default function PlansScreen() {
       title="EGO Premium"
       subtitle={
         usesStoreIap()
-          ? usesGooglePlayIap()
-            ? "Assinatura mensal · Google Play"
-            : "Assinatura mensal · App Store"
+          ? `Assinatura mensal · ${storeName}`
           : "3 dias grátis · depois R$ 49,90/mês"
       }
     >
@@ -261,7 +237,7 @@ export default function PlansScreen() {
           <Pressable onPress={onRefresh} style={styles.errorBanner}>
             <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
             <Text style={[styles.link, { color: colors.primary }]}>
-              Tentar de novo (o plano abaixo continua disponível)
+              Tentar de novo
             </Text>
           </Pressable>
         ) : null}
@@ -278,20 +254,16 @@ export default function PlansScreen() {
                 Seu acesso
               </Text>
               <Text style={[styles.currentName, { color: colors.text }]}>
-                {isPaid
-                  ? data.access?.plan_label || "EGO Premium"
-                  : data.access?.access_status || "Teste 3 dias"}
+                {isPaid ? "EGO Premium" : data.access?.access_status || "Teste 3 dias"}
               </Text>
               <Text style={[styles.currentHint, { color: colors.textMuted }]}>
                 {isPaid
-                  ? usesGooglePlayIap()
-                    ? "Assinatura ativa · Google Play"
-                    : usesStoreIap()
-                      ? "Assinatura ativa · App Store"
-                      : "Assinatura ativa · Stripe"
+                  ? usesStoreIap()
+                    ? `Assinatura activa · ${storeName}`
+                    : "Assinatura activa · Stripe"
                   : "Depois do teste, assine o EGO Premium para continuar."}
               </Text>
-              {currentTier === "essential" ? (
+              {!isPaid ? (
                 <Text style={[styles.currentHint, { color: colors.textMuted }]}>
                   {formatMonthlyPrice(0)} no teste · depois {formatMonthlyPrice(49.9)}
                 </Text>
@@ -301,15 +273,13 @@ export default function PlansScreen() {
             {usesStoreIap() ? (
               <>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  Assinatura mensal
+                  Plano mensal
                 </Text>
                 <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-                  Um plano: EGO Premium. Pagamento via{" "}
-                  {usesGooglePlayIap() ? "Google Play" : "App Store"}. Renovação
+                  Um plano só: EGO Premium. Pagamento via {storeName}. Renovação
                   automática até cancelar.
                 </Text>
-                {renderEssential()}
-                {renderIosIapPlans()}
+                {renderPremiumIap()}
                 <Pressable
                   disabled={iap.busy}
                   onPress={() => void iap.restorePurchases()}
@@ -356,7 +326,6 @@ export default function PlansScreen() {
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
                   Brasil — R$ 49,90/mês
                 </Text>
-                {renderEssential()}
                 {renderPremiumStripe("br")}
 
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -365,8 +334,7 @@ export default function PlansScreen() {
                 {renderPremiumStripe("int")}
 
                 <Text style={[styles.footer, { color: colors.textMuted }]}>
-                  Um plano só: EGO Premium. Cancele quando quiser. Após o teste de 3
-                  dias o app bloqueia até assinar.
+                  Um plano só: EGO Premium. Cancele quando quiser.
                 </Text>
               </>
             ) : null}
