@@ -9,6 +9,8 @@ dist/
 .git/
 store-assets/
 coverage/
+assets/incoming/
+**/incoming/**
 **/*.md
 **/*.log
 **/*.mp4.bak
@@ -20,3 +22,7 @@ play-store-service-account.json
 google-services.json
 *.keystore
 *.jks
+@iuryfreiras__ego-ai.jks
+credentials.json
+upload_certificate.pem
+*.pem
