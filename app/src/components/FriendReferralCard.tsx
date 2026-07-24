@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Pressable,
-  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -17,10 +17,49 @@ import {
 import type { AppColors } from "@/theme/colors";
 import { formatPhoneBrInput } from "@/utils/phoneBr";
 import { validateEmail, validatePhone } from "@/utils/validation";
+import { shareWhatsAppText } from "@/utils/whatsappShare";
 
 type Props = {
   colors: AppColors;
 };
+
+function phoneToWaDigits(phone: string): string {
+  let d = phone.replace(/\D/g, "");
+  if (d.startsWith("55") && d.length >= 12) return d;
+  if (d.length === 10 || d.length === 11) return `55${d}`;
+  return d;
+}
+
+function buildInviteMessage(opts: {
+  shareUrl: string;
+  stripeUrl?: string | null;
+  code?: string;
+}): string {
+  return [
+    "Oi! Indiquei-te no EGO-AI.",
+    "Cria a conta com este e-mail/telefone e assina o Premium no Stripe (não App Store/Play):",
+    opts.stripeUrl || opts.shareUrl,
+    opts.shareUrl && opts.stripeUrl ? `Cadastro: ${opts.shareUrl}` : "",
+    opts.code ? `Código: ${opts.code}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+async function openWhatsApp(phone: string, message: string): Promise<void> {
+  const digits = phoneToWaDigits(phone);
+  const encoded = encodeURIComponent(message);
+  if (digits) {
+    const url = `https://wa.me/${digits}?text=${encoded}`;
+    try {
+      await Linking.openURL(url);
+      return;
+    } catch {
+      /* fallback */
+    }
+  }
+  await shareWhatsAppText(message);
+}
 
 export function FriendReferralCard({ colors }: Props) {
   const [status, setStatus] = useState<FriendReferralStatus | null>(null);
@@ -55,38 +94,19 @@ export function FriendReferralCard({ colors }: Props) {
       Alert.alert("Telefone", phoneErr);
       return;
     }
+    const phoneForWa = phone.trim();
     setBusy(true);
     try {
-      const res = await createFriendReferralInvite(email.trim(), phone.trim());
+      const res = await createFriendReferralInvite(email.trim(), phoneForWa);
       setEmail("");
       setPhone("");
       await load();
-      const link = res.stripe_checkout_url || res.share_url;
-      const message = [
-        "Indiquei-te no EGO-AI — assina o Premium no Stripe (não App Store/Play).",
-        "1) Cria conta com este e-mail/telefone.",
-        `Cadastro: ${res.share_url}`,
-        res.stripe_checkout_url ? `2) Assina aqui: ${res.stripe_checkout_url}` : "",
-        res.code ? `Código: ${res.code}` : "",
-      ]
-        .filter(Boolean)
-        .join("\n");
-      Alert.alert(
-        "Convite ok",
-        "Só podes indicar quem ainda não tem e-mail ou telefone no EGO. Partilha o link Stripe.",
-        [
-          { text: "Fechar", style: "cancel" },
-          {
-            text: "Partilhar",
-            onPress: () => {
-              void Share.share({ message, title: "Indicação EGO-AI" });
-            },
-          },
-        ]
-      );
-      if (link) {
-        // keep share optional via alert
-      }
+      const message = buildInviteMessage({
+        shareUrl: res.share_url,
+        stripeUrl: res.stripe_checkout_url,
+        code: res.code,
+      });
+      await openWhatsApp(phoneForWa, message);
     } catch (e) {
       Alert.alert(
         "Não foi possível indicar",
@@ -100,28 +120,21 @@ export function FriendReferralCard({ colors }: Props) {
   };
 
   const onShareExisting = () => {
-    if (!status?.share_url) return;
-    const message = [
-      "Junta-te ao EGO-AI com a minha indicação.",
-      `Cadastro: ${status.share_url}`,
-      status.stripe_checkout_url
-        ? `Assina o Premium no Stripe: ${status.stripe_checkout_url}`
-        : "",
-      status.code ? `Código: ${status.code}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
-    void Share.share({ message, title: "Indicação EGO-AI" });
+    if (!status?.share_url && !status?.stripe_checkout_url) return;
+    const message = buildInviteMessage({
+      shareUrl: status.share_url || "",
+      stripeUrl: status.stripe_checkout_url,
+      code: status.code,
+    });
+    void shareWhatsAppText(message);
   };
 
   return (
     <View style={[styles.card, { borderColor: colors.border, backgroundColor: colors.bgCard }]}>
-      <Text style={[styles.title, { color: colors.text }]}>
-        Indique um amigo representante
-      </Text>
+      <Text style={[styles.title, { color: colors.text }]}>Indique um amigo</Text>
       <Text style={[styles.hint, { color: colors.textMuted }]}>
         {status?.tagline ||
-          "Se ele assinar o Premium no Stripe, você ganha 1 mês grátis. Não dá para indicar quem já tem e-mail ou telefone no EGO."}
+          "Coloca o e-mail e o telefone do amigo. Enviamos o link Stripe pelo WhatsApp. Se ele assinar o Premium, você ganha 1 mês grátis. Só quem ainda não tem conta no EGO."}
       </Text>
 
       {loading ? (
@@ -161,7 +174,7 @@ export function FriendReferralCard({ colors }: Props) {
           <TextInput
             value={phone}
             onChangeText={(t) => setPhone(formatPhoneBrInput(t))}
-            placeholder="Telefone com DDD"
+            placeholder="Telefone com DDD (WhatsApp)"
             placeholderTextColor={colors.textMuted}
             keyboardType="phone-pad"
             editable={!busy}
@@ -179,16 +192,16 @@ export function FriendReferralCard({ colors }: Props) {
           <Pressable
             onPress={() => void onInvite()}
             disabled={busy}
-            style={[styles.btn, { backgroundColor: colors.primary, opacity: busy ? 0.7 : 1 }]}
+            style={[styles.btn, { backgroundColor: "#128C7E", opacity: busy ? 0.7 : 1 }]}
           >
             {busy ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.btnText}>Validar e indicar</Text>
+              <Text style={styles.btnText}>Enviar no WhatsApp</Text>
             )}
           </Pressable>
 
-          {status?.share_url ? (
+          {status?.share_url || status?.stripe_checkout_url ? (
             <Pressable
               onPress={onShareExisting}
               style={({ pressed }) => [
@@ -197,7 +210,7 @@ export function FriendReferralCard({ colors }: Props) {
               ]}
             >
               <Text style={[styles.secondaryText, { color: colors.primary }]}>
-                Partilhar o meu link
+                Partilhar o meu link no WhatsApp
               </Text>
             </Pressable>
           ) : null}

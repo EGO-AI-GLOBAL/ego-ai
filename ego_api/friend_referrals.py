@@ -266,8 +266,9 @@ def friend_referral_status(supabase: Client, user_id: str) -> dict[str, Any]:
         "referral_bonus_until": bonus_until,
         "invites": list(invites.data or []),
         "tagline": (
-            "Indique um amigo representante. Se ele assinar o Premium no Stripe, "
-            "você ganha 1 mês grátis. Só quem ainda não tem e-mail ou telefone no EGO."
+            "Coloca o e-mail e o telefone do amigo e envia o link Stripe pelo WhatsApp. "
+            "Se ele assinar o Premium, você ganha 1 mês grátis. "
+            "Só quem ainda não tem e-mail ou telefone no EGO."
         ),
     }
 
