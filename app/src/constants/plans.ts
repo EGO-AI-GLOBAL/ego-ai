@@ -23,19 +23,15 @@ export function subscribeLabelForTier(
   return "Assinar";
 }
 
-export const PAID_PLAN_TIERS: PlanTier[] = [
-  "connection",
-  "premium",
-  "total",
-  "enterprise",
-];
+/** Único plano à venda. Outros tiers existem só por legado / webhook / IAP antiga. */
+export const PAID_PLAN_TIERS: PlanTier[] = ["premium"];
 
 export const PLAN_TAGLINES: Record<PlanTier, string> = {
-  essential: "12 assistentes · agenda completa · limite diário de conversa",
-  connection: "Seu assistente no dia a dia",
-  premium: "Mais conversa e voz",
-  total: "Uso intenso, quase sem limites",
-  enterprise: "Equipes e uso profissional",
+  essential: "3 dias para conhecer o EGO-AI",
+  connection: "EGO Premium",
+  premium: "Tudo no bolso · voz, agenda e assistentes",
+  total: "EGO Premium",
+  enterprise: "EGO Premium",
 };
 
 export function formatBrl(price: number): string {
@@ -91,5 +87,6 @@ export function planFeatureLines(plan: PlanCatalogItem): string[] {
     formatCap(lim.max_reminders, "lembretes"),
     "Agenda compartilhada e Entre Nós",
     speeds,
+    "Todos os assistentes desbloqueados",
   ];
 }

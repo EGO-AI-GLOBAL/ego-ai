@@ -50,7 +50,7 @@ import { useLocalChatHistory } from "@/hooks/useLocalChatHistory";
 import { useKeyboardHeight } from "@/hooks/useKeyboardHeight";
 import { useVoiceChat } from "@/hooks/useVoiceChat";
 import { useColors } from "@/theme/ThemeContext";
-import { chatSavedNotice, chatWarnings } from "@/utils/chatFeedback";
+import { chatMessageLooksLikeInvite, chatSavedNotice, chatWarnings } from "@/utils/chatFeedback";
 import { enrichChatError } from "@/utils/chatError";
 import { ChatWidgetErrorBoundary } from "@/monitoring/ChatWidgetErrorBoundary";
 import { ChatRouteErrorBoundary } from "@/monitoring/ChatRouteErrorBoundary";
@@ -501,7 +501,7 @@ function ChatScreenInner() {
       Alert.alert(
         "Limite diário",
         allowsInAppPlanPurchase()
-          ? "O desabafo usa a mesma cota do chat. Espere até 00:00 ou assine um plano para continuar."
+          ? "O desabafo usa a mesma cota do chat. Espere até 00:00 ou assine o EGO Premium para continuar."
           : IOS_DAILY_LIMIT_ALERT
       );
       return;
@@ -519,38 +519,22 @@ function ChatScreenInner() {
   };
 
   const planOffers = usesStoreIap()
-    ? IAP_PRODUCTS.map((p) => ({
+    ? IAP_PRODUCTS.filter((p) => p.tier === "premium").map((p) => ({
         id: p.tier,
         label: p.label.replace(/^EGO\s+/i, ""),
         cta: `Assinar ${p.label.replace(/^EGO\s+/i, "")}`,
-        tag: p.tier === "premium" ? "Mais escolhido" : p.tier === "total" ? "Sem limites" : "Entrada",
-        highlight: p.tier === "premium",
+        tag: "3 dias grátis",
+        highlight: true,
         url: null as string | null,
       }))
     : [
         {
-          id: "connection",
-          label: "Conexão",
-          cta: "Assinar Conexão",
-          tag: "Entrada",
-          highlight: false,
-          url: withUserRef(checkoutUrlForTier("connection", checkout, "br")),
-        },
-        {
           id: "premium",
-          label: "Premium",
-          cta: "Assinar Premium",
-          tag: "Mais escolhido",
+          label: "EGO Premium",
+          cta: "Assinar Premium · R$ 49,90",
+          tag: "3 dias grátis",
           highlight: true,
           url: withUserRef(checkoutUrlForTier("premium", checkout, "br")),
-        },
-        {
-          id: "total",
-          label: "Total",
-          cta: "Assinar Total",
-          tag: "Sem limites",
-          highlight: false,
-          url: withUserRef(checkoutUrlForTier("total", checkout, "br")),
         },
       ].filter((p) => Boolean(p.url));
 
@@ -741,7 +725,12 @@ function ChatScreenInner() {
           setChatNotice(line);
         }
         const speech = buildSaveCelebrationSpeech(assistantName, result);
-        if (speech && autoPlayVoice) {
+        if (
+          speech &&
+          autoPlayVoice &&
+          !chatMessageLooksLikeInvite(_userText || "") &&
+          !(result.shared_members_saved?.length)
+        ) {
           voice.unlockWebPlayback();
           void voice.replayLastText(speech, persona.voice_id, persona.avatar_id);
         }
@@ -749,7 +738,13 @@ function ChatScreenInner() {
       if (chatResultChangedData(result) || result.access) {
         mergeChatResult(result);
         const merged = mergeChatIntoDashboard(data, result);
-        void syncSharedCalendarLocalNotifications(merged.shared_calendars ?? []);
+        const skipNotifSync =
+          Boolean(result.shared_members_saved?.length) ||
+          Boolean(result.shared_events_saved?.length) ||
+          Boolean(result.shared_calendars_saved?.length);
+        if (!skipNotifSync) {
+          void syncSharedCalendarLocalNotifications(merged.shared_calendars ?? []);
+        }
         for (const ev of result.shared_events_saved ?? []) {
           const cal =
             data.shared_calendars?.find((c) => String(c.id) === String(ev.calendar_id))
@@ -940,7 +935,7 @@ function ChatScreenInner() {
         Alert.alert(
           "Teste encerrado",
           allowsInAppPlanPurchase()
-            ? "Assine um plano para continuar conversando com seu assistente."
+            ? "Assine o EGO Premium para continuar conversando com seu assistente."
             : IOS_TRIAL_END_ALERT
         );
         return;
@@ -962,7 +957,9 @@ function ChatScreenInner() {
       setSending(true);
       let chatResultAccess = false;
       try {
-        const wantVoice = autoPlayVoice || Boolean(opts?.forceVoice);
+        const wantVoice =
+          (autoPlayVoice || Boolean(opts?.forceVoice)) &&
+          !chatMessageLooksLikeInvite(text);
         const result = await sendChatMessage(text, wantVoice, historyForApi());
         chatResultAccess = Boolean(result.access);
         setPendingChat([
@@ -1380,7 +1377,7 @@ function ChatScreenInner() {
                   </View>
                   <Pressable onPress={() => void router.push("/(main)/plans")}>
                     <Text style={[styles.allPlansLink, { color: colors.primary }]}>
-                      Ver todos os planos
+                      Ver EGO Premium
                     </Text>
                   </Pressable>
                 </>

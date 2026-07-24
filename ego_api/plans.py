@@ -1,4 +1,8 @@
-"""Planos EGO-AI: limites por tier (Essencial, Conexão, Premium, Total, Empresa)."""
+"""Planos EGO-AI.
+
+Oferta pública (app/site): só EGO Premium R$ 49,90/mês + trial EGO_TRIAL_DAYS.
+Tiers connection/total/enterprise permanecem por legado (webhook / assinantes antigos).
+"""
 
 from __future__ import annotations
 
@@ -29,20 +33,12 @@ PLAN_LABELS: dict[str, str] = {
     PLAN_ENTERPRISE: "EGO Empresa",
 }
 
-# Preços Stripe BR: base + 9,5% impostos/taxas embutidos (conta PJ).
-_STRIPE_TAX_FEE_RATE = 0.095
-
-
-def _stripe_inclusive_brl(base: float) -> float:
-    return round(base * (1.0 + _STRIPE_TAX_FEE_RATE), 2)
-
-
 PLAN_PRICES_BRL: dict[str, float] = {
     PLAN_ESSENTIAL: 0.0,
-    PLAN_CONNECTION: _stripe_inclusive_brl(29.90),
-    PLAN_PREMIUM: _stripe_inclusive_brl(49.90),
-    PLAN_TOTAL: _stripe_inclusive_brl(99.90),
-    PLAN_ENTERPRISE: _stripe_inclusive_brl(199.90),
+    PLAN_CONNECTION: 29.90,
+    PLAN_PREMIUM: 49.90,
+    PLAN_TOTAL: 99.90,
+    PLAN_ENTERPRISE: 199.90,
 }
 
 

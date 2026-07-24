@@ -48,7 +48,7 @@ export function buildTrialExpiredMessage(
   }
   parts.push(
     allowsInAppPlanPurchase()
-      ? "Assine Conexão e continue cuidando do seu progresso."
+      ? "Assine o EGO Premium e continue cuidando do seu progresso."
       : "Entre com o mesmo e-mail se já tiver plano ativo na sua conta."
   );
   return parts.join(" ");

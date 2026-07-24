@@ -12,30 +12,21 @@ import {
   View,
 } from "react-native";
 import { fetchPlansCatalog } from "@/api/client";
-import type { LaunchPlanOffer, PlanCatalogItem, PlanTier, ReferralPlanOffer } from "@/api/types";
+import type { PlanCatalogItem, PlanTier } from "@/api/types";
 import { PlanCard } from "@/components/PlanCard";
 import { ScreenShell } from "@/components/ScreenShell";
 import {
-  BR_STRIPE_LAUNCH_INDIVIDUAL_TIERS,
   DISPLAY_PRICE_BRL,
-  isLaunchCampaignActive,
-  LAUNCH_OFFER_INTRO_MONTHS,
-  LAUNCH_PLAN_OFFER_BR,
+  DISPLAY_PRICE_USD,
   MONTHLY_PLAN_OFFERS,
-  PRICE_INCLUDES_TAXES_NOTE,
   fallbackLimitsForTier,
-  sortIndividualOffersByPrice,
+  type MonthlyMarket,
 } from "@/constants/stripeMonthly";
 import { formatMonthlyPrice, subscribeLabelForTier } from "@/constants/plans";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
+import { checkoutUrlForTier, withCheckoutUserRef } from "@/utils/planCheckout";
 import {
-  checkoutUrlForTier,
-  launchCheckoutUrl,
-  withCheckoutUserRef,
-} from "@/utils/planCheckout";
-import {
-  allowsInAppPlanPurchase,
   IOS_PRIVACY_POLICY_URL,
   IOS_TERMS_OF_USE_URL,
   storeCancelHint,
@@ -51,37 +42,23 @@ export default function PlansScreen() {
   const colors = useColors();
   const { data, loading, refreshing, error, refresh } = useDashboard();
   const [catalog, setCatalog] = useState<PlanCatalogItem[]>([]);
-  const [launchOffer, setLaunchOffer] = useState<LaunchPlanOffer | null>(null);
-  const [referralOffer, setReferralOffer] = useState<ReferralPlanOffer | null>(null);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [openingKey, setOpeningKey] = useState<string | null>(null);
 
-  const referralActive =
-    referralOffer?.active === true ||
-    data.access?.referral_offer?.active === true ||
-    data.access?.referral_benefit?.active === true;
-
-  const showIosLaunchOffer =
-    usesStoreIap() &&
-    !referralActive &&
-    isLaunchCampaignActive() &&
-    (data.access?.plan_tier || "essential") === "essential";
-
   const iap = useIosIap(() => {
     void refresh();
-  }, { showLaunchOffer: showIosLaunchOffer });
+  }, { showLaunchOffer: false });
 
   const currentTier = (data.access?.plan_tier || "essential") as PlanTier;
   const checkout = data.me?.stripe_checkout;
   const userId = data.me?.user_id?.trim() ?? "";
+  const isPaid = currentTier !== "essential";
 
   const loadCatalog = useCallback(async () => {
     setCatalogLoading(true);
     try {
-      const { plans, launchOffer: launch, referralOffer: referral } = await fetchPlansCatalog();
+      const { plans } = await fetchPlansCatalog();
       setCatalog(plans);
-      setLaunchOffer(launch);
-      setReferralOffer(referral);
     } catch {
       setCatalog([]);
     } finally {
@@ -119,41 +96,39 @@ export default function PlansScreen() {
   };
 
   const renderIosIapPlans = () =>
-    iosIapCatalog().map((offer) => {
-      const key = `iap-${offer.tier}`;
-      const display = iap.productDisplay[offer.tier];
-      return (
-        <PlanCard
-          key={key}
-          colors={colors}
-          plan={{
-            tier: offer.tier,
-            label: offer.label,
-            price_brl: offer.priceBrl,
-            limits: limitsByTier.get(offer.tier) ?? fallbackLimitsForTier(offer.tier),
-          }}
-          isCurrent={currentTier === offer.tier}
-          highlighted={
-            offer.tier === "connection"
-              ? Boolean(display?.highlighted)
-              : offer.tier === "premium"
-          }
-          badgeLabel={display?.badgeLabel}
-          checkoutUrl={null}
-          onSubscribe={() => {}}
-          purchaseViaIap
-          onIapPurchase={(tier) => {
-            if (tier === "essential" || tier === "enterprise") return;
-            void onIapSubscribe(tier, key);
-          }}
-          busy={iap.busy || openingKey === key}
-          priceOverride={display?.priceLine ?? formatMonthlyPrice(offer.priceBrl)}
-          priceNote={IOS_APP_STORE_PRICE_NOTE}
-          subscribeLabel={subscribeLabelForTier(offer.tier, currentTier)}
-          footnote={display?.footnote}
-        />
-      );
-    });
+    iosIapCatalog()
+      .filter((offer) => offer.tier === "premium")
+      .map((offer) => {
+        const key = `iap-${offer.tier}`;
+        const display = iap.productDisplay[offer.tier];
+        return (
+          <PlanCard
+            key={key}
+            colors={colors}
+            plan={{
+              tier: offer.tier,
+              label: offer.label,
+              price_brl: offer.priceBrl,
+              limits: limitsByTier.get(offer.tier) ?? fallbackLimitsForTier(offer.tier),
+            }}
+            isCurrent={currentTier === offer.tier || (isPaid && offer.tier === "premium")}
+            highlighted
+            badgeLabel={display?.badgeLabel}
+            checkoutUrl={null}
+            onSubscribe={() => {}}
+            purchaseViaIap
+            onIapPurchase={(tier) => {
+              if (tier === "essential" || tier === "enterprise") return;
+              void onIapSubscribe(tier, key);
+            }}
+            busy={iap.busy || openingKey === key}
+            priceOverride={display?.priceLine ?? formatMonthlyPrice(offer.priceBrl)}
+            priceNote={IOS_APP_STORE_PRICE_NOTE}
+            subscribeLabel={subscribeLabelForTier(offer.tier, currentTier)}
+            footnote={display?.footnote}
+          />
+        );
+      });
 
   const onSubscribe = async (busyKey: string, url: string) => {
     if (!usesStripeCheckout()) return;
@@ -169,7 +144,7 @@ export default function PlansScreen() {
       if (!canOpen) {
         Alert.alert(
           "Checkout",
-          "Não foi possível abrir o link. Verifique STRIPE_CHECKOUT_* no .env do servidor."
+          "Não foi possível abrir o link. Verifique STRIPE_CHECKOUT_PREMIUM_URL no servidor."
         );
         return;
       }
@@ -197,50 +172,8 @@ export default function PlansScreen() {
   const busy = loading || catalogLoading;
   const showErrorBanner = Boolean(error);
 
-  const showLaunchCard =
-    usesStripeCheckout() &&
-    !referralActive &&
-    (launchOffer != null || isLaunchCampaignActive()) &&
-    Boolean(
-      launchCheckoutUrl(checkout) ||
-        launchOffer?.checkout_url?.trim()
-    );
-  const launchUrl = showLaunchCard
-    ? launchCheckoutUrl(checkout) ||
-      launchOffer?.checkout_url?.trim() ||
-      null
-    : null;
-  const launchIntroMonths =
-    launchOffer?.intro_months ?? LAUNCH_OFFER_INTRO_MONTHS;
-  const launchPriceNum = launchOffer?.price_brl ?? LAUNCH_PLAN_OFFER_BR.priceNum;
-  const launchTier = (launchOffer?.tier || LAUNCH_PLAN_OFFER_BR.tier) as PlanTier;
-
-  const activeReferralOffer =
-    referralOffer?.active === true
-      ? referralOffer
-      : data.access?.referral_offer?.active === true
-        ? data.access.referral_offer
-        : null;
-
-  const referralDiscount =
-    activeReferralOffer?.discount_percent ??
-    data.access?.referral_benefit?.discount_percent ??
-    10;
-
-  const brIndividualSorted = useMemo(
-    () =>
-      sortIndividualOffersByPrice(
-        MONTHLY_PLAN_OFFERS.filter(
-          (o) =>
-            o.market === "br" &&
-            (BR_STRIPE_LAUNCH_INDIVIDUAL_TIERS as readonly string[]).includes(o.tier)
-        )
-      ),
-    []
-  );
-
-  const renderEssentialBr = () => {
-    const key = "essential-br";
+  const renderEssential = () => {
+    const key = "essential";
     return (
       <PlanCard
         key={key}
@@ -258,127 +191,56 @@ export default function PlansScreen() {
         checkoutUrl={null}
         onSubscribe={() => {}}
         busy={false}
-        priceOverride="Grátis"
+        priceOverride="Grátis · 3 dias"
         footnote={
           currentTier !== "essential"
             ? usesStoreIap()
               ? `Para voltar ao grátis, ${storeCancelHint().charAt(0).toLowerCase()}${storeCancelHint().slice(1)}`
-              : allowsInAppPlanPurchase()
-                ? "Assinatura mensal: cancele no Stripe para voltar ao grátis."
-                : "Plano ativo nesta conta."
-            : undefined
+              : "Assinatura mensal: cancele no Stripe para voltar ao grátis."
+            : "Depois do teste, assine o EGO Premium para continuar."
         }
       />
     );
   };
 
-  const renderReferralOffer = () => {
-    if (!referralActive) return null;
-    const tagline =
-      activeReferralOffer?.tagline?.trim() ||
-      (activeReferralOffer?.partner_code
-        ? `Cupom ${activeReferralOffer.partner_code}${
-            activeReferralOffer.partner_name
-              ? ` · ${activeReferralOffer.partner_name}`
-              : ""
-          }`
-        : "Cupom parceiro ativo");
-    return (
-      <View
-        style={[
-          styles.referralBox,
-          { backgroundColor: colors.primaryTint, borderColor: colors.primary },
-        ]}
-      >
-        <Text style={[styles.referralTitle, { color: colors.primary }]}>
-          🎁 Plano parceiro · {referralDiscount}% na 1ª assinatura
-        </Text>
-        <Text style={[styles.sectionHint, { color: colors.textMuted, marginBottom: 0 }]}>
-          {tagline}
-        </Text>
-        <Text style={[styles.referralFoot, { color: colors.textMuted }]}>
-          {allowsInAppPlanPurchase()
-            ? "Escolha Conexão, Premium ou Total abaixo. O desconto aplica uma vez no checkout. Plano EGO Lançamento não aparece para cupom de parceiro."
-            : "Cupom parceiro válido na sua conta. Compra de planos não está disponível neste app iOS."}
-        </Text>
-      </View>
-    );
-  };
-
-  const renderLaunchOffer = () => {
-    if (!launchUrl) return null;
-    const key = "launch-br";
+  const renderPremiumStripe = (market: MonthlyMarket) => {
+    const offer = MONTHLY_PLAN_OFFERS.find((o) => o.market === market);
+    if (!offer) return null;
+    const url = checkoutUrlForTier("premium", checkout, market);
+    const priceNum =
+      market === "br" ? DISPLAY_PRICE_BRL.premium : DISPLAY_PRICE_USD.premium;
+    const key = `premium-${market}`;
     return (
       <PlanCard
         key={key}
         colors={colors}
         plan={{
-          tier: launchTier,
-          label: launchOffer?.label || LAUNCH_PLAN_OFFER_BR.label,
-          price_brl: launchPriceNum,
+          tier: "premium",
+          label: offer.label,
+          price_brl: priceNum,
           limits:
-            launchOffer?.limits ??
-            limitsByTier.get(launchTier) ??
-            fallbackLimitsForTier(launchTier),
+            limitsByTier.get("premium") ?? fallbackLimitsForTier("premium"),
         }}
-        isCurrent={false}
+        isCurrent={isPaid}
         highlighted
-        badgeLabel={`Lançamento · ${launchIntroMonths} meses`}
-        checkoutUrl={launchUrl}
+        checkoutUrl={url}
         onSubscribe={(_, u) => onSubscribe(key, u)}
         busy={openingKey === key}
-        priceOverride={
-          launchOffer?.price_label || LAUNCH_PLAN_OFFER_BR.displayPrice
-        }
-        subscribeLabel={subscribeLabelForTier(launchTier, currentTier, {
-          isLaunch: true,
-        })}
-        footnote={
-          launchOffer?.tagline ||
-          `Oferta de lançamento: R$ 10,94/mês (inclui impostos e taxas) por ${launchIntroMonths} meses. Depois R$ 19,90/mês por ${launchIntroMonths} meses. Depois R$ 32,74/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`
-        }
-        priceNote={PRICE_INCLUDES_TAXES_NOTE}
+        priceOverride={market === "int" ? offer.displayPrice : undefined}
+        subscribeLabel={subscribeLabelForTier("premium", currentTier)}
       />
     );
   };
 
-  const renderIndividualBr = () => {
-    return brIndividualSorted.map((offer) => {
-      const url = checkoutUrlForTier(offer.tier, checkout, "br");
-      const priceNum = DISPLAY_PRICE_BRL[offer.tier];
-      const key = `ind-br-${offer.tier}`;
-      return (
-        <PlanCard
-          key={key}
-          colors={colors}
-          plan={{
-            tier: offer.tier,
-            label: offer.label,
-            price_brl: priceNum,
-            limits:
-              limitsByTier.get(offer.tier) ?? fallbackLimitsForTier(offer.tier),
-          }}
-          isCurrent={currentTier === offer.tier}
-          highlighted={offer.highlighted}
-          checkoutUrl={url}
-          onSubscribe={(_, u) => onSubscribe(key, u)}
-          busy={openingKey === key}
-          priceNote={PRICE_INCLUDES_TAXES_NOTE}
-          subscribeLabel={subscribeLabelForTier(offer.tier, currentTier)}
-        />
-      );
-    });
-  };
-
   return (
     <ScreenShell
-      title="Planos"
+      title="EGO Premium"
       subtitle={
         usesStoreIap()
           ? usesGooglePlayIap()
-            ? "Assinatura mensal · compra na Google Play"
-            : "Assinatura mensal · compra na App Store"
-          : "Lançamento, Conexão, Premium e Total · mensal"
+            ? "Assinatura mensal · Google Play"
+            : "Assinatura mensal · App Store"
+          : "3 dias grátis · depois R$ 49,90/mês"
       }
     >
       <ScrollView
@@ -399,7 +261,7 @@ export default function PlansScreen() {
           <Pressable onPress={onRefresh} style={styles.errorBanner}>
             <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
             <Text style={[styles.link, { color: colors.primary }]}>
-              Tentar de novo (os planos abaixo continuam disponíveis)
+              Tentar de novo (o plano abaixo continua disponível)
             </Text>
           </Pressable>
         ) : null}
@@ -413,33 +275,40 @@ export default function PlansScreen() {
               ]}
             >
               <Text style={[styles.currentLabel, { color: colors.textMuted }]}>
-                Seu plano
+                Seu acesso
               </Text>
               <Text style={[styles.currentName, { color: colors.text }]}>
-                {data.access?.plan_label || "EGO Essencial"}
+                {isPaid
+                  ? data.access?.plan_label || "EGO Premium"
+                  : data.access?.access_status || "Teste 3 dias"}
               </Text>
               <Text style={[styles.currentHint, { color: colors.textMuted }]}>
-                {currentTier === "essential"
-                  ? `Grátis · ${formatMonthlyPrice(0)}`
-                  : usesGooglePlayIap()
-                    ? "Assinatura mensal · Google Play"
+                {isPaid
+                  ? usesGooglePlayIap()
+                    ? "Assinatura ativa · Google Play"
                     : usesStoreIap()
-                      ? "Assinatura mensal · App Store"
-                      : "Assinatura mensal · você pode mudar de plano abaixo a qualquer momento"}
+                      ? "Assinatura ativa · App Store"
+                      : "Assinatura ativa · Stripe"
+                  : "Depois do teste, assine o EGO Premium para continuar."}
               </Text>
+              {currentTier === "essential" ? (
+                <Text style={[styles.currentHint, { color: colors.textMuted }]}>
+                  {formatMonthlyPrice(0)} no teste · depois {formatMonthlyPrice(49.9)}
+                </Text>
+              ) : null}
             </View>
 
             {usesStoreIap() ? (
               <>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  Assinaturas mensais
+                  Assinatura mensal
                 </Text>
                 <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-                  {showIosLaunchOffer
-                    ? `EGO Conexão com oferta de lançamento: R$ 19,90/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses (quem nunca assinou), depois R$ 39,90/mês. Renovação automática até cancelar.`
-                    : `Pagamento via ${usesGooglePlayIap() ? "Google Play" : "App Store"}. Conexão R$ 39,90 · Premium R$ 69,90 · Total R$ 129,90/mês. Pode mudar de plano quando quiser.`}
+                  Um plano: EGO Premium. Pagamento via{" "}
+                  {usesGooglePlayIap() ? "Google Play" : "App Store"}. Renovação
+                  automática até cancelar.
                 </Text>
-                {renderEssentialBr()}
+                {renderEssential()}
                 {renderIosIapPlans()}
                 <Pressable
                   disabled={iap.busy}
@@ -484,31 +353,21 @@ export default function PlansScreen() {
 
             {usesStripeCheckout() ? (
               <>
-                {renderReferralOffer()}
-
-                {showLaunchCard && launchUrl ? (
-                  <>
-                    <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                      EGO Lançamento — R$ 10,94
-                    </Text>
-                    <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-                      Oferta promocional · limites do EGO Conexão · válida por{" "}
-                      {launchIntroMonths} meses.
-                    </Text>
-                    {renderLaunchOffer()}
-                  </>
-                ) : null}
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  Brasil — R$ 49,90/mês
+                </Text>
+                {renderEssential()}
+                {renderPremiumStripe("br")}
 
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  Planos mensais (Brasil)
+                  Internacional — US$ 14,99/mês
                 </Text>
-                <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-                  Essencial grátis · Lançamento R$ 10,94 · Conexão R$ 32,74 · Premium R$ 54,64 ·
-                  Total R$ 109,39. Preços incluem impostos e taxas. Sem Equipe nem Empresa neste
-                  lançamento.
+                {renderPremiumStripe("int")}
+
+                <Text style={[styles.footer, { color: colors.textMuted }]}>
+                  Um plano só: EGO Premium. Cancele quando quiser. Após o teste de 3
+                  dias o app bloqueia até assinar.
                 </Text>
-                {renderEssentialBr()}
-                {renderIndividualBr()}
               </>
             ) : null}
           </>
@@ -541,14 +400,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginTop: -4,
   },
-  referralBox: {
-    borderRadius: 16,
-    borderWidth: 1.5,
-    padding: 14,
-    marginBottom: 16,
-  },
-  referralTitle: { fontSize: 15, fontWeight: "800", marginBottom: 6 },
-  referralFoot: { fontSize: 12, lineHeight: 17, marginTop: 8 },
+  footer: { fontSize: 13, lineHeight: 19, marginTop: 16 },
   restoreBtn: {
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,

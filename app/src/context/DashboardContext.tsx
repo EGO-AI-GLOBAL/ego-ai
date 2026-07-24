@@ -156,6 +156,8 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [personaLocalOk, setPersonaLocalOk] = useState(false);
+  /** Evita sync de notificações logo após convite/evento no chat (crash Android). */
+  const notificationCooldownUntilRef = useRef(0);
 
   const applyDashboard = useCallback(
     async (dashboardIn: DashboardData, options?: RefreshOptions) => {
@@ -227,7 +229,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         setError(null);
       }
       if (!options?.skipNotifications) {
+        const skipForCooldown = Date.now() < notificationCooldownUntilRef.current;
         const runBackgroundSyncs = () => {
+          if (Date.now() < notificationCooldownUntilRef.current) return;
           void syncReminderLocalNotifications(dashboard.reminders).catch(() => {});
           const shared = dashboard.shared_calendars ?? [];
           void registerExpoPushToken();
@@ -239,7 +243,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           void syncPausaLocalNotifications(dashboard.pausa_ego).catch(() => {});
           void syncMoodGardenHomeWidget(dashboard.daily_care).catch(() => {});
         };
-        if (options?.deferNotifications) {
+        if (skipForCooldown) {
+          /* cooldown ativo — não dispara sync imediato */
+        } else if (options?.deferNotifications) {
           setTimeout(runBackgroundSyncs, DEFER_BACKGROUND_SYNC_MS);
         } else {
           runBackgroundSyncs();
@@ -278,9 +284,14 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       return;
     }
     setError(null);
+    const skipNotifications =
+      options?.skipNotifications || Date.now() < notificationCooldownUntilRef.current;
     try {
       const dashboard = await fetchDashboard();
-      await applyDashboard(dashboard, options);
+      await applyDashboard(dashboard, {
+        ...options,
+        skipNotifications,
+      });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar dados.";
       const looksAuth = /token ausente|sessão inválida|sessão expirada/i.test(msg);
@@ -375,6 +386,13 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     const hasData = chatResultChangedData(result);
     const hasAccess = Boolean(result.access);
     if (!hasData && !hasAccess) return;
+    if (
+      result.shared_members_saved?.length ||
+      result.shared_events_saved?.length ||
+      result.shared_calendars_saved?.length
+    ) {
+      notificationCooldownUntilRef.current = Date.now() + 5000;
+    }
     setData((prev) => {
       let next = hasData ? mergeChatIntoDashboard(prev, result) : prev;
       if (hasAccess && result.access) {

@@ -46,7 +46,7 @@ const NAV: NavItem[] = [
   },
   { label: "Agenda", href: "/(main)/agenda", caption: "Lembretes e hábitos" },
   { label: "Uso", href: "/(main)/usage", caption: "Limite do plano (%)" },
-  { label: "Planos", href: "/(main)/plans", caption: "Lançamento, Conexão, Premium ou Total" },
+  { label: "EGO Premium", href: "/(main)/plans", caption: "R$ 49,90/mês · 3 dias grátis" },
   { label: "Conta", href: "/(main)/account", caption: "Perfil e exclusão de conta" },
 ];
 

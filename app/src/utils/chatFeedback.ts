@@ -20,7 +20,27 @@ export function chatShouldSkipNotificationRefresh(result: SendChatResult): boole
     return true;
   }
   const notice = chatSavedNotice(result);
-  return Boolean(notice && /lembrete|agenda/i.test(notice));
+  if (notice && /lembrete|agenda|convite/i.test(notice)) {
+    return true;
+  }
+  const reply = (result.reply || "").trim();
+  if (
+    /convite|convid|adicion/i.test(reply) &&
+    /agenda|membro|grupo|e-mail|email/i.test(reply)
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/** Convite por chat — sem TTS automático (evita crash nativo no Android). */
+export function chatMessageLooksLikeInvite(text: string): boolean {
+  const raw = (text || "").trim();
+  if (!raw) return false;
+  if (!/\b(convida|convite|adiciona|adicione|add|inclui|inclua)\b/i.test(raw)) {
+    return false;
+  }
+  return /@[a-z0-9.\-]+\.[a-z]{2,}/i.test(raw);
 }
 
 /** @deprecated use chatShouldSkipNotificationRefresh */
@@ -49,12 +69,33 @@ export function chatSavedNotice(
   for (const r of result.reminders_saved || []) {
     parts.push(`Lembrete: ${r.title || "Lembrete"}`);
   }
+  for (const m of result.shared_members_saved || []) {
+    const em = (m.invited_email || "").trim();
+    parts.push(em ? `Convite: ${em}` : "Convite na agenda");
+  }
   return parts.length ? parts.join(" · ") : null;
 }
 
 export function chatWarnings(result: SendChatResult): string | null {
-  const w = result.warnings?.filter(Boolean) || [];
-  if (w.length) return w.join(" ");
+  const addedEmails = new Set(
+    (result.shared_members_saved || [])
+      .map((m) => (m.invited_email || "").trim().toLowerCase())
+      .filter(Boolean)
+  );
+  const w = (result.warnings || []).filter(Boolean);
+  const filtered = w.filter((line) => {
+    if (!addedEmails.size) return true;
+    const low = line.toLowerCase();
+    for (const em of addedEmails) {
+      if (low.startsWith(`${em}:`)) return false;
+    }
+    return true;
+  });
+  if (result.shared_members_saved?.length && filtered.length === 0) {
+    return null;
+  }
+  if (filtered.length) return filtered.join(" ");
+  if (result.shared_members_saved?.length) return null;
   const reply = (result.reply || "").trim();
   if (/não consegui|não foi possível|não confirm/i.test(reply)) {
     return reply;

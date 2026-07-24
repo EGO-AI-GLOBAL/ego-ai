@@ -1,13 +1,6 @@
 import type { PlanCatalogItem, PlanTier } from "@/api/types";
 
-/** Impostos + taxa Stripe embutidos (conta PJ · igual catálogo Stripe). */
-export const STRIPE_TAX_FEE_RATE = 0.095;
-
-export const PRICE_INCLUDES_TAXES_NOTE = "Inclui impostos e taxas.";
-
-function stripeInclusiveBrl(base: number): number {
-  return Math.round(base * (1 + STRIPE_TAX_FEE_RATE) * 100) / 100;
-}
+/** Oferta única: EGO Premium R$ 49,90/mês (BR) + equivalente INT. */
 
 export type MonthlyMarket = "br" | "int";
 
@@ -21,7 +14,7 @@ export type MonthlyPlanOffer = {
   highlighted?: boolean;
 };
 
-/** Meses com preço promocional (espelha EGO_LAUNCH_OFFER_MONTHS no Railway). */
+/** Meses com preço promocional (legado IAP / API; UI Stripe já não vende lançamento). */
 export const LAUNCH_OFFER_INTRO_MONTHS = 6;
 
 /** Início da campanha na Play (espelha EGO_LAUNCH_OFFER_START_DATE). */
@@ -31,11 +24,11 @@ export const LAUNCH_OFFER_CAMPAIGN_START = "2026-06-01";
 export const LAUNCH_PLAN_OFFER_BR = {
   tier: "connection" as const,
   label: "EGO Lançamento",
-  tagline: `Oferta de lançamento: R$ 10,94/mês (inclui impostos e taxas) por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 19,90/mês por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois R$ 32,74/mês (EGO Conexão). Cancele quando quiser. Sem cupons adicionais.`,
+  tagline: `Oferta de lançamento por ${LAUNCH_OFFER_INTRO_MONTHS} meses. Depois EGO Premium.`,
   displayPrice: "R$ 10,94/mês",
   priceNum: 10.94,
   introMonths: LAUNCH_OFFER_INTRO_MONTHS,
-  priceAfterBrl: stripeInclusiveBrl(29.9),
+  priceAfterBrl: 49.9,
 };
 
 function addMonthsIso(startIso: string, months: number): Date {
@@ -54,105 +47,37 @@ export function isLaunchCampaignActive(
   return Date.now() < end.getTime();
 }
 
-const TIER_PRICE_ORDER_BR: Record<PlanTier, number> = {
-  essential: 0,
-  connection: stripeInclusiveBrl(29.9),
-  premium: stripeInclusiveBrl(49.9),
-  total: stripeInclusiveBrl(99.9),
-  enterprise: stripeInclusiveBrl(199.9),
-};
-
-/** Individual BR: do mais barato ao mais caro (sem essencial). */
-export function sortIndividualOffersByPrice(
-  offers: MonthlyPlanOffer[]
-): MonthlyPlanOffer[] {
-  return [...offers].sort(
-    (a, b) => TIER_PRICE_ORDER_BR[a.tier] - TIER_PRICE_ORDER_BR[b.tier]
-  );
-}
-
-/** Planos individuais BR no lançamento Stripe PJ (sem Empresa nem USD). */
-export const BR_STRIPE_LAUNCH_INDIVIDUAL_TIERS = [
-  "connection",
-  "premium",
-  "total",
-] as const satisfies readonly PlanTier[];
-
 export const MONTHLY_PLAN_OFFERS: MonthlyPlanOffer[] = [
-  {
-    market: "br",
-    tier: "connection",
-    label: "EGO Conexão",
-    tagline: "Seu assistente no dia a dia",
-    displayPrice: "R$ 32,74/mês",
-  },
   {
     market: "br",
     tier: "premium",
     label: "EGO Premium",
-    tagline: "Mais conversa, voz e agenda",
-    displayPrice: "R$ 54,64/mês",
+    tagline: "3 dias grátis · depois R$ 49,90/mês",
+    displayPrice: "R$ 49,90/mês",
     highlighted: true,
-  },
-  {
-    market: "br",
-    tier: "total",
-    label: "EGO Total",
-    tagline: "Uso intenso, quase sem limites",
-    displayPrice: "R$ 109,39/mês",
-  },
-  {
-    market: "br",
-    tier: "enterprise",
-    label: "EGO Empresa",
-    tagline: "Equipes e agenda compartilhada",
-    displayPrice: "R$ 218,89/mês",
-    highlighted: true,
-  },
-  {
-    market: "int",
-    tier: "connection",
-    label: "EGO AI Pro",
-    tagline: "Your daily AI companion",
-    displayPrice: "US$ 7,99/month",
   },
   {
     market: "int",
     tier: "premium",
-    label: "EGO AI Premium",
-    tagline: "More chat, voice & agenda",
+    label: "EGO Premium",
+    tagline: "3-day trial · then US$ 14,99/month",
     displayPrice: "US$ 14,99/month",
-    highlighted: true,
-  },
-  {
-    market: "int",
-    tier: "total",
-    label: "EGO AI Complete",
-    tagline: "Generous limits for power users",
-    displayPrice: "US$ 29,99/month",
-  },
-  {
-    market: "int",
-    tier: "enterprise",
-    label: "EGO AI Business",
-    tagline: "Teams & shared calendars",
-    displayPrice: "US$ 49,99/month",
     highlighted: true,
   },
 ];
 
 export const DISPLAY_PRICE_BRL: Record<Exclude<PlanTier, "essential">, number> = {
-  connection: stripeInclusiveBrl(29.9),
-  premium: stripeInclusiveBrl(49.9),
-  total: stripeInclusiveBrl(99.9),
-  enterprise: stripeInclusiveBrl(199.9),
+  connection: 49.9,
+  premium: 49.9,
+  total: 49.9,
+  enterprise: 49.9,
 };
 
 export const DISPLAY_PRICE_USD: Record<Exclude<PlanTier, "essential">, number> = {
-  connection: 7.99,
+  connection: 14.99,
   premium: 14.99,
-  total: 29.99,
-  enterprise: 49.99,
+  total: 14.99,
+  enterprise: 14.99,
 };
 
 export function fallbackLimitsForTier(tier: PlanTier): PlanCatalogItem["limits"] {
@@ -167,46 +92,15 @@ export function fallbackLimitsForTier(tier: PlanTier): PlanCatalogItem["limits"]
       audio_speed_multipliers: [1],
     };
   }
-  if (tier === "connection") {
-    return {
-      monthly_tokens: 800_000,
-      daily_text_messages: 50,
-      daily_voice_messages: 15,
-      daily_tts_replies: 0,
-      max_agenda_items: 0,
-      max_reminders: 0,
-      audio_speed_multipliers: [1],
-    };
-  }
-  if (tier === "premium") {
-    return {
-      monthly_tokens: 2_500_000,
-      daily_text_messages: 0,
-      daily_voice_messages: 0,
-      daily_tts_replies: 0,
-      max_agenda_items: 0,
-      max_reminders: 0,
-      audio_speed_multipliers: [1],
-    };
-  }
-  if (tier === "enterprise") {
-    return {
-      monthly_tokens: 10_000_000,
-      daily_text_messages: 0,
-      daily_voice_messages: 0,
-      daily_tts_replies: 0,
-      max_agenda_items: 0,
-      max_reminders: 0,
-      audio_speed_multipliers: [1],
-    };
-  }
+  // Catálogo público = Premium; outros tiers legados mapeiam para os mesmos limites generosos.
+  void tier;
   return {
-    monthly_tokens: 5_000_000,
+    monthly_tokens: 2_500_000,
     daily_text_messages: 0,
     daily_voice_messages: 0,
     daily_tts_replies: 0,
     max_agenda_items: 0,
     max_reminders: 0,
-    audio_speed_multipliers: [1],
+    audio_speed_multipliers: [1, 1.5, 2],
   };
 }
