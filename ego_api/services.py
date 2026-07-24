@@ -205,16 +205,38 @@ def _apply_referral_after_signup(user_id: str, referral_code: str) -> str | None
     code = (referral_code or "").strip()
     if not user_id or not code:
         return None
-    from ego_api.referrals import attach_referral_to_profile
+    from ego_api.friend_referrals import (
+        attach_friend_referral_on_signup,
+        find_user_id_by_friend_code,
+    )
+    from ego_api.referrals import attach_referral_to_profile, get_admin_client, lookup_partner
     from ego_api.supabase_client import create_service_client
 
     svc = create_service_client()
     if not svc:
         return "Indicação indisponível no momento. Tente novamente."
-    ok, err = attach_referral_to_profile(svc, user_id, code)
-    if not ok and err:
-        return err
-    return None
+    admin = get_admin_client() or svc
+    if lookup_partner(admin, code):
+        ok, err = attach_referral_to_profile(svc, user_id, code)
+        if not ok and err:
+            return err
+        return None
+    if find_user_id_by_friend_code(svc, code):
+        email = ""
+        try:
+            row = (
+                svc.table("profiles")
+                .select("email")
+                .eq("id", user_id)
+                .limit(1)
+                .execute()
+            )
+            if row.data:
+                email = str(row.data[0].get("email") or "")
+        except Exception:
+            pass
+        return attach_friend_referral_on_signup(svc, user_id, code, email=email)
+    return "Código de indicação não encontrado."
 
 
 def signup(

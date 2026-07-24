@@ -15,6 +15,7 @@ import { deleteMyAccount } from "@/api/client";
 import { PersonaPicker } from "@/components/PersonaPicker";
 import { AccountUpdateCard } from "@/components/AccountUpdateCard";
 import { ProfilePhoneCard } from "@/components/ProfilePhoneCard";
+import { FriendReferralCard } from "@/components/FriendReferralCard";
 import { SocialFollowBar } from "@/components/SocialFollowBar";
 import { ScreenShell } from "@/components/ScreenShell";
 import { UsageDashboard } from "@/components/UsageDashboard";
@@ -145,6 +146,8 @@ export default function AccountScreen() {
             <SocialFollowBar colors={colors} />
 
             <ProfilePhoneCard colors={colors} phone={profilePhone} onSaved={refresh} />
+
+            <FriendReferralCard colors={colors} />
 
             <UsageDashboard colors={colors} access={data.access} />
 

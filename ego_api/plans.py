@@ -256,12 +256,30 @@ def is_test_total_email(email: str | None) -> bool:
     return bool(em) and em in _test_total_emails()
 
 
+def _referral_bonus_active(profile: dict[str, Any] | None) -> bool:
+    if not profile:
+        return False
+    raw = profile.get("referral_bonus_until")
+    if not raw:
+        return False
+    try:
+        until = datetime.datetime.fromisoformat(str(raw).replace("Z", "+00:00"))
+        if until.tzinfo is None:
+            until = until.replace(tzinfo=datetime.timezone.utc)
+        return until > datetime.datetime.now(datetime.timezone.utc)
+    except Exception:
+        return False
+
+
 def resolve_plan_tier(profile: dict[str, Any] | None) -> str:
     """Plano efetivo: override de teste, plan_tier no perfil, ou is_pro legado."""
     if is_test_total_email(_profile_email(profile)):
         return PLAN_TOTAL
     if not profile:
         return PLAN_ESSENTIAL
+    # 1 mês Premium por indicação de amigo (enquanto referral_bonus_until válido).
+    if _referral_bonus_active(profile):
+        return PLAN_PREMIUM
     raw = profile.get("plan_tier")
     if raw and str(raw).strip():
         tier = normalize_plan_tier(str(raw))

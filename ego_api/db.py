@@ -709,7 +709,7 @@ def check_access(supabase: Client | None, user_id: str) -> tuple[bool, str]:
     try:
         res = (
             supabase.table(SUPABASE_PROFILES_TABLE)
-            .select("created_at,is_pro,plan_tier")
+            .select("created_at,is_pro,plan_tier,referral_bonus_until")
             .eq("id", user_id)
             .limit(1)
             .execute()
@@ -718,6 +718,11 @@ def check_access(supabase: Client | None, user_id: str) -> tuple[bool, str]:
         if not rows:
             return True, f"Trial ({EGO_TRIAL_DAYS} dias restantes)"
         data = rows[0]
+        bonus_raw = data.get("referral_bonus_until")
+        if bonus_raw:
+            bonus_until = _parse_ts_iso(str(bonus_raw))
+            if bonus_until and agora < bonus_until:
+                return True, "Premium (indicação)"
         tier = resolve_plan_tier(data)
         if tier != "essential":
             return True, plan_label(tier)

@@ -633,17 +633,50 @@ def require_admin(f: Callable) -> Callable:
 @app.get("/api/v1/referrals/validate")
 @rate_limit(60, 60, scope="ip")
 def referrals_validate():
-    from ego_api.referrals import validate_referral_code
+    from ego_api.friend_referrals import validate_friend_or_partner_code
 
     code = str(request.args.get("code") or request.args.get("ref") or "")
     if not code.strip():
         return _json_ok({"valid": False})
-    info, err = validate_referral_code(code)
+    info, err = validate_friend_or_partner_code(code)
     if err:
         return _json_ok({"valid": False, "error": err})
     if not info:
         return _json_ok({"valid": False, "error": "Código não encontrado."})
     return _json_ok({"valid": True, **info})
+
+
+@app.get("/api/v1/friend-referrals/status")
+@require_auth
+@rate_limit(30, 60, scope="user")
+def friend_referrals_status():
+    from ego_api.friend_referrals import friend_referral_status
+    from ego_api.supabase_client import create_service_client
+
+    svc = create_service_client() or g.supabase
+    return _json_ok(friend_referral_status(svc, g.user_id))
+
+
+@app.post("/api/v1/friend-referrals/invite")
+@require_auth
+@rate_limit(12, 60, scope="user")
+def friend_referrals_invite():
+    """Pré-valida indicação: bloqueia se e-mail ou telefone já estiverem cadastrados."""
+    from ego_api.friend_referrals import create_friend_invite
+    from ego_api.supabase_client import create_service_client
+
+    body = request.get_json(silent=True) or {}
+    email = str(body.get("email") or "").strip()
+    phone = str(body.get("phone") or "").strip()
+    if not email or not phone:
+        return _json_error(
+            "Informe o e-mail e o telefone do amigo (com DDD).", 400
+        )
+    svc = create_service_client() or g.supabase
+    data, err = create_friend_invite(svc, g.user_id, email, phone)
+    if err:
+        return _json_error(err, 400)
+    return _json_ok(data or {})
 
 
 @app.post("/api/v1/admin/test-signup-email")

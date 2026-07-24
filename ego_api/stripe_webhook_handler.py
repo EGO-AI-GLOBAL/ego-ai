@@ -110,6 +110,25 @@ def _meta_dict(obj: dict) -> dict:
     return _as_plain_dict(meta) if meta is not None else {}
 
 
+def _user_id_from_checkout_session(session: dict) -> str | None:
+    meta = _meta_dict(session)
+    uid = session.get("client_reference_id") or meta.get("user_id")
+    if uid:
+        return str(uid)
+    email = str(session.get("customer_email") or "").strip().lower()
+    if not email:
+        details = _as_plain_dict(session.get("customer_details"))
+        email = str(details.get("email") or "").strip().lower()
+    if not email:
+        return None
+    try:
+        from ego_api.shared_calendars import resolve_user_id_by_email
+
+        return resolve_user_id_by_email(email)
+    except Exception:
+        return None
+
+
 def handle_stripe_webhook_payload(
     payload: bytes, stripe_signature: str | None
 ) -> tuple[dict, int]:
@@ -165,6 +184,7 @@ def _process_stripe_event(event: dict) -> dict:
             finance_result = {"recorded": False, "error": str(exc)[:200]}
 
         referral_result = None
+        friend_reward = None
         if event_type == "invoice.paid":
             try:
                 from ego_api.finance_revenue import _user_id_from_invoice
@@ -178,10 +198,25 @@ def _process_stripe_event(event: dict) -> dict:
                         str(uid),
                         stripe_session_id=str(obj.get("id") or ""),
                     )
+                    try:
+                        from ego_api.friend_referrals import grant_referrer_one_month
+
+                        friend_reward = grant_referrer_one_month(
+                            supabase,
+                            str(uid),
+                            stripe_session_id=str(obj.get("id") or ""),
+                        )
+                    except Exception as exc:  # noqa: BLE001
+                        friend_reward = {"error": str(exc)[:200]}
             except Exception as exc:  # noqa: BLE001
                 referral_result = {"error": str(exc)[:200]}
 
-        out_fin = {"ok": True, "finance": finance_result, "referral": referral_result}
+        out_fin = {
+            "ok": True,
+            "finance": finance_result,
+            "referral": referral_result,
+            "friend_referral_reward": friend_reward,
+        }
         if event_type == "charge.refunded":
             return out_fin
         if event_type == "invoice.paid":
@@ -229,10 +264,11 @@ def _process_stripe_event(event: dict) -> dict:
         return {"ok": True, "user_id": user_id, **result}
 
     session = obj
-    user_id = session.get("client_reference_id")
+    user_id = _user_id_from_checkout_session(session)
     if not user_id:
         raise StripeWebhookError(
-            400, "client_reference_id ausente no checkout session."
+            400,
+            "client_reference_id/e-mail ausente — não foi possível ligar o pagamento ao utilizador.",
         )
 
     tier = _resolve_tier_from_session(session)
@@ -264,6 +300,7 @@ def _process_stripe_event(event: dict) -> dict:
             supabase, str(user_id), tier, team_seats=team_seats
         )
         commission = None
+        friend_reward = None
         try:
             from ego_api.referrals import record_first_payment_commission
 
@@ -274,6 +311,16 @@ def _process_stripe_event(event: dict) -> dict:
             )
         except Exception:
             commission = {"error": "commission_skipped"}
+        try:
+            from ego_api.friend_referrals import grant_referrer_one_month
+
+            friend_reward = grant_referrer_one_month(
+                supabase,
+                str(user_id),
+                stripe_session_id=str(session.get("id") or ""),
+            )
+        except Exception:
+            friend_reward = {"error": "friend_reward_skipped"}
     except StripeWebhookError:
         raise
     except Exception:  # noqa: BLE001
@@ -282,6 +329,8 @@ def _process_stripe_event(event: dict) -> dict:
     out = {"ok": True, "user_id": user_id, **result}
     if commission:
         out["referral_commission"] = commission
+    if friend_reward:
+        out["friend_referral_reward"] = friend_reward
     try:
         from ego_api.finance_revenue import record_checkout_completed
 

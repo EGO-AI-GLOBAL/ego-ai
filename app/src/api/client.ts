@@ -512,6 +512,7 @@ export type ReferralValidateResult = {
   valid: boolean;
   code?: string;
   display_name?: string;
+  kind?: "partner" | "friend" | string;
   error?: string | null;
 };
 
@@ -531,8 +532,48 @@ export async function validateReferralCode(
     valid: Boolean(body.valid),
     code: body.code,
     display_name: body.display_name,
+    kind: body.kind,
     error: body.error ?? null,
   };
+}
+
+export type FriendReferralStatus = {
+  code: string;
+  share_url: string;
+  stripe_checkout_url?: string | null;
+  rewards_earned?: number;
+  referral_bonus_until?: string | null;
+  tagline?: string;
+  invites?: Array<{
+    id?: string;
+    invited_email?: string;
+    status?: string;
+    created_at?: string;
+  }>;
+};
+
+export type FriendReferralInviteResult = {
+  code: string;
+  share_url: string;
+  stripe_checkout_url?: string | null;
+  invited_email?: string;
+  message?: string;
+};
+
+export async function fetchFriendReferralStatus(): Promise<FriendReferralStatus> {
+  const { data } = await api.get("friend-referrals/status");
+  return unwrap<FriendReferralStatus>(data);
+}
+
+export async function createFriendReferralInvite(
+  email: string,
+  phone: string
+): Promise<FriendReferralInviteResult> {
+  const { data } = await api.post("friend-referrals/invite", {
+    email: email.trim(),
+    phone: phone.trim(),
+  });
+  return unwrap<FriendReferralInviteResult>(data);
 }
 
 export async function updateProfilePhone(phone: string): Promise<{ phone: string }> {
