@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Planos EGO-AI — Lançamento R$ 10,94 · Conexão · Premium · Total. Android/Stripe inclui impostos. iPhone assina no app (App Store)." />
-  <title>Planos — EGO-AI</title>
+  <meta name="description" content="EGO Premium — R$ 49,90/mês. Plano único do EGO-AI. Indique um amigo e ganhe 1 mês grátis." />
+  <title>Plano — EGO-AI</title>
   <link rel="icon" href="../img/icon.png" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&display=swap" rel="stylesheet" />
   <style>
@@ -16,7 +16,6 @@
       --text: #fff;
       --muted: #e2e8f0;
       --success: #22c55e;
-      --warn: #eab308;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -27,7 +26,7 @@
       min-height: 100vh;
     }
     a { color: var(--primary); }
-    .wrap { max-width: 960px; margin: 0 auto; padding: 0 20px 48px; }
+    .wrap { max-width: 720px; margin: 0 auto; padding: 0 20px 48px; }
     header { padding: 20px 0; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
     .back { font-size: 0.9rem; color: var(--muted); }
     h1 { font-size: 1.85rem; font-weight: 800; margin: 16px 0 8px; }
@@ -47,13 +46,7 @@
       gap: 16px;
     }
     @media (min-width: 640px) {
-      .plan-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    @media (min-width: 900px) {
-      .plan-grid { grid-template-columns: repeat(3, 1fr); }
-    }
-    @media (min-width: 1100px) {
-      .plan-grid { grid-template-columns: repeat(5, 1fr); }
+      .plan-grid { grid-template-columns: 1fr 1fr; }
     }
     .plan {
       background: var(--card);
@@ -77,7 +70,6 @@
       font-weight: 700;
       text-decoration: none !important;
       border: none;
-      cursor: pointer;
     }
     .btn-buy { background: var(--primary); color: #fff !important; }
     .btn-muted { background: transparent; border: 1px solid var(--border); color: var(--muted) !important; cursor: default; }
@@ -89,80 +81,44 @@
   <div class="wrap">
     <header>
       <a class="back" href="/">← Voltar ao site</a>
-      <h1>Planos EGO-AI</h1>
-      <p class="sub">20 dias grátis no app · pagamento mensal · cancele quando quiser</p>
+      <h1>Plano EGO-AI</h1>
+      <p class="sub">Só um plano pago: EGO Premium · trial no app · cancele quando quiser</p>
     </header>
 
     <div class="note">
-      <strong>iPhone (só no app — App Store):</strong> 3 assinaturas — Conexão <strong>R$ 39,90</strong> · Premium <strong>R$ 69,90</strong> · Total <strong>R$ 129,90</strong>/mês.
-      Oferta de lançamento iOS: <strong>R$ 19,90/mês por 6 meses</strong> na assinatura Conexão (configurada na Apple, não é produto Stripe).
+      <strong>EGO Premium — R$ 49,90/mês</strong> (Stripe no Android/site; iPhone também na App Store).
+      Usa o <strong>mesmo e-mail</strong> do app.
       <br /><br />
-      <strong>Android e site (Stripe — 4 planos):</strong> Lançamento <strong>R$ 10,94</strong> · Conexão <strong>R$ 32,74</strong> · Premium <strong>R$ 54,64</strong> · Total <strong>R$ 109,39</strong>/mês — inclui impostos e taxas.
-      Use o <strong>mesmo e-mail</strong> do app. Equipe e Empresa: em breve, se houver procura.
-      <br /><br />
-      <strong>Indique um amigo:</strong> no app → Conta. O amigo assina no Stripe; se pagar, você ganha 1 mês grátis.
-      Só quem ainda não tem e-mail ou telefone no EGO. Detalhes em <a href="/#indique">egoai.com.br/#indique</a>.
+      <strong>Indique um amigo:</strong> no app → Conta → Indique um amigo.
+      Coloca e-mail + telefone e envia pelo WhatsApp. Se o amigo assinar o Premium no Stripe, tu ganhas 1 mês grátis.
+      Só quem ainda não tem conta no EGO.
+      <a href="/#indique">Ver no site</a>
     </div>
 
     <div class="plan-grid">
       <div class="plan">
         <h3>Essencial</h3>
-        <div class="price">Grátis</div>
+        <div class="price" style="color:var(--success)">Grátis</div>
         <ul>
           <li>12 assistentes</li>
-          <li>20 dias de teste completo</li>
-          <li>Limites diários depois</li>
+          <li>Trial e limites do plano grátis</li>
           <li>Sem cartão</li>
         </ul>
         <span class="btn btn-muted">Cadastre-se no app</span>
       </div>
-      <div class="plan">
-        <h3>EGO Lançamento</h3>
-        <p style="font-size:0.72rem;color:var(--warn);margin:0;font-weight:600">Só Android / Stripe — não existe no iPhone</p>
-        <div class="price">R$ 10,94<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
-        <ul>
-          <li>6 meses promocionais</li>
-          <li>Limites do Conexão</li>
-          <li>Inclui impostos e taxas</li>
-        </ul>
-        <a class="btn btn-buy" id="plan-cta-launch" href="https://buy.stripe.com/7sY3cu923evNaqP6ovfYY04" target="_blank" rel="noopener noreferrer">Assinar Lançamento</a>
-      </div>
-      <div class="plan">
-        <h3>Conexão</h3>
-        <div class="price">R$ 32,74<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
-        <p style="font-size:0.72rem;color:var(--muted);margin:0">Inclui impostos e taxas.</p>
-        <ul>
-          <li>12 assistentes</li>
-          <li>Mais mensagens e voz</li>
-          <li>Agenda ampliada</li>
-        </ul>
-        <a class="btn btn-buy" id="plan-cta-connection" href="https://buy.stripe.com/4gM5kC6TV4Vd6az3cjfYY05" target="_blank" rel="noopener noreferrer">Assinar Conexão</a>
-      </div>
       <div class="plan featured">
-        <h3>Premium</h3>
-        <div class="price">R$ 54,64<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
-        <p style="font-size:0.72rem;color:var(--muted);margin:0">Inclui impostos e taxas.</p>
+        <h3>EGO Premium</h3>
+        <div class="price">R$ 49,90<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
         <ul>
-          <li>Texto e voz ilimitados/dia*</li>
+          <li>Texto e voz no Premium</li>
           <li>12 assistentes</li>
           <li>Agenda sem limite</li>
         </ul>
         <a class="btn btn-buy" id="plan-cta-premium" href="https://buy.stripe.com/3cIeVc5PRevN56vcMTfYY02" target="_blank" rel="noopener noreferrer">Assinar Premium</a>
       </div>
-      <div class="plan">
-        <h3>Total</h3>
-        <div class="price">R$ 109,39<span style="font-size:0.75rem;font-weight:600">/mês</span></div>
-        <p style="font-size:0.72rem;color:var(--muted);margin:0">Inclui impostos e taxas.</p>
-        <ul>
-          <li>12 assistentes</li>
-          <li>Uso intenso · 5M tokens/mês</li>
-          <li>Máximo de recursos</li>
-        </ul>
-        <a class="btn btn-buy" id="plan-cta-total" href="https://buy.stripe.com/14AeVcdijevN8iH3cjfYY03" target="_blank" rel="noopener noreferrer">Assinar Total</a>
-      </div>
     </div>
 
-    <p class="fine">* Dentro do pacote mensal de tokens. iPhone: preços na App Store (39,90 / 69,90 / 129,90). Após pagar no Android, abra o app e puxe para atualizar.</p>
+    <p class="fine">Após pagar no Stripe, abre o app e puxa para atualizar. iPhone: preços da loja podem variar.</p>
 
     <footer>
       Dúvidas: <a href="mailto:contato@egoai.com.br" id="footer-email">contato@egoai.com.br</a><br />
