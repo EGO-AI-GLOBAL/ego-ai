@@ -286,30 +286,51 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     setError(null);
     const skipNotifications =
       options?.skipNotifications || Date.now() < notificationCooldownUntilRef.current;
-    try {
+
+    const looksAuthMsg = (msg: string) =>
+      /token ausente|sessão inválida|sessão expirada|não foi possível renovar|refresh/i.test(
+        msg
+      );
+
+    const tryLoadOnce = async () => {
       const dashboard = await fetchDashboard();
       await applyDashboard(dashboard, {
         ...options,
         skipNotifications,
       });
+    };
+
+    /** Após update iOS+Android o refresh pode falhar em 503 transitório — tenta de novo. */
+    const recoverSessionAndLoad = async () => {
+      const cur = getSession() || sessionRef.current;
+      const refreshTok = cur?.refresh_token?.trim();
+      if (!refreshTok) throw new Error("Sessão expirada. Saia e entre novamente.");
+      const next = await refreshSessionToken(refreshTok, cur);
+      setSession(next);
+      await tryLoadOnce();
+    };
+
+    try {
+      await tryLoadOnce();
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Erro ao carregar dados.";
-      const looksAuth = /token ausente|sessão inválida|sessão expirada/i.test(msg);
+      const looksAuth = looksAuthMsg(msg);
+      let recovered = false;
       if (looksAuth) {
-        const cur = getSession() || sessionRef.current;
-        const refreshTok = cur?.refresh_token?.trim();
-        if (refreshTok) {
+        for (let attempt = 0; attempt < 3 && !recovered; attempt++) {
+          if (attempt > 0) {
+            await new Promise((r) => setTimeout(r, 500 * attempt));
+          }
           try {
-            const next = await refreshSessionToken(refreshTok, cur);
-            setSession(next);
-            const dashboard = await fetchDashboard();
-            await applyDashboard(dashboard, options);
-            return;
+            await recoverSessionAndLoad();
+            recovered = true;
           } catch {
-            /* refresh falhou de verdade — cai no erro abaixo */
+            /* tenta de novo */
           }
         }
       }
+      if (recovered) return;
+
       const uid = resolveUserId(getSession() || sessionRef.current);
       if (uid) {
         const local = await getLocalPersonaChoice(uid);
@@ -333,7 +354,9 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       if (looksAuth) {
         const stillRefresh = (getSession() || sessionRef.current)?.refresh_token?.trim();
         if (stillRefresh) {
-          setError("Não foi possível sincronizar. Puxe para atualizar.");
+          setError(
+            "Não foi possível sincronizar. Puxe para atualizar. Se continuar, saia e entre de novo."
+          );
         } else {
           setError("Sessão expirada. Saia e entre novamente.");
         }

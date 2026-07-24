@@ -922,9 +922,13 @@ def auth_refresh():
                 "not found",
                 "em falta",
                 "session not found",
+                "não foi possível renovar",
+                "nao foi possivel renovar",
+                "refresh token",
+                "already used",
             )
         )
-        return _json_error(err, 401 if hard else 503)
+        return _json_error(err or "Não foi possível renovar a sessão.", 401 if hard else 503)
     return _json_ok({"session": payload})
 
 
