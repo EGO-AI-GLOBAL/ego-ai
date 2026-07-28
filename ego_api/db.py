@@ -711,7 +711,7 @@ def _parse_ts_iso(value: str | None) -> datetime.datetime | None:
 # Freemium: essential pós-trial continua com texto (limite diário); voz/TTS exigem Premium.
 FREEMIUM_ACCESS_STATUS = "Essencial (texto + anúncios)"
 FREEMIUM_VOICE_TTS_MESSAGE = (
-    "No plano grátis, após o teste, o chat por texto continua (até 5 mensagens/dia). "
+    "No plano grátis o chat por texto continua (até 5 mensagens/dia). "
     "Voz e respostas em áudio são do Premium — assine para liberar."
 )
 
@@ -760,6 +760,9 @@ def is_essential_post_trial(
             return False
         if bool(data.get("is_pro", False)):
             return False
+        # Trial desligado: Essential não pago = freemium de imediato.
+        if EGO_TRIAL_DAYS <= 0:
+            return True
         created_at = data.get("created_at")
         if not created_at:
             return False
@@ -793,6 +796,8 @@ def check_access(supabase: Client | None, user_id: str) -> tuple[bool, str]:
         )
         rows = res.data or []
         if not rows:
+            if EGO_TRIAL_DAYS <= 0:
+                return True, FREEMIUM_ACCESS_STATUS
             return True, f"Trial ({EGO_TRIAL_DAYS} dias restantes)"
         data = rows[0]
         bonus_raw = data.get("referral_bonus_until")
@@ -807,10 +812,17 @@ def check_access(supabase: Client | None, user_id: str) -> tuple[bool, str]:
             return True, plan_label("connection")
         created_at = data.get("created_at")
         if not created_at:
+            if EGO_TRIAL_DAYS <= 0:
+                return True, FREEMIUM_ACCESS_STATUS
             return True, f"Trial ({EGO_TRIAL_DAYS} dias restantes)"
         data_criacao = _parse_ts_iso(str(created_at))
         if not data_criacao:
+            if EGO_TRIAL_DAYS <= 0:
+                return True, FREEMIUM_ACCESS_STATUS
             return True, f"Trial ({EGO_TRIAL_DAYS} dias restantes)"
+        # Sem janela de trial: Essential = freemium de imediato (texto + ads; voz no Premium).
+        if EGO_TRIAL_DAYS <= 0:
+            return True, FREEMIUM_ACCESS_STATUS
         dias = max(0, (agora.date() - data_criacao.date()).days)
         restantes = EGO_TRIAL_DAYS - dias
         if restantes >= 0:
@@ -818,6 +830,8 @@ def check_access(supabase: Client | None, user_id: str) -> tuple[bool, str]:
         # Freemium: texto diário continua; voz/TTS bloqueados noutros checks.
         return True, FREEMIUM_ACCESS_STATUS
     except Exception:
+        if EGO_TRIAL_DAYS <= 0:
+            return True, FREEMIUM_ACCESS_STATUS
         return True, f"Trial ({EGO_TRIAL_DAYS} dias restantes)"
 
 
