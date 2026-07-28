@@ -1,0 +1,46 @@
+EGO-AI — FreeFooterBanner · teste FREE vs PREMIUM
+=================================================
+Atualizado: 28/07/2026
+
+REGRA (igual ShapeScan)
+-----------------------
+1) Premium → NENHUM banner
+2) Free + AdMob com fill → só AdMob (~60px acima do composer)
+3) Free + AdMob sem fill / erro → só cross-promo ShapeScan
+   → toque abre loja ShapeScan (iOS 6791775092 / Android com.shapescan.app)
+   → fallback https://shapescanapp.com.br
+
+Ficheiros
+---------
+app/src/components/FreeFooterBanner.tsx
+app/src/components/ShapeScanCrossPromoBanner.tsx
+app/src/utils/shouldShowChatAds.ts
+app/src/constants/admob.ts          (banner-chat-free + IDs)
+app/src/constants/shapeScanPromo.ts
+
+TESTE MANUAL
+------------
+A) Conta Essential FREE (pós-trial, show_ads=true)
+   - Abre chat
+   - Vê AdMob OU barra verde ShapeScan (nunca os dois)
+   - Toque na barra verde → abre ShapeScan
+
+B) Conta Premium (is_pro / plan_tier premium)
+   - Abre chat
+   - ZERO banner acima do microfone
+
+C) Dev / sem fill AdMob
+   - Com IDs de teste Google, o fill costuma aparecer
+   - Forçar falha: desligar rede no pedido de ad → deve cair no ShapeScan
+
+IDs AdMob (TU cria na consola)
+------------------------------
+1. https://admob.google.com → Apps → EGO-AI Android + iOS
+2. Bloco Banner nome: banner-chat-free
+3. Colar no EAS production:
+   EXPO_PUBLIC_ADMOB_ANDROID_APP_ID
+   EXPO_PUBLIC_ADMOB_IOS_APP_ID
+   EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID
+   EXPO_PUBLIC_ADMOB_IOS_BANNER_ID
+
+Até lá o app usa IDs de TESTE oficiais do Google.

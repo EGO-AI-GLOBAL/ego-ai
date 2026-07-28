@@ -1,0 +1,19 @@
+EGO-AI — IDs AdMob (completos)
+==============================
+Publisher: pub-6748248434426888
+app-ads.txt: https://egoai.com.br/app-ads.txt  ✅
+
+ANDROID
+-------
+App ID:    ca-app-pub-6748248434426888~2730005039
+Banner:    ca-app-pub-6748248434426888/7854339207
+Nome:      banner-chat-free
+
+iOS
+---
+App ID:    ca-app-pub-6748248434426888~5471030083
+Banner:    ca-app-pub-6748248434426888/6704220703
+Nome:      banner-chat-free
+
+Já no eas.json (production).
+Próximo: commit FreeFooterBanner + build nova com estes IDs.

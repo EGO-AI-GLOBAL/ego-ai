@@ -41,6 +41,10 @@
         "EXPO_PUBLIC_ACCOUNT_DELETION_URL": "https://egoai.com.br/exclusao-conta/",
         "EXPO_PUBLIC_WEBSITE_URL": "https://egoai.com.br",
         "EXPO_PUBLIC_SUPPORT_EMAIL": "contato@egoai.com.br",
+        "EXPO_PUBLIC_ADMOB_ANDROID_APP_ID": "ca-app-pub-6748248434426888~2730005039",
+        "EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID": "ca-app-pub-6748248434426888/7854339207",
+        "EXPO_PUBLIC_ADMOB_IOS_APP_ID": "ca-app-pub-6748248434426888~5471030083",
+        "EXPO_PUBLIC_ADMOB_IOS_BANNER_ID": "ca-app-pub-6748248434426888/6704220703",
         "APP_ENV": "production",
         "EAS_BUILD_NO_EXPO_GO_WARNING": "true"
       }

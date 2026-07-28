@@ -1,0 +1,14 @@
+EGO-AI — app-ads.txt (AdMob)
+============================
+Publisher ID: pub-6748248434426888
+
+Ficheiro pronto:
+  site-publico/app-ads.txt
+
+URL final (obrigatório):
+  https://egoai.com.br/app-ads.txt
+
+UOL Host — um ficheiro na RAIZ do domínio egoai.com.br
+(mesmo sítio do index.html / site-publico)
+
+Depois no AdMob: Verificar se há atualizações
