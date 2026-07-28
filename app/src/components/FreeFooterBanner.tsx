@@ -1,6 +1,6 @@
 import type { AccessInfo } from "@/api/types";
 import { ShapeScanCrossPromoBanner } from "@/components/ShapeScanCrossPromoBanner";
-import { bannerAdUnitId } from "@/constants/admob";
+import { bannerAdUnitId, isUsingAdMobTestIds } from "@/constants/admob";
 import { shouldShowChatAds } from "@/utils/shouldShowChatAds";
 import React, { useEffect, useState } from "react";
 import { Platform, StyleSheet, View } from "react-native";
@@ -14,25 +14,20 @@ type Props = {
 type FooterMode = "pending" | "admob" | "crosspromo";
 
 /**
- * Rodapé ~60px — mesma regra do ShapeScan:
+ * Rodapé ~60px — uma faixa só:
  * 1) Premium / pago → nada
- * 2) Free + AdMob com fill → banner AdMob
- * 3) Free + AdMob sem fill / erro / web → cross-promo ShapeScan
- *
- * Nunca empilha AdMob + cross-promo visíveis.
+ * 2) Sem IDs AdMob reais (teste Google) → só ShapeScan
+ * 3) AdMob real com fill → só anúncio (ShapeScan sai)
+ * 4) AdMob real sem fill / erro / web → só ShapeScan
  */
 export function FreeFooterBanner({ access }: Props) {
   const show = shouldShowChatAds(access);
+  const useRealAds = show && !isUsingAdMobTestIds() && Platform.OS !== "web";
   const [ads, setAds] = useState<AdsModule | null>(null);
   const [mode, setMode] = useState<FooterMode>("pending");
 
   useEffect(() => {
-    if (!show) {
-      setAds(null);
-      setMode("pending");
-      return;
-    }
-    if (Platform.OS === "web") {
+    if (!show || !useRealAds) {
       setAds(null);
       setMode("crosspromo");
       return;
@@ -65,21 +60,12 @@ export function FreeFooterBanner({ access }: Props) {
       cancelled = true;
       if (fallbackTimer) clearTimeout(fallbackTimer);
     };
-  }, [show]);
+  }, [show, useRealAds]);
 
   if (!show) return null;
 
-  // Cross-promo final (sem fill / web / erro) — desmonta AdMob
-  if (mode === "crosspromo") {
-    return (
-      <View style={styles.wrap} accessibilityLabel="Promoção ShapeScan">
-        <ShapeScanCrossPromoBanner />
-      </View>
-    );
-  }
-
-  // A aguardar AdMob: já mostra ShapeScan (sem buraco); AdMob carrega em offscreen
-  if (!ads) {
+  // Teste Google / web / sem fill → só ShapeScan (nunca empilha com AdMob)
+  if (!useRealAds || mode === "crosspromo" || !ads) {
     return (
       <View style={styles.wrap} accessibilityLabel="Promoção ShapeScan">
         <ShapeScanCrossPromoBanner />
@@ -89,16 +75,27 @@ export function FreeFooterBanner({ access }: Props) {
 
   const { BannerAd, BannerAdSize } = ads;
 
+  if (mode === "admob") {
+    return (
+      <View style={styles.wrap} accessibilityLabel="Anúncio">
+        <View style={styles.adVisible}>
+          <BannerAd
+            unitId={bannerAdUnitId()}
+            size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+            requestOptions={{ requestNonPersonalizedAdsOnly: true }}
+            onAdLoaded={() => setMode("admob")}
+            onAdFailedToLoad={() => setMode("crosspromo")}
+          />
+        </View>
+      </View>
+    );
+  }
+
+  // A carregar AdMob real: ShapeScan visível; AdMob offscreen até fill
   return (
-    <View
-      style={styles.wrap}
-      accessibilityLabel={mode === "admob" ? "Anúncio" : "Promoção ShapeScan"}
-    >
-      {mode !== "admob" ? <ShapeScanCrossPromoBanner /> : null}
-      <View
-        style={mode === "admob" ? styles.adVisible : styles.adHidden}
-        pointerEvents={mode === "admob" ? "auto" : "none"}
-      >
+    <View style={styles.wrap} accessibilityLabel="Promoção ShapeScan">
+      <ShapeScanCrossPromoBanner />
+      <View style={styles.adHidden} pointerEvents="none">
         <BannerAd
           unitId={bannerAdUnitId()}
           size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
