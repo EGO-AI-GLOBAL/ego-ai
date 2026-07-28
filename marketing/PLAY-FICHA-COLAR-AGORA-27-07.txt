@@ -1,23 +1,23 @@
-# Google Play Store — textos FREEMIUM · 28/07/2026
+PLAY CONSOLE — COLAR AGORA · FREEMIUM 28/07/2026
+================================================
+(Atualiza o guia de 27/07 — NÃO uses «depois trava»)
 
-> **Onde colar:** Play Console → Presença na loja → Detalhes do app → Português (Brasil)  
-> Guia completo: `marketing/PLAY-FICHA-FREEMIUM-COLAR-AGORA-28-07.txt`
+Fonte completa: marketing/PLAY-FICHA-FREEMIUM-COLAR-AGORA-28-07.txt
+Caminho: Play Console → EGO-AI → Presença na loja → Detalhes do app → PT-BR
 
-## Nome (máx. 30)
+MODELO
+------
+• App GRÁTIS + compras no app (Premium)
+• Depois do teste: texto 5/dia + anúncios · voz no Premium
 
-```
-EGO-AI
-```
 
-## Breve descrição (máx. 80, sem emoji)
-
-```
+1) BREVE DESCRIÇÃO (máx. 80 · sem emoji) — COLAR:
+------------------------------------------------
 Ansiedade e desabafo gratis. Voz no Premium. Compras no app.
-```
 
-## Descrição longa (prosa)
 
-```
+2) DESCRIÇÃO COMPLETA — COLAR TUDO:
+-----------------------------------
 App para ansiedade, solidão, desabafo e saúde mental — com Luna e Leo (rosto e voz) em português.
 
 Quando a cabeça não desliga — escola, mercado, consultas, mensagens — você não precisa guardar tudo sozinho no travesseiro nem cobrar ninguém no WhatsApp.
@@ -43,24 +43,15 @@ Site: https://egoai.com.br
 Política de privacidade: https://egoai.com.br/privacidade/
 Exclusão de conta: https://egoai.com.br/exclusao-conta/
 Termos de uso (EULA): https://egoai.com.br/termos/
-```
 
-## Notas da versão (release)
 
-```
+3) NOTAS DA VERSÃO — COLAR:
+---------------------------
 • App grátis com compras no app (Essential + Premium)
 • Depois do teste: texto continua (5 msgs/dia) com anúncios
 • Voz e áudio do avatar no EGO Premium
 • Indique um amigo: se ele pagar, você ganha 1 mês
 • Melhorias de estabilidade
-```
 
-## URLs
 
-| Campo | URL |
-|-------|-----|
-| Site | https://egoai.com.br |
-| Privacidade | https://egoai.com.br/privacidade/ |
-| Exclusão de conta | https://egoai.com.br/exclusao-conta/ |
-| Termos (EULA) | https://egoai.com.br/termos/ |
-| Suporte | contato@egoai.com.br |
+4) SALVAR → responde "play ficha ok"

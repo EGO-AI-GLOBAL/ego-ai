@@ -1,0 +1,32 @@
+EGO-AI 1.0.104 — APP STORE / TestFlight (iOS build 109)
+=======================================================
+Marketing · 28/07/2026
+
+Build TestFlight: 1.0.104 (109) — já submetida
+Android preview APK: mesma versão (teste interno)
+
+================================================================================
+O QUE HÁ DE NOVO (colar — App Store Connect → Versão → O que há de novo)
+================================================================================
+
+• App grátis com assinatura Premium no app
+• Essential: texto após o teste (5 msgs/dia) com anúncios
+• Voz do avatar no Premium
+• Atalho ShapeScan no chat Essential
+• Melhorias de estabilidade
+
+================================================================================
+CURTO (TestFlight / “What to Test” — opcional)
+================================================================================
+
+Testar: conta Essential (sem Premium) → chat com banner + faixa ShapeScan; voz bloqueada pós-trial; texto até ao limite do dia. Premium: sem anúncios.
+
+================================================================================
+APP REVIEW NOTES (inglês — se fores a distribuição / review)
+================================================================================
+
+• Freemium Essential: text chat continues after trial (daily limit); voice/TTS locked until upgrade
+• Ads: Google AdMob test banner IDs in this build (production IDs via EAS env later)
+• ShapeScan cross-promo banner only on Essential plan
+• Terms: https://egoai.com.br/termos/
+• Privacy: https://egoai.com.br/privacidade/

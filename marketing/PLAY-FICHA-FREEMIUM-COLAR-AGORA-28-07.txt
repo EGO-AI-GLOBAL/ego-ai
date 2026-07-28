@@ -1,23 +1,33 @@
-# Google Play Store — textos FREEMIUM · 28/07/2026
+PLAY + APP STORE — FICHA FREEMIUM (grátis + compras no app)
+==========================================================
+Atualizado: 28/07/2026 · EGO-AI 1.0.104+
 
-> **Onde colar:** Play Console → Presença na loja → Detalhes do app → Português (Brasil)  
-> Guia completo: `marketing/PLAY-FICHA-FREEMIUM-COLAR-AGORA-28-07.txt`
+MODELO REAL (não usar o texto antigo «depois trava»)
+----------------------------------------------------
+• App = GRÁTIS (com anúncios no Essential)
+• 3 dias de teste com mais recursos
+• Depois: texto no chat continua (5 msgs/dia) + anúncios
+• Voz / áudio do avatar = EGO Premium (assinatura / compra no app)
+• Indique: se o amigo PAGAR Premium, quem indicou ganha 1 mês
 
-## Nome (máx. 30)
 
-```
-EGO-AI
-```
+PLAY CONSOLE — checklist preço
+------------------------------
+1. Presença na loja → o app deve estar como GRÁTIS (não pago)
+2. Monetizar → Produtos → Assinaturas: EGO Premium (e outros) activos
+3. Conteúdo do app → ID de publicidade = Sim (já fizeste)
+4. Colar textos abaixo em PT-BR
 
-## Breve descrição (máx. 80, sem emoji)
 
-```
+1) BREVE DESCRIÇÃO (máx. 80 · sem emoji) — COLAR:
+------------------------------------------------
 Ansiedade e desabafo gratis. Voz no Premium. Compras no app.
-```
 
-## Descrição longa (prosa)
+(62 caracteres)
 
-```
+
+2) DESCRIÇÃO COMPLETA — COLAR TUDO:
+-----------------------------------
 App para ansiedade, solidão, desabafo e saúde mental — com Luna e Leo (rosto e voz) em português.
 
 Quando a cabeça não desliga — escola, mercado, consultas, mensagens — você não precisa guardar tudo sozinho no travesseiro nem cobrar ninguém no WhatsApp.
@@ -43,24 +53,39 @@ Site: https://egoai.com.br
 Política de privacidade: https://egoai.com.br/privacidade/
 Exclusão de conta: https://egoai.com.br/exclusao-conta/
 Termos de uso (EULA): https://egoai.com.br/termos/
-```
 
-## Notas da versão (release)
 
-```
+3) NOTAS DA VERSÃO (Play) — COLAR:
+---------------------------------
 • App grátis com compras no app (Essential + Premium)
 • Depois do teste: texto continua (5 msgs/dia) com anúncios
 • Voz e áudio do avatar no EGO Premium
 • Indique um amigo: se ele pagar, você ganha 1 mês
 • Melhorias de estabilidade
-```
 
-## URLs
 
-| Campo | URL |
-|-------|-----|
-| Site | https://egoai.com.br |
-| Privacidade | https://egoai.com.br/privacidade/ |
-| Exclusão de conta | https://egoai.com.br/exclusao-conta/ |
-| Termos (EULA) | https://egoai.com.br/termos/ |
-| Suporte | contato@egoai.com.br |
+APP STORE CONNECT (iOS) — o que há de novo / descrição
+-----------------------------------------------------
+Usar o mesmo espírito da descrição completa acima.
+«O que há de novo» (1.0.104+):
+
+• App grátis com assinatura Premium no app
+• Essential: texto após o teste (5 msgs/dia) com anúncios
+• Voz do avatar no Premium
+• Atalho ShapeScan no chat Essential
+• Melhorias de estabilidade
+
+Em Informações do app: preço = Grátis · compras dentro do app = Sim
+(assinaturas IAP já devem estar ligadas à versão)
+
+
+API (obrigatório para o modelo bater com a ficha)
+------------------------------------------------
+Railway → Redeploy do main (freemium + limite 5 msgs).
+Sem isto a loja diz «continua grátis» mas a API antiga ainda pode travar.
+
+
+NÃO COLAR MAIS (texto velho)
+----------------------------
+❌ «Depois desse período, o uso trava»
+❌ «3 dias gratis; depois Premium» como única opção
