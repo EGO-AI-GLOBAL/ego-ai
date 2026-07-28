@@ -84,7 +84,7 @@ export function fallbackLimitsForTier(tier: PlanTier): PlanCatalogItem["limits"]
   if (tier === "essential") {
     return {
       monthly_tokens: 200_000,
-      daily_text_messages: 10,
+      daily_text_messages: 5,
       daily_voice_messages: 3,
       daily_tts_replies: 5,
       max_agenda_items: 0,

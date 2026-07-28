@@ -24,8 +24,7 @@ import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNig
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { AppGradientBackground } from "@/components/AppGradientBackground";
 import { ChatComposer } from "@/components/ChatComposer";
-import { ChatAdBanner } from "@/components/ChatAdBanner";
-import { ShapeScanCrossPromoBanner } from "@/components/ShapeScanCrossPromoBanner";
+import { FreeFooterBanner } from "@/components/FreeFooterBanner";
 import { ChatPreview } from "@/components/ChatPreview";
 import { AvatarEngagementCard } from "@/components/AvatarEngagementCard";
 import { getComposerPlaceholder } from "@/constants/chatQuickActions";
@@ -795,7 +794,7 @@ function ChatScreenInner() {
       Alert.alert(
         "Voz no Premium",
         allowsInAppPlanPurchase()
-          ? "No plano grátis o chat por texto continua (até 10 msgs/dia). Voz e áudio são do Premium."
+          ? "No plano grátis o chat por texto continua (até 5 msgs/dia). Voz e áudio são do Premium."
           : "No plano grátis o chat por texto continua. Voz e áudio pedem um plano pago."
       );
       return;
@@ -1505,8 +1504,7 @@ function ChatScreenInner() {
               </View>
             </View>
           ) : null}
-          <ChatAdBanner access={access} />
-          <ShapeScanCrossPromoBanner planTier={userPlanTier} access={access} />
+          <FreeFooterBanner access={access} />
           <ChatComposer
             value={chatInput}
             onChangeText={setChatInput}
