@@ -24,10 +24,15 @@ export function isTrialExpired(access: AccessInfo | null | undefined): boolean {
   return /expirado/i.test(access.access_status || "");
 }
 
-/** Voz/TTS bloqueados no freemium pós-trial (texto continua com limite diário). */
+/** Voz/TTS bloqueados no freemium (texto continua com limite diário). */
 export function isVoiceBlockedForPlan(access: AccessInfo | null | undefined): boolean {
   if (!access) return false;
   if (access.essential_post_trial) return true;
+  // show_ads no Essential = freemium (mesmo se essential_post_trial falhar no payload)
+  if (access.show_ads === true) {
+    const tier = (access.plan_tier || "essential").toString().trim().toLowerCase();
+    if (tier === "essential" && access.is_pro !== true) return true;
+  }
   if (access.daily_voice_messages_ok === false && access.plan_tier === "essential") {
     return true;
   }

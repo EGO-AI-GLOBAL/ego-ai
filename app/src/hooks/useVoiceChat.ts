@@ -695,6 +695,16 @@ export function useVoiceChat() {
           /* segue para fallback */
         }
 
+        // Freemium / Premium: não usar TTS do telemóvel — furaria o bloqueio da API.
+        const freemiumBlock =
+          /premium|plano grátis|plano gratis|anúncios|anuncios|mensagens\/dia|msgs\/dia/i.test(
+            fetchMsg
+          );
+        if (freemiumBlock) {
+          setIsSpeaking(false);
+          return fetchMsg;
+        }
+
         if (isWeb && wantMale) {
           setIsSpeaking(false);
           return `${fetchMsg} Áudio masculino do servidor em uso.`;

@@ -674,7 +674,7 @@ function ChatScreenInner() {
   const playVoice = async (result: SendChatResult) => {
     setLastChatResult(result);
     voice.unlockWebPlayback();
-    if (!autoPlayVoice) {
+    if (!autoPlayVoice || voiceBlocked) {
       return;
     }
     await voice.stopPlayback();
@@ -691,6 +691,24 @@ function ChatScreenInner() {
   };
 
   const onAutoPlayVoiceChange = (enabled: boolean) => {
+    if (enabled && voiceBlocked) {
+      Alert.alert(
+        "Voz no Premium",
+        allowsInAppPlanPurchase()
+          ? "No plano grátis o chat por texto continua (até 5 msgs/dia). Voz e áudio são do Premium — assine para liberar."
+          : "No plano grátis o chat por texto continua. Voz e áudio pedem um plano pago.",
+        [
+          { text: "Agora não", style: "cancel" },
+          {
+            text: "Ver planos",
+            onPress: () => {
+              void router.push("/(main)/plans");
+            },
+          },
+        ]
+      );
+      return;
+    }
     setAutoPlayVoice(enabled);
     void saveAutoPlayVoice(enabled);
     if (!enabled) {
@@ -989,6 +1007,7 @@ function ChatScreenInner() {
       try {
         const wantVoice =
           (autoPlayVoice || Boolean(opts?.forceVoice)) &&
+          !voiceBlocked &&
           !chatMessageLooksLikeInvite(text);
         const result = await sendChatMessage(text, wantVoice, historyForApi());
         chatResultAccess = Boolean(result.access);
@@ -1047,6 +1066,7 @@ function ChatScreenInner() {
       persona.avatar_id,
       persona.voice_id,
       trialExpired,
+      voiceBlocked,
     ]
   );
 
@@ -1228,10 +1248,11 @@ function ChatScreenInner() {
                 Ouvir ao responder
               </Text>
               <Switch
-                value={autoPlayVoice}
+                value={autoPlayVoice && !voiceBlocked}
                 onValueChange={onAutoPlayVoiceChange}
+                disabled={voiceBlocked}
                 trackColor={{ true: colors.primaryLight, false: colors.border }}
-                thumbColor={autoPlayVoice ? colors.primary : "#e4e4e7"}
+                thumbColor={autoPlayVoice && !voiceBlocked ? colors.primary : "#e4e4e7"}
               />
             </View>
           </View>
