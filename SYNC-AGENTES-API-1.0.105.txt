@@ -1,0 +1,21 @@
+SYNC — API / APP ADS · 1.0.105
+==============================
+Estado: ✅ PRONTO
+Commit: 6b1c574
+Data: 28/07/2026
+Proibido: GERAR / EAS / app.config.ts (só Monstrinhos)
+
+INCLUI NO BUILD 1.0.105
+-----------------------
+• FreeFooterBanner (AdMob fill ↔ ShapeScan; Premium zero)
+• shouldShowChatAds + shapeScanPromo
+• IDs AdMob reais Android+iOS no eas.json
+• app-ads.txt (site egoai.com.br) — já no ar
+• Docs: TESTE-FREE-FOOTER-BANNER.txt · marketing/ADMOB-IDS-EGO-AI.txt
+
+NOTA
+----
+AdMob conta ainda pode estar em revisão / app-ads verify iOS pendente.
+Banner ShapeScan cobre Free até haver fill pago.
+
+✅ API/ADS PRONTO — commit 6b1c574 — sem GERAR

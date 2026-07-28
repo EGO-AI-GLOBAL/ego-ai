@@ -1,0 +1,13 @@
+SYNC MESTRE — 1.0.105
+=====================
+Versão alvo: **1.0.105** (bump no dia do GERAR — Monstrinhos)
+Motivo: FreeFooterBanner AdMob↔ShapeScan + IDs AdMob produção
+
+| Agente / zona     | Sync file                         | Estado |
+|-------------------|-----------------------------------|--------|
+| API / Ads banner  | SYNC-AGENTES-API-1.0.105.txt      | ✅ 6b1c574 |
+| Marketing (IDs)   | (docs em marketing/ADMOB-IDS…)    | ✅ no mesmo commit |
+| Monstrinhos/Build | PARA-MONSTRINHOS-BUILD-1.0.105.txt | ⏳ à espera de GERAR |
+
+Handoff: **PARA-MONSTRINHOS-BUILD-1.0.105.txt**
+Sem EGO_MAINTENANCE=1.

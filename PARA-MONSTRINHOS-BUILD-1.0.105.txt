@@ -1,0 +1,39 @@
+PARA MONSTRINHOS — BUILD PRÓXIMA (1.0.105)
+==========================================
+Data: 28/07/2026
+NÃO buildar daqui — só deixar main pronto.
+
+CÓDIGO JÁ EM MAIN (após push)
+-----------------------------
+Commit: 6b1c574
+  feat(ads): FreeFooterBanner AdMob-or-ShapeScan + IDs reais
+
+O QUE ENTRA NESTA BUILD
+-----------------------
+• FreeFooterBanner no chat:
+  Premium → zero banner
+  Free + AdMob fill → só AdMob
+  Free sem fill → só cross-promo ShapeScan
+• IDs AdMob PRODUÇÃO no eas.json:
+  Android App  ca-app-pub-6748248434426888~2730005039
+  Android Banner ca-app-pub-6748248434426888/7854339207
+  iOS App     ca-app-pub-6748248434426888~5471030083
+  iOS Banner  ca-app-pub-6748248434426888/6704220703
+• app-ads.txt no site: https://egoai.com.br/app-ads.txt ✅
+• Freemium API já estava (Essential pós-trial texto + ads; voz Premium)
+
+VERSÃO
+------
+Loja actual: 1.0.104
+Próxima: bump para **1.0.105** (tu no app.config no dia do GERAR)
+
+CHECKLIST MONSTRINHOS
+---------------------
+1. git pull origin main
+2. Confirmar commit 6b1c574 (ou tip main) no histórico
+3. python scripts/regression_guard.py
+4. python scripts/smoke_test_api.py
+5. Bump 1.0.105 + PREPARAR/GERAR Android + iOS
+6. iOS submit automático · Android AAB manual Play
+
+SEM BUILD PEDIDO NESTE FICHEIRO — só handoff.
