@@ -1,4 +1,4 @@
-# EAS — tarball pequeno (evita upload 800MB+ e ECONNRESET)
+# EAS — tarball < 2 GB (monorepo: sobe a raiz git)
 **/node_modules/**
 node_modules
 .expo/
@@ -6,17 +6,38 @@ node_modules
 android/
 ios/
 dist/
+dist-play/
 .git/
 store-assets/
 coverage/
 assets/incoming/
 **/incoming/**
+
+# Pastas irmãs na raiz do repo (não entram no app)
+../marketing/
+../dist-play/
+../site-publico/
+../agent-transcripts/
+../.cursor/
+../scripts/
+../ego_api/
+../__pycache__/
+
 **/*.md
+**/*.txt
+**/*.bat
 **/*.log
 **/*.mp4.bak
 **/*.zip
 **/*.aab
 **/*.ipa
+**/*.apk
+**/builds-*.json
+**/android-*.log*
+**/*.log.bin
+**/*.log.gz
+**/*.json.bin
+
 scripts/
 play-store-service-account.json
 google-services.json

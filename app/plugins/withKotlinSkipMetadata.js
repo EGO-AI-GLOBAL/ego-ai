@@ -1,7 +1,7 @@
 const { withAppBuildGradle, withProjectBuildGradle } = require("expo/config-plugins");
 
 /**
- * Expo SDK 52 / Kotlin 1.9 + Play Billing 8 (metadata Kotlin 2.1).
+ * Expo SDK 53 / Kotlin 2.0 + Play Billing 8 (metadata Kotlin 2.1+).
  * expo-iap já skipa no próprio módulo; o :app também resolve billing-ktx e
  * precisa do mesmo freeCompilerArgs.
  */
@@ -12,7 +12,7 @@ function withKotlinSkipMetadata(config) {
     if (contents.includes("Xskip-metadata-version-check")) return cfg;
 
     const block = `
-    // Billing 8 (Kotlin 2.1 metadata) no Expo SDK 52 / Kotlin 1.9
+    // Billing 8 (Kotlin metadata) no Expo SDK 53
     tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
         kotlinOptions {
             freeCompilerArgs += ["-Xskip-metadata-version-check"]

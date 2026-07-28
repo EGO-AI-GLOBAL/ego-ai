@@ -1,6 +1,7 @@
 import * as Notifications from "expo-notifications";
 import { Platform } from "react-native";
 import type { Reminder } from "@/api/types";
+import { dateNotificationTrigger } from "@/utils/notificationSchedule";
 
 /** Minutos antes do compromisso (mesma ordem que ego_api/reminder_schedule.py). */
 export const REMINDER_ALERT_OFFSETS_MINUTES = [60, 30, 10] as const;
@@ -12,6 +13,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -119,7 +122,7 @@ export async function syncReminderLocalNotifications(
                 ? { channelId: ANDROID_CHANNEL_ID }
                 : {}),
             },
-            trigger: new Date(triggerAt),
+            trigger: dateNotificationTrigger(new Date(triggerAt)),
           });
         } catch {
           /* ignora lembrete individual */

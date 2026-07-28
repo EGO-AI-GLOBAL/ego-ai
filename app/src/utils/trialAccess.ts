@@ -16,8 +16,22 @@ export function parseTrialDaysRemaining(access: AccessInfo | null | undefined): 
 
 export function isTrialExpired(access: AccessInfo | null | undefined): boolean {
   if (!access) return false;
+  // Freemium pós-trial: servidor libera texto (access_allowed true) — não tratar como bloqueio total.
+  if (access.essential_post_trial || access.show_ads) {
+    if (access.access_allowed !== false) return false;
+  }
   if (access.access_allowed === false) return true;
   return /expirado/i.test(access.access_status || "");
+}
+
+/** Voz/TTS bloqueados no freemium pós-trial (texto continua com limite diário). */
+export function isVoiceBlockedForPlan(access: AccessInfo | null | undefined): boolean {
+  if (!access) return false;
+  if (access.essential_post_trial) return true;
+  if (access.daily_voice_messages_ok === false && access.plan_tier === "essential") {
+    return true;
+  }
+  return false;
 }
 
 export function isTrialUrgent(days: number | null): boolean {

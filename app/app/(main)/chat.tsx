@@ -24,6 +24,8 @@ import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNig
 import type { ChatMessage, SendChatResult } from "@/api/types";
 import { AppGradientBackground } from "@/components/AppGradientBackground";
 import { ChatComposer } from "@/components/ChatComposer";
+import { ChatAdBanner } from "@/components/ChatAdBanner";
+import { ShapeScanCrossPromoBanner } from "@/components/ShapeScanCrossPromoBanner";
 import { ChatPreview } from "@/components/ChatPreview";
 import { AvatarEngagementCard } from "@/components/AvatarEngagementCard";
 import { getComposerPlaceholder } from "@/constants/chatQuickActions";
@@ -80,7 +82,7 @@ import { computeDayProgress } from "@/utils/dayProgress";
 import { streakAvatarSubtitle } from "@/utils/streakReactions";
 import { recordAvatarChat } from "@/utils/avatarEngagement";
 import { chatStreakSubtitle, getChatStreak, recordChatStreakDay } from "@/utils/chatStreak";
-import { isTrialExpired } from "@/utils/trialAccess";
+import { isTrialExpired, isVoiceBlockedForPlan } from "@/utils/trialAccess";
 import {
   buildChatOnboardingMessage,
   buildChatOnboardingSpeech,
@@ -372,15 +374,16 @@ function ChatScreenInner() {
   const onPickImage = async (source: "gallery" | "camera") => {
     if (!session || pdfLoading || sending || micActive) return;
     try {
-      const perm =
-        source === "camera"
-          ? await ImagePicker.requestCameraPermissionsAsync()
-          : await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) {
-        setChatError(
-          "Permissão negada. Ative câmara ou fotos nas definições do telemóvel."
-        );
-        return;
+      // Galeria: Photo Picker do sistema (Android 13+) — sem READ_MEDIA_*.
+      // Câmara: ainda precisa de CAMERA.
+      if (source === "camera") {
+        const perm = await ImagePicker.requestCameraPermissionsAsync();
+        if (!perm.granted) {
+          setChatError(
+            "Permissão negada. Ative a câmara nas definições do telemóvel."
+          );
+          return;
+        }
       }
       const result =
         source === "camera"
@@ -485,6 +488,7 @@ function ChatScreenInner() {
   const isDailyLimitFromError = /limite\s+di[aá]rio\s+atingido/i.test(chatError || "");
   const isDailyLimitReached = isDailyLimitFromAccess || isDailyLimitFromError;
   const trialExpired = isTrialExpired(access);
+  const voiceBlocked = isVoiceBlockedForPlan(access);
   const showChatWidgets = dashboardSettled && widgetsReady && (!loading || refreshing);
 
   const onNightDumpPress = useCallback(() => {
@@ -776,6 +780,24 @@ function ChatScreenInner() {
     if (sending || micBusyRef.current) return;
     if (!session) {
       setChatError("Sessão expirada. Faça login de novo para usar o microfone.");
+      return;
+    }
+    if (trialExpired) {
+      Alert.alert(
+        "Teste encerrado",
+        allowsInAppPlanPurchase()
+          ? "Assine o EGO Premium para continuar conversando com seu assistente."
+          : IOS_TRIAL_END_ALERT
+      );
+      return;
+    }
+    if (voiceBlocked) {
+      Alert.alert(
+        "Voz no Premium",
+        allowsInAppPlanPurchase()
+          ? "No plano grátis o chat por texto continua (até 10 msgs/dia). Voz e áudio são do Premium."
+          : "No plano grátis o chat por texto continua. Voz e áudio pedem um plano pago."
+      );
       return;
     }
     if (micActive) return;
@@ -1483,6 +1505,8 @@ function ChatScreenInner() {
               </View>
             </View>
           ) : null}
+          <ChatAdBanner access={access} />
+          <ShapeScanCrossPromoBanner planTier={userPlanTier} access={access} />
           <ChatComposer
             value={chatInput}
             onChangeText={setChatInput}
@@ -1499,7 +1523,7 @@ function ChatScreenInner() {
             sending={sending || trialExpired}
             isRecording={voice.isRecording}
             micSessionActive={voice.micSessionActive}
-            voiceReady={voice.isRecording && !trialExpired}
+            voiceReady={voice.isRecording && !trialExpired && !voiceBlocked}
             onMicPress={onMicPress}
             onPdfPress={() => onDocPress()}
             pdfLoading={pdfLoading}

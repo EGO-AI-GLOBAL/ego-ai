@@ -519,8 +519,15 @@ def daily_voice_messages_ok(
         return True, 0
     from ego_api.config import chat_local_history_enabled
 
+    prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
+    if is_essential_post_trial(supabase, user_id, prof):
+        if chat_local_history_enabled():
+            prof = _ensure_daily_usage(supabase, user_id, prof)
+            _text_used, voice_used = daily_message_counts_from_profile(prof)
+            return False, voice_used
+        return False, _count_user_messages_today(supabase, user_id, voice_only=True)
+
     if chat_local_history_enabled():
-        prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
         prof = _ensure_daily_usage(supabase, user_id, prof)
         _text_used, voice_used = daily_message_counts_from_profile(prof)
         if limits.unlimited_daily_voice() or beta_unlimited():
@@ -537,9 +544,13 @@ def daily_tts_ok(
 ) -> tuple[bool, int]:
     if not supabase or not user_id:
         return True, 0
+    prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
+    if is_essential_post_trial(supabase, user_id, prof):
+        prof = _ensure_daily_usage(supabase, user_id, prof)
+        used = int(prof.get("daily_tts_count") or 0)
+        return False, used
     if limits.unlimited_daily_tts() or beta_unlimited():
         return True, 0
-    prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
     prof = _ensure_daily_usage(supabase, user_id, prof)
     used = int(prof.get("daily_tts_count") or 0)
     return used < limits.daily_tts_replies, used
@@ -662,6 +673,8 @@ def build_plan_access_payload(
         "plan_type": _plan_type_from_profile(prof),
         "referral_benefit": referral_benefit,
         "referral_offer": referral_offer,
+        "show_ads": should_show_ads(prof),
+        "essential_post_trial": is_essential_post_trial(supabase, user_id, prof),
     }
 
 
@@ -693,6 +706,70 @@ def _parse_ts_iso(value: str | None) -> datetime.datetime | None:
         return dt.astimezone(datetime.timezone.utc)
     except ValueError:
         return None
+
+
+# Freemium: essential pós-trial continua com texto (limite diário); voz/TTS exigem Premium.
+FREEMIUM_ACCESS_STATUS = "Essencial (texto + anúncios)"
+FREEMIUM_VOICE_TTS_MESSAGE = (
+    "No plano grátis, após o teste, o chat por texto continua (até 10 mensagens/dia). "
+    "Voz e respostas em áudio são do Premium — assine para liberar."
+)
+
+
+def should_show_ads(profile: dict | None) -> bool:
+    """Anúncios só para Essential efetivo (não pago / sem bónus de indicação)."""
+    tier = resolve_plan_tier(profile)
+    return tier == "essential"
+
+
+def is_essential_post_trial(
+    supabase: Client | None,
+    user_id: str,
+    profile: dict | None = None,
+) -> bool:
+    """
+    Essential após o trial: texto freemium liberado; voz e TTS bloqueados.
+    Pago / beta / indicação ativa → False.
+    """
+    if not supabase or not user_id:
+        return False
+    if beta_unlimited():
+        return False
+    from ego_api.config import _ego_beta_deadline
+
+    agora = datetime.datetime.now(datetime.timezone.utc)
+    beta_fim = _ego_beta_deadline()
+    if beta_fim and agora < beta_fim:
+        return False
+    try:
+        data = profile
+        if data is None:
+            res = (
+                supabase.table(SUPABASE_PROFILES_TABLE)
+                .select("created_at,is_pro,plan_tier,referral_bonus_until")
+                .eq("id", user_id)
+                .limit(1)
+                .execute()
+            )
+            rows = res.data or []
+            if not rows:
+                return False
+            data = rows[0]
+        tier = resolve_plan_tier(data)
+        if tier != "essential":
+            return False
+        if bool(data.get("is_pro", False)):
+            return False
+        created_at = data.get("created_at")
+        if not created_at:
+            return False
+        data_criacao = _parse_ts_iso(str(created_at))
+        if not data_criacao:
+            return False
+        dias = max(0, (agora.date() - data_criacao.date()).days)
+        return dias > EGO_TRIAL_DAYS
+    except Exception:
+        return False
 
 
 def check_access(supabase: Client | None, user_id: str) -> tuple[bool, str]:
@@ -738,7 +815,8 @@ def check_access(supabase: Client | None, user_id: str) -> tuple[bool, str]:
         restantes = EGO_TRIAL_DAYS - dias
         if restantes >= 0:
             return True, f"Trial ({restantes} dias restantes)"
-        return False, "Expirado"
+        # Freemium: texto diário continua; voz/TTS bloqueados noutros checks.
+        return True, FREEMIUM_ACCESS_STATUS
     except Exception:
         return True, f"Trial ({EGO_TRIAL_DAYS} dias restantes)"
 

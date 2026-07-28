@@ -6,6 +6,7 @@ import {
   REMINDER_ALERT_OFFSETS_MINUTES,
   ensureReminderNotificationPermission,
 } from "@/utils/reminderNotifications";
+import { dateNotificationTrigger } from "@/utils/notificationSchedule";
 
 const ANDROID_CHANNEL_ID = "ego-shared-calendars";
 const SEEN_EVENTS_KEY = "ego_seen_shared_calendar_events_v1";
@@ -177,7 +178,7 @@ export async function syncSharedCalendarLocalNotifications(
                   ? { channelId: ANDROID_CHANNEL_ID }
                   : {}),
               },
-              trigger: new Date(triggerAt),
+              trigger: dateNotificationTrigger(new Date(triggerAt)),
             });
           } catch {
             /* ignora lembrete individual */

@@ -1,0 +1,62 @@
+EGO-AI — Freemium + AdMob — O QUE JÁ ESTÁ FEITO vs O QUE SÓ TU FAZES
+====================================================================
+Atualizado: 27/07/2026
+
+JÁ FEITO NO CÓDIGO (automático — não precisas repetir)
+-----------------------------------------------------
+[x] Backend Flask: Essential pós-trial → texto 10/dia; voz/TTS bloqueados
+[x] AccessInfo: show_ads + essential_post_trial
+[x] App: BannerAd acima do composer (só freemium)
+[x] Plugin Expo react-native-google-mobile-ads
+[x] Defaults = IDs de TESTE oficiais do Google (build EAS funciona)
+[x] Tipagem + regression_guard OK no que tocámos
+
+TU FAZES — PASSO A PASSO (manual)
+--------------------------------
+
+PASSO 1 — Redeploy API (freemium na Railway)
+1. Abre Railway → serviço ego-ai API
+2. Deploy / Redeploy do branch main (depois do push deste código)
+3. Confirma: GET https://ego-ai-production-a2c2.up.railway.app/api/health → ok
+4. Com conta Essential pós-trial, o access deve ter:
+   "show_ads": true
+   "access_status": "Essencial (texto + anúncios)"
+   "access_allowed": true
+
+PASSO 2 — Conta Google AdMob
+1. https://admob.google.com → entra com o e-mail da empresa
+2. Apps → Adicionar app → Android (com.egoai.app) + iOS (com.egoai.app)
+3. Copia App ID Android e App ID iOS (ca-app-pub-…~…)
+4. Em cada app: Blocos de anúncios → Banner → cria 1 banner
+5. Copia Unit ID Android e Unit ID iOS (ca-app-pub-…/…)
+
+PASSO 3 — Colar IDs no EAS (produção)
+Expo → projeto ego-ai → Environment variables → production:
+
+EXPO_PUBLIC_ADMOB_ANDROID_APP_ID=… (App ID Android)
+EXPO_PUBLIC_ADMOB_IOS_APP_ID=… (App ID iOS)
+EXPO_PUBLIC_ADMOB_ANDROID_BANNER_ID=… (Banner Android)
+EXPO_PUBLIC_ADMOB_IOS_BANNER_ID=… (Banner iOS)
+
+(Ou diz-me os 4 IDs e eu meto no eas.json / config por ti.)
+
+PASSO 4 — Build lojas (depois dos IDs reais)
+1. Diz neste chat: "gera 1.0.104 android e ios"
+2. Android: upload AAB em Produção Play
+3. iOS: TestFlight automático → Distribuição App Store
+
+PASSO 5 — Verificar
+- Conta grátis: banner acima do microfone
+- Conta Premium: sem banner
+- Voz no freemium pós-trial: mensagem a pedir Premium
+- Texto freemium: até 10/dia
+
+LINKS RÁPIDOS
+-------------
+AdMob:     https://admob.google.com
+Railway:   https://railway.app/dashboard
+EAS:       https://expo.dev/accounts/iuryfreiras/projects/ego-ai
+Play:      https://play.google.com/console
+App Store: https://appstoreconnect.apple.com/apps/6780595396
+
+BAT: duplo clique em ABRIR-FREEMIUM-ADMOB.bat

@@ -141,6 +141,10 @@ export type AccessInfo = {
   /** Histórico de chat só no dispositivo (servidor não guarda mensagens). */
   chat_local_history?: boolean;
   is_pro: boolean;
+  /** Essential grátis: mostrar anúncios (AdMob). Pagantes → false. */
+  show_ads?: boolean;
+  /** Essential após trial: texto freemium; voz/TTS bloqueados no servidor. */
+  essential_post_trial?: boolean;
   /** E-mail listado em EGO_TEST_TOTAL_EMAILS no servidor (Railway). */
   is_test_total?: boolean;
   team_seats?: number | null;

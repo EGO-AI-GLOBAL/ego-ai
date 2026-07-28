@@ -17,7 +17,7 @@ if (isProd && apiUrl && !apiUrl.startsWith("https://")) {
 const config: ExpoConfig = {
   name: "Ego-IA",
   slug: "ego-ai",
-  version: "1.0.101",
+  version: "1.0.104",
   orientation: "portrait",
   scheme: "egoai",
   userInterfaceStyle: "automatic",
@@ -32,7 +32,8 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.egoai.app",
-    buildNumber: "105",
+    buildNumber: "108",
+    appleTeamId: "7XVMZQ2Z33",
     entitlements: {
       "com.apple.security.application-groups": ["group.com.egoai.app.widget"],
     },
@@ -50,7 +51,7 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    versionCode: 153,
+    versionCode: 160,
     package: "com.egoai.app",
     adaptiveIcon: {
       /** Mesmo PNG do iOS — evita ícone minúsculo dentro do círculo no launcher. */
@@ -64,7 +65,12 @@ const config: ExpoConfig = {
       "SCHEDULE_EXACT_ALARM",
       "USE_EXACT_ALARM",
       "CAMERA",
-      "READ_MEDIA_IMAGES",
+    ],
+    /** Play: galeria via Photo Picker — sem READ_MEDIA_IMAGES/VIDEO. */
+    blockedPermissions: [
+      "android.permission.READ_MEDIA_IMAGES",
+      "android.permission.READ_MEDIA_VIDEO",
+      "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
     ],
     /** Evita o teclado tapar a caixa de mensagem no chat. */
     softwareKeyboardLayoutMode: "resize",
@@ -132,7 +138,8 @@ const config: ExpoConfig = {
           targetSdkVersion: 36,
           compileSdkVersion: 36,
           buildToolsVersion: "36.0.0",
-          kotlinVersion: "1.9.25",
+          /** SDK 53 default (Kotlin 2.0); RN 0.79 + Expo ≥53.0.14 = 16 KB. */
+          kotlinVersion: "2.0.21",
           usesCleartextTraffic: allowHttp,
         },
       },
@@ -140,6 +147,18 @@ const config: ExpoConfig = {
     "./plugins/withXcode26FmtFix",
     "./plugins/withKotlinSkipMetadata",
     "expo-iap",
+    [
+      "react-native-google-mobile-ads",
+      {
+        /** Teste Google por defeito — troca por IDs reais via EXPO_PUBLIC_ADMOB_*_APP_ID. */
+        androidAppId:
+          process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ||
+          "ca-app-pub-3940256099942544~3347511713",
+        iosAppId:
+          process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID ||
+          "ca-app-pub-3940256099942544~1458002511",
+      },
+    ],
   ],
   experiments: {
     typedRoutes: true,
