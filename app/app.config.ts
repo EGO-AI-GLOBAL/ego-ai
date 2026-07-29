@@ -17,7 +17,7 @@ if (isProd && apiUrl && !apiUrl.startsWith("https://")) {
 const config: ExpoConfig = {
   name: "Ego-IA",
   slug: "ego-ai",
-  version: "1.0.105",
+  version: "1.0.106",
   orientation: "portrait",
   scheme: "egoai",
   userInterfaceStyle: "automatic",
@@ -32,7 +32,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.egoai.app",
-    buildNumber: "110",
+    buildNumber: "111",
     appleTeamId: "7XVMZQ2Z33",
     entitlements: {
       "com.apple.security.application-groups": ["group.com.egoai.app.widget"],
@@ -51,7 +51,7 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    versionCode: 161,
+    versionCode: 162,
     package: "com.egoai.app",
     adaptiveIcon: {
       /** Mesmo PNG do iOS — evita ícone minúsculo dentro do círculo no launcher. */
@@ -65,6 +65,8 @@ const config: ExpoConfig = {
       "SCHEDULE_EXACT_ALARM",
       "USE_EXACT_ALARM",
       "CAMERA",
+      /** Play / Android 13+: AdMob — alinha com a declaração de ID de publicidade. */
+      "com.google.android.gms.permission.AD_ID",
     ],
     /** Play: galeria via Photo Picker — sem READ_MEDIA_IMAGES/VIDEO. */
     blockedPermissions: [
