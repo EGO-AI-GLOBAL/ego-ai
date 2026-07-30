@@ -39,6 +39,7 @@ function routeFromDeepLink(url: string): Href | null {
   const path = (parsed.path || "").replace(/^\/+/, "").toLowerCase();
   const q = queryFromUrl(url);
   const ref = q.ref || "";
+  const gym = q.gym || q.c || "";
   const next = (q.next || "").toLowerCase();
 
   if (path === "reset-password" || path === "auth/reset-password") {
@@ -46,7 +47,11 @@ function routeFromDeepLink(url: string): Href | null {
   }
   if (path === "signup" || path === "cadastro" || path === "register") {
     if (next === "agenda") void savePostLoginRoute("/(main)/agenda");
-    const qs = ref ? `?ref=${encodeURIComponent(ref)}` : "";
+    const parts: string[] = [];
+    if (gym) parts.push(`gym=${encodeURIComponent(gym)}`);
+    else if (ref) parts.push(`ref=${encodeURIComponent(ref)}`);
+    if (next) parts.push(`next=${encodeURIComponent(next)}`);
+    const qs = parts.length ? `?${parts.join("&")}` : "";
     return (`/signup${qs}` as Href);
   }
   if (path === "agenda" || path === "convite" || path === "invite") {

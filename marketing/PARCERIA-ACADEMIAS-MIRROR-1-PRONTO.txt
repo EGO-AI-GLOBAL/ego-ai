@@ -1,0 +1,46 @@
+EGO — PARCERIA ACADEMIAS · PACOTES 1 + 2 (mínimo)
+================================================
+2026-07-29 · Sem build de loja
+
+1.º PRONTO — mirror API
+-----------------------
+- SQL: supabase/COLE-GYM-PARTNERS-SHAPESCAN-MIRROR.sql
+- POST /internal/partner-mirror-from-shapescan (X-Internal-Key)
+- GET /api/v1/gym-partners/validate?code=CORPOACAO
+- ego_api/partner_mirror.py · gym_partners.py
+- api_build: 2026-07-29-gym-partner-mirror
+- Docs: este ficheiro + .env.example
+
+2.º PRONTO — landing + stubs painel (mínimo)
+-------------------------------------------
+- /parceiros/  (copy corpo+mente · 30%)
+- /painel/     (ponte ShapeScan; alunos EGO em breve)
+- /g.html?c=CODE  (stub Connect — fase B)
+
+Ainda NÃO: criar aluno EGO no painel · senha 1.º acesso no app · Stripe Connect live
+
+
+TU FAZES AGORA (live)
+---------------------
+1. Supabase EGO → colar COLE-GYM-PARTNERS-SHAPESCAN-MIRROR.sql
+2. Railway EGO:
+     EGO_PARTNER_MIRROR_KEY=<segredo>
+     EGO_GYM_COMMISSION_PCT=30
+     EGO_PARTNER_NOTIFY_EMAIL=contato@egoai.com.br
+   → Redeploy
+3. Railway ShapeScan: mesma EGO_PARTNER_MIRROR_KEY + EGO_API_BASE_URL
+4. UOL: publicar site-publico com /parceiros /painel /g.html
+5. Smoke POST mirror CORPOACAO
+
+
+CHECKLIST LIVE
+--------------
+[ ] SQL Supabase
+[ ] Vars + redeploy EGO
+[ ] Key no ShapeScan
+[ ] POST mirror → gym_partners CORPOACAO
+[ ] GET validate?code=CORPOACAO → valid:true
+[ ] Site /parceiros e /painel no ar
+[ ] Sem build loja (ok)
+
+3.º (quando pedires): app gym_code + must_change_password + Connect checkout

@@ -202,12 +202,21 @@ def _signup_user_id(res: object) -> str:
 
 
 def _apply_referral_after_signup(user_id: str, referral_code: str) -> str | None:
+    """
+    Ordem: academia (gym_code) → influenciador → amigo.
+    Um código academia no QR não misturar com cupom influencer.
+    """
     code = (referral_code or "").strip()
     if not user_id or not code:
         return None
     from ego_api.friend_referrals import (
         attach_friend_referral_on_signup,
         find_user_id_by_friend_code,
+    )
+    from ego_api.gym_partners import (
+        get_admin_client as gym_admin_client,
+        lookup_gym_partner,
+        set_profile_gym_code,
     )
     from ego_api.referrals import attach_referral_to_profile, get_admin_client, lookup_partner
     from ego_api.supabase_client import create_service_client
@@ -216,11 +225,25 @@ def _apply_referral_after_signup(user_id: str, referral_code: str) -> str | None
     if not svc:
         return "Indicação indisponível no momento. Tente novamente."
     admin = get_admin_client() or svc
+    gym_sb = gym_admin_client() or svc
+
+    # 1) Academia parceira → canal Stripe Connect (sem IAP)
+    try:
+        if lookup_gym_partner(gym_sb, code):
+            _partner, err = set_profile_gym_code(gym_sb, user_id, code)
+            if err:
+                return err
+            return None
+    except Exception as exc:
+        print(f"[EGO] signup gym_code: {exc}", flush=True)
+
+    # 2) Influenciador
     if lookup_partner(admin, code):
         ok, err = attach_referral_to_profile(svc, user_id, code)
         if not ok and err:
             return err
         return None
+    # 3) Amigo
     if find_user_id_by_friend_code(svc, code):
         email = ""
         try:
@@ -2174,7 +2197,7 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
     elif prof_phone:
         prof = dict(prof)
         prof["phone"] = prof_phone
-    return {
+    payload = {
         "user_id": user_id,
         "email": email or prof.get("email"),
         "profile": prof,
@@ -2183,7 +2206,19 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
         "persona": {"avatar_id": avatar_id, "voice_id": voice_id},
         "access": {"allowed": ok_access, "status": status},
         "stripe_checkout": _stripe_checkout_payload(user_id),
+        "gym_code": None,
+        "gym_partner": None,
+        "must_change_password": bool(prof.get("must_change_password")),
     }
+    try:
+        from ego_api.gym_partners import get_profile_gym_partner
+
+        code, partner = get_profile_gym_partner(supabase, user_id)
+        payload["gym_code"] = code
+        payload["gym_partner"] = partner
+    except Exception as exc:
+        print(f"[EGO] me gym_partner: {exc}", flush=True)
+    return payload
 
 
 def _stripe_checkout_payload(user_id: str) -> dict:

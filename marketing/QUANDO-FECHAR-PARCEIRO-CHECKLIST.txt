@@ -1,0 +1,59 @@
+EGO — QUANDO FECHAR O 1º PARCEIRO (checklist ops)
+=================================================
+2026-07-30
+
+Código já pronto (local / quando fizeres push + deploy + build):
+- Mirror ShapeScan → EGO (mesmo partner_code)
+- Cadastro: código academia (gym) → profiles.gym_code
+- QR: https://…/go?gym=CODIGO  (ou ?ref=CODIGO se o código for gym)
+- Conta: painel “Academia parceira” (ligar manual se necessário)
+- Planos: com gym_code → SÓ Stripe Connect (~30% academia); sem gym → IAP
+
+NÃO fazer build/submit até o parceiro fechar + Iury pedir.
+
+------------------------------------------------------------------
+QUANDO AVISARES “parceiro fechado” — trazer estes dados
+------------------------------------------------------------------
+1) partner_code (ex.: CORPOACAO)
+2) Nome da academia
+3) stripe_connect_account_id  (acct_…)
+4) Confirmação: SQL gym_partners já no Supabase EGO?
+5) Railway: EGO_PARTNER_MIRROR_KEY igual ao ShapeScan?
+
+------------------------------------------------------------------
+Passos (eu + tu)
+------------------------------------------------------------------
+[ ] Supabase EGO: correr supabase/COLE-GYM-PARTNERS-SHAPESCAN-MIRROR.sql
+    (se ainda não correu)
+
+[ ] Railway EGO — vars:
+    EGO_PARTNER_MIRROR_KEY=...
+    EGO_GYM_COMMISSION_PCT=30
+    STRIPE_GYM_PREMIUM_PRICE_ID=price_...
+    EGO_PARTNERS_JSON={"gyms":{"CODIGO":{"name":"...","stripe_account":"acct_..."}}}
+    EGO_PLAY_STORE_URL=https://play.google.com/store/apps/details?id=com.egoai.app
+    EGO_TESTFLIGHT_URL=https://apps.apple.com/app/id6780595396
+    (ou EGO_APP_STORE_URL)
+
+[ ] Redeploy Railway EGO
+
+[ ] ShapeScan: mesma mirror key + EGO_API_BASE_URL → criar academia 1x
+    (ou INSERT manual em gym_partners com Connect)
+
+[ ] Smoke:
+    GET /api/v1/gym-partners/validate?code=CODIGO  → valid true
+    GET /go?gym=CODIGO  → lojas + deep link signup?gym=
+    Cadastro com código → Conta mostra academia → Planos sem IAP → Stripe
+
+[ ] QR impresso: 1 link só
+    https://egoai.com.br/go?gym=CODIGO
+    (ou Railway /go se o site ainda não apontar)
+
+[ ] Build app (só se Monstrinhos / Iury pedir) — UI Conta+Planos+signup gym
+
+------------------------------------------------------------------
+Lembrete produto
+------------------------------------------------------------------
+Parceria JUNTA (1 formulário ShapeScan+EGO).
+Pagamentos SEPARADOS (Shape30 no ShapeScan · EGO Premium no EGO).
+30% academia em CADA assinatura que existir.

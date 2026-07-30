@@ -105,6 +105,15 @@ export type MeData = {
   persona: { avatar_id: string; voice_id: string } | null;
   access: { allowed: boolean; status: string };
   stripe_checkout: StripeCheckoutLinks;
+  gym_code?: string | null;
+  gym_partner?: {
+    partner_code?: string;
+    name?: string;
+    logo_url?: string | null;
+    commission_pct?: number;
+    active?: boolean;
+  } | null;
+  must_change_password?: boolean;
 };
 
 export type MeResponse = ApiOk<MeData>;

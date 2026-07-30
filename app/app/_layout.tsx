@@ -11,6 +11,7 @@ import { AppBannerOverlay } from "@/components/AppBannerOverlay";
 import { AppUpdateProvider } from "@/context/AppUpdateContext";
 import { MaintenanceProvider } from "@/context/MaintenanceContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { GymPartnerProvider } from "@/context/GymPartnerContext";
 import { useDeepLinkRouting } from "@/hooks/useDeepLinkRouting";
 import { ThemeProvider } from "@/theme/ThemeContext";
 import { useColors } from "@/theme/ThemeContext";
@@ -56,15 +57,17 @@ export default function RootLayout() {
       <SafeAreaProvider initialMetrics={webInitialMetrics}>
         <ThemeProvider>
           <AuthProvider>
-            <MaintenanceProvider>
-              <AppUpdateProvider>
-                <View style={{ flex: 1 }}>
-                  <AppBannerOverlay>
-                    <RootNavigator />
-                  </AppBannerOverlay>
-                </View>
-              </AppUpdateProvider>
-            </MaintenanceProvider>
+            <GymPartnerProvider>
+              <MaintenanceProvider>
+                <AppUpdateProvider>
+                  <View style={{ flex: 1 }}>
+                    <AppBannerOverlay>
+                      <RootNavigator />
+                    </AppBannerOverlay>
+                  </View>
+                </AppUpdateProvider>
+              </MaintenanceProvider>
+            </GymPartnerProvider>
           </AuthProvider>
         </ThemeProvider>
       </SafeAreaProvider>

@@ -438,7 +438,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-28-freemium-0trial-5msgs",
+        "api_build": "2026-07-30-gym-partner-ready",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -879,6 +879,66 @@ def admin_referrals_create_partner():
     )
 
 
+def _check_partner_mirror_key() -> str | None:
+    from ego_api.partner_mirror import partner_mirror_key
+
+    expected = partner_mirror_key()
+    if not expected:
+        return "Mirror não configurado (EGO_PARTNER_MIRROR_KEY)."
+    provided = (request.headers.get("X-Internal-Key") or "").strip()
+    if not provided or provided != expected:
+        return "Chave interna inválida."
+    return None
+
+
+@app.post("/internal/partner-mirror-from-shapescan")
+@rate_limit(30, 60, scope="ip")
+def partner_mirror_from_shapescan():
+    """
+    ShapeScan → EGO: espelha academia após /panel/partner-apply.
+    Header: X-Internal-Key = EGO_PARTNER_MIRROR_KEY (mesmo no Railway ShapeScan).
+    Idempotente por partner_code / CNPJ.
+    """
+    err = _check_partner_mirror_key()
+    if err:
+        return _json_error(err, 401)
+    from ego_api.partner_mirror import upsert_from_shapescan_payload
+
+    data = request.get_json(silent=True) or {}
+    payload, mirror_err = upsert_from_shapescan_payload(data if isinstance(data, dict) else {})
+    if mirror_err:
+        return _json_error(mirror_err, 400)
+    return _json_ok(payload or {"ok": True})
+
+
+@app.get("/api/v1/gym-partners/validate")
+@rate_limit(60, 60, scope="ip")
+def gym_partners_validate():
+    """Valida código de academia (ativo). Não expõe dados sensíveis."""
+    from ego_api.gym_partners import get_admin_client, lookup_gym_partner, normalize_partner_code
+
+    code = normalize_partner_code(str(request.args.get("code") or request.args.get("c") or ""))
+    if not code:
+        return _json_ok({"valid": False})
+    sb = get_admin_client()
+    if not sb:
+        return _json_ok({"valid": False, "error": "Serviço indisponível."})
+    try:
+        row = lookup_gym_partner(sb, code)
+    except Exception:
+        return _json_ok({"valid": False, "error": "Tabela gym_partners em falta."})
+    if not row:
+        return _json_ok({"valid": False})
+    return _json_ok(
+        {
+            "valid": True,
+            "partner_code": row.get("partner_code"),
+            "name": row.get("name"),
+            "commission_pct": row.get("commission_pct") or 30,
+        }
+    )
+
+
 @app.get("/api/v1/admin/referrals/report.csv")
 @require_admin
 def admin_referrals_report_csv():
@@ -1014,10 +1074,12 @@ def download_go_page():
     from ego_api.download_go import render_go_page
 
     ref = str(request.args.get("ref") or "")
+    gym = str(request.args.get("gym") or request.args.get("c") or "")
     nxt = str(request.args.get("next") or "")
     fmt = str(request.args.get("format") or "").strip().lower()
     body, status, headers = render_go_page(
         ref=ref,
+        gym=gym,
         next_step=nxt,
         user_agent=str(request.headers.get("User-Agent") or ""),
         force_format=fmt,
@@ -1118,6 +1180,43 @@ def app_dashboard_get():
 @require_auth
 def me():
     return _json_ok(services.me_payload(g.supabase, g.user_id))
+
+
+@app.get("/api/v1/me/gym-partner")
+@require_auth
+def me_gym_partner():
+    from ego_api.gym_partners import get_admin_client, get_profile_gym_partner
+
+    sb = get_admin_client() or g.supabase
+    code, partner = get_profile_gym_partner(sb, g.user_id)
+    return _json_ok({"gym_code": code, "partner": partner})
+
+
+@app.put("/api/v1/me/gym-code")
+@require_auth
+@rate_limit(10, 60, scope="user")
+def me_gym_code_put():
+    from ego_api.gym_partners import get_admin_client, set_profile_gym_code
+
+    data = request.get_json(silent=True) or {}
+    raw = str(data.get("gym_code") or data.get("code") or "")
+    sb = get_admin_client() or g.supabase
+    partner, err = set_profile_gym_code(sb, g.user_id, raw)
+    if err:
+        return _json_error(err, 400)
+    return _json_ok({"partner": partner, "gym_code": (partner or {}).get("partner_code")})
+
+
+@app.get("/api/v1/checkout/gym/<code>")
+@rate_limit(30, 60, scope="ip")
+def checkout_gym(code: str):
+    """Stripe Connect checkout para aluno de academia (30% academia)."""
+    from ego_api.partner_checkout import create_gym_checkout
+
+    payload, err = create_gym_checkout(code)
+    if err:
+        return _json_error(err, 400)
+    return _json_ok(payload)
 
 
 @app.delete("/api/v1/me")

@@ -27,6 +27,8 @@ import { IOS_APP_STORE_PRICE_NOTE } from "@/constants/iapProducts";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useColors } from "@/theme/ThemeContext";
 import { checkoutUrlForTier, withCheckoutUserRef } from "@/utils/planCheckout";
+import { gymCheckoutPageUrl } from "@/constants/gymCheckout";
+import { useGymPartner } from "@/context/GymPartnerContext";
 import {
   IOS_PRIVACY_POLICY_URL,
   IOS_TERMS_OF_USE_URL,
@@ -41,6 +43,7 @@ import { iosIapCatalog, useIosIap } from "@/hooks/useIosIap";
 export default function PlansScreen() {
   const colors = useColors();
   const { data, loading, refreshing, error, refresh } = useDashboard();
+  const { gymCode, partner, usesGymStripe } = useGymPartner();
   const [catalog, setCatalog] = useState<PlanCatalogItem[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [openingKey, setOpeningKey] = useState<string | null>(null);
@@ -54,6 +57,8 @@ export default function PlansScreen() {
   const userId = data.me?.user_id?.trim() ?? "";
   const isPaid = currentTier !== "essential";
   const storeName = usesGooglePlayIap() ? "Google Play" : "App Store";
+  const showIap = usesStoreIap() && !usesGymStripe;
+  const showWebStripe = usesStripeCheckout() && !usesGymStripe;
 
   const loadCatalog = useCallback(async () => {
     setCatalogLoading(true);
@@ -92,6 +97,43 @@ export default function PlansScreen() {
     try {
       await iap.purchaseTier("premium");
     } finally {
+      setOpeningKey(null);
+    }
+  };
+
+  const onGymStripeSubscribe = async () => {
+    if (!gymCode?.trim()) return;
+    const url = gymCheckoutPageUrl(gymCode);
+    const gymName = partner?.name || "sua academia";
+    setOpeningKey("gym-stripe");
+    try {
+      Alert.alert(
+        "EGO Premium",
+        `Canal academia: só Stripe Connect (sem loja).\n\nSó EGO Premium nesta cobrança — Shape30 é noutro checkout no ShapeScan se quiseres.\n\nA ${gymName} recebe ≈30% desta assinatura EGO.\n\nAbrir checkout?`,
+        [
+          { text: "Cancelar", style: "cancel", onPress: () => setOpeningKey(null) },
+          {
+            text: "Pagar no Stripe",
+            onPress: async () => {
+              try {
+                await Linking.openURL(url);
+                Alert.alert(
+                  "Pagamento",
+                  "Se já concluíste no Stripe, volta ao app e puxa para atualizar (pode demorar alguns segundos)."
+                );
+              } catch (e) {
+                Alert.alert(
+                  "Erro",
+                  e instanceof Error ? e.message : "Não foi possível abrir o checkout."
+                );
+              } finally {
+                setOpeningKey(null);
+              }
+            },
+          },
+        ]
+      );
+    } catch {
       setOpeningKey(null);
     }
   };
@@ -210,13 +252,52 @@ export default function PlansScreen() {
     );
   };
 
+  const renderPremiumGymStripe = () => {
+    const key = "gym-stripe";
+    return (
+      <PlanCard
+        key={key}
+        colors={colors}
+        plan={{
+          tier: "premium",
+          label: "EGO Premium",
+          price_brl: 49.9,
+          limits: premiumLimits,
+        }}
+        isCurrent={isPaid}
+        highlighted
+        badgeLabel={isPaid ? "Seu plano" : "Academia"}
+        checkoutUrl={null}
+        onSubscribe={() => {}}
+        purchaseViaIap
+        onIapPurchase={() => {
+          if (isPaid) return;
+          void onGymStripeSubscribe();
+        }}
+        busy={openingKey === key}
+        priceOverride={formatMonthlyPrice(49.9)}
+        priceNote="Canal academia · só Stripe Connect · 30% · (Shape30 = outro app)"
+        subscribeLabel={isPaid ? "Plano atual" : "Assinar EGO Premium →"}
+        footnote={
+          isPaid
+            ? "EGO Premium activo · Stripe Connect (academia)"
+            : partner?.name
+              ? `${partner.name}: sem IAP/lojas nesta conta. Podes assinar Shape30 no ShapeScan à parte.`
+              : "Canal academia = Stripe só. Sem App Store / Play nesta conta."
+        }
+      />
+    );
+  };
+
   return (
     <ScreenShell
       title="EGO Premium"
       subtitle={
-        usesStoreIap()
-          ? `Assinatura mensal · ${storeName}`
-          : "3 dias grátis · depois R$ 49,90/mês"
+        usesGymStripe
+          ? `Stripe academia${partner?.name ? ` · ${partner.name}` : ""}`
+          : showIap
+            ? `Assinatura mensal · ${storeName}`
+            : "3 dias grátis · depois R$ 49,90/mês"
       }
     >
       <ScrollView
@@ -258,10 +339,14 @@ export default function PlansScreen() {
               </Text>
               <Text style={[styles.currentHint, { color: colors.textMuted }]}>
                 {isPaid
-                  ? usesStoreIap()
-                    ? `Assinatura activa · ${storeName}`
-                    : "Assinatura activa · Stripe"
-                  : "Depois do teste, assine o EGO Premium para continuar."}
+                  ? usesGymStripe
+                    ? "Assinatura activa · Stripe (academia)"
+                    : showIap
+                      ? `Assinatura activa · ${storeName}`
+                      : "Assinatura activa · Stripe"
+                  : usesGymStripe
+                    ? "Com código de academia: Premium só via Stripe Connect (30% academia)."
+                    : "Depois do teste, assine o EGO Premium para continuar."}
               </Text>
               {!isPaid ? (
                 <Text style={[styles.currentHint, { color: colors.textMuted }]}>
@@ -270,7 +355,20 @@ export default function PlansScreen() {
               ) : null}
             </View>
 
-            {usesStoreIap() ? (
+            {usesGymStripe ? (
+              <>
+                <Text style={[styles.sectionTitle, { color: colors.text }]}>
+                  Plano academia
+                </Text>
+                <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
+                  Conta ligada a academia — pagamento só no Stripe Connect. IAP da{" "}
+                  {storeName} está escondido nesta conta.
+                </Text>
+                {renderPremiumGymStripe()}
+              </>
+            ) : null}
+
+            {showIap ? (
               <>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
                   Plano mensal
@@ -321,7 +419,7 @@ export default function PlansScreen() {
               </>
             ) : null}
 
-            {usesStripeCheckout() ? (
+            {showWebStripe ? (
               <>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
                   Brasil — R$ 49,90/mês

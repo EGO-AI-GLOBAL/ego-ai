@@ -31,7 +31,7 @@ import { savePostLoginRoute } from "@/storage/postLoginRoute";
 
 export default function SignupScreen() {
   const colors = useColors();
-  const params = useLocalSearchParams<{ ref?: string; next?: string }>();
+  const params = useLocalSearchParams<{ ref?: string; gym?: string; next?: string }>();
   const { session, loading, signUp } = useAuth();
   const { bottomInset } = useKeyboardHeight();
   const [firstName, setFirstName] = useState("");
@@ -44,17 +44,21 @@ export default function SignupScreen() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [referralHint, setReferralHint] = useState<string | null>(null);
+  const [codeKind, setCodeKind] = useState<"gym" | "partner" | "friend" | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
-    const raw = params.ref;
-    const fromLink = (Array.isArray(raw) ? raw[0] : raw) || "";
-    if (fromLink.trim()) {
-      setReferralCode(fromLink.trim().toUpperCase());
+    const gymRaw = params.gym;
+    const refRaw = params.ref;
+    const fromGym = (Array.isArray(gymRaw) ? gymRaw[0] : gymRaw) || "";
+    const fromRef = (Array.isArray(refRaw) ? refRaw[0] : refRaw) || "";
+    const fromLink = (fromGym || fromRef).trim();
+    if (fromLink) {
+      setReferralCode(fromLink.toUpperCase());
     }
-  }, [params.ref]);
+  }, [params.gym, params.ref]);
 
   useEffect(() => {
     const raw = params.next;
@@ -68,20 +72,42 @@ export default function SignupScreen() {
     const code = referralCode.trim();
     if (code.length < 3) {
       setReferralHint(null);
+      setCodeKind(null);
       return;
     }
     const t = setTimeout(() => {
       void validateReferralCode(code)
         .then((r) => {
-          if (r.valid && r.display_name) {
+          if (!r.valid) {
+            setCodeKind(null);
+            setReferralHint("Código não encontrado. Confira e tente de novo.");
+            return;
+          }
+          if (r.kind === "gym") {
+            setCodeKind("gym");
+            setReferralHint(
+              r.display_name
+                ? `Academia ${r.display_name} — Premium via Stripe (sem loja).`
+                : "Academia vinculada — Premium via Stripe (sem loja)."
+            );
+            return;
+          }
+          if (r.kind === "friend") {
+            setCodeKind("friend");
+            setReferralHint("Indicação de amigo — benefícios após o 1º Premium.");
+            return;
+          }
+          setCodeKind("partner");
+          if (r.display_name) {
             setReferralHint(`Cupom válido — ${r.display_name}. 10% de desconto na 1ª compra.`);
-          } else if (r.valid) {
-            setReferralHint("Cupom válido. Você ganha 10% de desconto na primeira compra.");
           } else {
-            setReferralHint("Cupom não encontrado. Confira o nome e tente de novo.");
+            setReferralHint("Cupom válido. Você ganha 10% de desconto na primeira compra.");
           }
         })
-        .catch(() => setReferralHint(null));
+        .catch(() => {
+          setReferralHint(null);
+          setCodeKind(null);
+        });
     }, 400);
     return () => clearTimeout(t);
   }, [referralCode]);
@@ -256,8 +282,8 @@ export default function SignupScreen() {
                 </Text>
               ) : (
                 <Text style={[styles.referralHint, { color: colors.textMuted }]}>
-                  Opcional. Quem veio de parceira ou influenciadora ganha 10% na primeira
-                  assinatura.
+                  Opcional. Academia, influenciadora ou amigo — o código define o canal
+                  {codeKind === "gym" ? " Stripe" : ""}.
                 </Text>
               )}
             </View>

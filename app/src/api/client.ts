@@ -512,7 +512,7 @@ export type ReferralValidateResult = {
   valid: boolean;
   code?: string;
   display_name?: string;
-  kind?: "partner" | "friend" | string;
+  kind?: "partner" | "friend" | "gym" | string;
   error?: string | null;
 };
 
@@ -1140,6 +1140,36 @@ export async function fetchAccessInfo(): Promise<AccessInfo> {
   const { data } = await api.get("access", { timeout: TIMEOUT_DEFAULT_MS });
   const body = unwrap<AccessInfo & { ok?: boolean }>(data);
   return normalizeAccessInfo(body) ?? body;
+}
+
+export type GymPartnerPublic = {
+  partner_code?: string;
+  name?: string;
+  logo_url?: string | null;
+  commission_pct?: number;
+  active?: boolean;
+};
+
+export async function fetchMyGymPartner(): Promise<{
+  gym_code: string | null;
+  partner: GymPartnerPublic | null;
+}> {
+  const { data } = await api.get("me/gym-partner", { timeout: TIMEOUT_DEFAULT_MS });
+  const body = unwrap<{ gym_code?: string | null; partner?: GymPartnerPublic | null }>(data);
+  return {
+    gym_code: body.gym_code ?? null,
+    partner: body.partner ?? null,
+  };
+}
+
+export async function saveMyGymCode(gymCode: string): Promise<GymPartnerPublic | null> {
+  const { data } = await api.put(
+    "me/gym-code",
+    { gym_code: gymCode.trim() },
+    { timeout: TIMEOUT_DEFAULT_MS }
+  );
+  const body = unwrap<{ partner?: GymPartnerPublic | null }>(data);
+  return body.partner ?? null;
 }
 
 export async function sendChatMessage(

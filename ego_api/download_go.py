@@ -42,9 +42,19 @@ def public_go_base() -> str:
     return "https://ego-ai-production-a2c2.up.railway.app"
 
 
-def public_go_url(*, ref: str = "", next_step: str = "", utm_campaign: str = "share") -> str:
+def public_go_url(
+    *,
+    ref: str = "",
+    gym: str = "",
+    next_step: str = "",
+    utm_campaign: str = "share",
+) -> str:
     return build_go_url(
-        public_go_base(), ref=ref, next_step=next_step, utm_campaign=utm_campaign
+        public_go_base(),
+        ref=ref,
+        gym=gym,
+        next_step=next_step,
+        utm_campaign=utm_campaign,
     )
 
 
@@ -52,25 +62,36 @@ def build_go_url(
     base: str,
     *,
     ref: str = "",
+    gym: str = "",
     next_step: str = "",
     utm_campaign: str = "share",
 ) -> str:
     root = (base or "").rstrip("/")
     if not root:
         root = "https://ego-ai-production-a2c2.up.railway.app"
-    params: dict[str, str] = {"utm_source": "egoai", "utm_medium": "go", "utm_campaign": utm_campaign}
+    params: dict[str, str] = {
+        "utm_source": "egoai",
+        "utm_medium": "go",
+        "utm_campaign": utm_campaign,
+    }
     ref_code = _clean_ref(ref)
+    gym_code = _clean_ref(gym)
     nxt = _clean_next(next_step)
-    if ref_code:
+    # Academia: ?gym= preferencial; ?ref= também liga gym no signup se o código existir em gym_partners
+    if gym_code:
+        params["gym"] = gym_code
+    elif ref_code:
         params["ref"] = ref_code
     if nxt:
         params["next"] = nxt
     return f"{root}/go?{urlencode(params)}"
 
 
-def _app_deep_link(ref: str, next_step: str) -> str:
+def _app_deep_link(ref: str, next_step: str, gym: str = "") -> str:
     q: dict[str, str] = {}
-    if ref:
+    if gym:
+        q["gym"] = gym
+    elif ref:
         q["ref"] = ref
     if next_step:
         q["next"] = next_step
@@ -83,16 +104,18 @@ def _app_deep_link(ref: str, next_step: str) -> str:
 def render_go_page(
     *,
     ref: str = "",
+    gym: str = "",
     next_step: str = "",
     user_agent: str = "",
     force_format: str = "",
 ) -> tuple[str, int, dict[str, str]]:
     """Devolve (body, status, headers)."""
     ref_code = _clean_ref(ref)
+    gym_code = _clean_ref(gym)
     nxt = _clean_next(next_step)
     play = play_store_update_url()
     ios = testflight_update_url()
-    app_link = _app_deep_link(ref_code, nxt)
+    app_link = _app_deep_link(ref_code, nxt, gym=gym_code)
 
     ua = (user_agent or "").lower()
     is_ios = "iphone" in ua or "ipad" in ua or "ipod" in ua
@@ -103,16 +126,26 @@ def render_go_page(
         return "", 302, {"Location": target}
 
     store_url = ios if is_ios else play if is_android else play
-    store_label = "TestFlight" if is_ios else "Google Play" if is_android else "loja"
+    store_label = "App Store" if is_ios else "Google Play" if is_android else "loja"
 
     title = "Baixar EGO-AI"
     subtitle = "Grátis · bem-estar · cadastro em 1 minuto"
     if nxt == "agenda":
         subtitle = "Baixe, cadastre-se e aceite o convite na Agenda"
+    if gym_code:
+        subtitle = "App da academia · Premium via Stripe (sem loja)"
 
     ref_line = ""
-    if ref_code:
-        ref_line = f'<p class="hint">Código de indicação: <strong>{html.escape(ref_code)}</strong></p>'
+    if gym_code:
+        ref_line = (
+            f'<p class="hint">Código da academia: '
+            f"<strong>{html.escape(gym_code)}</strong></p>"
+        )
+    elif ref_code:
+        ref_line = (
+            f'<p class="hint">Código de indicação: '
+            f"<strong>{html.escape(ref_code)}</strong></p>"
+        )
 
     body = f"""<!DOCTYPE html>
 <html lang="pt-BR">
@@ -157,7 +190,7 @@ def render_go_page(
     <a class="btn secondary" id="btn-app" href="{html.escape(app_link, quote=True)}">
       Já tenho o app — criar conta
     </a>
-    <p class="hint">Android: Google Play (teste) · iPhone: TestFlight</p>
+    <p class="hint">Android: Google Play · iPhone: App Store</p>
   </div>
   <script>
     (function () {{

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Premium academia · EGO-AI</title>
+  <style>
+    body { margin:0; font-family:system-ui,sans-serif; background:#0A122A; color:#F4F7FF; min-height:100vh; display:flex; align-items:center; justify-content:center; }
+    main { max-width:420px; padding:1.5rem; text-align:center; }
+    p { color:#9AA6C1; line-height:1.5; }
+    code { color:#22D3EE; }
+    .err { color:#f87171; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>EGO Premium · Academia</h1>
+    <p id="msg">A preparar checkout Stripe (30% academia)…</p>
+  </main>
+  <script>
+    (function () {
+      var el = document.getElementById("msg");
+      var params = new URLSearchParams(location.search);
+      var code = (params.get("c") || params.get("gym") || "").trim();
+      if (!code) {
+        el.className = "err";
+        el.textContent = "Falta o código da academia (?c=CODIGO).";
+        return;
+      }
+      if (params.get("cancel") === "1") {
+        el.textContent = "Pagamento cancelado. Podes fechar e tentar de novo no app.";
+        return;
+      }
+      var api = "https://ego-ai-production-a2c2.up.railway.app/api/v1";
+      fetch(api + "/checkout/gym/" + encodeURIComponent(code), {
+        headers: { Accept: "application/json" },
+      })
+        .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+        .then(function (x) {
+          var url = (x.j && (x.j.url || (x.j.data && x.j.data.url))) || null;
+          if (x.ok && url) {
+            el.textContent = "A redirecionar para o Stripe…";
+            location.href = url;
+            return;
+          }
+          var err = (x.j && (x.j.error || x.j.message)) || "Checkout indisponível.";
+          el.className = "err";
+          el.innerHTML = "Código <code>" + code.replace(/[<>&]/g, "") + "</code><br/>" + String(err);
+        })
+        .catch(function () {
+          el.className = "err";
+          el.textContent = "Não foi possível contactar a API. Tenta de novo.";
+        });
+    })();
+  </script>
+</body>
+</html>

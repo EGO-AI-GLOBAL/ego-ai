@@ -115,9 +115,31 @@ def find_user_id_by_friend_code(supabase: Client, code: str) -> str | None:
 
 
 def validate_friend_or_partner_code(code: str) -> tuple[dict | None, str | None]:
-    """Cupom de parceiro OU código pessoal de amigo."""
+    """Academia (gym) → influenciador → código pessoal de amigo."""
+    from ego_api.gym_partners import (
+        get_admin_client as gym_admin_client,
+        lookup_gym_partner,
+        normalize_partner_code,
+    )
     from ego_api.supabase_client import create_service_client
 
+    # 1) Academia parceira (canal Stripe Connect)
+    gym_code = normalize_partner_code(code)
+    if gym_code:
+        try:
+            gym_sb = gym_admin_client() or create_service_client()
+            if gym_sb:
+                gym = lookup_gym_partner(gym_sb, gym_code)
+                if gym:
+                    return {
+                        "kind": "gym",
+                        "code": gym.get("partner_code") or gym_code,
+                        "display_name": gym.get("name") or gym_code,
+                    }, None
+        except Exception:
+            pass
+
+    # 2) Influenciador
     partner, err = validate_partner_code(code)
     if partner:
         return {
@@ -125,6 +147,8 @@ def validate_friend_or_partner_code(code: str) -> tuple[dict | None, str | None]
             "code": partner["code"],
             "display_name": partner.get("display_name") or partner["code"],
         }, None
+
+    # 3) Amigo
     admin = create_service_client()
     if not admin:
         return None, err or "Código inválido."

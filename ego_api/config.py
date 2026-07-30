@@ -263,10 +263,10 @@ def latest_app_version() -> str:
 
 
 def play_store_update_url() -> str:
-    """Link Play (teste fechado opt-in ou loja pública)."""
+    """Link Play (produção por defeito — parceiros / QR /go)."""
     url = read_env(
         "EGO_PLAY_STORE_URL",
-        "https://play.google.com/apps/testing/com.egoai.app",
+        "https://play.google.com/store/apps/details?id=com.egoai.app",
     )
     if url:
         return url
@@ -281,9 +281,17 @@ def app_update_message() -> str:
 
 
 def testflight_update_url() -> str:
+    """Link iOS — App Store produção (override EGO_TESTFLIGHT_URL se precisares Beta)."""
     return read_env(
         "EGO_TESTFLIGHT_URL",
-        "https://testflight.apple.com/join/eNDKdFWF",
+        "https://apps.apple.com/app/id6780595396",
+    ).strip()
+
+
+def app_store_public_url() -> str:
+    return read_env(
+        "EGO_APP_STORE_URL",
+        "https://apps.apple.com/app/id6780595396",
     ).strip()
 
 

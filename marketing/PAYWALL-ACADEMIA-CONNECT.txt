@@ -1,0 +1,31 @@
+EGO — PARCERIA + PAYWALL (regra canónica)
+========================================
+2026-07-30 (actualizado)
+
+JUNTO (parceria)
+----------------
+Um formulário (ShapeScan painel) → cria academia no ShapeScan E no EGO
+(mesmo partner_code quando possível). Contrato/B2B cobre os dois.
+
+SEPARADO (resto)
+----------------
+Apps distintos · links distintos · pagamentos distintos.
+Aluno paga: um, o outro, ou os dois — NUNCA pacote único ShapeScan+EGO.
+
+| Produto      | Checkout              | Comissão |
+|--------------|-----------------------|----------|
+| Shape30      | ShapeScan Connect     | 30%      |
+| EGO Premium  | EGO Connect (g.html)  | 30%      |
+
+CANAL ACADEMIA (EGO)
+-------------------
+Com gym_code  → SÓ Stripe Connect · SEM IAP · SEM lojas
+Sem gym_code  → SÓ IAP (App Store / Play) — EGO já nas 2 lojas
+
+COMO O ALUNO GANHA gym_code
+---------------------------
+1) QR /go?gym=CODIGO → deep link signup → cadastro aplica gym_code
+2) Ou /go?ref=CODIGO se o código existir em gym_partners (prioridade academia)
+3) Ou Conta → «Academia parceira» → digitar código (permanente)
+
+Ops quando o 1º parceiro fechar: marketing/QUANDO-FECHAR-PARCEIRO-CHECKLIST.txt
