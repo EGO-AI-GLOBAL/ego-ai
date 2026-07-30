@@ -512,7 +512,7 @@ export type ReferralValidateResult = {
   valid: boolean;
   code?: string;
   display_name?: string;
-  kind?: "partner" | "friend" | "gym" | string;
+  kind?: "partner" | "influencer" | "friend" | "gym" | string;
   error?: string | null;
 };
 

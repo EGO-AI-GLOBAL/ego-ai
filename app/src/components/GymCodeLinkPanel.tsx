@@ -14,8 +14,9 @@ import { useGymPartner } from "@/context/GymPartnerContext";
 import type { AppColors } from "@/theme/colors";
 
 /**
- * Vincular academia → profiles.gym_code (permanente).
- * Com gym_code → planos só Stripe Connect (IAP escondido).
+ * Vincular parceiro → profiles.gym_code (API interna permanente).
+ * Com código de parceiro → planos só Stripe Connect (IAP escondido).
+ * Parceiro = academia, clínica, médico, empresa, etc. — mesmo modelo.
  */
 export function GymCodeLinkPanel({ colors }: { colors: AppColors }) {
   const { session } = useAuth();
@@ -26,9 +27,9 @@ export function GymCodeLinkPanel({ colors }: { colors: AppColors }) {
   if (!session?.access_token) {
     return (
       <View style={[styles.card, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
-        <Text style={[styles.title, { color: colors.text }]}>Academia parceira</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Parceiro</Text>
         <Text style={[styles.hint, { color: colors.textMuted }]}>
-          Entra na conta para vincular o código da academia.
+          Entra na conta para vincular o código do parceiro.
         </Text>
       </View>
     );
@@ -37,7 +38,7 @@ export function GymCodeLinkPanel({ colors }: { colors: AppColors }) {
   async function onLink() {
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) {
-      Alert.alert("Código", "Digite o código da academia.");
+      Alert.alert("Código", "Digite o código do parceiro.");
       return;
     }
     setBusy(true);
@@ -49,8 +50,8 @@ export function GymCodeLinkPanel({ colors }: { colors: AppColors }) {
       Alert.alert(
         "Vinculado",
         nome
-          ? `${nome} ligada ao teu perfil.\n\nCanal academia: Premium EGO só via Stripe Connect (sem loja/IAP). Shape30 paga-se no ShapeScan se quiseres — checkouts separados; a academia ganha 30% em cada.`
-          : "Código guardado. Canal academia = só Stripe no EGO (sem IAP)."
+          ? `${nome} ligado ao teu perfil.\n\nCanal parceiro: Premium EGO só via Stripe Connect (sem loja/IAP). Outros produtos do parceiro (ex. Shape30) pagam-se à parte se quiseres — checkouts separados; o parceiro recebe ≈30% em cada.`
+          : "Código guardado. Canal parceiro = só Stripe no EGO (sem IAP)."
       );
     } catch (e) {
       Alert.alert("Código", e instanceof Error ? e.message : "Não foi possível vincular.");
@@ -67,10 +68,10 @@ export function GymCodeLinkPanel({ colors }: { colors: AppColors }) {
           { backgroundColor: colors.bgCard, borderColor: colors.primary },
         ]}
       >
-        <Text style={[styles.eyebrow, { color: colors.primary }]}>Academia vinculada</Text>
+        <Text style={[styles.eyebrow, { color: colors.primary }]}>Parceiro vinculado</Text>
         <Text style={[styles.linkedName, { color: colors.text }]}>{partner.name}</Text>
         <Text style={[styles.linkedCode, { color: colors.textMuted }]}>
-          Código: {gymCode} · canal academia = só Stripe (sem IAP) · 30%
+          Código: {gymCode} · canal parceiro = só Stripe (sem IAP) · 30%
         </Text>
         <Text style={[styles.lockHint, { color: colors.textMuted }]}>
           Vínculo permanente. Só excluir a conta zera o vínculo.
@@ -82,7 +83,7 @@ export function GymCodeLinkPanel({ colors }: { colors: AppColors }) {
   if (gymCode) {
     return (
       <View style={[styles.card, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
-        <Text style={[styles.eyebrow, { color: colors.primary }]}>Academia vinculada</Text>
+        <Text style={[styles.eyebrow, { color: colors.primary }]}>Parceiro vinculado</Text>
         <Text style={[styles.linkedName, { color: colors.text }]}>Código: {gymCode}</Text>
         <Text style={[styles.lockHint, { color: colors.textMuted }]}>
           Premium desta conta: só Stripe Connect — sem App Store / Play.
@@ -93,15 +94,15 @@ export function GymCodeLinkPanel({ colors }: { colors: AppColors }) {
 
   return (
     <View style={[styles.card, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
-      <Text style={[styles.eyebrow, { color: colors.primary }]}>EGO + Academia</Text>
-      <Text style={[styles.title, { color: colors.text }]}>Vincular academia</Text>
+      <Text style={[styles.eyebrow, { color: colors.primary }]}>EGO + Parceiros</Text>
+      <Text style={[styles.title, { color: colors.text }]}>Vincular parceiro</Text>
       <Text style={[styles.hint, { color: colors.textMuted }]}>
-        Código da academia (ex. CORPOACAO)? A parceria ShapeScan+EGO é um só
-        form; neste app o canal academia é SÓ Stripe Connect (sem IAP/lojas).
-        Shape30, se quiseres, paga-se no ShapeScan — checkouts separados; 30%
-        academia em cada. Sem código → IAP normal nas lojas.
+        Código do parceiro (academia, clínica, médico, empresa…). Neste app o
+        canal parceiro é SÓ Stripe Connect (sem IAP/lojas). Outros produtos do
+        parceiro, se existirem, são checkouts separados; ≈30% ao parceiro em cada.
+        Sem código → IAP normal nas lojas.
       </Text>
-      <Text style={[styles.label, { color: colors.text }]}>Código da academia</Text>
+      <Text style={[styles.label, { color: colors.text }]}>Código do parceiro</Text>
       <TextInput
         style={[
           styles.input,
@@ -129,7 +130,7 @@ export function GymCodeLinkPanel({ colors }: { colors: AppColors }) {
         {busy ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text style={styles.btnText}>Vincular academia</Text>
+          <Text style={styles.btnText}>Vincular parceiro</Text>
         )}
       </Pressable>
     </View>

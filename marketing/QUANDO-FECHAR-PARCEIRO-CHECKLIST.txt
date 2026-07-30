@@ -2,58 +2,50 @@ EGO — QUANDO FECHAR O 1º PARCEIRO (checklist ops)
 =================================================
 2026-07-30
 
-Código já pronto (local / quando fizeres push + deploy + build):
-- Mirror ShapeScan → EGO (mesmo partner_code)
-- Cadastro: código academia (gym) → profiles.gym_code
-- QR: https://…/go?gym=CODIGO  (ou ?ref=CODIGO se o código for gym)
-- Conta: painel “Academia parceira” (ligar manual se necessário)
-- Planos: com gym_code → SÓ Stripe Connect (~30% academia); sem gym → IAP
+Parceiro = academia, clínica, médico, empresa… (mesmo modelo Connect).
 
-NÃO fazer build/submit até o parceiro fechar + Iury pedir.
+Código já pronto:
+- Mirror ShapeScan → EGO (mesmo partner_code) quando aplicável
+- Cadastro: código parceiro → profiles.gym_code (nome interno API)
+- QR: https://…/go?partner=CODIGO  (alias ?gym=)
+- Conta: painel «Vincular parceiro»
+- Planos: com código → SÓ Stripe Connect (≈30% parceiro); sem → IAP
 
 ------------------------------------------------------------------
 QUANDO AVISARES “parceiro fechado” — trazer estes dados
 ------------------------------------------------------------------
-1) partner_code (ex.: CORPOACAO)
-2) Nome da academia
+1) partner_code (ex.: CORPOACAO ou CLINICAXYZ)
+2) Nome do parceiro (empresa / clínica / médico / academia)
 3) stripe_connect_account_id  (acct_…)
 4) Confirmação: SQL gym_partners já no Supabase EGO?
-5) Railway: EGO_PARTNER_MIRROR_KEY igual ao ShapeScan?
+5) Railway: EGO_PARTNER_MIRROR_KEY (se mirror ShapeScan)
 
 ------------------------------------------------------------------
 Passos (eu + tu)
 ------------------------------------------------------------------
-[ ] Supabase EGO: correr supabase/COLE-GYM-PARTNERS-SHAPESCAN-MIRROR.sql
-    (se ainda não correu)
+[ ] Supabase EGO: supabase/COLE-GYM-PARTNERS-SHAPESCAN-MIRROR.sql
 
 [ ] Railway EGO — vars:
     EGO_PARTNER_MIRROR_KEY=...
     EGO_GYM_COMMISSION_PCT=30
     STRIPE_GYM_PREMIUM_PRICE_ID=price_...
     EGO_PARTNERS_JSON={"gyms":{"CODIGO":{"name":"...","stripe_account":"acct_..."}}}
-    EGO_PLAY_STORE_URL=https://play.google.com/store/apps/details?id=com.egoai.app
-    EGO_TESTFLIGHT_URL=https://apps.apple.com/app/id6780595396
-    (ou EGO_APP_STORE_URL)
 
 [ ] Redeploy Railway EGO
 
-[ ] ShapeScan: mesma mirror key + EGO_API_BASE_URL → criar academia 1x
-    (ou INSERT manual em gym_partners com Connect)
+[ ] Criar/espelhar parceiro (mirror ou INSERT) + Connect
 
 [ ] Smoke:
     GET /api/v1/gym-partners/validate?code=CODIGO  → valid true
-    GET /go?gym=CODIGO  → lojas + deep link signup?gym=
-    Cadastro com código → Conta mostra academia → Planos sem IAP → Stripe
+    GET /go?partner=CODIGO
+    Cadastro → Conta mostra parceiro → Planos sem IAP → Stripe
 
-[ ] QR impresso: 1 link só
-    https://egoai.com.br/go?gym=CODIGO
-    (ou Railway /go se o site ainda não apontar)
+[ ] QR: https://egoai.com.br/go?partner=CODIGO
 
-[ ] Build app (só se Monstrinhos / Iury pedir) — UI Conta+Planos+signup gym
+[ ] Build app quando Iury pedir
 
 ------------------------------------------------------------------
 Lembrete produto
 ------------------------------------------------------------------
-Parceria JUNTA (1 formulário ShapeScan+EGO).
-Pagamentos SEPARADOS (Shape30 no ShapeScan · EGO Premium no EGO).
-30% academia em CADA assinatura que existir.
+Parceria JUNTA (acordo B2B). Pagamentos SEPARADOS por produto.
+≈30% ao parceiro em CADA assinatura EGO (e Shape30 se existir).

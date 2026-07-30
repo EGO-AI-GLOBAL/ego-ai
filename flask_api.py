@@ -438,7 +438,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-30-gym-partner-ready",
+        "api_build": "2026-07-30-parceiros-generico",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1074,7 +1074,12 @@ def download_go_page():
     from ego_api.download_go import render_go_page
 
     ref = str(request.args.get("ref") or "")
-    gym = str(request.args.get("gym") or request.args.get("c") or "")
+  gym = str(
+        request.args.get("partner")
+        or request.args.get("gym")
+        or request.args.get("c")
+        or ""
+    )
     nxt = str(request.args.get("next") or "")
     fmt = str(request.args.get("format") or "").strip().lower()
     body, status, headers = render_go_page(

@@ -77,9 +77,10 @@ def build_go_url(
     ref_code = _clean_ref(ref)
     gym_code = _clean_ref(gym)
     nxt = _clean_next(next_step)
-    # Academia: ?gym= preferencial; ?ref= também liga gym no signup se o código existir em gym_partners
+    # Parceiro B2B: ?partner= ou ?gym= (alias); ?ref= também liga se for código de parceiro
     if gym_code:
-        params["gym"] = gym_code
+        params["partner"] = gym_code
+        params["gym"] = gym_code  # alias legado
     elif ref_code:
         params["ref"] = ref_code
     if nxt:
@@ -90,7 +91,8 @@ def build_go_url(
 def _app_deep_link(ref: str, next_step: str, gym: str = "") -> str:
     q: dict[str, str] = {}
     if gym:
-        q["gym"] = gym
+        q["partner"] = gym
+        q["gym"] = gym  # alias app legado
     elif ref:
         q["ref"] = ref
     if next_step:
@@ -133,12 +135,12 @@ def render_go_page(
     if nxt == "agenda":
         subtitle = "Baixe, cadastre-se e aceite o convite na Agenda"
     if gym_code:
-        subtitle = "App da academia · Premium via Stripe (sem loja)"
+        subtitle = "App do parceiro · Premium via Stripe (sem loja)"
 
     ref_line = ""
     if gym_code:
         ref_line = (
-            f'<p class="hint">Código da academia: '
+            f'<p class="hint">Código do parceiro: '
             f"<strong>{html.escape(gym_code)}</strong></p>"
         )
     elif ref_code:

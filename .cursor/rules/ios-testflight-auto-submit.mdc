@@ -1,0 +1,13 @@
+---
+description: Após build iOS EAS production, enviar automaticamente ao TestFlight
+alwaysApply: true
+---
+
+# iOS → TestFlight automático
+
+Sempre que uma build **iOS** EAS `production` terminar com sucesso neste projeto (EGO-AI / ship):
+
+1. Correr de imediato `eas submit --platform ios --id <BUILD_ID> --profile production --non-interactive` (usar `NODE_TLS_REJECT_UNAUTHORIZED=0` se o SSL local falhar, como nas builds).
+2. Não pedir confirmação ao utilizador para o submit iOS — já está autorizado por defeito.
+3. Android: **não** fazer `eas submit` automático (upload manual na Play Console).
+4. Informar o utilizador com o link da submission / App Store Connect quando o submit concluir.

@@ -1,31 +1,35 @@
 EGO — PARCERIA + PAYWALL (regra canónica)
 ========================================
-2026-07-30 (actualizado)
+2026-07-30 (parceiro = genérico)
+
+Parceiro = academia, clínica, médico, empresa, etc. — mesmo modelo.
 
 JUNTO (parceria)
 ----------------
-Um formulário (ShapeScan painel) → cria academia no ShapeScan E no EGO
-(mesmo partner_code quando possível). Contrato/B2B cobre os dois.
+Um formulário (quando aplicável ShapeScan+EGO) → cria o parceiro nos
+dois lados com o mesmo partner_code. Contrato/B2B cobre o acordo.
 
 SEPARADO (resto)
 ----------------
 Apps distintos · links distintos · pagamentos distintos.
-Aluno paga: um, o outro, ou os dois — NUNCA pacote único ShapeScan+EGO.
+Cliente paga: um, o outro, ou os dois — NUNCA pacote único obrigatório.
 
 | Produto      | Checkout              | Comissão |
 |--------------|-----------------------|----------|
-| Shape30      | ShapeScan Connect     | 30%      |
-| EGO Premium  | EGO Connect (g.html)  | 30%      |
+| Shape30*     | ShapeScan Connect     | ≈30%     |
+| EGO Premium  | EGO Connect (g.html)  | ≈30%     |
 
-CANAL ACADEMIA (EGO)
--------------------
-Com gym_code  → SÓ Stripe Connect · SEM IAP · SEM lojas
-Sem gym_code  → SÓ IAP (App Store / Play) — EGO já nas 2 lojas
+*Se o parceiro também vender Shape30; senão só EGO.
 
-COMO O ALUNO GANHA gym_code
----------------------------
-1) QR /go?gym=CODIGO → deep link signup → cadastro aplica gym_code
-2) Ou /go?ref=CODIGO se o código existir em gym_partners (prioridade academia)
-3) Ou Conta → «Academia parceira» → digitar código (permanente)
+CANAL PARCEIRO (EGO)
+--------------------
+Com código parceiro (API: gym_code)  → SÓ Stripe Connect · SEM IAP
+Sem código                           → SÓ IAP (App Store / Play)
 
-Ops quando o 1º parceiro fechar: marketing/QUANDO-FECHAR-PARCEIRO-CHECKLIST.txt
+COMO O UTILIZADOR GANHA O CÓDIGO
+--------------------------------
+1) QR /go?partner=CODIGO (alias /go?gym=CODIGO)
+2) Ou /go?ref=CODIGO se o código existir em gym_partners
+3) Ou Conta → «Vincular parceiro» → digitar código (permanente)
+
+Ops: marketing/QUANDO-FECHAR-PARCEIRO-CHECKLIST.txt

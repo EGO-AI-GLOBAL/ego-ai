@@ -1,0 +1,4 @@
+SYNC API — 1.0.107
+==================
+✅ PRONTO — textos/API canal Parceiro genérico (gym_* interno)
+Commit: (após push)

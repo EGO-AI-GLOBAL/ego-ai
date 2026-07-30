@@ -20,7 +20,7 @@ type GymPartnerContextValue = {
   partner: GymPartnerPublic | null;
   gymCode: string | null;
   ready: boolean;
-  /** Aluno com academia → pagar só via Stripe Connect (esconder IAP). */
+  /** Conta com código de parceiro → pagar só via Stripe Connect (esconder IAP). */
   usesGymStripe: boolean;
   refreshGymPartner: () => Promise<void>;
 };

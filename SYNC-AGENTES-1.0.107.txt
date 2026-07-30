@@ -1,0 +1,14 @@
+SYNC MESTRE — 1.0.107
+=====================
+Versão: **1.0.107** · canal Parceiro (genérico) + Stripe Connect
+Motivo: nomenclatura Parceiro (clínica/médico/empresa/academia); QR /go?partner=; paywall Connect
+
+| Agente | Estado |
+|--------|--------|
+| MONSTRINHOS | ✅ PRONTO (build) |
+| BOLSO | ✅ PRONTO (sem alteração) |
+| API | ✅ PRONTO (parceiros genérico) |
+| MARKETING | ✅ PRONTO (docs parceiro) |
+
+Sem EGO_MAINTENANCE=1.
+Build: GERAR-1.0.107.bat → AGUARDAR-E-SUBMETER-1.0.107.bat

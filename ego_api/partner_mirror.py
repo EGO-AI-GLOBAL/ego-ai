@@ -28,7 +28,7 @@ _LOG = logging.getLogger("ego.partner_mirror")
 
 PITCH_DEFAULT = (
     "Parceria única (ShapeScan + EGO) · apps e pagamentos separados · "
-    "30% academia em cada Premium do código"
+    "≈30% ao parceiro em cada Premium do código"
 )
 
 
@@ -45,7 +45,7 @@ def _str(v: Any, default: str = "") -> str:
     return str(v).strip() or default
 
 
-def _notify_admin(partner_code: str, academia_nome: str, created: bool) -> None:
+def _notify_admin(partner_code: str, partner_name: str, created: bool) -> None:
     to = (
         os.getenv("EGO_PARTNER_NOTIFY_EMAIL", "").strip()
         or os.getenv("EGO_OPS_EMAIL", "").strip()
@@ -56,22 +56,22 @@ def _notify_admin(partner_code: str, academia_nome: str, created: bool) -> None:
 
         if not email_configured():
             return
-        verb = "criada" if created else "atualizada"
+        verb = "criado" if created else "atualizado"
         send_ops_email(
             to_email=to,
-            subject=f"[EGO] Academia {verb}: {partner_code}",
+            subject=f"[EGO] Parceiro {verb}: {partner_code}",
             text_body=(
-                f"Parceria academia {verb} via mirror ShapeScan.\n"
+                f"Parceiro {verb} via mirror ShapeScan.\n"
                 f"Código: {partner_code}\n"
-                f"Nome: {academia_nome}\n"
+                f"Nome: {partner_name}\n"
                 f"Comissão: {gym_commission_pct()}%\n"
-                f"Checkout (fase B): {partner_checkout_path(partner_code)}\n"
+                f"Checkout: {partner_checkout_path(partner_code)}\n"
             ),
             html_body=(
-                f"<p>Parceria academia <b>{verb}</b> via mirror ShapeScan.</p>"
+                f"<p>Parceiro <b>{verb}</b> via mirror ShapeScan.</p>"
                 f"<ul>"
                 f"<li>Código: <b>{partner_code}</b></li>"
-                f"<li>Nome: {academia_nome}</li>"
+                f"<li>Nome: {partner_name}</li>"
                 f"<li>Comissão: {gym_commission_pct()}%</li>"
                 f"</ul>"
             ),
@@ -99,9 +99,12 @@ def upsert_from_shapescan_payload(body: dict[str, Any]) -> tuple[dict[str, Any] 
         if len(cnpj) < 11:
             return None, "cnpj inválido."
 
-    academia_nome = _str(body.get("academia_nome") or body.get("name"))
-    if not academia_nome:
-        return None, "academia_nome obrigatório."
+    # Nome genérico: partner_name | name | academia_nome (legado ShapeScan)
+    partner_name = _str(
+        body.get("partner_name") or body.get("name") or body.get("academia_nome")
+    )
+    if not partner_name:
+        return None, "partner_name (ou name) obrigatório."
 
     login_email = _str(body.get("login_email") or body.get("email_oficial")).lower()
     commission = body.get("commission_pct")
@@ -119,7 +122,7 @@ def upsert_from_shapescan_payload(body: dict[str, Any]) -> tuple[dict[str, Any] 
     pitch = _str(body.get("pitch"), PITCH_DEFAULT)
 
     row = {
-        "name": academia_nome,
+        "name": partner_name,
         "partner_code": partner_code,
         "active": True,
         "cnpj": cnpj or None,
@@ -203,15 +206,15 @@ def upsert_from_shapescan_payload(body: dict[str, Any]) -> tuple[dict[str, Any] 
         "source=shapescan mirror",
     ]
     manual_todo = [
-        "Criar/ligar Stripe Connect account_id na academia (EGO)",
-        "Confirmar checkout g.html?c=CODE (fase B)",
+        "Criar/ligar Stripe Connect account_id no parceiro (EGO)",
+        "Confirmar checkout g.html?c=CODE",
     ]
 
     try:
         supabase.table(PARTNER_APPLICATIONS_TABLE).insert(
             {
                 "login_email": login_email or _str(body.get("email_oficial")).lower() or "unknown",
-                "academia_nome": academia_nome,
+                "academia_nome": partner_name,
                 "razao_social": _str(body.get("razao_social")),
                 "cnpj": cnpj or "",
                 "endereco": _str(body.get("endereco")),
@@ -234,20 +237,21 @@ def upsert_from_shapescan_payload(body: dict[str, Any]) -> tuple[dict[str, Any] 
     except Exception as exc:
         _LOG.warning("partner_applications insert (non-fatal): %s", exc)
 
-    _notify_admin(partner_code, academia_nome, created)
+    _notify_admin(partner_code, partner_name, created)
 
     return {
         "ok": True,
         "created": created,
         "partner_id": partner_id,
         "partner_code": partner_code,
-        "academia_nome": academia_nome,
+        "partner_name": partner_name,
+        "academia_nome": partner_name,  # legado ShapeScan
         "commission_pct": commission_pct,
         "checkout_url": partner_checkout_path(partner_code),
         "manual_todo": manual_todo,
         "message": (
-            "Academia espelhada no EGO (corpo+mente · 30%)."
+            "Parceiro espelhado no EGO (≈30%)."
             if created
-            else "Academia actualizada no EGO (idempotente)."
+            else "Parceiro actualizado no EGO (idempotente)."
         ),
     }, None

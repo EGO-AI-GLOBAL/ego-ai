@@ -203,8 +203,8 @@ def _signup_user_id(res: object) -> str:
 
 def _apply_referral_after_signup(user_id: str, referral_code: str) -> str | None:
     """
-    Ordem: academia (gym_code) → influenciador → amigo.
-    Um código academia no QR não misturar com cupom influencer.
+    Ordem: parceiro B2B (gym_code) → influenciador → amigo.
+    Um código de parceiro no QR não misturar com cupom influencer.
     """
     code = (referral_code or "").strip()
     if not user_id or not code:
@@ -227,7 +227,7 @@ def _apply_referral_after_signup(user_id: str, referral_code: str) -> str | None
     admin = get_admin_client() or svc
     gym_sb = gym_admin_client() or svc
 
-    # 1) Academia parceira → canal Stripe Connect (sem IAP)
+    # 1) Parceiro B2B → canal Stripe Connect (sem IAP)
     try:
         if lookup_gym_partner(gym_sb, code):
             _partner, err = set_profile_gym_code(gym_sb, user_id, code)

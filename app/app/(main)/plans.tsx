@@ -104,12 +104,12 @@ export default function PlansScreen() {
   const onGymStripeSubscribe = async () => {
     if (!gymCode?.trim()) return;
     const url = gymCheckoutPageUrl(gymCode);
-    const gymName = partner?.name || "sua academia";
+    const gymName = partner?.name || "teu parceiro";
     setOpeningKey("gym-stripe");
     try {
       Alert.alert(
         "EGO Premium",
-        `Canal academia: só Stripe Connect (sem loja).\n\nSó EGO Premium nesta cobrança — Shape30 é noutro checkout no ShapeScan se quiseres.\n\nA ${gymName} recebe ≈30% desta assinatura EGO.\n\nAbrir checkout?`,
+        `Canal parceiro: só Stripe Connect (sem loja).\n\nSó EGO Premium nesta cobrança — outros produtos do parceiro são checkouts à parte se quiseres.\n\n${gymName} recebe ≈30% desta assinatura EGO.\n\nAbrir checkout?`,
         [
           { text: "Cancelar", style: "cancel", onPress: () => setOpeningKey(null) },
           {
@@ -266,7 +266,7 @@ export default function PlansScreen() {
         }}
         isCurrent={isPaid}
         highlighted
-        badgeLabel={isPaid ? "Seu plano" : "Academia"}
+        badgeLabel={isPaid ? "Seu plano" : "Parceiro"}
         checkoutUrl={null}
         onSubscribe={() => {}}
         purchaseViaIap
@@ -276,14 +276,14 @@ export default function PlansScreen() {
         }}
         busy={openingKey === key}
         priceOverride={formatMonthlyPrice(49.9)}
-        priceNote="Canal academia · só Stripe Connect · 30% · (Shape30 = outro app)"
+        priceNote="Canal parceiro · só Stripe Connect · 30%"
         subscribeLabel={isPaid ? "Plano atual" : "Assinar EGO Premium →"}
         footnote={
           isPaid
-            ? "EGO Premium activo · Stripe Connect (academia)"
+            ? "EGO Premium activo · Stripe Connect (parceiro)"
             : partner?.name
-              ? `${partner.name}: sem IAP/lojas nesta conta. Podes assinar Shape30 no ShapeScan à parte.`
-              : "Canal academia = Stripe só. Sem App Store / Play nesta conta."
+              ? `${partner.name}: sem IAP/lojas nesta conta. Outros produtos do parceiro pagam-se à parte.`
+              : "Canal parceiro = Stripe só. Sem App Store / Play nesta conta."
         }
       />
     );
@@ -294,7 +294,7 @@ export default function PlansScreen() {
       title="EGO Premium"
       subtitle={
         usesGymStripe
-          ? `Stripe academia${partner?.name ? ` · ${partner.name}` : ""}`
+          ? `Stripe parceiro${partner?.name ? ` · ${partner.name}` : ""}`
           : showIap
             ? `Assinatura mensal · ${storeName}`
             : "3 dias grátis · depois R$ 49,90/mês"
@@ -340,12 +340,12 @@ export default function PlansScreen() {
               <Text style={[styles.currentHint, { color: colors.textMuted }]}>
                 {isPaid
                   ? usesGymStripe
-                    ? "Assinatura activa · Stripe (academia)"
+                    ? "Assinatura activa · Stripe (parceiro)"
                     : showIap
                       ? `Assinatura activa · ${storeName}`
                       : "Assinatura activa · Stripe"
                   : usesGymStripe
-                    ? "Com código de academia: Premium só via Stripe Connect (30% academia)."
+                    ? "Com código de parceiro: Premium só via Stripe Connect (≈30% ao parceiro)."
                     : "Depois do teste, assine o EGO Premium para continuar."}
               </Text>
               {!isPaid ? (
@@ -358,10 +358,10 @@ export default function PlansScreen() {
             {usesGymStripe ? (
               <>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                  Plano academia
+                  Plano parceiro
                 </Text>
                 <Text style={[styles.sectionHint, { color: colors.textMuted }]}>
-                  Conta ligada a academia — pagamento só no Stripe Connect. IAP da{" "}
+                  Conta ligada a parceiro — pagamento só no Stripe Connect. IAP da{" "}
                   {storeName} está escondido nesta conta.
                 </Text>
                 {renderPremiumGymStripe()}

@@ -1,4 +1,8 @@
-"""Academias parceiras (gym) — separado de referral_partners (influencers)."""
+"""Parceiros B2B (canal Connect) — separado de referral_partners (influencers).
+
+Tabela/API interna ainda usa gym_* por compatibilidade; produto = parceiro genérico
+(academia, clínica, médico, empresa, etc.).
+"""
 
 from __future__ import annotations
 
@@ -61,7 +65,7 @@ def lookup_gym_partner(supabase: Client, code: str) -> dict | None:
 
 
 def partner_checkout_path(code: str) -> str:
-    """URL pública checkout academia (g.html → /checkout/gym/)."""
+    """URL pública checkout parceiro (g.html → /checkout/gym/)."""
     base = (
         os.getenv("EGO_SITE_URL")
         or os.getenv("EXPO_PUBLIC_WEBSITE_URL")
@@ -120,10 +124,10 @@ def set_profile_gym_code(
     """
     code = normalize_partner_code(raw_code)
     if not is_valid_partner_code(code):
-        return None, "Código de academia inválido."
+        return None, "Código de parceiro inválido."
     partner = lookup_gym_partner(supabase, code)
     if not partner:
-        return None, "Academia não encontrada ou inativa."
+        return None, "Parceiro não encontrado ou inativo."
 
     from ego_api import db as ego_db
 
@@ -131,7 +135,7 @@ def set_profile_gym_code(
     existing = normalize_partner_code(str(prof.get("gym_code") or ""))
     if existing and existing != code:
         return None, (
-            "Já tens academia vinculada. O vínculo é permanente enquanto a conta existir."
+            "Já tens um parceiro vinculado. O vínculo é permanente enquanto a conta existir."
         )
     try:
         supabase.table(ego_db.SUPABASE_PROFILES_TABLE).update(

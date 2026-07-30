@@ -31,7 +31,7 @@ import { savePostLoginRoute } from "@/storage/postLoginRoute";
 
 export default function SignupScreen() {
   const colors = useColors();
-  const params = useLocalSearchParams<{ ref?: string; gym?: string; next?: string }>();
+  const params = useLocalSearchParams<{ ref?: string; gym?: string; partner?: string; next?: string }>();
   const { session, loading, signUp } = useAuth();
   const { bottomInset } = useKeyboardHeight();
   const [firstName, setFirstName] = useState("");
@@ -44,21 +44,23 @@ export default function SignupScreen() {
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [referralCode, setReferralCode] = useState("");
   const [referralHint, setReferralHint] = useState<string | null>(null);
-  const [codeKind, setCodeKind] = useState<"gym" | "partner" | "friend" | null>(null);
+  const [codeKind, setCodeKind] = useState<"partner" | "influencer" | "friend" | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
+    const partnerRaw = params.partner;
     const gymRaw = params.gym;
     const refRaw = params.ref;
+    const fromPartner = (Array.isArray(partnerRaw) ? partnerRaw[0] : partnerRaw) || "";
     const fromGym = (Array.isArray(gymRaw) ? gymRaw[0] : gymRaw) || "";
     const fromRef = (Array.isArray(refRaw) ? refRaw[0] : refRaw) || "";
-    const fromLink = (fromGym || fromRef).trim();
+    const fromLink = (fromPartner || fromGym || fromRef).trim();
     if (fromLink) {
       setReferralCode(fromLink.toUpperCase());
     }
-  }, [params.gym, params.ref]);
+  }, [params.partner, params.gym, params.ref]);
 
   useEffect(() => {
     const raw = params.next;
@@ -83,12 +85,13 @@ export default function SignupScreen() {
             setReferralHint("Código não encontrado. Confira e tente de novo.");
             return;
           }
-          if (r.kind === "gym") {
-            setCodeKind("gym");
+          // B2B Connect (clínica, academia, empresa…) — API kind "partner" ou legado "gym"
+          if (r.kind === "partner" || r.kind === "gym") {
+            setCodeKind("partner");
             setReferralHint(
               r.display_name
-                ? `Academia ${r.display_name} — Premium via Stripe (sem loja).`
-                : "Academia vinculada — Premium via Stripe (sem loja)."
+                ? `Parceiro ${r.display_name} — Premium via Stripe (sem loja).`
+                : "Parceiro vinculado — Premium via Stripe (sem loja)."
             );
             return;
           }
@@ -97,7 +100,8 @@ export default function SignupScreen() {
             setReferralHint("Indicação de amigo — benefícios após o 1º Premium.");
             return;
           }
-          setCodeKind("partner");
+          // Influenciador (kind "influencer" ou legado sem kind)
+          setCodeKind("influencer");
           if (r.display_name) {
             setReferralHint(`Cupom válido — ${r.display_name}. 10% de desconto na 1ª compra.`);
           } else {
@@ -282,8 +286,8 @@ export default function SignupScreen() {
                 </Text>
               ) : (
                 <Text style={[styles.referralHint, { color: colors.textMuted }]}>
-                  Opcional. Academia, influenciadora ou amigo — o código define o canal
-                  {codeKind === "gym" ? " Stripe" : ""}.
+                  Opcional. Parceiro, influenciadora ou amigo — o código define o canal
+                  {codeKind === "partner" ? " Stripe" : ""}.
                 </Text>
               )}
             </View>

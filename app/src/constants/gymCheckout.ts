@@ -1,4 +1,4 @@
-/** Checkout academia → site g.html?c=CODE → API /checkout/gym/ (Connect 30%). */
+/** Checkout parceiro → site g.html?c=CODE → API /checkout/gym/ (Connect ≈30%). */
 
 const SITE =
   (typeof process !== "undefined" && process.env?.EXPO_PUBLIC_WEBSITE_URL?.trim()) ||

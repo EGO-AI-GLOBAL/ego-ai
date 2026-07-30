@@ -115,7 +115,7 @@ def find_user_id_by_friend_code(supabase: Client, code: str) -> str | None:
 
 
 def validate_friend_or_partner_code(code: str) -> tuple[dict | None, str | None]:
-    """Academia (gym) → influenciador → código pessoal de amigo."""
+    """Parceiro B2B (canal Connect) → influenciador → código pessoal de amigo."""
     from ego_api.gym_partners import (
         get_admin_client as gym_admin_client,
         lookup_gym_partner,
@@ -123,7 +123,7 @@ def validate_friend_or_partner_code(code: str) -> tuple[dict | None, str | None]
     )
     from ego_api.supabase_client import create_service_client
 
-    # 1) Academia parceira (canal Stripe Connect)
+    # 1) Parceiro B2B (academia/clínica/empresa/…) → Stripe Connect
     gym_code = normalize_partner_code(code)
     if gym_code:
         try:
@@ -132,7 +132,7 @@ def validate_friend_or_partner_code(code: str) -> tuple[dict | None, str | None]
                 gym = lookup_gym_partner(gym_sb, gym_code)
                 if gym:
                     return {
-                        "kind": "gym",
+                        "kind": "partner",
                         "code": gym.get("partner_code") or gym_code,
                         "display_name": gym.get("name") or gym_code,
                     }, None
@@ -143,7 +143,7 @@ def validate_friend_or_partner_code(code: str) -> tuple[dict | None, str | None]
     partner, err = validate_partner_code(code)
     if partner:
         return {
-            "kind": "partner",
+            "kind": "influencer",
             "code": partner["code"],
             "display_name": partner.get("display_name") or partner["code"],
         }, None

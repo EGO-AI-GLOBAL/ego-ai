@@ -1,6 +1,6 @@
-EGO — PARCERIA ACADEMIAS · PACOTES 1 + 2 (mínimo)
-================================================
-2026-07-29 · Sem build de loja
+EGO — PARCERIA (PARCEIROS GENÉRICOS) · PACOTES 1 + 2
+====================================================
+2026-07-30 · Parceiro = clínica, médico, academia, empresa… mesmo modelo
 
 1.º PRONTO — mirror API
 -----------------------

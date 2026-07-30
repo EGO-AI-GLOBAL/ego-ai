@@ -1,4 +1,4 @@
-"""Checkout Stripe Connect — aluno com gym_code (academia ~30%, EGO ~70%)."""
+"""Checkout Stripe Connect — perfil com partner/gym_code (~30% parceiro, ~70% EGO)."""
 
 from __future__ import annotations
 
@@ -40,8 +40,8 @@ def _premium_price_id() -> str:
 
 def create_gym_checkout(code: str) -> tuple[dict[str, Any] | None, str | None]:
     """
-    Session Checkout assinatura Premium com transfer_data → academia.
-    application_fee_percent = 100 - commission_pct (default academia 30% → fee 70%).
+    Session Checkout assinatura Premium com transfer_data → parceiro.
+    application_fee_percent = 100 - commission_pct (default parceiro 30% → fee 70%).
     """
     norm = normalize_partner_code(code)
     sb = get_admin_client()
@@ -49,12 +49,12 @@ def create_gym_checkout(code: str) -> tuple[dict[str, Any] | None, str | None]:
         return None, "Supabase não configurado."
     row = lookup_gym_partner(sb, norm)
     if not row:
-        return None, "Academia não encontrada ou inativa."
+        return None, "Parceiro não encontrado ou inativo."
 
     acct = resolve_connect_account_id(row)
     if not acct:
         return None, (
-            "Academia sem Stripe Connect ainda. "
+            "Parceiro sem Stripe Connect ainda. "
             "Define stripe_connect_account_id ou EGO_PARTNERS_JSON."
         )
 
