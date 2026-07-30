@@ -1,14 +1,17 @@
 SYNC MESTRE — 1.0.107
 =====================
-Versão: **1.0.107** · canal Parceiro (genérico) + Stripe Connect
-Motivo: nomenclatura Parceiro (clínica/médico/empresa/academia); QR /go?partner=; paywall Connect
+Versão: **1.0.107** · commit `c2374d7`
+Motivo: canal Parceiro genérico + Stripe Connect; QR /go?partner=
 
-| Agente | Estado |
-|--------|--------|
-| MONSTRINHOS | ✅ PRONTO (build) |
-| BOLSO | ✅ PRONTO (sem alteração) |
-| API | ✅ PRONTO (parceiros genérico) |
-| MARKETING | ✅ PRONTO (docs parceiro) |
+| Plataforma | Build ID | Estado |
+|------------|----------|--------|
+| Android production AAB | `dcf7db22-c7ab-433c-a5eb-75087bbb7da3` | ✅ FINISHED · versionCode **164** |
+| iOS production | `eae33c1e-f10e-4a15-ba67-eb2a9737b76e` | ✅ FINISHED · build **112** |
+| iOS TestFlight submit | `5d100c86-e7ce-473d-bd41-70cc7c3f112e` | ✅ Submitted ASC |
 
-Sem EGO_MAINTENANCE=1.
-Build: GERAR-1.0.107.bat → AGUARDAR-E-SUBMETER-1.0.107.bat
+AAB local: `%USERPROFILE%\Desktop\EGO-AAB-PLAY\EGO-AI-1.0.107-vc164.aab`
+
+TestFlight: https://appstoreconnect.apple.com/apps/6780595396/testflight/ios
+Android Expo: https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/dcf7db22-c7ab-433c-a5eb-75087bbb7da3
+
+Sem EGO_MAINTENANCE=1. Android = upload manual Play.

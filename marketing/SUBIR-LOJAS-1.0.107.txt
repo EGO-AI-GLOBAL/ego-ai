@@ -1,0 +1,20 @@
+SUBIR 1.0.107 — Parceiro genérico + Connect
+==========================================
+30/07/2026 · commit c2374d7
+
+Builds EAS (produção):
+- iOS:     https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/eae33c1e-f10e-4a15-ba67-eb2a9737b76e
+- Android: https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/dcf7db22-c7ab-433c-a5eb-75087bbb7da3
+
+Versão: 1.0.107 · iOS build 112 · Android versionCode 164
+
+iOS → TestFlight automático quando FINISHED.
+Android → AAB manual na Play (não eas submit).
+
+Notas loja (colar):
+• Canal Parceiro (clínica, médico, empresa, academia…) via Stripe Connect
+• Conta: vincular código do parceiro
+• QR /go?partner=CODIGO
+• Melhorias de estabilidade
+
+Curta: 1.0.107 — canal Parceiro + Stripe Connect.
