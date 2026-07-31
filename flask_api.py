@@ -1074,7 +1074,7 @@ def download_go_page():
     from ego_api.download_go import render_go_page
 
     ref = str(request.args.get("ref") or "")
-  gym = str(
+    gym = str(
         request.args.get("partner")
         or request.args.get("gym")
         or request.args.get("c")
