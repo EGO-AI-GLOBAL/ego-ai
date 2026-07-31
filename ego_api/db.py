@@ -711,7 +711,7 @@ def _parse_ts_iso(value: str | None) -> datetime.datetime | None:
 # Freemium: essential pós-trial continua com texto (limite diário); voz/TTS exigem Premium.
 FREEMIUM_ACCESS_STATUS = "Essencial (texto + anúncios)"
 FREEMIUM_VOICE_TTS_MESSAGE = (
-    "No plano grátis o chat por texto continua (até 10 mensagens/dia). "
+    "No plano grátis o chat por texto continua (até 5 mensagens/dia). "
     "Voz e respostas em áudio são do Premium — assine para liberar."
 )
 

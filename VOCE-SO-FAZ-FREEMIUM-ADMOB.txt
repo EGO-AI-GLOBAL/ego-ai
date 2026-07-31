@@ -4,7 +4,7 @@ Atualizado: 27/07/2026
 
 JÁ FEITO NO CÓDIGO (automático — não precisas repetir)
 -----------------------------------------------------
-[x] Backend Flask: Essential pós-trial → texto 10/dia; voz/TTS bloqueados
+[x] Backend Flask: Essential pós-trial → texto 5/dia; voz/TTS bloqueados
 [x] AccessInfo: show_ads + essential_post_trial
 [x] App: FreeFooterBanner (AdMob fill → senão cross-promo ShapeScan; Premium zero)
 [x] Plugin Expo react-native-google-mobile-ads
@@ -51,7 +51,7 @@ PASSO 5 — Verificar
 - Conta grátis: banner acima do microfone
 - Conta Premium: sem banner
 - Voz no freemium pós-trial: mensagem a pedir Premium
-- Texto freemium: até 10/dia
+- Texto freemium: até 5/dia
 
 LINKS RÁPIDOS
 -------------

@@ -16,7 +16,7 @@ O EGO Essencial é a porta de entrada para o seu assistente pessoal com intelig�
 
 **Bullets:**
 - 2 assistentes (Luna e Leo)
-- 10 mensagens de texto por dia
+- 5 mensagens de texto por dia
 - 3 mensagens de voz por dia
 - Até 3 hábitos e 3 lembretes na agenda pessoal
 - 200 mil tokens por mês
