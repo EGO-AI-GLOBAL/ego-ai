@@ -695,7 +695,7 @@ function ChatScreenInner() {
       Alert.alert(
         "Voz no Premium",
         allowsInAppPlanPurchase()
-          ? "No plano grátis o chat por texto continua (até 5 msgs/dia). Voz e áudio são do Premium — assine para liberar."
+          ? "No plano grátis o chat por texto continua (até 10 msgs/dia). Voz e áudio são do Premium — assine para liberar."
           : "No plano grátis o chat por texto continua. Voz e áudio pedem um plano pago.",
         [
           { text: "Agora não", style: "cancel" },
@@ -812,7 +812,7 @@ function ChatScreenInner() {
       Alert.alert(
         "Voz no Premium",
         allowsInAppPlanPurchase()
-          ? "No plano grátis o chat por texto continua (até 5 msgs/dia). Voz e áudio são do Premium — assine para liberar."
+          ? "No plano grátis o chat por texto continua (até 10 msgs/dia). Voz e áudio são do Premium — assine para liberar."
           : "No plano grátis o chat por texto continua. Voz e áudio pedem um plano pago.",
         [
           { text: "Agora não", style: "cancel" },

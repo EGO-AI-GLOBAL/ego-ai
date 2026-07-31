@@ -24,7 +24,7 @@ Quando a cabeça não desliga — escola, mercado, consultas, mensagens — voc�
 
 O EGO-AI é um assistente pessoal de produtividade e organização. Converse por texto ou áudio: você desabafa, a Luna ou o Leo ajudam a organizar o dia seguinte. Na agenda, basta confirmar.
 
-O app é grátis para começar. Nos primeiros dias você experimenta com mais liberdade. Depois, o plano Essential continua grátis: chat por texto (até 5 mensagens por dia), com anúncios. Voz e áudio do avatar ficam no EGO Premium (assinatura no app).
+O app é grátis para começar. Nos primeiros dias você experimenta com mais liberdade. Depois, o plano Essential continua grátis: chat por texto (até 10 mensagens por dia), com anúncios. Voz e áudio do avatar ficam no EGO Premium (assinatura no app).
 
 Indique um amigo: no app, abra Conta e toque em Indique um amigo. Se o amigo pagar o EGO Premium, quem indicou ganha 1 mês grátis.
 
@@ -49,7 +49,7 @@ Termos de uso (EULA): https://egoai.com.br/termos/
 
 ```
 • App grátis com compras no app (Essential + Premium)
-• Depois do teste: texto continua (5 msgs/dia) com anúncios
+• Depois do teste: texto continua (10 msgs/dia) com anúncios
 • Voz e áudio do avatar no EGO Premium
 • Indique um amigo: se ele pagar, você ganha 1 mês
 • Melhorias de estabilidade

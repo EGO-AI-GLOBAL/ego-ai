@@ -100,7 +100,7 @@ def _limits_for_tier(tier: str) -> PlanLimits:
     defaults: dict[str, PlanLimits] = {
         PLAN_ESSENTIAL: PlanLimits(
             monthly_tokens=200_000,
-            daily_text_messages=5,
+            daily_text_messages=10,
             daily_voice_messages=3,
             daily_tts_replies=5,
             max_agenda_items=0,
