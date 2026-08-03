@@ -1152,12 +1152,19 @@ export type GymPartnerPublic = {
 
 export async function fetchMyGymPartner(): Promise<{
   gym_code: string | null;
+  partner_coupon_code: string | null;
   partner: GymPartnerPublic | null;
 }> {
   const { data } = await api.get("me/gym-partner", { timeout: TIMEOUT_DEFAULT_MS });
-  const body = unwrap<{ gym_code?: string | null; partner?: GymPartnerPublic | null }>(data);
+  const body = unwrap<{
+    gym_code?: string | null;
+    partner_coupon_code?: string | null;
+    partner?: GymPartnerPublic | null;
+  }>(data);
+  const code = body.partner_coupon_code ?? body.gym_code ?? null;
   return {
-    gym_code: body.gym_code ?? null,
+    gym_code: code,
+    partner_coupon_code: code,
     partner: body.partner ?? null,
   };
 }
@@ -1165,11 +1172,40 @@ export async function fetchMyGymPartner(): Promise<{
 export async function saveMyGymCode(gymCode: string): Promise<GymPartnerPublic | null> {
   const { data } = await api.put(
     "me/gym-code",
-    { gym_code: gymCode.trim() },
+    { partner_coupon_code: gymCode.trim(), gym_code: gymCode.trim() },
     { timeout: TIMEOUT_DEFAULT_MS }
   );
   const body = unwrap<{ partner?: GymPartnerPublic | null }>(data);
   return body.partner ?? null;
+}
+
+/** Checkout Stripe Connect (30% parceiro) — só se o perfil tiver partner_coupon_code. */
+export async function createPartnerPremiumCheckout(): Promise<{
+  url: string;
+  partner_code?: string;
+  partner_share_brl?: number;
+  platform_share_brl?: number;
+}> {
+  const { data } = await api.post(
+    "checkout/partner-premium",
+    {},
+    { timeout: TIMEOUT_DEFAULT_MS }
+  );
+  const body = unwrap<{
+    url?: string;
+    partner_code?: string;
+    partner_share_brl?: number;
+    platform_share_brl?: number;
+  }>(data);
+  if (!body.url) {
+    throw new Error("Checkout parceiro indisponível.");
+  }
+  return {
+    url: body.url,
+    partner_code: body.partner_code,
+    partner_share_brl: body.partner_share_brl,
+    platform_share_brl: body.platform_share_brl,
+  };
 }
 
 export async function sendChatMessage(

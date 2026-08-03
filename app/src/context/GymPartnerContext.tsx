@@ -46,7 +46,7 @@ export function GymPartnerProvider({ children }: { children: ReactNode }) {
     try {
       const row = await fetchMyGymPartner();
       setPartner(row.partner);
-      setGymCode(row.gym_code);
+      setGymCode(row.partner_coupon_code || row.gym_code);
       if (row.gym_code) await AsyncStorage.setItem(GYM_CODE_KEY, row.gym_code);
       else await AsyncStorage.removeItem(GYM_CODE_KEY);
     } catch {

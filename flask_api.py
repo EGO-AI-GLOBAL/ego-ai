@@ -438,7 +438,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-07-31-freemium-5msgs-ads",
+        "api_build": "2026-08-03-partner-coupon-connect-30-70",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -1188,37 +1188,74 @@ def me():
 
 
 @app.get("/api/v1/me/gym-partner")
+@app.get("/api/v1/me/partner")
 @require_auth
 def me_gym_partner():
     from ego_api.gym_partners import get_admin_client, get_profile_gym_partner
 
     sb = get_admin_client() or g.supabase
     code, partner = get_profile_gym_partner(sb, g.user_id)
-    return _json_ok({"gym_code": code, "partner": partner})
+    return _json_ok(
+        {
+            "gym_code": code,
+            "partner_coupon_code": code,
+            "partner": partner,
+        }
+    )
 
 
 @app.put("/api/v1/me/gym-code")
+@app.put("/api/v1/me/partner-code")
 @require_auth
 @rate_limit(10, 60, scope="user")
 def me_gym_code_put():
     from ego_api.gym_partners import get_admin_client, set_profile_gym_code
 
     data = request.get_json(silent=True) or {}
-    raw = str(data.get("gym_code") or data.get("code") or "")
+    raw = str(
+        data.get("partner_coupon_code")
+        or data.get("gym_code")
+        or data.get("code")
+        or ""
+    )
     sb = get_admin_client() or g.supabase
     partner, err = set_profile_gym_code(sb, g.user_id, raw)
     if err:
         return _json_error(err, 400)
-    return _json_ok({"partner": partner, "gym_code": (partner or {}).get("partner_code")})
+    code = (partner or {}).get("partner_code")
+    return _json_ok(
+        {
+            "partner": partner,
+            "gym_code": code,
+            "partner_coupon_code": code,
+        }
+    )
 
 
 @app.get("/api/v1/checkout/gym/<code>")
+@app.get("/api/v1/checkout/partner/<code>")
 @rate_limit(30, 60, scope="ip")
 def checkout_gym(code: str):
-    """Stripe Connect checkout para aluno de academia (30% academia)."""
+    """Stripe Connect checkout Premium (30% parceiro / 70% EGO)."""
     from ego_api.partner_checkout import create_gym_checkout
 
     payload, err = create_gym_checkout(code)
+    if err:
+        return _json_error(err, 400)
+    return _json_ok(payload)
+
+
+@app.post("/api/v1/checkout/partner-premium")
+@require_auth
+@rate_limit(12, 60, scope="user")
+def checkout_partner_premium():
+    """
+    Gera Checkout Connect a partir do partner_coupon_code do perfil.
+    Orgânico (sem código) → 400 (deve usar IAP).
+    """
+    from ego_api.partner_checkout import create_checkout_for_user
+
+    payload, err = create_checkout_for_user(g.user_id)
     if err:
         return _json_error(err, 400)
     return _json_ok(payload)

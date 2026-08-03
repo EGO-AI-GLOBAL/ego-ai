@@ -1,0 +1,33 @@
+EGO — PARCEIRO B2B · SPLIT 30/70 (Premium Voz R$ 49,90)
+=======================================================
+2026-08-03
+
+Parceiro = academia, clínica, consultório, médico, empresa… (mesmo modelo).
+
+FLUXOS
+------
+Orgânico (sem código)     → IAP App Store / Play (sem Connect)
+Com partner_coupon_code   → Stripe Checkout Connect destination
+
+SPLIT (recorrente mensal)
+-------------------------
+Bruto R$ 49,90
+Parceiro ≈ R$ 14,97 (30%)  → conta Connect acct_…
+EGO      ≈ R$ 34,93 (70%)  → application_fee_percent
+
+Implementação Stripe: subscription_data.transfer_data.destination +
+application_fee_percent=70. NÃO criar Transfer manual no webhook.
+
+QR / PLAQUINHA
+--------------
+https://egoai.com.br/go?partner=GYM_MURIAE_01
+https://egoai.com.br/go?ref=GYM_MURIAE_01   (se o código existir em gym_partners)
+Cadastro grava profiles.partner_coupon_code (+ gym_code legado)
+
+OPS
+---
+1) SQL: supabase/COLE-GYM-PARTNERS-SHAPESCAN-MIRROR.sql
+2) SQL: supabase/COLE-PARTNER-COUPON-LEDGER.sql
+3) Railway: STRIPE_GYM_PREMIUM_PRICE_ID, EGO_GYM_COMMISSION_PCT=30,
+   EGO_PARTNERS_JSON ou stripe_connect_account_id na linha do parceiro
+4) Redeploy API (api_build partner-coupon-connect-30-70)

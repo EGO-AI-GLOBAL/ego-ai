@@ -106,6 +106,7 @@ export type MeData = {
   access: { allowed: boolean; status: string };
   stripe_checkout: StripeCheckoutLinks;
   gym_code?: string | null;
+  partner_coupon_code?: string | null;
   gym_partner?: {
     partner_code?: string;
     name?: string;

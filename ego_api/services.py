@@ -2207,6 +2207,7 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
         "access": {"allowed": ok_access, "status": status},
         "stripe_checkout": _stripe_checkout_payload(user_id),
         "gym_code": None,
+        "partner_coupon_code": None,
         "gym_partner": None,
         "must_change_password": bool(prof.get("must_change_password")),
     }
@@ -2215,6 +2216,7 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
 
         code, partner = get_profile_gym_partner(supabase, user_id)
         payload["gym_code"] = code
+        payload["partner_coupon_code"] = code
         payload["gym_partner"] = partner
     except Exception as exc:
         print(f"[EGO] me gym_partner: {exc}", flush=True)

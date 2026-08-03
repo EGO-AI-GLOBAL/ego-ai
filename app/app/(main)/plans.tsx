@@ -11,7 +11,7 @@ import {
   Text,
   View,
 } from "react-native";
-import { fetchPlansCatalog } from "@/api/client";
+import { createPartnerPremiumCheckout, fetchPlansCatalog } from "@/api/client";
 import type { PlanCatalogItem, PlanTier } from "@/api/types";
 import { PlanCard } from "@/components/PlanCard";
 import { ScreenShell } from "@/components/ScreenShell";
@@ -103,19 +103,25 @@ export default function PlansScreen() {
 
   const onGymStripeSubscribe = async () => {
     if (!gymCode?.trim()) return;
-    const url = gymCheckoutPageUrl(gymCode);
     const gymName = partner?.name || "teu parceiro";
     setOpeningKey("gym-stripe");
     try {
       Alert.alert(
         "EGO Premium",
-        `Canal parceiro: só Stripe Connect (sem loja).\n\nSó EGO Premium nesta cobrança — outros produtos do parceiro são checkouts à parte se quiseres.\n\n${gymName} recebe ≈30% desta assinatura EGO.\n\nAbrir checkout?`,
+        `Canal parceiro: só Stripe Connect (sem loja).\n\nPremium Voz R$ 49,90/mês.\n≈30% (${gymName}) · ≈70% EGO — split automático no Stripe.\n\nAbrir checkout?`,
         [
           { text: "Cancelar", style: "cancel", onPress: () => setOpeningKey(null) },
           {
             text: "Pagar no Stripe",
             onPress: async () => {
               try {
+                let url = "";
+                try {
+                  const session = await createPartnerPremiumCheckout();
+                  url = session.url;
+                } catch {
+                  url = gymCheckoutPageUrl(gymCode);
+                }
                 await Linking.openURL(url);
                 Alert.alert(
                   "Pagamento",

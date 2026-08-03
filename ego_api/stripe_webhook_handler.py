@@ -217,6 +217,15 @@ def _process_stripe_event(event: dict) -> dict:
             "referral": referral_result,
             "friend_referral_reward": friend_reward,
         }
+        if event_type == "invoice.paid":
+            try:
+                from ego_api.partner_revenue import record_partner_split_from_invoice
+
+                out_fin["partner_split"] = record_partner_split_from_invoice(
+                    obj, stripe_event_id=str(event.get("id") or "")
+                )
+            except Exception as exc:  # noqa: BLE001
+                out_fin["partner_split"] = {"recorded": False, "error": str(exc)[:200]}
         if event_type == "charge.refunded":
             return out_fin
         if event_type == "invoice.paid":
