@@ -1,0 +1,14 @@
+# Railway EGO — parceiro B2B Connect 30/70 (colar Variables se faltar)
+# Após push main (1b91c9a) o Railway redeploya sozinho.
+# Confirmar: GET /api/v1/health → api_build contém partner-coupon-connect-30-70
+
+EGO_GYM_COMMISSION_PCT=30
+# STRIPE_GYM_PREMIUM_PRICE_ID=price_...   (Price ID da assinatura Premium R$ 49,90)
+# EGO_PARTNER_MIRROR_KEY=...             (igual ao ShapeScan, se usares mirror)
+# EGO_PARTNERS_JSON={"gyms":{"GYM_MURIAE_01":{"name":"Exemplo","stripe_account":"acct_..."}}}
+
+# Lojas (QR /go)
+EGO_PLAY_STORE_URL=https://play.google.com/store/apps/details?id=com.egoai.app
+EGO_TESTFLIGHT_URL=https://apps.apple.com/app/id6780595396
+
+# NÃO ligar EGO_MAINTENANCE=1
