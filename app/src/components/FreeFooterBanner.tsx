@@ -14,11 +14,11 @@ type Props = {
 type FooterMode = "pending" | "admob" | "crosspromo";
 
 /**
- * Rodapé ~60px — uma faixa só:
- * 1) Premium / pago → nada
- * 2) Sem IDs AdMob reais (teste Google) → só ShapeScan
- * 3) AdMob real com fill → só anúncio (ShapeScan sai)
- * 4) AdMob real sem fill / erro / web → só ShapeScan
+ * Rodapé ~60px — espelho ShapeScan (2026-08-04):
+ * 1) Premium EGO → sem promo
+ * 2) Free + AdMob com fill → mantém AdMob
+ * 3) Free + AdMob sem fill / erro / web / IDs teste → banner ShapeScan
+ * Nunca empilha AdMob + ShapeScan. Sem IAP ShapeScan.
  */
 export function FreeFooterBanner({ access }: Props) {
   const show = shouldShowChatAds(access);

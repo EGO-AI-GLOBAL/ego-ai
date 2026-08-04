@@ -6,7 +6,10 @@ import type { DailyCareInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
 import { resolveMoodLabel } from "@/constants/moodMonsters";
 import { queueMonsterChatNotice } from "@/utils/monsterChatNotice";
+import { useDashboard } from "@/hooks/useDashboard";
+import { shouldShowChatAds } from "@/utils/shouldShowChatAds";
 import { DailyCareShareModal } from "./DailyCareShareModal";
+import { ShapeScanBodyNudgeCard } from "./ShapeScanBodyNudgeCard";
 import { MoodAdventureBanner } from "./moodMonsters/MoodAdventureBanner";
 import { MoodCrisisBridgeCard } from "./moodMonsters/MoodCrisisBridgeCard";
 import { MoodDailyGoals } from "./moodMonsters/MoodDailyGoals";
@@ -96,9 +99,12 @@ export function DailyCareChallenge({
   const [goalsBurst, setGoalsBurst] = useState(false);
   const [burstCongrats, setBurstCongrats] = useState<string | undefined>();
   const [hoverMood, setHoverMood] = useState<string | undefined>();
+  const [showBodyNudge, setShowBodyNudge] = useState(false);
   const playNonce = useRef(0);
   const pickingMood = useRef(false);
   const recentClips = useRef<MonsterClipAction[]>([]);
+  const { data: dash } = useDashboard();
+  const showCrossPromo = shouldShowChatAds(dash?.access);
 
   const setPreview = (key: string | undefined) => {
     setHoverMood(key);
@@ -135,6 +141,7 @@ export function DailyCareChallenge({
     playUnique(preferredClipForGardenEvent("mood"));
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
     try {
+      const wasFirstToday = !care.checked_today;
       const res = await submitDailyCareCheckin(key);
       if (!res?.daily_care) {
         setCelebrate(false);
@@ -147,9 +154,10 @@ export function DailyCareChallenge({
       onUpdate(res.daily_care, res.wellness_journey);
       setPreview(undefined);
       // Sem Alert no 1º humor — métricas Finch: <2 toques, sem modal.
-      if (!care.checked_today) {
+      if (wasFirstToday) {
         const line = res.daily_care.monster_line?.trim();
         if (line) void queueMonsterChatNotice(line);
+        if (showCrossPromo) setShowBodyNudge(true);
       }
     } finally {
       pickingMood.current = false;
@@ -245,6 +253,13 @@ export function DailyCareChallenge({
     <>
       {/* 1º no scroll sob o pet sticky — define a cor do monstrinho. */}
       {moodCheckIn}
+
+      {showBodyNudge && showCrossPromo ? (
+        <ShapeScanBodyNudgeCard
+          colors={colors}
+          onDismiss={() => setShowBodyNudge(false)}
+        />
+      ) : null}
 
       <View style={[styles.wrap, { borderColor, backgroundColor: colors.bgCard }]}>
         <MoodGoalsCompleteBurst

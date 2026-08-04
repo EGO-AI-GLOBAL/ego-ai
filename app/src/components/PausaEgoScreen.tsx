@@ -1,83 +1,56 @@
 import { router } from "expo-router";
-
-import React from "react";
-
+import React, { useState } from "react";
 import { Linking, Pressable, Share, StyleSheet, Text, View } from "react-native";
-
 import type { PausaEgoInfo } from "@/api/types";
-
 import type { AppColors } from "@/theme/colors";
-
 import {
-
   PausaDailySessionModal,
-
   usePausaSessionLauncher,
-
 } from "@/components/pausa/PausaDailySessionModal";
-
+import { ShapeScanBodyNudgeCard } from "@/components/ShapeScanBodyNudgeCard";
+import { useDashboard } from "@/hooks/useDashboard";
+import { shouldShowChatAds } from "@/utils/shouldShowChatAds";
 import { formatPausaDuration, resolveDailyExercise } from "@/utils/pausaDailyExercise";
 
-
-
 type Props = {
-
   colors: AppColors;
-
   pausa: PausaEgoInfo;
-
   assistantName: string;
-
   onComplete: (kind: string) => void;
-
   onSosTalk?: (draft: string) => void;
-
 };
 
-
-
 export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSosTalk }: Props) {
-
   const daily = resolveDailyExercise(pausa);
-
   const streak = pausa.streak_current ?? 0;
-
   const launcher = usePausaSessionLauncher();
-
   const benefit = pausa.plan_benefit;
-
-
+  const [showBodyNudge, setShowBodyNudge] = useState(false);
+  const { data: dash } = useDashboard();
+  const showCrossPromo = shouldShowChatAds(dash?.access);
 
   const openSos = () => {
-
     onSosTalk?.(
-
       `Estou passando mal agora e preciso de um momento. ${assistantName}, pode me guiar com calma?`
-
     );
-
     launcher.openSos();
-
   };
-
-
 
   const finishSession = (kind: string) => {
-
     launcher.closeSession();
-
     onComplete(kind);
-
+    if (showCrossPromo) setShowBodyNudge(true);
   };
 
-
-
   return (
-
     <>
-
+      {showBodyNudge && showCrossPromo ? (
+        <ShapeScanBodyNudgeCard
+          colors={colors}
+          onDismiss={() => setShowBodyNudge(false)}
+        />
+      ) : null}
       <View style={[styles.hero, { backgroundColor: colors.primaryTint, borderColor: colors.primary }]}>
-
         <Text style={[styles.heroBadge, { color: colors.primary }]}>Calma 1 min 🌬️</Text>
 
         {pausa.moment_key === "late_night" || pausa.moment_key === "evening" ? (

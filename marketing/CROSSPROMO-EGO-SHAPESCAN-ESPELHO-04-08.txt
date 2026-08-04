@@ -1,0 +1,17 @@
+EGO-AI ↔ ShapeScan — CROSS-PROMO ESPELHADO · 04/08/2026
+=======================================================
+
+ShapeScan free já promove EGO (rodapé fallback AdMob + card pós-treino).
+EGO espelha:
+
+1) Premium EGO → sem promo ShapeScan
+2) Free + AdMob com fill → mantém AdMob
+3) Free + AdMob sem fill → banner ShapeScan (FreeFooterBanner)
+4) Após check-in Monstrinhos / sessão PAUSA → card:
+   Título: «Mente ok. E o corpo?»
+   CTA: «Abrir ShapeScan»
+   Android: https://shapescanapp.com.br/baixar-android
+   iOS: https://shapescanapp.com.br/baixar-ios
+
+NÃO misturar IAP ShapeScan no checkout EGO.
+Ficheiros: FreeFooterBanner · ShapeScanCrossPromoBanner · ShapeScanBodyNudgeCard · shapeScanPromo.ts

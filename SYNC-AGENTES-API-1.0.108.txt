@@ -1,0 +1,3 @@
+SYNC API — 1.0.108
+==================
+✅ PRONTO — sem alteração API nesta release
