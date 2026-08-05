@@ -8,6 +8,7 @@ from ego_api import db, gemini
 from ego_api.config import GEMINI_MODEL_FLASH, STRIPE_ANUAL_URL, STRIPE_MENSAL_URL
 from ego_api.plans import (
     PLAN_CONNECTION,
+    PLAN_ENTERPRISE,
     PLAN_ESSENTIAL,
     PLAN_PREMIUM,
     PLAN_TOTAL,
@@ -2205,7 +2206,11 @@ def me_payload(supabase: Client | None, user_id: str) -> dict:
         "persona_configured": configured,
         "persona": {"avatar_id": avatar_id, "voice_id": voice_id},
         "access": {"allowed": ok_access, "status": status},
-        "stripe_checkout": _stripe_checkout_payload(user_id),
+        "stripe_checkout": _bootstrap_section(
+            "stripe_checkout",
+            lambda: _stripe_checkout_payload(user_id),
+            {},
+        ),
         "gym_code": None,
         "partner_coupon_code": None,
         "gym_partner": None,
