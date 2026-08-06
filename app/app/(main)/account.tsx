@@ -131,7 +131,7 @@ export default function AccountScreen() {
           </Pressable>
         ) : null}
 
-        {!loading && !error ? (
+        {!loading || refreshing || error ? (
           <>
             <Text style={[styles.name, { color: colors.text }]}>{name}</Text>
             <Text style={[styles.badge, { color: colors.textMuted }]}>{accessStatus}</Text>

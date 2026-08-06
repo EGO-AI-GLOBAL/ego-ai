@@ -66,7 +66,7 @@ export default function AgendaScreen() {
           <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
         ) : null}
 
-        {!loading && !error ? (
+        {!loading || refreshing || Boolean(error) ? (
           tab === "personal" ? (
             <PersonalAgendaManual
               colors={colors}

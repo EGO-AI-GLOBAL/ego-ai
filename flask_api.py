@@ -279,6 +279,48 @@ def _optional_authenticated_profile() -> dict | None:
         return None
 
 
+def _auth_user_from_tokens(client, access: str, refresh: str):
+    """Valida access; se expirou e há refresh, renova (o app já manda X-Refresh-Token)."""
+    user = None
+    new_access = access
+    new_refresh = refresh
+    try:
+        if refresh:
+            try:
+                client.auth.set_session(access, refresh)
+            except Exception:
+                client.postgrest.auth(access)
+        else:
+            client.postgrest.auth(access)
+        user_resp = client.auth.get_user(access)
+        user = getattr(user_resp, "user", None)
+    except Exception:
+        user = None
+
+    if user:
+        return user, new_access, new_refresh
+
+    if not (refresh or "").strip():
+        return None, access, refresh
+
+    payload, _err = services.refresh_session(refresh.strip())
+    if not payload or not payload.get("access_token"):
+        return None, access, refresh
+
+    new_access = str(payload["access_token"]).strip()
+    new_refresh = str(payload.get("refresh_token") or refresh).strip()
+    try:
+        try:
+            client.auth.set_session(new_access, new_refresh)
+        except Exception:
+            client.postgrest.auth(new_access)
+        user_resp = client.auth.get_user(new_access)
+        user = getattr(user_resp, "user", None)
+    except Exception:
+        return None, access, refresh
+    return user, new_access, new_refresh
+
+
 def require_auth(f: Callable) -> Callable:
     @wraps(f)
     def wrapper(*args, **kwargs):
@@ -299,23 +341,12 @@ def require_auth(f: Callable) -> Callable:
                 "Confira se SUPABASE_KEY é a chave anon/publishable do projeto.",
                 503,
             )
-        try:
-            if refresh:
-                try:
-                    client.auth.set_session(access, refresh)
-                except Exception:
-                    client.postgrest.auth(access)
-            else:
-                client.postgrest.auth(access)
-            user_resp = client.auth.get_user(access)
-            user = getattr(user_resp, "user", None)
-            if not user:
-                return _json_error("Sessão inválida ou expirada.", 401)
-            uid = str(getattr(user, "id", "") or "")
-            if not uid:
-                return _json_error("Utilizador inválido.", 401)
-        except Exception:  # noqa: BLE001
+        user, access, refresh = _auth_user_from_tokens(client, access, refresh)
+        if not user:
             return _json_error("Sessão inválida ou expirada.", 401)
+        uid = str(getattr(user, "id", "") or "")
+        if not uid:
+            return _json_error("Utilizador inválido.", 401)
 
         body = _request_client_body()
         meta = getattr(user, "user_metadata", None) or {}
@@ -438,7 +469,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-08-05-fix-plan-enterprise-me-bootstrap",
+        "api_build": "2026-08-06-auth-refresh-fallback-sync",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),

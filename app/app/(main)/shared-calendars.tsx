@@ -99,7 +99,7 @@ export default function SharedCalendarsScreen() {
           <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
         ) : null}
 
-        {!loading && !error ? (
+        {!loading || refreshing || Boolean(error) ? (
           <>
             <Text style={[styles.section, { color: colors.textMuted }]}>Suas agendas</Text>
             {list.length === 0 ? (

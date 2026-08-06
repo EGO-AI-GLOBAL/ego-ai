@@ -158,6 +158,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   const [personaLocalOk, setPersonaLocalOk] = useState(false);
   /** Evita sync de notificações logo após convite/evento no chat (crash Android). */
   const notificationCooldownUntilRef = useRef(0);
+  const syncRetryAtRef = useRef(0);
 
   const applyDashboard = useCallback(
     async (dashboardIn: DashboardData, options?: RefreshOptions) => {
@@ -288,7 +289,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       options?.skipNotifications || Date.now() < notificationCooldownUntilRef.current;
 
     const looksAuthMsg = (msg: string) =>
-      /token ausente|sessão inválida|sessão expirada|não foi possível renovar|refresh/i.test(
+      /token ausente|sessão inválida|sessão expirada|não foi possível renovar|refresh_token/i.test(
         msg
       );
 
@@ -357,6 +358,13 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
           setError(
             "Não foi possível sincronizar. Puxe para atualizar. Se continuar, saia e entre de novo."
           );
+          const now = Date.now();
+          if (now - syncRetryAtRef.current > 15_000) {
+            syncRetryAtRef.current = now;
+            setTimeout(() => {
+              void load({ skipNotifications: true });
+            }, 2500);
+          }
         } else {
           setError("Sessão expirada. Saia e entre novamente.");
         }

@@ -64,7 +64,7 @@ export default function UsageScreen() {
           </Pressable>
         ) : null}
 
-        {!loading && !error ? (
+        {!loading || refreshing || Boolean(error) ? (
           <>
             <Text style={[styles.intro, { color: colors.textMuted }]}>
               Acompanhe o uso do seu plano em percentagem. Atualize após conversar no chat.
