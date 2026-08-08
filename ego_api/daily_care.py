@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import datetime
+import hashlib
 
 from ego_api import db
 from ego_api import progression
@@ -17,6 +18,9 @@ from ego_api.daily_care_missions import (
     reset_daily_goals,
 )
 from ego_api.daily_care_shop import (
+    all_decor_ids,
+    consumables_payload,
+    lookup_consumable,
     lookup_shop_item,
     shop_catalog_payload,
     shop_owned_decor,
@@ -92,6 +96,74 @@ SEED_HISTORY_MAX = 10
 MOOD_JOURNAL_MAX = 42
 JOURNAL_NOTE_MAX = 280
 
+# Acolhimento (Finch/Duolingo): proteção de ofensiva ("escudo") — perder 1 dia
+# NÃO zera a sequência se você tiver um escudo. Ganha 1 escudo a cada 7 dias (máx 2).
+STREAK_SHIELD_EVERY = 7
+STREAK_SHIELD_MAX = 2
+
+# Reforço variável (Finch): além da base fixa, um bônus "sorte do dia" que varia
+# — nunca punitivo (a base sempre entra), só dá dopamina extra às vezes.
+CHECKIN_LUCKY_BONUS_BIG = 3
+CHECKIN_LUCKY_BONUS_SMALL = 2
+
+# Evolução do monstrinho (estilo Finch) — níveis SEM fim.
+# XP = check-ins*10 + bônus de petiscos/caixas (pet_bonus_xp guardado no raw).
+PET_XP_PER_CHECKIN = 10
+PET_LEVEL_BASE_NEED = 40  # XP para sair do nível 1
+PET_LEVEL_STEP = 15  # cada nível pede um pouco mais (progressão infinita)
+
+# Estágios visíveis por faixa de nível (o nível continua a subir para sempre).
+PET_STAGES: list[dict[str, str | int]] = [
+    {"min_level": 1, "key": "filhote", "emoji": "🥚", "label": "Filhote"},
+    {"min_level": 3, "key": "jovem", "emoji": "🐣", "label": "Jovem"},
+    {"min_level": 6, "key": "crescido", "emoji": "🐥", "label": "Crescido"},
+    {"min_level": 10, "key": "guardiao", "emoji": "🦉", "label": "Guardião"},
+    {"min_level": 16, "key": "lendario", "emoji": "🐉", "label": "Lendário"},
+    {"min_level": 25, "key": "mistico", "emoji": "✨", "label": "Místico"},
+]
+
+
+def _pet_level_from_xp(xp: int) -> dict:
+    """Nível a partir do XP total — thresholds crescentes, sem teto."""
+    xp = max(0, int(xp))
+    level = 1
+    acc = 0
+    need = PET_LEVEL_BASE_NEED
+    # Cap defensivo de iterações (nível ~1000) para nunca travar.
+    for _ in range(1000):
+        if xp < acc + need:
+            break
+        acc += need
+        level += 1
+        need += PET_LEVEL_STEP
+    into = xp - acc
+    stage = PET_STAGES[0]
+    for st in PET_STAGES:
+        if level >= int(st["min_level"]):
+            stage = st
+    return {
+        "level": level,
+        "xp": xp,
+        "xp_into_level": into,
+        "xp_for_next": need,
+        "progress_pct": int(round(100 * into / need)) if need else 0,
+        "stage_key": str(stage["key"]),
+        "stage_emoji": str(stage["emoji"]),
+        "stage_label": str(stage["label"]),
+    }
+
+
+def _pet_payload(raw: dict, total_checkins: int) -> dict:
+    bonus = int(raw.get("pet_bonus_xp") or 0)
+    xp = int(total_checkins) * PET_XP_PER_CHECKIN + bonus
+    pet = _pet_level_from_xp(xp)
+    pet["treats_given"] = int(raw.get("treats_given") or 0)
+    pet["boxes_opened"] = int(raw.get("boxes_opened") or 0)
+    name = str(raw.get("pet_name") or "").strip()
+    if name:
+        pet["name"] = name[:24]
+    return pet
+
 DECOR_UNLOCKS: list[dict[str, str | int]] = [
     {"id": "flowers", "emoji": "🌷", "min_days": 1, "label": "Flores"},
     {"id": "butterfly", "emoji": "🦋", "min_days": 3, "label": "Borboleta"},
@@ -133,16 +205,16 @@ def _daily_mission(checked_today: bool, current: int, goals: list[dict]) -> dict
         }
     if checked_today:
         return {
-            "text": "Todas as missões de hoje concluídas! Volte amanhã.",
+            "text": "Tudo feito hoje 💜 Seu monstrinho está tranquilo. Até amanhã.",
             "action": "done",
         }
     if current >= 1:
         return {
-            "text": "Missão: domar o humor com 1 toque (sequência em jogo).",
+            "text": "Seu monstrinho te espera 💜 Conte como você está — 1 toque.",
             "action": "checkin",
         }
     return {
-        "text": "Missão: conhecer seu primeiro monstrinho do humor.",
+        "text": "Conheça seu monstrinho: conte como você está hoje 💜",
         "action": "checkin",
     }
 
@@ -358,6 +430,53 @@ def _yesterday(local_date: str) -> str:
         return ""
 
 
+def _lucky_bonus(user_id: str, today: str) -> int:
+    """Reforço variável (Finch): bônus surpresa estável no dia, nunca punitivo."""
+    seed = f"{user_id}:{today}:luck".encode()
+    r = int(hashlib.md5(seed).hexdigest(), 16) % 100
+    if r < 15:
+        return CHECKIN_LUCKY_BONUS_BIG  # ~15% dias de sorte
+    if r < 45:
+        return CHECKIN_LUCKY_BONUS_SMALL  # ~30% bônus pequeno
+    return 0  # ~55% só a base (sem punição)
+
+
+def _maybe_award_shield(raw: dict, current: int) -> bool:
+    """Ganha 1 escudo de ofensiva a cada 7 dias (máx 2). Acolhimento, não punição."""
+    if current <= 0 or current % STREAK_SHIELD_EVERY != 0:
+        return False
+    mark = current // STREAK_SHIELD_EVERY
+    last_mark = int(raw.get("shield_last_mark") or 0)
+    if mark <= last_mark:
+        return False
+    held = int(raw.get("shields") or 0)
+    raw["shield_last_mark"] = mark
+    if held >= STREAK_SHIELD_MAX:
+        return False
+    raw["shields"] = held + 1
+    return True
+
+
+def _streak_message(current: int, checked_today: bool, shields: int) -> str:
+    """Mensagem de acolhimento sobre a ofensiva (sem vergonha, sem cobrança)."""
+    if checked_today:
+        if current >= 30:
+            return f"{current} dias juntos 💜 Seu monstrinho confia em você."
+        if current >= 7:
+            return f"{current} dias de carinho 🌸 Vocês dois estão crescendo."
+        if current >= 1:
+            return f"Dia {current} com seu monstrinho 🌱 Um de cada vez."
+        return "Seu monstrinho está feliz por você aparecer 💜"
+    if current >= 1 and shields > 0:
+        return (
+            f"Se hoje for difícil, tá tudo bem — você tem "
+            f"{shields} escudo{'s' if shields > 1 else ''} guardando sua sequência 🛡️"
+        )
+    if current >= 1:
+        return "Seu monstrinho sente sua falta 💜 Um toque já basta hoje."
+    return "Comece devagar: conte como você está hoje 💜"
+
+
 def question_for_today(local_date: str | None = None) -> dict:
     today = local_date or _local_date_str()
     try:
@@ -500,6 +619,10 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
         "last_date": last,
         "checked_today": checked_today,
         "at_risk": bool(current >= 1 and not checked_today),
+        "shields": int(raw.get("shields") or 0),
+        "streak_message": _streak_message(
+            current, checked_today, int(raw.get("shields") or 0)
+        ),
         "last_mood": last_mood,
         "last_mood_emoji": mood["emoji"],
         "last_mood_label": mood["label"],
@@ -530,7 +653,17 @@ def get_daily_care(supabase: Client | None, user_id: str) -> dict:
         "all_goals_done": all_done,
         "all_goals_bonus": SEEDS_ALL_GOALS_BONUS,
         "gentleness": gentle_block,
+        "pet": _pet_payload(raw, int(raw.get("total_checkins") or 0)),
+        "consumables": consumables_payload(seeds),
     }
+    last_box = raw.get("last_box_reward")
+    if isinstance(last_box, dict) and last_box:
+        payload["last_box_reward"] = {
+            "kind": str(last_box.get("kind") or ""),
+            "emoji": str(last_box.get("emoji") or "🎁"),
+            "label": str(last_box.get("label") or ""),
+            "amount": int(last_box.get("amount") or 0),
+        }
     congrats = _avatar_congrats_line(supabase, user_id, raw, today)
     if congrats:
         payload["avatar_congrats"] = congrats
@@ -566,16 +699,16 @@ def award_quiz_seeds(
 
 def _share_hook(current: int, checked_today: bool, ranking: dict) -> str:
     if not checked_today:
-        return "Faça o check-in de hoje para subir no ranking."
+        return "Seu monstrinho sente sua falta 💜 Um toque cuida de você hoje."
     tier = f"{ranking.get('tier_emoji', '')} {ranking.get('tier_label', '')}".strip()
     if current <= 1:
-        return f"Dia 1 — nível {tier}. Mostre seu monstrinho no Stories!"
+        return "Dia 1 com seu monstrinho 🌱 Mostre pra alguém que precisa de um sorriso."
     if ranking.get("days_to_next_tier", 0) > 0:
         return (
-            f"{current} dias · {tier} — "
-            f"faltam {ranking['days_to_next_tier']} para {ranking.get('next_tier_label')}."
+            f"{current} dias de carinho · {tier} — "
+            f"faltam {ranking['days_to_next_tier']} para {ranking.get('next_tier_label')}. Leve alguém junto 💜"
         )
-    return f"{current} dias · {tier} — você está no topo! Quem doma o humor hoje?"
+    return f"{current} dias cuidando de você · {tier}. Convide um amigo pra esse cantinho calmo 💜"
 
 
 def record_checkin(
@@ -596,6 +729,9 @@ def record_checkin(
     longest = int(raw.get("longest") or 0)
     total = int(raw.get("total_checkins") or 0)
     seeds = int(raw.get("seeds") or 0)
+    lucky = 0
+    streak_protected = False
+    shield_earned = False
 
     if last == today:
         raw.update(
@@ -608,14 +744,25 @@ def record_checkin(
         _append_mood_journal(raw, today, mood, note=note)
     else:
         yesterday = _yesterday(today)
+        day_before = _yesterday(yesterday)
+        shields_held = int(raw.get("shields") or 0)
+        streak_protected = False
         if last == yesterday and current > 0:
             current += 1
+        elif last == day_before and current > 0 and shields_held > 0:
+            # Acolhimento: faltou 1 dia mas o escudo segura a ofensiva.
+            raw["shields"] = shields_held - 1
+            current += 1
+            streak_protected = True
         else:
             current = 1
         longest = max(longest, current)
         total += 1
-        seeds += SEEDS_CHECKIN
+        lucky = _lucky_bonus(user_id, today)
+        seeds += SEEDS_CHECKIN + lucky
         _append_seed_history(raw, "earn", SEEDS_CHECKIN, "Check-in de humor")
+        if lucky > 0:
+            _append_seed_history(raw, "bonus", lucky, "Bônus surpresa 🍀")
         raw.update(
             {
                 "current": current,
@@ -628,6 +775,7 @@ def record_checkin(
                 "seeds": seeds,
             }
         )
+        shield_earned = _maybe_award_shield(raw, current)
         _append_mood_journal(raw, today, mood, note=note)
         reset_daily_goals(raw)
 
@@ -651,7 +799,14 @@ def record_checkin(
     except Exception as exc:
         print(f"[EGO] daily_care journey step error: {exc}", flush=True)
 
-    return get_daily_care(supabase, user_id)
+    care = get_daily_care(supabase, user_id)
+    if lucky > 0:
+        care["checkin_bonus"] = int(lucky)
+    if streak_protected:
+        care["streak_protected"] = True
+    if shield_earned:
+        care["shield_earned"] = True
+    return care
 
 
 def record_journal_note(
@@ -774,6 +929,65 @@ def purchase_shop_item(
     raw["seeds"] = seeds - price
     raw["shop_owned"] = owned + [iid]
     _append_seed_history(raw, "spend", price, f"Loja: {item['label']}")
+
+    ui["daily_care"] = raw
+    db.update_profile_fields(supabase, user_id, {"ui_state": ui})
+    return get_daily_care(supabase, user_id)
+
+
+def _grant_box_reward(raw: dict) -> dict:
+    """Caixa surpresa — decoração nova por gastar, senão amêndoas bônus."""
+    import secrets
+
+    owned = set(_shop_owned_ids(raw))
+    unowned = [iid for iid in all_decor_ids() if iid not in owned]
+    # 60% decor nova (se houver), senão sempre amêndoas — nunca "vazia".
+    if unowned and secrets.randbelow(100) < 60:
+        pick = unowned[secrets.randbelow(len(unowned))]
+        item = lookup_shop_item(pick)
+        raw["shop_owned"] = _shop_owned_ids(raw) + [pick]
+        label = str(item["label"]) if item else "Decoração"
+        emoji = str(item["emoji"]) if item else "🎁"
+        return {"kind": "decor", "emoji": emoji, "label": label, "amount": 0}
+    bonus = 6 + secrets.randbelow(12)  # 6–17 amêndoas
+    raw["seeds"] = int(raw.get("seeds") or 0) + bonus
+    _append_seed_history(raw, "box", bonus, "Caixa surpresa")
+    return {"kind": "seeds", "emoji": "🌰", "label": "Amêndoas bônus", "amount": bonus}
+
+
+def purchase_consumable(
+    supabase: Client | None,
+    user_id: str,
+    item_id: str,
+) -> dict:
+    """Compra REPETÍVEL (petisco / caixa surpresa) — o gasto nunca acaba."""
+    if not supabase or not user_id:
+        return get_daily_care(supabase, user_id)
+    item = lookup_consumable(item_id)
+    if not item:
+        return get_daily_care(supabase, user_id)
+
+    prof = db.load_profile(supabase, user_id) or {}
+    ui = db._parse_ui_state(prof)  # noqa: SLF001
+    raw = dict(ui.get("daily_care") if isinstance(ui.get("daily_care"), dict) else {})
+
+    price = int(item["price"])
+    seeds = int(raw.get("seeds") or 0)
+    if seeds < price:
+        return get_daily_care(supabase, user_id)
+
+    raw["seeds"] = seeds - price
+    raw["pet_bonus_xp"] = int(raw.get("pet_bonus_xp") or 0) + int(item.get("xp") or 0)
+    kind = str(item["kind"])
+    raw.pop("last_box_reward", None)
+
+    if kind == "treat":
+        raw["treats_given"] = int(raw.get("treats_given") or 0) + 1
+        _append_seed_history(raw, "spend", price, f"{item['label']}")
+    elif kind == "box":
+        raw["boxes_opened"] = int(raw.get("boxes_opened") or 0) + 1
+        _append_seed_history(raw, "spend", price, f"{item['label']}")
+        raw["last_box_reward"] = _grant_box_reward(raw)
 
     ui["daily_care"] = raw
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})

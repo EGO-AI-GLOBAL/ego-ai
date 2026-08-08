@@ -469,7 +469,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-08-06-auth-refresh-fallback-sync",
+        "api_build": "2026-08-08-monstrinhos-finch-v2-psico-escudo-bonus-acolhimento",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -2278,6 +2278,21 @@ def daily_care_shop():
     if not item:
         return _json_error("Informe o item da loja (item).")
     care = daily_care.purchase_shop_item(g.supabase, g.user_id, item)
+    return _json_ok({"daily_care": care})
+
+
+@app.post("/api/v1/daily-care/consume")
+@require_auth
+@rate_limit(30, 60, scope="user")
+def daily_care_consume():
+    """Compra repetível: petisco / caixa surpresa (economia infinita)."""
+    from ego_api import daily_care
+
+    data = request.get_json(silent=True) or {}
+    item = str(data.get("item") or data.get("item_id") or "").strip()[:24]
+    if not item:
+        return _json_error("Informe o item (item).")
+    care = daily_care.purchase_consumable(g.supabase, g.user_id, item)
     return _json_ok({"daily_care": care})
 
 

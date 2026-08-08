@@ -253,7 +253,7 @@ def build_daily_goals(
     goals: list[dict] = [
         {
             "key": "checkin",
-            "label": "Registrar seu humor",
+            "label": "Contar como você está hoje",
             "emoji": "💜",
             "done": checked_today,
             "seeds_reward": checkin_seeds,

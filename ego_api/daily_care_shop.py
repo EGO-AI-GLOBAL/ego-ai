@@ -55,6 +55,66 @@ SHOP_ITEMS = SHOP_BASE_ITEMS + SHOP_ROTATING_POOL  # retrocompat regression_guar
 
 _CATALOG = {str(i["id"]): i for i in SHOP_ITEMS}
 
+# Consumíveis — compra REPETÍVEL (nunca "acaba"): dá sempre o que gastar amêndoas
+# e mais interação com o monstrinho (estilo Finch: alimentar + caixa surpresa).
+SHOP_CONSUMABLES: list[dict[str, str | int]] = [
+    {
+        "id": "treat",
+        "emoji": "🍪",
+        "label": "Petisco",
+        "price": 3,
+        "kind": "treat",
+        "xp": 6,
+        "desc": "Alimenta o monstrinho — ele fica feliz e ganha experiência.",
+    },
+    {
+        "id": "big_treat",
+        "emoji": "🍰",
+        "label": "Bolo especial",
+        "price": 8,
+        "kind": "treat",
+        "xp": 18,
+        "desc": "Petisco caprichado — o dobro de carinho e experiência.",
+    },
+    {
+        "id": "surprise_box",
+        "emoji": "🎁",
+        "label": "Caixa surpresa",
+        "price": 12,
+        "kind": "box",
+        "xp": 10,
+        "desc": "Recompensa aleatória: decoração nova, amêndoas bônus ou surpresa.",
+    },
+]
+
+_CONSUMABLES = {str(i["id"]): i for i in SHOP_CONSUMABLES}
+
+
+def lookup_consumable(item_id: str) -> dict[str, str | int] | None:
+    return _CONSUMABLES.get((item_id or "").strip().lower()[:24])
+
+
+def consumables_payload(seeds: int) -> list[dict]:
+    out: list[dict] = []
+    for item in SHOP_CONSUMABLES:
+        price = int(item["price"])
+        out.append(
+            {
+                "id": str(item["id"]),
+                "emoji": str(item["emoji"]),
+                "label": str(item["label"]),
+                "price": price,
+                "kind": str(item["kind"]),
+                "desc": str(item["desc"]),
+                "can_afford": seeds >= price,
+            }
+        )
+    return out
+
+
+def all_decor_ids() -> list[str]:
+    return [str(i["id"]) for i in SHOP_ITEMS]
+
 
 def validate_shop_catalog_size() -> None:
     total = len(SHOP_ITEMS)
