@@ -732,6 +732,7 @@ def record_checkin(
     lucky = 0
     streak_protected = False
     shield_earned = False
+    level_before = _pet_level_of(raw)
 
     if last == today:
         raw.update(
@@ -799,7 +800,7 @@ def record_checkin(
     except Exception as exc:
         print(f"[EGO] daily_care journey step error: {exc}", flush=True)
 
-    care = get_daily_care(supabase, user_id)
+    care = _attach_level_up(get_daily_care(supabase, user_id), level_before)
     if lucky > 0:
         care["checkin_bonus"] = int(lucky)
     if streak_protected:
@@ -935,6 +936,61 @@ def purchase_shop_item(
     return get_daily_care(supabase, user_id)
 
 
+PET_NAME_MAX = 20
+
+
+def sanitize_pet_name(raw_name: str) -> str:
+    """Nome do monstrinho — letras/números/espaço e alguns sinais, sem exageros."""
+    cleaned = "".join(
+        ch
+        for ch in str(raw_name or "").strip()
+        if ch.isalnum() or ch in " '-." or ch.isspace()
+    )
+    cleaned = " ".join(cleaned.split())
+    return cleaned[:PET_NAME_MAX]
+
+
+def set_pet_name(supabase: Client | None, user_id: str, name: str) -> dict:
+    """Baptizar o monstrinho — o vínculo começa aqui (estilo Finch)."""
+    if not supabase or not user_id:
+        return get_daily_care(supabase, user_id)
+    clean = sanitize_pet_name(name)
+    if not clean:
+        return get_daily_care(supabase, user_id)
+    prof = db.load_profile(supabase, user_id) or {}
+    ui = db._parse_ui_state(prof)  # noqa: SLF001
+    raw = dict(ui.get("daily_care") if isinstance(ui.get("daily_care"), dict) else {})
+    raw["pet_name"] = clean
+    ui["daily_care"] = raw
+    db.update_profile_fields(supabase, user_id, {"ui_state": ui})
+    care = get_daily_care(supabase, user_id)
+    care["pet_name_saved"] = clean
+    return care
+
+
+def _pet_level_of(raw: dict) -> int:
+    """Nível actual a partir do raw — para detectar subida de nível."""
+    bonus = int(raw.get("pet_bonus_xp") or 0)
+    xp = int(raw.get("total_checkins") or 0) * PET_XP_PER_CHECKIN + bonus
+    return int(_pet_level_from_xp(xp)["level"])
+
+
+def _attach_level_up(care: dict, level_before: int) -> dict:
+    """Marca subida de nível no payload para o app celebrar."""
+    pet = care.get("pet")
+    if not isinstance(pet, dict):
+        return care
+    level_after = int(pet.get("level") or 1)
+    if level_after > level_before:
+        care["pet_level_up"] = {
+            "from": level_before,
+            "to": level_after,
+            "stage_label": str(pet.get("stage_label") or ""),
+            "stage_emoji": str(pet.get("stage_emoji") or "✨"),
+        }
+    return care
+
+
 def _grant_box_reward(raw: dict) -> dict:
     """Caixa surpresa — decoração nova por gastar, senão amêndoas bônus."""
     import secrets
@@ -976,6 +1032,7 @@ def purchase_consumable(
     if seeds < price:
         return get_daily_care(supabase, user_id)
 
+    level_before = _pet_level_of(raw)
     raw["seeds"] = seeds - price
     raw["pet_bonus_xp"] = int(raw.get("pet_bonus_xp") or 0) + int(item.get("xp") or 0)
     kind = str(item["kind"])
@@ -991,4 +1048,4 @@ def purchase_consumable(
 
     ui["daily_care"] = raw
     db.update_profile_fields(supabase, user_id, {"ui_state": ui})
-    return get_daily_care(supabase, user_id)
+    return _attach_level_up(get_daily_care(supabase, user_id), level_before)

@@ -469,7 +469,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-08-08-monstrinhos-finch-v2-psico-escudo-bonus-acolhimento",
+        "api_build": "2026-08-08-monstrinhos-finch-v3-nome-pet-level-up",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -2293,6 +2293,21 @@ def daily_care_consume():
     if not item:
         return _json_error("Informe o item (item).")
     care = daily_care.purchase_consumable(g.supabase, g.user_id, item)
+    return _json_ok({"daily_care": care})
+
+
+@app.post("/api/v1/daily-care/pet-name")
+@require_auth
+@rate_limit(20, 60, scope="user")
+def daily_care_pet_name():
+    """Baptizar o monstrinho — vínculo (estilo Finch)."""
+    from ego_api import daily_care
+
+    data = request.get_json(silent=True) or {}
+    name = str(data.get("name") or "").strip()[:40]
+    if not name:
+        return _json_error("Informe o nome (name).")
+    care = daily_care.set_pet_name(g.supabase, g.user_id, name)
     return _json_ok({"daily_care": care})
 
 

@@ -580,6 +580,15 @@ export type DailyCareInfo = {
   checkin_bonus?: number;
   streak_protected?: boolean;
   shield_earned?: boolean;
+  pet_name_saved?: string;
+  pet_level_up?: DailyCarePetLevelUp | null;
+};
+
+export type DailyCarePetLevelUp = {
+  from: number;
+  to: number;
+  stage_label: string;
+  stage_emoji: string;
 };
 
 export type DailyCarePet = {

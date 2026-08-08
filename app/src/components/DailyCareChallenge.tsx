@@ -15,6 +15,7 @@ import { MoodCrisisBridgeCard } from "./moodMonsters/MoodCrisisBridgeCard";
 import { MoodDailyGoals } from "./moodMonsters/MoodDailyGoals";
 import { MoodGentlenessRibbon } from "./moodMonsters/MoodGentlenessRibbon";
 import { MoodGoalsCompleteBurst } from "./moodMonsters/MoodGoalsCompleteBurst";
+import { MoodRewardBurst, type MoodReward } from "./moodMonsters/MoodRewardBurst";
 import { MoodJournalTodayNote } from "./moodMonsters/MoodJournalTodayNote";
 import { MoodJournalWeek } from "./moodMonsters/MoodJournalWeek";
 import { MoodMonsterScene } from "./moodMonsters/MoodMonsterScene";
@@ -42,6 +43,8 @@ type Props = {
   onPetPlay?: (req: MonsterPetPlayRequest) => void;
   /** Conteúdo após o humor (banner/lead) — humor fica 1º sob o pet. */
   afterMood?: React.ReactNode;
+  /** Abrir o baptismo do monstrinho (modal vive no ecrã). */
+  onPressPetName?: () => void;
 };
 
 function RankingLadder({ colors, care }: { colors: AppColors; care: DailyCareInfo }) {
@@ -93,12 +96,14 @@ export function DailyCareChallenge({
   onPetMoodPreview,
   onPetPlay,
   afterMood,
+  onPressPetName,
 }: Props) {
   const [busy, setBusy] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [celebrate, setCelebrate] = useState(false);
   const [goalsBurst, setGoalsBurst] = useState(false);
   const [burstCongrats, setBurstCongrats] = useState<string | undefined>();
+  const [reward, setReward] = useState<MoodReward | null>(null);
   const [hoverMood, setHoverMood] = useState<string | undefined>();
   const [showBodyNudge, setShowBodyNudge] = useState(false);
   const playNonce = useRef(0);
@@ -132,6 +137,48 @@ export function DailyCareChallenge({
     );
   }
 
+  /** Reforço variável só retém se for visto — bónus, escudo e nível ganham festa. */
+  const celebrateCheckin = (next: DailyCareInfo) => {
+    const who = next.pet?.name?.trim() || "O monstrinho";
+    const bonus = next.checkin_bonus ?? 0;
+    const levelUp = next.pet_level_up;
+
+    if (bonus > 0) {
+      setReward({
+        kind: "bonus",
+        emoji: "🌰✨",
+        title: `+${bonus} amêndoas de sorte!`,
+        sub: "hoje o jardim foi generoso",
+      });
+    } else if (next.shield_earned) {
+      setReward({
+        kind: "shield",
+        emoji: "🛡️",
+        title: "Ganhou um escudo!",
+        sub: "se faltar um dia, a sequência aguenta",
+      });
+    } else if (next.streak_protected) {
+      setReward({
+        kind: "shield",
+        emoji: "🛡️💜",
+        title: "O escudo segurou a sua sequência",
+        sub: "faltar um dia não apaga o que já fez",
+      });
+    }
+
+    if (levelUp) {
+      const delay = bonus > 0 || next.shield_earned || next.streak_protected ? 1900 : 0;
+      setTimeout(() => {
+        setReward({
+          kind: "level",
+          emoji: levelUp.stage_emoji || "✨",
+          title: `${who} subiu para o nível ${levelUp.to}!`,
+          sub: levelUp.stage_label ? `Agora é ${levelUp.stage_label}` : undefined,
+        });
+      }, delay);
+    }
+  };
+
   const onPickMood = async (key: string) => {
     if (busy) return;
     setBusy(true);
@@ -154,6 +201,7 @@ export function DailyCareChallenge({
       setTimeout(() => setCelebrate(false), 1200);
       onUpdate(res.daily_care, res.wellness_journey);
       setPreview(undefined);
+      celebrateCheckin(res.daily_care);
       // Sem Alert no 1º humor — métricas Finch: <2 toques, sem modal.
       if (wasFirstToday) {
         const line = res.daily_care.monster_line?.trim();
@@ -274,6 +322,7 @@ export function DailyCareChallenge({
             setBurstCongrats(undefined);
           }}
         />
+        <MoodRewardBurst colors={colors} reward={reward} onDone={() => setReward(null)} />
         <View style={styles.head}>
           <Text style={[styles.badge, { color: colors.primary }]}>
             {gentleBadge ? "JARDIM DA GENTILEZA 💜" : "MONSTRINHOS DO HUMOR 💜"}
@@ -301,18 +350,15 @@ export function DailyCareChallenge({
 
         <MoodCrisisBridgeCard colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
 
-        <MoodJournalWeek colors={colors} entries={care.mood_journal} moods={care.moods} />
-
-        <MoodJournalTodayNote
+        {/* O bicho e o cuidado com ele vêm antes de tudo o resto — é o coração do ecrã. */}
+        <MoodPetLevelCard
           colors={colors}
           care={care}
           onUpdate={(next) => onUpdate(next)}
-          onLetterSaved={() => playUnique(preferredClipForGardenEvent("journal"))}
+          onFeed={() => playUnique(preferredClipForGardenEvent("shop"))}
+          onReward={setReward}
+          onPressName={onPressPetName}
         />
-
-        {care.adventure?.active || care.adventure?.collected ? (
-          <MoodAdventureBanner colors={colors} adventure={care.adventure} />
-        ) : null}
 
         {needsCheckin ? (
           <Text style={[styles.missionsLocked, { color: colors.textMuted }]}>
@@ -346,20 +392,18 @@ export function DailyCareChallenge({
           }}
         />
 
-        <MoodWeeklyQuizCard
-          colors={colors}
-          quiz={care.weekly_quiz}
-          onUpdate={(next) => onUpdate(next)}
-        />
-
-        <MoodSocialInviteCard colors={colors} invite={care.social_invite} />
-
-        <MoodPetLevelCard
+        <MoodJournalTodayNote
           colors={colors}
           care={care}
           onUpdate={(next) => onUpdate(next)}
-          onFeed={() => playUnique(preferredClipForGardenEvent("shop"))}
+          onLetterSaved={() => playUnique(preferredClipForGardenEvent("journal"))}
         />
+
+        <MoodJournalWeek colors={colors} entries={care.mood_journal} moods={care.moods} />
+
+        {care.adventure?.active || care.adventure?.collected ? (
+          <MoodAdventureBanner colors={colors} adventure={care.adventure} />
+        ) : null}
 
         <MoodSeedShop
           colors={colors}
@@ -367,6 +411,14 @@ export function DailyCareChallenge({
           onUpdate={(next) => onUpdate(next)}
           onPurchase={() => playUnique(preferredClipForGardenEvent("shop"))}
         />
+
+        <MoodWeeklyQuizCard
+          colors={colors}
+          quiz={care.weekly_quiz}
+          onUpdate={(next) => onUpdate(next)}
+        />
+
+        <MoodSocialInviteCard colors={colors} invite={care.social_invite} />
 
         <RankingLadder colors={colors} care={care} />
 

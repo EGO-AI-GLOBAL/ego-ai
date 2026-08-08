@@ -13,6 +13,7 @@ import {
   MoodMonsterStickyPet,
   type MonsterPetPlayRequest,
 } from "@/components/moodMonsters/MoodMonsterStickyPet";
+import { MoodPetNameModal } from "@/components/moodMonsters/MoodPetNameModal";
 import { ScreenShell } from "@/components/ScreenShell";
 import { TrialBanner } from "@/components/TrialBanner";
 import { useAuth } from "@/context/AuthContext";
@@ -28,6 +29,7 @@ export default function DailyCareScreen() {
 
   const [previewMood, setPreviewMood] = useState<string | undefined>();
   const [playRequest, setPlayRequest] = useState<MonsterPetPlayRequest | null>(null);
+  const [nameOpen, setNameOpen] = useState(false);
 
   const stickyMood = useMemo(() => {
     if (previewMood) return previewMood;
@@ -57,8 +59,16 @@ export default function DailyCareScreen() {
             moods={data.daily_care?.moods}
             playRequest={playRequest}
             onPlayDone={() => setPlayRequest(null)}
+            pet={data.daily_care?.pet}
+            onPressName={() => setNameOpen(true)}
           />
         ) : null}
+        <MoodPetNameModal
+          visible={nameOpen}
+          currentName={data.daily_care?.pet?.name}
+          onClose={() => setNameOpen(false)}
+          onSaved={(care) => mergeDailyCare(care)}
+        />
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.scrollContent}
@@ -80,6 +90,7 @@ export default function DailyCareScreen() {
               onUpdate={(care, journey) => mergeDailyCare(care, journey)}
               onPetMoodPreview={setPreviewMood}
               onPetPlay={setPlayRequest}
+              onPressPetName={() => setNameOpen(true)}
               afterMood={
                 <>
                   <TrialBanner colors={colors} access={data.access} journey={data.wellness_journey} />

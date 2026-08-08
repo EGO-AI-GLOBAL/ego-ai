@@ -4,6 +4,7 @@ import * as Haptics from "expo-haptics";
 import { purchaseDailyCareConsumable } from "@/api/client";
 import type { DailyCareInfo } from "@/api/types";
 import type { AppColors } from "@/theme/colors";
+import type { MoodReward } from "./MoodRewardBurst";
 
 type Props = {
   colors: AppColors;
@@ -11,15 +12,34 @@ type Props = {
   onUpdate: (care: DailyCareInfo) => void;
   /** Compra ok → reação do pet (clip distinto). */
   onFeed?: () => void;
+  /** Festa na tela em vez de Alert (subir de nível, caixa surpresa). */
+  onReward?: (reward: MoodReward) => void;
+  /** Toque no nome → baptizar o monstrinho. */
+  onPressName?: () => void;
 };
 
 /** Nível do monstrinho (XP sem fim) + petiscos/caixa surpresa — gasto infinito de sementes. */
-export function MoodPetLevelCard({ colors, care, onUpdate, onFeed }: Props) {
+export function MoodPetLevelCard({
+  colors,
+  care,
+  onUpdate,
+  onFeed,
+  onReward,
+  onPressName,
+}: Props) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const pet = care.pet;
   const consumables = care.consumables ?? [];
 
   if (!pet) return null;
+
+  const emitReward = (reward: MoodReward) => {
+    if (onReward) {
+      onReward(reward);
+      return;
+    }
+    Alert.alert(reward.title, reward.sub ?? "");
+  };
 
   const onBuy = async (itemId: string, label: string, kind: string) => {
     if (busyId) return;
@@ -35,16 +55,38 @@ export function MoodPetLevelCard({ colors, care, onUpdate, onFeed }: Props) {
       );
       onFeed?.();
       onUpdate(res.daily_care);
+
+      const petName = res.daily_care.pet?.name?.trim();
+      const who = petName || "O monstrinho";
       const box = res.daily_care.last_box_reward;
+      const levelUp = res.daily_care.pet_level_up;
+
       if (kind === "box" && box?.label) {
-        Alert.alert(
-          "Caixa surpresa 🎁",
-          box.kind === "seeds"
-            ? `${box.emoji} ${box.label} +${box.amount} 🌰`
-            : `${box.emoji} ${box.label} — novo no seu jardim!`
-        );
+        emitReward({
+          kind: "bonus",
+          emoji: box.emoji || "🎁",
+          title: box.kind === "seeds" ? `+${box.amount} amêndoas!` : `${box.label} — novo!`,
+          sub: box.kind === "seeds" ? box.label : "já está no seu jardim",
+        });
       } else {
-        Alert.alert("Cuidar do monstrinho", `${label} — ele adorou! 💜`);
+        emitReward({
+          kind: "bonus",
+          emoji: "💜",
+          title: `${who} adorou!`,
+          sub: label,
+        });
+      }
+
+      if (levelUp) {
+        // Subir de nível vem depois do mimo — duas festas, não uma só.
+        setTimeout(() => {
+          emitReward({
+            kind: "level",
+            emoji: levelUp.stage_emoji || "✨",
+            title: `${who} subiu para o nível ${levelUp.to}!`,
+            sub: levelUp.stage_label ? `Agora é ${levelUp.stage_label}` : undefined,
+          });
+        }, 1900);
       }
     } finally {
       setBusyId(null);
@@ -59,14 +101,19 @@ export function MoodPetLevelCard({ colors, care, onUpdate, onFeed }: Props) {
     <View style={[styles.wrap, { borderColor: colors.glassBorder, backgroundColor: colors.bgCard }]}>
       <View style={styles.head}>
         <Text style={styles.stageEmoji}>{pet.stage_emoji}</Text>
-        <View style={styles.headBody}>
+        <Pressable style={styles.headBody} onPress={onPressName} disabled={!onPressName}>
           <Text style={[styles.title, { color: colors.text }]}>
             {pet.name ? `${pet.name} · ` : ""}Nível {pet.level} · {pet.stage_label}
           </Text>
           <Text style={[styles.meta, { color: colors.textMuted }]}>
             {pet.xp_into_level}/{pet.xp_for_next} XP para o próximo nível
           </Text>
-        </View>
+          {onPressName && !pet.name ? (
+            <Text style={[styles.nameCta, { color: colors.primary }]}>
+              Toque para dar um nome a ele ✨
+            </Text>
+          ) : null}
+        </Pressable>
         {shields > 0 ? (
           <Text style={[styles.shield, { color: colors.primary }]}>🛡️ {shields}</Text>
         ) : null}
@@ -132,6 +179,7 @@ const styles = StyleSheet.create({
   headBody: { flex: 1 },
   title: { fontSize: 13, fontWeight: "800" },
   meta: { fontSize: 11, fontWeight: "600", marginTop: 2 },
+  nameCta: { fontSize: 11, fontWeight: "800", marginTop: 4 },
   shield: { fontSize: 12, fontWeight: "800" },
   barBg: { height: 8, borderRadius: 6, marginTop: 10, overflow: "hidden" },
   barFill: { height: 8, borderRadius: 6 },

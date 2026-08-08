@@ -1,13 +1,15 @@
 import { Asset } from "expo-asset";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import type { DailyCarePet } from "@/api/types";
 import {
   clipActionForGoalKey,
   monsterClipModule,
   type MonsterClipAction,
 } from "@/constants/monsterClipAssets";
 import { moodKeyOrDefault, resolveMoodLabel } from "@/constants/moodMonsters";
+import { petDisplayName, petStageStyle } from "@/constants/moodPetStages";
 import type { AppColors } from "@/theme/colors";
 import { MoodMonsterIllustration } from "./MoodMonsterIllustration";
 
@@ -33,6 +35,10 @@ type Props = {
   moods?: { key: string; label: string }[];
   playRequest?: MonsterPetPlayRequest | null;
   onPlayDone?: () => void;
+  /** Nível/fase do monstrinho — evolução visível no palco. */
+  pet?: DailyCarePet | null;
+  /** Toque na legenda → baptizar / mudar nome. */
+  onPressName?: () => void;
 };
 
 /**
@@ -46,10 +52,16 @@ export function MoodMonsterStickyPet({
   moods,
   playRequest,
   onPlayDone,
+  pet,
+  onPressName,
 }: Props) {
   const av = useMemo(() => loadExpoAv(), []);
   const key = moodKeyOrDefault(moodKey);
   const label = resolveMoodLabel(moods, key);
+  const stage = petStageStyle(pet?.stage_key);
+  const displayName = petDisplayName(pet?.name, label);
+  const hasName = Boolean((pet?.name || "").trim());
+  const xpPct = Math.max(0, Math.min(100, pet?.progress_pct ?? 0));
 
   const [action, setAction] = useState<MonsterClipAction>("idle");
   const [videoUri, setVideoUri] = useState<string | null>(null);
@@ -111,15 +123,48 @@ export function MoodMonsterStickyPet({
   // Fundo do vídeo = verde de jardim (não chromakey). Palco na mesma família para não “quebrar”.
   const gardenGreen = ["#6BB36E", "#8BC98A", "#A8D4A0"] as const;
 
+  const caption = (
+    <Pressable
+      onPress={onPressName}
+      disabled={!onPressName}
+      style={[styles.caption, { backgroundColor: stage.aura }]}
+    >
+      <View style={styles.captionRow}>
+        <Text style={[styles.name, { color: stage.badgeText }]} numberOfLines={1}>
+          {displayName}
+        </Text>
+        {onPressName ? (
+          <Text style={[styles.rename, { color: stage.badgeText }]}>
+            {hasName ? "✏️" : "dar nome"}
+          </Text>
+        ) : null}
+      </View>
+
+      {pet ? (
+        <>
+          <View style={[styles.badge, { backgroundColor: stage.badgeBg }]}>
+            <Text style={[styles.badgeText, { color: stage.badgeText }]}>
+              {pet.stage_emoji} Nível {pet.level} · {pet.stage_label}
+            </Text>
+          </View>
+          <View style={styles.xpBg}>
+            <View style={[styles.xpFill, { width: `${xpPct}%`, backgroundColor: stage.border }]} />
+          </View>
+        </>
+      ) : (
+        <Text style={[styles.liveHint, { color: stage.badgeText }]}>
+          {isIdle ? "● presente" : "● reagindo"}
+        </Text>
+      )}
+    </Pressable>
+  );
+
   if (!av?.Video || loadError || Platform.OS === "web") {
     return (
-      <View style={[styles.wrap, { borderColor: "#5A9E62", backgroundColor: "#6BB36E" }]}>
+      <View style={[styles.wrap, { borderColor: stage.border, backgroundColor: "#6BB36E" }]}>
         <LinearGradient colors={[...gardenGreen]} style={styles.stage}>
           <MoodMonsterIllustration moodKey={key} size={128} celebrate={!isIdle} />
-          <Text style={styles.name}>{label}</Text>
-          <Text style={[styles.hint, { color: "#1a3d1a" }]}>
-            {isIdle ? "à espera no jardim…" : "reagindo…"}
-          </Text>
+          {caption}
         </LinearGradient>
       </View>
     );
@@ -128,7 +173,7 @@ export function MoodMonsterStickyPet({
   const { Video, ResizeMode } = av;
 
   return (
-    <View style={[styles.wrap, { borderColor: "#5A9E62", backgroundColor: "#6BB36E" }]}>
+    <View style={[styles.wrap, { borderColor: stage.border, backgroundColor: "#6BB36E" }]}>
       <View style={styles.stage}>
         {videoUri ? (
           <Video
@@ -157,10 +202,7 @@ export function MoodMonsterStickyPet({
             <MoodMonsterIllustration moodKey={key} size={100} />
           </View>
         ) : null}
-        <View style={styles.caption}>
-          <Text style={styles.name}>{label}</Text>
-          <Text style={styles.liveHint}>{isIdle ? "● presente" : "● reagindo"}</Text>
-        </View>
+        {caption}
       </View>
     </View>
   );
@@ -213,19 +255,48 @@ const styles = StyleSheet.create({
   caption: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: "rgba(255,255,255,0.55)",
     alignItems: "center",
+  },
+  captionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
   },
   name: {
     fontSize: 16,
     fontWeight: "900",
-    color: "#1a3d1a",
+    maxWidth: 200,
+  },
+  rename: {
+    fontSize: 11,
+    fontWeight: "800",
+    opacity: 0.75,
+  },
+  badge: {
+    marginTop: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 999,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: "800",
+  },
+  xpBg: {
+    marginTop: 6,
+    height: 5,
+    width: "70%",
+    borderRadius: 999,
+    backgroundColor: "rgba(0,0,0,0.16)",
+    overflow: "hidden",
+  },
+  xpFill: {
+    height: 5,
+    borderRadius: 999,
   },
   liveHint: {
     marginTop: 2,
     fontSize: 11,
     fontWeight: "700",
-    color: "#2d5a2d",
   },
-  hint: { fontSize: 11, fontWeight: "600", marginTop: 4 },
 });
