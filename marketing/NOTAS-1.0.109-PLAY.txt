@@ -1,0 +1,33 @@
+NOTAS VERSÃO 1.0.109 — Play / App Store
+=======================================
+Android versionCode 166 · iOS build 114
+Commits: 1747a68 (API psicologia) · b72daeb (app) · 38a4e61 (release)
+
+CURTO (O que há de novo — colar Play / ASC)
+------------------------------------------
+• Seu monstrinho agora cresce: níveis e fases novas conforme você cuida
+• Petiscos e caixa surpresa na loja — sempre há algo para fazer com as amêndoas
+• Sequência protegida: faltou um dia? Um escudo guarda sua ofensiva
+• Amêndoas com bônus surpresa no check-in
+• Textos mais acolhedores e correção da sincronização de dados
+
+MÉDIO (Play Console — notas completas)
+--------------------------------------
+• Evolução do monstrinho: níveis sem fim por experiência (Filhote → Jovem → Crescido → Guardião → Lendário → Místico), com barra de progresso
+• Loja de cuidados: Petisco, Bolo especial e Caixa surpresa (compra repetível) — a caixa dá decoração nova ou amêndoas bônus
+• Escudo da ofensiva: ganha 1 a cada 7 dias (até 2 guardados); faltar um dia não zera mais a sequência
+• Check-in dá amêndoas fixas + bônus surpresa variável
+• Missões diárias (Humor, Respirar, Jardim) com linguagem mais acolhedora, sem cobrança
+• Correção: erro «Não foi possível sincronizar» em Conta, Agenda, Uso e Calendários
+
+ULTRA CURTO (~500 chars)
+------------------------
+1.0.109: seu monstrinho evolui por níveis; petiscos e caixa surpresa na loja; escudo protege a ofensiva se faltar um dia; bônus surpresa de amêndoas; correção da sincronização.
+
+O QUE TESTAR
+------------
+1. Monstrinhos: ver card com nível, fase e barra de XP
+2. Comprar Petisco → XP sobe; comprar Caixa surpresa → recompensa aleatória
+3. Check-in: por vezes vem bônus extra de amêndoas
+4. Após 7 dias de sequência: aparece o escudo 🛡️ no card
+5. Conta / Agenda / Uso: abrem sem o erro de sincronização
