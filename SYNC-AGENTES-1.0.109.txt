@@ -3,6 +3,13 @@ SYNC MESTRE — 1.0.109
 Versão: **1.0.109** · versionCode **166** · buildNumber **114**
 Motivo: Monstrinhos «Finch» — retenção infinita + acolhimento (sem reescrever o app)
 
+Builds EAS (enfileiradas 08/08)
+------------------------------
+| Plataforma | Build ID | Estado |
+|------------|----------|--------|
+| iOS production | `cfcfa948-351e-4e6c-bfcc-7b1a5ad732ef` | na fila → submit TestFlight automático |
+| Android production AAB | `a0c02b58-fc58-4930-abe5-b275a761d8ba` | na fila → **upload manual** na Play |
+
 | Zona | Estado | Commit |
 |------|--------|--------|
 | MONSTRINHOS (pet nível + consumíveis + psicologia) | ✅ **PRONTO** | `1747a68` + `b72daeb` |
