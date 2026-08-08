@@ -7,7 +7,7 @@ Motivo: Monstrinhos «Finch» — retenção infinita + acolhimento (sem reescre
 |------|--------|--------|
 | MONSTRINHOS (pet nível + consumíveis + psicologia) | ✅ **PRONTO** | `1747a68` + `b72daeb` |
 | BOLSO | ✅ sem alterações nesta versão | — |
-| API | ✅ **PRONTO** (aguarda redeploy Railway) | `1747a68` |
+| API | ✅ **NO AR** · `api_build=2026-08-08-monstrinhos-finch-v2-psico-escudo-bonus-acolhimento` | `1747a68` |
 | MARKETING | ✅ sem alterações nesta versão | — |
 
 O que entra nesta versão
@@ -26,9 +26,9 @@ App:
 
 Antes de correr GERAR-1.0.109.bat
 ---------------------------------
-1. Railway: **Redeploy** → `/health` deve mostrar
-   `api_build=2026-08-08-monstrinhos-finch-v2-psico-escudo-bonus-acolhimento`
-2. Teste manual com **conta nova**: cadastro → Luna → chat sem crash
-3. `GERAR-1.0.109.bat` → depois `AGUARDAR-E-SUBMETER-1.0.109.bat`
+1. ✅ Railway no ar (08/08) — nota: o botão «Redeploy» reconstrói o MESMO commit;
+   para apanhar código novo, alterar/adicionar uma variável (`EGO_DEPLOY_TAG`) força deploy do commit mais recente
+2. ⬜ Teste manual com **conta nova**: cadastro → Luna → chat sem crash
+3. ⬜ `GERAR-1.0.109.bat` → depois `AGUARDAR-E-SUBMETER-1.0.109.bat`
 
 Sem EGO_MAINTENANCE=1.
