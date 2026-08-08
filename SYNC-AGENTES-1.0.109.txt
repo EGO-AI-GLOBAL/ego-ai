@@ -1,0 +1,34 @@
+SYNC MESTRE — 1.0.109
+=====================
+Versão: **1.0.109** · versionCode **166** · buildNumber **114**
+Motivo: Monstrinhos «Finch» — retenção infinita + acolhimento (sem reescrever o app)
+
+| Zona | Estado | Commit |
+|------|--------|--------|
+| MONSTRINHOS (pet nível + consumíveis + psicologia) | ✅ **PRONTO** | `1747a68` + `b72daeb` |
+| BOLSO | ✅ sem alterações nesta versão | — |
+| API | ✅ **PRONTO** (aguarda redeploy Railway) | `1747a68` |
+| MARKETING | ✅ sem alterações nesta versão | — |
+
+O que entra nesta versão
+------------------------
+Backend (já em `main`, falta redeploy Railway):
+- Ofensiva com acolhimento: **escudo** protege 1 dia perdido (ganha 1 a cada 7, máx 2)
+- Sementes com **reforço variável**: bônus surpresa estável por dia (base sempre entra)
+- Copy acolhedora nas 3 missões (Humor / Respirar / Jardim), missão do dia e share hook
+- Pet com **níveis sem fim** (XP) + **consumíveis** (petisco, bolo, caixa surpresa)
+- Payload novo: `pet`, `consumables`, `shields`, `streak_message`, `last_box_reward`
+
+App:
+- `MoodPetLevelCard`: nível/estágio, barra de XP, escudo e mensagem de acolhimento
+- Loja de consumíveis com gasto infinito de sementes + caixa surpresa com recompensa aleatória
+- `purchaseDailyCareConsumable` → `POST /api/v1/daily-care/consume`
+
+Antes de correr GERAR-1.0.109.bat
+---------------------------------
+1. Railway: **Redeploy** → `/health` deve mostrar
+   `api_build=2026-08-08-monstrinhos-finch-v2-psico-escudo-bonus-acolhimento`
+2. Teste manual com **conta nova**: cadastro → Luna → chat sem crash
+3. `GERAR-1.0.109.bat` → depois `AGUARDAR-E-SUBMETER-1.0.109.bat`
+
+Sem EGO_MAINTENANCE=1.
