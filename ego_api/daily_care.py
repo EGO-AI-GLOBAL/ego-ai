@@ -113,13 +113,16 @@ PET_LEVEL_BASE_NEED = 40  # XP para sair do nível 1
 PET_LEVEL_STEP = 15  # cada nível pede um pouco mais (progressão infinita)
 
 # Estágios visíveis por faixa de nível (o nível continua a subir para sempre).
+# As duas primeiras mudanças são cedo de propósito: a desistência acontece
+# entre o 3.º e o 5.º dia, e quem desiste nunca chegava a ver o bicho mudar.
+# As últimas ficam longe para continuar a haver para onde crescer.
 PET_STAGES: list[dict[str, str | int]] = [
     {"min_level": 1, "key": "filhote", "emoji": "🥚", "label": "Filhote"},
-    {"min_level": 3, "key": "jovem", "emoji": "🐣", "label": "Jovem"},
-    {"min_level": 6, "key": "crescido", "emoji": "🐥", "label": "Crescido"},
-    {"min_level": 10, "key": "guardiao", "emoji": "🦉", "label": "Guardião"},
-    {"min_level": 16, "key": "lendario", "emoji": "🐉", "label": "Lendário"},
-    {"min_level": 25, "key": "mistico", "emoji": "✨", "label": "Místico"},
+    {"min_level": 2, "key": "jovem", "emoji": "🐣", "label": "Jovem"},
+    {"min_level": 3, "key": "crescido", "emoji": "🐥", "label": "Crescido"},
+    {"min_level": 6, "key": "guardiao", "emoji": "🦉", "label": "Guardião"},
+    {"min_level": 10, "key": "lendario", "emoji": "🐉", "label": "Lendário"},
+    {"min_level": 16, "key": "mistico", "emoji": "✨", "label": "Místico"},
 ]
 
 

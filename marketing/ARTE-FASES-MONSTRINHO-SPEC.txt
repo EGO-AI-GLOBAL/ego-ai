@@ -17,11 +17,11 @@ O QUE PRECISO — 6 PNG (é só isto)
 Pasta a criar:  app/assets/monstrinhos/fases/
 
   01-filhote.png     nível 1+     (ovo / recém-nascido)
-  02-jovem.png       nível 3+     (bebé já fora do ovo)
-  03-crescido.png    nível 6+     (criança)
-  04-guardiao.png    nível 10+    (adolescente protector)
-  05-lendario.png    nível 16+    (adulto imponente)
-  06-mistico.png     nível 25+    (forma final luminosa)
+  02-jovem.png       nível 2+     (bebé já fora do ovo)
+  03-crescido.png    nível 3+     (criança)
+  04-guardiao.png    nível 6+     (adolescente protector)
+  05-lendario.png    nível 10+    (adulto imponente)
+  06-mistico.png     nível 16+    (forma final luminosa)
 
 ESPECIFICAÇÃO TÉCNICA (obrigatória)
   - Formato: PNG-24 com CANAL ALFA (fundo 100% transparente, não branco)
@@ -42,13 +42,14 @@ PRIORIDADE (se só puder fazer alguns)
 -------------------------------------
 Faça por esta ordem — a maioria dos utilizadores nunca passa da 3.ª:
 
-  1.º  01-filhote  +  02-jovem     <- toda a gente vê (dia 1 e ~dia 10)
-  2.º  03-crescido                 <- utilizador fiel (~dia 35)
-  3.º  04, 05, 06                  <- veteranos (90, 218 e 300+ dias)
+  1.º  01-filhote  +  02-jovem     <- toda a gente vê (dia 1 e dia 4)
+  2.º  03-crescido                 <- quem volta uma semana (dia 10)
+  3.º  04-guardiao                 <- utilizador fiel (~dia 35)
+  4.º  05, 06                      <- veteranos (90 e 218 dias)
 
-Ritmo real medido no código (só com o check-in diário; petiscos e missões
-aceleram): Jovem ao 10.º dia, Crescido ao 35.º, Guardião ao 90.º,
-Lendário ao 218.º.
+Ritmo real medido no código depois da aceleração de 08/08/2026 (só com o
+check-in diário; petiscos aceleram mais): Jovem ao 4.º dia, Crescido ao
+10.º, Guardião ao 35.º, Lendário ao 90.º, Místico ao 218.º.
 
 
 PROMPTS PARA GERAR (adapte ao seu gerador)

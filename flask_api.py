@@ -469,7 +469,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-08-08-monstrinhos-finch-v3-nome-pet-level-up",
+        "api_build": "2026-08-08-monstrinhos-finch-v4-evolucao-mais-cedo",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
