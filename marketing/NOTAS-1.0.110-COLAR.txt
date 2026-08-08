@@ -1,0 +1,60 @@
+1.0.110 — TEXTOS PRONTOS A COLAR
+=================================
+
+
+A) GOOGLE PLAY — "Novidades desta versão" (máx. 500 caracteres)
+---------------------------------------------------------------
+COLE ISTO (410 caracteres — cabe no limite de 500):
+
+Agora o monstrinho é seu de verdade: dê um nome a ele. No topo da tela
+você vê o nome, a fase de crescimento e a barra de evolução, sem
+precisar procurar. Chegou festa na tela quando você recebe amêndoas de
+sorte, ganha um escudo de sequência ou seu monstrinho sobe de nível. E a
+tela dos Monstrinhos foi reorganizada: o monstrinho e as missões agora
+vêm primeiro. Faltou um dia? O escudo segura sua sequência.
+
+
+B) APP STORE CONNECT — "O que há de novo nesta versão"
+------------------------------------------------------
+COLE ISTO:
+
+• Dê um nome ao seu monstrinho — ele passa a ser seu
+• O topo da tela mostra a fase de crescimento e a barra de evolução
+• Festa na tela ao subir de nível, ganhar escudo ou amêndoas de sorte
+• Tela dos Monstrinhos reorganizada: monstrinho e missões primeiro
+• Faltou um dia? O escudo segura a sua sequência
+
+
+C) TESTFLIGHT — "O que testar" (para os testadores externos)
+-------------------------------------------------------------
+COLE ISTO:
+
+1. Abra Monstrinhos e toque no nome do monstrinho (no topo, sobre o
+   vídeo). Dê um nome a ele e confirme.
+2. Marque o humor do dia e veja se aparece a festa na tela quando sair
+   amêndoa de sorte ou escudo.
+3. Compre um petisco ou uma caixa surpresa e confirme que a recompensa
+   aparece na tela, sem caixa de diálogo do sistema.
+4. Confira se a barra de evolução e o selo da fase aparecem no topo.
+
+
+D) POST PARA REDES (opcional)
+-----------------------------
+Seu monstrinho agora tem nome. 💜
+
+Você escolhe, ele fica com esse nome pra sempre no seu jardim — e cresce
+junto com você, um humor por dia.
+
+E se você faltar um dia? O escudo segura sua sequência. Aqui ninguém
+perde tudo por causa de um dia difícil.
+
+EGO AI — grátis na Play Store e na App Store.
+
+
+NOTA INTERNA (não colar nas lojas)
+----------------------------------
+Versão: 1.0.110
+iOS   : build 115 · TestFlight · build ID 3a57a0ed
+Android: versionCode 168 (o EAS incrementou sozinho, porque o 167 já
+         tinha sido usado na 1.0.109) · build ID 40236480
+API   : já no ar — api_build 2026-08-08-monstrinhos-finch-v3-nome-pet-level-up
