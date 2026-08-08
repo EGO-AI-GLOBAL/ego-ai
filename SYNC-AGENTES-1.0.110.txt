@@ -66,6 +66,20 @@ BUILD — ✅ AMBAS CONCLUÍDAS
   Textos das lojas prontos: marketing/NOTAS-1.0.110-COLAR.txt
 
 
+DEPOIS DA BUILD — só servidor (sem build nova)
+----------------------------------------------
+  08/08 tarde · commit 62b10a8
+  Evolução do monstrinho acelerada nas primeiras fases:
+    Jovem     dia 10 -> dia 4
+    Crescido  dia 35 -> dia 10
+    Guardião  dia 90 -> dia 35
+    Lendário  dia 218 -> dia 90
+    Místico   (novo)  -> dia 218
+  Só limiares de nível em PET_STAGES; a curva de XP ficou igual.
+  api_build = 2026-08-08-monstrinhos-finch-v4-evolucao-mais-cedo (no ar)
+  Apanha também quem está na 1.0.108/1.0.109 — não precisa de loja.
+
+
 PENDENTE PARA A PRÓXIMA
 -----------------------
   Arte do bicho por fase (6 PNG) — o desenho ainda é igual em todos os
