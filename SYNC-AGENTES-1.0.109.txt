@@ -8,7 +8,9 @@ Builds EAS (enfileiradas 08/08)
 | Plataforma | Build ID | Estado |
 |------------|----------|--------|
 | iOS production | `cfcfa948-351e-4e6c-bfcc-7b1a5ad732ef` | ✅ FINISHED · build **114** · ✅ **submetido TestFlight** (submission `0ddb546c`) |
-| Android production AAB | `a0c02b58-fc58-4930-abe5-b275a761d8ba` | a compilar → **upload manual** na Play (versionCode **166**) |
+| Android production AAB | `a0c02b58-fc58-4930-abe5-b275a761d8ba` | ✅ FINISHED · versionCode **166** · **upload manual** na Play |
+
+AAB: https://expo.dev/artifacts/eas/pdvOoGsCXkQ64oNoegg8QC9frVC4-NUa0bCCBBK2HgI.aab
 
 Nota: uma 2ª build Android (`86632a5d`) foi criada por engano (a execução dada como
 interrompida terminou em segundo plano e reescreveu o ids.json) — **cancelada**.
