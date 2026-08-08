@@ -1097,6 +1097,19 @@ export async function purchaseDailyCareShopItem(
   }
 }
 
+export async function purchaseDailyCareConsumable(
+  itemId: string
+): Promise<{ daily_care: DailyCareInfo } | null> {
+  try {
+    const { data } = await api.post("daily-care/consume", { item: itemId });
+    const body = unwrap<{ daily_care: DailyCareInfo }>(data);
+    if (!body.daily_care) return null;
+    return body;
+  } catch {
+    return null;
+  }
+}
+
 export async function createShoppingItem(payload: {
   title: string;
   reminder_id?: string | null;

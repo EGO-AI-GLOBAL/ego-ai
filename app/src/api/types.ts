@@ -572,6 +572,45 @@ export type DailyCareInfo = {
   weekly_quiz?: DailyCareWeeklyQuiz | null;
   social_invite?: DailyCareSocialInvite | null;
   gentleness?: DailyCareGentleness | null;
+  pet?: DailyCarePet | null;
+  consumables?: DailyCareConsumable[];
+  last_box_reward?: DailyCareBoxReward | null;
+  shields?: number;
+  streak_message?: string;
+  checkin_bonus?: number;
+  streak_protected?: boolean;
+  shield_earned?: boolean;
+};
+
+export type DailyCarePet = {
+  level: number;
+  xp: number;
+  xp_into_level: number;
+  xp_for_next: number;
+  progress_pct: number;
+  stage_key: string;
+  stage_emoji: string;
+  stage_label: string;
+  treats_given?: number;
+  boxes_opened?: number;
+  name?: string;
+};
+
+export type DailyCareConsumable = {
+  id: string;
+  emoji: string;
+  label: string;
+  price: number;
+  kind: string;
+  desc: string;
+  can_afford: boolean;
+};
+
+export type DailyCareBoxReward = {
+  kind: string;
+  emoji: string;
+  label: string;
+  amount: number;
 };
 
 export type DailyCareShopItem = {

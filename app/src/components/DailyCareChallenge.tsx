@@ -22,6 +22,7 @@ import {
   requestGardenClip,
   type MonsterPetPlayRequest,
 } from "./moodMonsters/MoodMonsterStickyPet";
+import { MoodPetLevelCard } from "./moodMonsters/MoodPetLevelCard";
 import { MoodSeedShop } from "./moodMonsters/MoodSeedShop";
 import { MoodSocialInviteCard } from "./moodMonsters/MoodSocialInviteCard";
 import { MoodWeeklyQuizCard } from "./moodMonsters/MoodWeeklyQuizCard";
@@ -352,6 +353,13 @@ export function DailyCareChallenge({
         />
 
         <MoodSocialInviteCard colors={colors} invite={care.social_invite} />
+
+        <MoodPetLevelCard
+          colors={colors}
+          care={care}
+          onUpdate={(next) => onUpdate(next)}
+          onFeed={() => playUnique(preferredClipForGardenEvent("shop"))}
+        />
 
         <MoodSeedShop
           colors={colors}
