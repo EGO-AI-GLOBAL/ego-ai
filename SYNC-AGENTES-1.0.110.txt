@@ -52,11 +52,18 @@ VERIFICAÇÕES
   [  ] Teste manual: Monstrinhos → dar nome → check-in → ver festa
 
 
-BUILD
------
-  GERAR-1.0.110.bat  →  AGUARDAR-E-SUBMETER-1.0.110.bat
-  iOS: submit automático para TestFlight
-  Android: AAB para upload manual na Play Console
+BUILD — ✅ AMBAS CONCLUÍDAS
+--------------------------
+  iOS      build 115 · FINISHED · id 3a57a0ed-aa77-452f-ab22-50d963fa017b
+           → submetido ao TestFlight (submission ef06c542)
+           → App Store Connect: adicionar ao grupo externo + distribuição
+
+  Android  versionCode 168 · FINISHED · id 40236480-9fbf-44b3-bb3d-49cfe071b4e9
+           (o EAS incrementou 167 → 168: o 167 já saíra na 1.0.109)
+           → AAB: https://expo.dev/artifacts/eas/1ZvqbxEnUVo4DMJcqtoiPSQG2qcdy_kcmFkCe9ABWHM.aab
+           → upload manual na Play Console (Iury)
+
+  Textos das lojas prontos: marketing/NOTAS-1.0.110-COLAR.txt
 
 
 PENDENTE PARA A PRÓXIMA
