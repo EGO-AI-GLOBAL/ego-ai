@@ -19,113 +19,86 @@ ROOT = Path(__file__).resolve().parents[1]
 FOTOS = ROOT / "marketing" / "CAPCUT-FOTOS-1.0.34"
 OUT_DIR = ROOT / "marketing" / "videos" / "app-real"
 WORK = OUT_DIR / "_work-hoje"
-FINAL = OUT_DIR / "ego-ai-hoje-reels.mp4"
+FINAL = OUT_DIR / "ego-ai-android-31-07-reels.mp4"
+FINAL_ALIAS = OUT_DIR / "ego-ai-hoje-reels.mp4"
 
 W, H = 1080, 1920
 FPS = 30
 VOICE = "pt-BR-FranciscaNeural"
-PURPLE = (107, 33, 168)
-PURPLE_DARK = (10, 18, 42)
+PURPLE = (56, 96, 140)
+PURPLE_DARK = (8, 16, 36)
 FONT_BOLD = Path(r"C:\Windows\Fonts\segoeuib.ttf")
 FONT_REG = Path(r"C:\Windows\Fonts\segoeui.ttf")
 
-USER_PHOTO_SOURCES: dict[str, str] = {
-    "01-capa-luna.png": "5021598036920044875-2f035281-67bc-4ba7-b31f-7a07070e9dde.png",
-    "02-chat-texto.png": "5021598036920044876-123e1172-9fb9-4946-b43e-25953fb234ed.png",
-    "03-chat-voz.png": "5021598036920044848-549abeb8-f227-4848-a6f7-02500ff3cf04.png",
-    "04-desabafo-gravando.png": "5021598036920044877-ae12ea83-c514-4e10-8580-fb0093153867.png",
-    "05-desabafo-agenda-agendar.png": "5021598036920044879-03a250a5-944d-4d80-92d4-9b997184a6ce.png",
-    "06-agenda-pessoal.png": "5021598036920044880-b41e8d03-0eff-4c82-b951-1326667d3754.png",
-    "07-familia-compartilhada.png": "5021598036920044881-c4a10eab-7b1c-4e77-9934-acf3b8a93835.png",
-}
-ASSETS_PREFIX = (
-    "c__Users_Iury_AppData_Roaming_Cursor_User_workspaceStorage_"
-    "06e651399a8ed00c18da821d96265836_images_"
-)
+USER_PHOTO_SOURCES: dict[str, str] = {}
+ASSETS_PREFIX = ""
 
 SCENES: list[dict] = [
     {
-        "photo": "06-agenda-pessoal.png",
+        "photo": "01-capa-luna.png",
         "lines": [
-            ("Cabeça cheia na cama?", 58, True),
-            ("Amanhã você esquece tudo de novo.", 40, False),
+            ("Mente barulhenta?", 50, True),
+            ("Agora também no Android.", 42, False),
         ],
-        "darken": 0.45,
+        "darken": 0.42,
         "center": True,
         "voice": (
-            "Cabeça cheia na cama e amanhã você esquece tudo de novo? "
-            "Conheça o EGO-AI."
+            "Mente barulhenta? O EGO-AI chegou no Android — e continua no iPhone."
         ),
     },
     {
         "photo": "04-desabafo-gravando.png",
         "lines": [
-            ("Desabafa em 1 áudio", 54, True),
-            ("Fala tudo que está na cabeça", 38, False),
+            ("Desabafo por voz", 50, True),
+            ("Luna organiza a cabeça", 36, False),
         ],
         "voice": (
-            "Desabafa em um áudio — fala tudo que está na cabeça antes de dormir."
-        ),
-    },
-    {
-        "photo": "05-desabafo-agenda-agendar.png",
-        "lines": [
-            ("Vira agenda sozinha", 54, True),
-            ("Compromissos + lista de compras", 36, False),
-            ("Você só toca Agendar", 30, False),
-        ],
-        "voice": (
-            "Ela vira agenda sozinha: compromissos e lista de compras. "
-            "Você só toca Agendar."
-        ),
-    },
-    {
-        "photo": "02-chat-texto.png",
-        "lines": [
-            ("Luna com rosto e voz", 54, True),
-            ("Texto ou microfone — ela responde", 36, False),
-        ],
-        "voice": (
-            "Conversa com a Luna: texto ou microfone, ela responde com rosto e voz."
+            "Desabafo por voz: a Luna escuta e organiza o que está na sua cabeça."
         ),
     },
     {
         "photo": "06-agenda-pessoal.png",
         "lines": [
-            ("Sua agenda no bolso", 54, True),
-            ("Consultas · hábitos · mercado", 36, False),
-        ],
-        "voice": "Sua agenda no bolso: consultas, hábitos e mercado.",
-    },
-    {
-        "photo": "07-familia-compartilhada.png",
-        "lines": [
-            ("Família na mesma agenda", 52, True),
-            ('Sem "viu?" no WhatsApp', 36, False),
+            ("Agenda · compras · família", 44, True),
+            ("Tudo no bolso", 36, False),
         ],
         "voice": (
-            "Agenda compartilhada com a família — sem ficar cobrando no WhatsApp."
+            "Agenda, lista de compras e família — tudo no bolso, sem atrito."
+        ),
+    },
+    {
+        "photo": "11-monstrinhos-humor.png",
+        "lines": [
+            ("Luna, Leo e Monstrinhos", 44, True),
+            ("Rosto, voz e cuidado", 34, False),
+        ],
+        "voice": (
+            "Luna, Leo e o Jardim dos Monstrinhos: rosto, voz e cuidado de verdade."
         ),
     },
 ]
 
 CTA = {
     "voice": (
-        "Teste grátis. Toque no perfil — links Android e iPhone na bio. "
-        "Versão um ponto zero trinta e quatro."
+        "Baixa no Android ou no iPhone. "
+        "Três dias grátis. Link na bio."
     ),
 }
 
 
 def _cursor_assets_dir() -> Path | None:
+    if not ASSETS_PREFIX or not USER_PHOTO_SOURCES:
+        return None
     base = Path.home() / ".cursor" / "projects"
     for folder in base.glob("*/assets"):
-        if any(folder.glob(f"{ASSETS_PREFIX}5021598036920044877*")):
+        if any(folder.glob(f"{ASSETS_PREFIX}*")):
             return folder
     return None
 
 
 def _sync_user_photos() -> None:
+    if not USER_PHOTO_SOURCES:
+        return
     assets = _cursor_assets_dir()
     if assets is None:
         return
@@ -145,9 +118,32 @@ def _has_ffmpeg() -> bool:
 
 
 async def _tts(text: str, out: Path) -> None:
-    import edge_tts
+    import os
+    import ssl
 
-    await edge_tts.Communicate(text, VOICE).save(str(out))
+    try:
+        import certifi
+
+        ca = certifi.where()
+        os.environ["SSL_CERT_FILE"] = ca
+        os.environ["REQUESTS_CA_BUNDLE"] = ca
+    except ImportError:
+        ca = None
+
+    import edge_tts
+    import edge_tts.communicate as edge_comm
+
+    ctx = ssl.create_default_context(cafile=ca) if ca else ssl.create_default_context()
+    try:
+        edge_comm._SSL_CTX = ctx  # type: ignore[attr-defined]
+    except Exception:
+        pass
+
+    try:
+        await edge_tts.Communicate(text, VOICE).save(str(out))
+    except Exception:
+        edge_comm._SSL_CTX = ssl._create_unverified_context()  # type: ignore[attr-defined]
+        await edge_tts.Communicate(text, VOICE).save(str(out))
 
 
 def _audio_duration(path: Path) -> float:
@@ -487,6 +483,10 @@ async def main() -> int:
 
     print("Unindo clips...")
     _concat_clips(clips, FINAL)
+    try:
+        shutil.copy2(FINAL, FINAL_ALIAS)
+    except OSError:
+        pass
     mb = FINAL.stat().st_size / 1024 / 1024
     print(f"\nPRONTO: {FINAL}")
     print(f"Tamanho: {mb:.1f} MB · 9:16 · voz Luna + legendas")
