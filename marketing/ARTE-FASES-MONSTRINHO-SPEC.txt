@@ -1,0 +1,95 @@
+ARTE DAS FASES DO MONSTRINHO — o que gerar (v1.0.110+)
+=======================================================
+
+PORQUÊ
+------
+O monstrinho hoje é o MESMO desenho do nível 1 ao nível 25. A "evolução"
+existe em número e emoji, mas o bicho nunca muda de aspecto. É por isso
+que a versão sabe a pouco: o utilizador cuida durante semanas e vê sempre
+o mesmo animal.
+
+Com estes ficheiros, cada fase passa a ter um bicho visivelmente diferente
+no palco, no cartão de nível e na festa de subida de nível.
+
+
+O QUE PRECISO — 6 PNG (é só isto)
+---------------------------------
+Pasta a criar:  app/assets/monstrinhos/fases/
+
+  01-filhote.png     nível 1+     (ovo / recém-nascido)
+  02-jovem.png       nível 3+     (bebé já fora do ovo)
+  03-crescido.png    nível 6+     (criança)
+  04-guardiao.png    nível 10+    (adolescente protector)
+  05-lendario.png    nível 16+    (adulto imponente)
+  06-mistico.png     nível 25+    (forma final luminosa)
+
+ESPECIFICAÇÃO TÉCNICA (obrigatória)
+  - Formato: PNG-24 com CANAL ALFA (fundo 100% transparente, não branco)
+  - Tamanho: 512 x 512 px, quadrado
+  - O bicho ocupa ~80% da altura, centrado, com margem de respiro à volta
+  - Peso alvo: até 150 KB por ficheiro (total < 1 MB)
+  - Vista: de frente, corpo inteiro, olhando para a câmara
+  - Sem texto, sem moldura, sem sombra projectada no "chão"
+
+REGRA DE OURO
+  Tem de ser reconhecidamente O MESMO personagem nas 6 fases — mesma
+  paleta, mesmos olhos, mesma silhueta base. Não são 6 monstros
+  diferentes: é um monstro a crescer. Se puser os 6 lado a lado, deve
+  ler-se como uma linha do tempo.
+
+
+PRIORIDADE (se só puder fazer alguns)
+-------------------------------------
+Faça por esta ordem — a maioria dos utilizadores nunca passa da 3.ª:
+
+  1.º  01-filhote  +  02-jovem     <- toda a gente vê (dia 1 e ~dia 10)
+  2.º  03-crescido                 <- utilizador fiel (~dia 35)
+  3.º  04, 05, 06                  <- veteranos (90, 218 e 300+ dias)
+
+Ritmo real medido no código (só com o check-in diário; petiscos e missões
+aceleram): Jovem ao 10.º dia, Crescido ao 35.º, Guardião ao 90.º,
+Lendário ao 218.º.
+
+
+PROMPTS PARA GERAR (adapte ao seu gerador)
+------------------------------------------
+Base comum a colar em todos:
+  "mascote 3D fofa estilo Pixar, corpo arredondado, olhos grandes
+   expressivos, paleta verde-menta e lilás suave, iluminação suave de
+   estúdio, fundo transparente, corpo inteiro centrado, sem texto"
+
+Acrescentar por fase:
+  01  "+ dentro de um ovo rachado, só a cabecinha de fora, muito pequeno
+       e tímido"
+  02  "+ acabado de sair do ovo, com casca ainda na cabeça, patinhas
+       curtas, ar curioso"
+  03  "+ versão criança, já de pé, corpo mais alto, sorriso confiante,
+       pequenas antenas"
+  04  "+ versão adolescente protectora, postura firme, um manto ou capa
+       curta, olhar sereno"
+  05  "+ versão adulta imponente, maior, detalhes dourados, aura quente
+       à volta do corpo"
+  06  "+ forma final mística, corpo semi-luminoso, partículas de luz
+       flutuantes, tons iridescentes"
+
+Depois de gerar, remova o fundo (o gerador raramente devolve alfa real)
+e exporte a 512x512.
+
+
+O QUE EU NÃO RECOMENDO (e porquê)
+---------------------------------
+Fazer vídeos novos por fase seria o ideal visual, mas não cabe:
+os 120 clips actuais já pesam 266 MB. Um clip idle por humor e por fase
+seriam mais 25 ficheiros (~64 MB) e o pacote da loja rebentava os limites
+da Play. Os PNG resolvem 90% da percepção por menos de 1 MB.
+
+
+QUANDO OS FICHEIROS ESTIVEREM PRONTOS
+-------------------------------------
+Ponha-os na pasta acima com EXACTAMENTE esses nomes e avise. Eu ligo-os
+em três sítios (palco do bicho, cartão de nível e festa de subida de
+nível) e sai na versão seguinte. Não é preciso mexer em código nenhum.
+
+As fases ainda não atingidas vão aparecer como silhueta escura no cartão
+("o que vem a seguir") — isso faço a partir do mesmo PNG, não precisa de
+gerar versões bloqueadas.

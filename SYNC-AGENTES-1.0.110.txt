@@ -1,0 +1,65 @@
+SYNC AGENTES — 1.0.110 (mestre)
+================================
+Versão: 1.0.110 · iOS buildNumber 115 · Android versionCode 167
+
+MOTIVO DESTA VERSÃO
+-------------------
+Na 1.0.109 a psicologia estilo Finch entrou toda no servidor (escudo de
+sequência, reforço variável, economia sem fim) mas quase nada ficou
+visível: o cartão do nível era o 17.º bloco de um ecrã com 20, e o
+monstrinho no topo continuava a mostrar só o nome do humor. Feedback do
+utilizador: "esperava uma mudança mais robusta".
+
+A 1.0.110 põe a evolução onde se olha primeiro e dá nome ao bicho.
+
+
+ZONA MONSTRINHOS — ✅ PRONTO
+----------------------------
+commit a9476c0
+
+Backend (ego_api/daily_care.py, flask_api.py)
+  - sanitize_pet_name + set_pet_name
+  - rota POST /api/v1/daily-care/pet-name (rate limit 20/60s por user)
+  - _pet_level_of + _attach_level_up → pet_level_up no check-in e nas
+    compras de consumível
+  - api_build = 2026-08-08-monstrinhos-finch-v3-nome-pet-level-up
+
+App
+  - app/src/constants/moodPetStages.ts (novo) — cor/aura por fase
+  - app/src/components/moodMonsters/MoodPetNameModal.tsx (novo)
+  - app/src/components/moodMonsters/MoodRewardBurst.tsx (novo)
+  - MoodMonsterStickyPet.tsx — nome, selo da fase, barra de XP, moldura
+  - MoodPetLevelCard.tsx — festa em vez de Alert, título toca para nomear
+  - DailyCareChallenge.tsx — celebrateCheckin + ordem do ecrã refeita
+  - app/app/(main)/daily-care.tsx — liga modal do nome ao palco
+  - app/src/api/client.ts + types.ts — saveDailyCarePetName, pet_level_up
+
+ZONA BOLSO — n/a nesta versão
+ZONA API/SEGURANÇA — n/a nesta versão
+ZONA MARKETING — ✅ notas em marketing/NOTAS-1.0.110-PLAY.txt
+
+
+VERIFICAÇÕES
+------------
+  [OK] python scripts/regression_guard.py
+  [OK] python scripts/smoke_test_api.py
+  [OK] npx tsc --noEmit (sem erros novos; os existentes são anteriores)
+  [OK] API em produção com api_build v3 (deploy forçado por
+       EGO_DEPLOY_TAG=nome-pet-1-0-110 — o auto-deploy do GitHub
+       continua a não disparar sozinho neste serviço)
+
+  [  ] Teste manual: conta nova → cadastro → Luna → chat sem crash
+  [  ] Teste manual: Monstrinhos → dar nome → check-in → ver festa
+
+
+BUILD
+-----
+  GERAR-1.0.110.bat  →  AGUARDAR-E-SUBMETER-1.0.110.bat
+  iOS: submit automático para TestFlight
+  Android: AAB para upload manual na Play Console
+
+
+PENDENTE PARA A PRÓXIMA
+-----------------------
+  Arte do bicho por fase (6 PNG) — o desenho ainda é igual em todos os
+  níveis. Especificação: marketing/ARTE-FASES-MONSTRINHO-SPEC.txt

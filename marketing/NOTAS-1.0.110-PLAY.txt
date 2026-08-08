@@ -1,0 +1,49 @@
+NOTAS DA VERSÃO 1.0.110 — Play Store / App Store
+=================================================
+
+TEXTO CURTO (Play, até 500 caracteres)
+--------------------------------------
+Agora o monstrinho é seu de verdade: dê um nome a ele. O bicho no topo
+da tela mostra o nome, a fase de crescimento e a barra de evolução — dá
+para ver ele crescer sem precisar procurar. Ganhou festa na tela quando
+você recebe amêndoas de sorte, ganha um escudo ou seu monstrinho sobe de
+nível. A tela dos Monstrinhos foi reorganizada: o que importa ficou no
+começo.
+
+
+TEXTO CURTO (App Store / TestFlight)
+------------------------------------
+• Dê um nome ao seu monstrinho — ele passa a ser seu
+• O bicho mostra a fase de crescimento e a barra de evolução no topo
+• Festa na tela ao subir de nível, ganhar escudo ou amêndoas de sorte
+• Tela dos Monstrinhos reorganizada: monstrinho e missões primeiro
+
+
+DETALHE COMPLETO (interno)
+--------------------------
+NOVO
+  - Baptizar o monstrinho: toque no nome no palco (ou no cartão de
+    nível) e escolha um nome até 20 letras. Pode mudar quando quiser.
+  - Palco do bicho passa a mostrar: nome próprio, selo da fase
+    (Filhote / Jovem / Crescido / Guardião / Lendário / Místico),
+    barra de XP e moldura que muda de cor conforme a fase.
+  - Festa na tela (em vez de aviso de sistema) quando:
+      · o monstrinho sobe de nível
+      · sai amêndoa de sorte no check-in
+      · você ganha um escudo de sequência
+      · o escudo segura a sequência num dia falhado
+      · abre uma caixa surpresa
+
+MUDOU
+  - Ordem da tela dos Monstrinhos: humor → monstrinho e cuidado →
+    missões → diário → loja → quiz → convite → ranking.
+    (antes o nível do monstrinho era o 17.º bloco de 20)
+  - Compras de petisco e caixa deixaram de abrir caixa de diálogo.
+
+API
+  - Nova rota daily-care/pet-name
+  - Check-in e compras passam a devolver pet_level_up
+
+AINDA POR FAZER (precisa de arte)
+  - O desenho do bicho é o mesmo em todas as fases. Especificação dos
+    6 PNG a gerar: marketing/ARTE-FASES-MONSTRINHO-SPEC.txt
