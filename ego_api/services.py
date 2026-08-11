@@ -107,6 +107,22 @@ _AUTH_ERROR_PT: tuple[tuple[str, str], ...] = (
         "session not found",
         "Sessão expirada. Entre de novo ou peça um novo link.",
     ),
+    (
+        "already used",
+        "Sessão expirada. Entre de novo.",
+    ),
+    (
+        "invalid refresh token",
+        "Sessão expirada. Entre de novo.",
+    ),
+    (
+        "refresh token not found",
+        "Sessão expirada. Entre de novo.",
+    ),
+    (
+        "invalid claim",
+        "Sessão expirada. Entre de novo.",
+    ),
     ("signup disabled", "Cadastro temporariamente indisponível. Tente mais tarde."),
     ("invalid email", "E-mail inválido."),
     ("email address is invalid", "E-mail inválido."),

@@ -94,8 +94,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [persist]);
 
-  const refreshSessionIfNeeded = useCallback(
-    async (current: AuthSession, opts?: { force?: boolean }) => {
+      const refreshSessionIfNeeded = useCallback(
+    async (current: AuthSession, opts?: { force?: boolean }): Promise<AuthSession | null> => {
       const refreshTok = current.refresh_token?.trim();
       if (!refreshTok) return current;
       if (!opts?.force && !sessionNeedsRefresh(current)) return current;
@@ -117,8 +117,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const toSave = mem?.access_token ? mem : next;
         await persist(toSave);
         return toSave;
-      } catch {
-        /* rede ou refresh inválido — mantém sessão; interceptor trata 401 */
+      } catch (e) {
+        const msg = (e instanceof Error ? e.message : String(e || "")).toLowerCase();
+        const hardDead =
+          msg.includes("sessão expirada") ||
+          msg.includes("sessao expirada") ||
+          msg.includes("entre de novo") ||
+          msg.includes("already used") ||
+          msg.includes("invalid refresh");
+        if (hardDead) {
+          // Refresh morto — manter/persistir a sessão antiga deixa o sync preso.
+          setSession(null);
+          setLocalSession(null);
+          await deleteSecureItem(STORAGE_KEY).catch(() => undefined);
+          return null;
+        }
+        /* rede transitória — mantém sessão; interceptor trata 401 */
         return getSession() ?? current;
       } finally {
         refreshInFlight.current = false;
@@ -147,7 +161,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const uid = parsed.user?.id?.trim();
               if (uid) await consumeSecureWipeIfNeeded(uid);
               const next = await refreshSessionIfNeeded(parsed);
-              if (next === parsed) {
+              if (next == null) {
+                /* refresh morto — sessão limpa; ecrã de login */
+              } else if (next === parsed) {
                 await persist(parsed);
               }
               void preparePlayIntegrity();

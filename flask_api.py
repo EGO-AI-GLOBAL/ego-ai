@@ -24,7 +24,7 @@ from typing import Any, Callable
 import html as html_lib
 import re
 
-from flask import Flask, Response, g, jsonify, request
+from flask import Flask, Response, g, jsonify, make_response, request
 from flask_cors import CORS
 
 from ego_api.config import (
@@ -90,6 +90,12 @@ CORS(
         "X-EGO-Platform",
         "X-EGO-App-Version",
         "X-Admin-Key",
+    ],
+    # App precisa ler tokens renovados no require_auth (senão fica com refresh morto).
+    expose_headers=[
+        "X-EGO-Access-Token",
+        "X-EGO-Refresh-Token",
+        "X-EGO-Expires-At",
     ],
     methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
 )
@@ -280,10 +286,15 @@ def _optional_authenticated_profile() -> dict | None:
 
 
 def _auth_user_from_tokens(client, access: str, refresh: str):
-    """Valida access; se expirou e há refresh, renova (o app já manda X-Refresh-Token)."""
+    """Valida access; se expirou e há refresh, renova (o app já manda X-Refresh-Token).
+
+    Devolve também expires_at quando rodou refresh — o app TEM de gravar o
+    refresh novo; senão o token antigo fica morto e só logout recupera.
+    """
     user = None
     new_access = access
     new_refresh = refresh
+    expires_at = None
     try:
         if refresh:
             try:
@@ -298,17 +309,21 @@ def _auth_user_from_tokens(client, access: str, refresh: str):
         user = None
 
     if user:
-        return user, new_access, new_refresh
+        return user, new_access, new_refresh, expires_at
 
     if not (refresh or "").strip():
-        return None, access, refresh
+        return None, access, refresh, None
 
     payload, _err = services.refresh_session(refresh.strip())
     if not payload or not payload.get("access_token"):
-        return None, access, refresh
+        return None, access, refresh, None
 
     new_access = str(payload["access_token"]).strip()
     new_refresh = str(payload.get("refresh_token") or refresh).strip()
+    try:
+        expires_at = int(payload["expires_at"]) if payload.get("expires_at") is not None else None
+    except (TypeError, ValueError):
+        expires_at = None
     try:
         try:
             client.auth.set_session(new_access, new_refresh)
@@ -317,8 +332,28 @@ def _auth_user_from_tokens(client, access: str, refresh: str):
         user_resp = client.auth.get_user(new_access)
         user = getattr(user_resp, "user", None)
     except Exception:
-        return None, access, refresh
-    return user, new_access, new_refresh
+        return None, access, refresh, None
+    return user, new_access, new_refresh, expires_at
+
+
+def _with_rotated_session_headers(result, access0: str, refresh0: str, access: str, refresh: str, expires_at=None):
+    """Ecoa tokens renovados no require_auth para o app persistir (evita sync diário morto)."""
+    access_n = (access or "").strip()
+    refresh_n = (refresh or "").strip()
+    if not access_n:
+        return result
+    if access_n == (access0 or "").strip() and refresh_n == (refresh0 or "").strip():
+        return result
+    resp = make_response(result)
+    resp.headers["X-EGO-Access-Token"] = access_n
+    if refresh_n:
+        resp.headers["X-EGO-Refresh-Token"] = refresh_n
+    if expires_at is not None:
+        try:
+            resp.headers["X-EGO-Expires-At"] = str(int(expires_at))
+        except (TypeError, ValueError):
+            pass
+    return resp
 
 
 def require_auth(f: Callable) -> Callable:
@@ -341,7 +376,8 @@ def require_auth(f: Callable) -> Callable:
                 "Confira se SUPABASE_KEY é a chave anon/publishable do projeto.",
                 503,
             )
-        user, access, refresh = _auth_user_from_tokens(client, access, refresh)
+        access0, refresh0 = access, refresh
+        user, access, refresh, expires_at = _auth_user_from_tokens(client, access, refresh)
         if not user:
             return _json_error("Sessão inválida ou expirada.", 401)
         uid = str(getattr(user, "id", "") or "")
@@ -438,7 +474,10 @@ def require_auth(f: Callable) -> Callable:
 
             log_api_exception(exc, route=f"{request.path} (session enrich)")
 
-        return f(*args, **kwargs)
+        result = f(*args, **kwargs)
+        return _with_rotated_session_headers(
+            result, access0, refresh0 or "", access, refresh or "", expires_at
+        )
 
     return wrapper
 
@@ -469,7 +508,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-08-08-monstrinhos-finch-v4-evolucao-mais-cedo",
+        "api_build": "2026-08-11-auth-echo-refresh-tokens",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),

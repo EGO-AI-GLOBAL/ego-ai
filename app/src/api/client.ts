@@ -65,6 +65,17 @@ function shouldClearSessionOnRefreshFailure(
   refreshStatus?: number,
   errMessage?: string
 ): boolean {
+  const low = (errMessage || "").toLowerCase();
+  // Refresh morto (já usado / inválido) — tem de limpar, senão fica preso até logout manual.
+  if (
+    low.includes("sessão expirada") ||
+    low.includes("sessao expirada") ||
+    low.includes("entre de novo") ||
+    low.includes("already used") ||
+    low.includes("invalid refresh")
+  ) {
+    return true;
+  }
   if (
     refreshStatus !== 401 &&
     refreshStatus !== 403 &&
@@ -72,7 +83,6 @@ function shouldClearSessionOnRefreshFailure(
   ) {
     return false;
   }
-  const low = (errMessage || "").toLowerCase();
   if (
     low.includes("tente de novo") ||
     low.includes("tente novamente") ||
@@ -198,7 +208,24 @@ export const api: AxiosInstance = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
-  applyAuthHeaders(config.headers);
+  let session = getSession();
+  // Renova ANTES do pedido se o access está a expirar — evita o servidor
+  // queimar o refresh sem devolver tokens (bug do sync diário).
+  if (
+    authHydrationComplete &&
+    session?.refresh_token?.trim() &&
+    sessionNeedsRefresh(session)
+  ) {
+    try {
+      session = await refreshSessionToken(session.refresh_token, session);
+      if (onSessionPersist) {
+        await onSessionPersist(session);
+      }
+    } catch {
+      session = getSession();
+    }
+  }
+  applyAuthHeaders(config.headers, session);
   const h = config.headers as Record<string, string>;
   h["X-EGO-Platform"] = Platform.OS;
   const appVer = String(Constants.expoConfig?.version || "").trim();
@@ -221,6 +248,44 @@ api.interceptors.request.use(async (config) => {
 
 type RetryConfig = InternalAxiosRequestConfig & { _retry?: boolean };
 
+function headerGet(
+  headers: Record<string, unknown> | undefined,
+  name: string
+): string {
+  if (!headers) return "";
+  const lower = name.toLowerCase();
+  for (const [k, v] of Object.entries(headers)) {
+    if (k.toLowerCase() === lower && v != null) return String(v).trim();
+  }
+  return "";
+}
+
+/** Tokens que o require_auth renovou no servidor — gravar ou o refresh antigo morre. */
+async function persistRotatedSessionFromResponse(headers: unknown): Promise<void> {
+  const h = (headers || {}) as Record<string, unknown>;
+  const access = headerGet(h, "x-ego-access-token");
+  if (!access) return;
+  const refresh = headerGet(h, "x-ego-refresh-token");
+  const expiresAt = coerceExpiresAt(headerGet(h, "x-ego-expires-at") || null);
+  const cur = getSession();
+  if (
+    cur?.access_token?.trim() === access &&
+    (!refresh || cur.refresh_token?.trim() === refresh)
+  ) {
+    return;
+  }
+  const next: AuthSession = {
+    access_token: access,
+    refresh_token: refresh || cur?.refresh_token || "",
+    expires_at: expiresAt ?? cur?.expires_at ?? null,
+    user: cur?.user ?? { id: "", email: null },
+  };
+  setSession(next);
+  if (onSessionPersist) {
+    await onSessionPersist(next);
+  }
+}
+
 function bearerFromConfig(config?: InternalAxiosRequestConfig): string {
   if (!config?.headers) return "";
   const h = config.headers as Record<string, unknown> & {
@@ -235,7 +300,14 @@ function bearerFromConfig(config?: InternalAxiosRequestConfig): string {
 }
 
 api.interceptors.response.use(
-  (res) => res,
+  async (res) => {
+    try {
+      await persistRotatedSessionFromResponse(res.headers);
+    } catch {
+      /* não falhar o pedido por falha a gravar sessão */
+    }
+    return res;
+  },
   async (err: AxiosError<ApiErr>) => {
     const original = err.config as RetryConfig | undefined;
     const status = err.response?.status;
@@ -303,8 +375,13 @@ api.interceptors.response.use(
             return api(original);
           }
           const ax = refreshErr as AxiosError<ApiErr>;
-          const refreshStatus = ax.response?.status;
+          const clientErr = refreshErr as ApiClientError;
+          const refreshStatus =
+            typeof clientErr.status === "number"
+              ? clientErr.status
+              : ax.response?.status;
           const errMsg =
+            (typeof clientErr.message === "string" && clientErr.message) ||
             ax.response?.data?.error ||
             (typeof ax.message === "string" ? ax.message : "");
           if (shouldClearSessionOnRefreshFailure(refreshStatus, errMsg)) {
@@ -675,22 +752,33 @@ export async function refreshSessionToken(
   }
 
   const run = (async (): Promise<AuthSession> => {
-    const { data } = await axios.post(
-      `${apiBase}auth/refresh`,
-      { refresh_token: tok },
-      { timeout: 20000, headers: { "Content-Type": "application/json" } }
-    );
-    const body = unwrap<{ session: AuthSession }>(data);
-    const session = normalizeSession(body.session ?? body);
-    const next: AuthSession = {
-      ...session,
-      refresh_token:
-        session.refresh_token || prior?.refresh_token || tok,
-      user: session.user?.id ? session.user : prior?.user ?? session.user,
-      expires_at: session.expires_at ?? prior?.expires_at ?? null,
-    };
-    setSession(next);
-    return next;
+    try {
+      const { data } = await axios.post(
+        `${apiBase}auth/refresh`,
+        { refresh_token: tok },
+        { timeout: 20000, headers: { "Content-Type": "application/json" } }
+      );
+      const body = unwrap<{ session: AuthSession }>(data);
+      const session = normalizeSession(body.session ?? body);
+      const next: AuthSession = {
+        ...session,
+        refresh_token:
+          session.refresh_token || prior?.refresh_token || tok,
+        user: session.user?.id ? session.user : prior?.user ?? session.user,
+        expires_at: session.expires_at ?? prior?.expires_at ?? null,
+      };
+      setSession(next);
+      return next;
+    } catch (e) {
+      const ax = e as AxiosError<ApiErr>;
+      const apiMsg =
+        (typeof ax.response?.data?.error === "string" && ax.response.data.error) ||
+        (typeof ax.message === "string" ? ax.message : "");
+      throw new ApiClientError(
+        apiMsg || "Não foi possível renovar a sessão.",
+        ax.response?.status
+      );
+    }
   })();
 
   refreshInFlight = run;
