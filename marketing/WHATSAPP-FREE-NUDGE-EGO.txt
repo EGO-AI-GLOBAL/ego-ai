@@ -1,0 +1,68 @@
+EGO — WhatsApp lembrete grátis (nuvem Railway)
+==============================================
+
+NÚMERO DO EGO NESTA CAMPANHA
+----------------------------
+  (32) 99981-1376  →  5532999811376
+  A instância Z-API / Evolution no Railway TEM de ser deste número.
+  NÃO uses a instância/número do ShapeScan.
+
+
+O QUE É
+-------
+Cópia do teste ShapeScan, adaptado ao Ego:
+- só contas Essential (grátis) com telefone no cadastro
+- quem pagou: sem envio automático; se escrever PLANOS → resposta «olha no app»
+- 13/08/2026 ~17h BRT (1.º); depois seg/qua/sex 17h até 30/09/2026
+- teto 25/dia · pausa 90–180s
+
+
+1) SUPABASE — cola o SQL
+------------------------
+Ficheiro: supabase/COLE-EGO-FREE-NUDGE-LOG.sql
+
+
+2) RAILWAY — variáveis (serviço ego-ai)
+---------------------------------------
+Obrigatório:
+  FREE_NUDGE_ENABLED=1
+  FREE_NUDGE_OPS_TOKEN=<segredo forte teu>
+  EGO_WHATSAPP_NUMBER=5532999811376
+
+WhatsApp — instância ligada ao 32999811376:
+
+  Opção A — Z-API
+    WHATSAPP_PROVIDER=zapi
+    ZAPI_INSTANCE_ID=...   (da conta do 32 99981-1376)
+    ZAPI_TOKEN=...
+    ZAPI_CLIENT_TOKEN=...  (se pedir)
+
+  Opção B — Evolution
+    WHATSAPP_PROVIDER=evolution
+    EVOLUTION_API_URL=https://...
+    EVOLUTION_API_KEY=...
+    EVOLUTION_INSTANCE=...
+
+Opcional:
+  FREE_NUDGE_MAX_PER_DAY=25
+  FREE_NUDGE_DELAY_MIN_SEC=90
+  FREE_NUDGE_DELAY_MAX_SEC=180
+  FREE_NUDGE_HOUR_BRT=17
+
+
+3) WEBHOOK (resposta PLANOS)
+----------------------------
+No painel Z-API / Evolution do número 32 99981-1376:
+
+  POST https://ego-ai-production-a2c2.up.railway.app/ops/free-nudge/inbound?token=SEU_FREE_NUDGE_OPS_TOKEN
+
+
+4) PREVIEW
+----------
+GET .../ops/free-nudge/preview  + header X-Ops-Token
+Campo "candidates" = grátis com telefone.
+
+
+5) NÃO DISPARAR MANUAL HOJE
+---------------------------
+Cron na nuvem: 5.ª 13/08 ~17h BRT. Sem POST /run hoje.

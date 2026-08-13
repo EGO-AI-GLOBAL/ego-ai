@@ -508,7 +508,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-08-11-auth-echo-refresh-tokens",
+        "api_build": "2026-08-12-ego-free-whatsapp-nudge",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),
@@ -2644,11 +2644,17 @@ from ego_api.signup_emails import start_background_jobs as start_signup_backgrou
 from ego_api.ego_de_bolso_push import start_background_jobs as start_ego_bolso_push_jobs
 from ego_api.pausa_push import start_background_jobs as start_pausa_push_jobs
 from ego_api.plan_retention import start_background_jobs as start_plan_retention_jobs
+from ego_api.free_care_nudge import (
+    register_free_nudge_routes,
+    start_free_nudge_cron,
+)
 
 start_signup_background_jobs()
 start_ego_bolso_push_jobs()
 start_pausa_push_jobs()
 start_plan_retention_jobs()
+register_free_nudge_routes(app)
+start_free_nudge_cron()
 
 
 if __name__ == "__main__":
