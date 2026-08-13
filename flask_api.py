@@ -261,20 +261,16 @@ def _multipart_voice_audio() -> tuple[bytes | None, str]:
 
 def _optional_authenticated_profile() -> dict | None:
     """Perfil do utilizador logado (opcional) — para /plans personalizado."""
-    access, refresh = _parse_bearer()
+    access, _refresh = _parse_bearer()
     if not access:
         return None
     client = create_anon_client()
     if not client:
         return None
     try:
-        if refresh:
-            try:
-                client.auth.set_session(access, refresh)
-            except Exception:
-                client.postgrest.auth(access)
-        else:
-            client.postgrest.auth(access)
+        # Não chamar set_session(access, refresh): o GoTrue auto-renova e
+        # invalida o refresh guardado no telemóvel → login todas as manhãs.
+        client.postgrest.auth(access)
         user_resp = client.auth.get_user(access)
         user = getattr(user_resp, "user", None)
         uid = str(getattr(user, "id", "") or "") if user else ""
@@ -286,54 +282,20 @@ def _optional_authenticated_profile() -> dict | None:
 
 
 def _auth_user_from_tokens(client, access: str, refresh: str):
-    """Valida access; se expirou e há refresh, renova (o app já manda X-Refresh-Token).
+    """Valida só o access. Não renovar refresh aqui.
 
-    Devolve também expires_at quando rodou refresh — o app TEM de gravar o
-    refresh novo; senão o token antigo fica morto e só logout recupera.
+    Renovar no require_auth queima o refresh (rotação Supabase) e o app
+    acorda a pedir senha. A renovação é POST /auth/refresh — JSON que o
+    cliente grava. Access expirado → 401; o interceptor do app trata.
     """
     user = None
-    new_access = access
-    new_refresh = refresh
-    expires_at = None
     try:
-        if refresh:
-            try:
-                client.auth.set_session(access, refresh)
-            except Exception:
-                client.postgrest.auth(access)
-        else:
-            client.postgrest.auth(access)
+        client.postgrest.auth(access)
         user_resp = client.auth.get_user(access)
         user = getattr(user_resp, "user", None)
     except Exception:
         user = None
-
-    if user:
-        return user, new_access, new_refresh, expires_at
-
-    if not (refresh or "").strip():
-        return None, access, refresh, None
-
-    payload, _err = services.refresh_session(refresh.strip())
-    if not payload or not payload.get("access_token"):
-        return None, access, refresh, None
-
-    new_access = str(payload["access_token"]).strip()
-    new_refresh = str(payload.get("refresh_token") or refresh).strip()
-    try:
-        expires_at = int(payload["expires_at"]) if payload.get("expires_at") is not None else None
-    except (TypeError, ValueError):
-        expires_at = None
-    try:
-        try:
-            client.auth.set_session(new_access, new_refresh)
-        except Exception:
-            client.postgrest.auth(new_access)
-        user_resp = client.auth.get_user(new_access)
-        user = getattr(user_resp, "user", None)
-    except Exception:
-        return None, access, refresh, None
-    return user, new_access, new_refresh, expires_at
+    return user, access, refresh, None
 
 
 def _with_rotated_session_headers(result, access0: str, refresh0: str, access: str, refresh: str, expires_at=None):
@@ -508,7 +470,7 @@ def health():
     payload: dict[str, Any] = {
         "service": "ego-ai-api",
         "ok": True,
-        "api_build": "2026-08-12-ego-free-whatsapp-nudge",
+        "api_build": "2026-08-13-auth-no-silent-refresh",
         "checks": {
             "supabase": bool(sb.get("client_ok")),
             "supabase_url_set": bool(sb.get("url_set")),

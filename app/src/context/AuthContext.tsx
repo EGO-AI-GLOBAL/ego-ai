@@ -94,7 +94,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, [persist]);
 
-      const refreshSessionIfNeeded = useCallback(
+  const refreshSessionIfNeeded = useCallback(
     async (current: AuthSession, opts?: { force?: boolean }): Promise<AuthSession | null> => {
       const refreshTok = current.refresh_token?.trim();
       if (!refreshTok) return current;
@@ -107,6 +107,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const mem = getSession();
           return mem?.access_token ? mem : joined;
         } catch {
+          const mem = getSession();
+          if (mem?.refresh_token?.trim() && mem.refresh_token.trim() !== refreshTok) {
+            return mem;
+          }
           return getSession() ?? current;
         }
       }
@@ -118,6 +122,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await persist(toSave);
         return toSave;
       } catch (e) {
+        const rotated = getSession();
+        if (
+          rotated?.access_token?.trim() &&
+          rotated.refresh_token?.trim() &&
+          rotated.refresh_token.trim() !== refreshTok
+        ) {
+          await persist(rotated);
+          return rotated;
+        }
         const msg = (e instanceof Error ? e.message : String(e || "")).toLowerCase();
         const hardDead =
           msg.includes("sessão expirada") ||
@@ -126,7 +139,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           msg.includes("already used") ||
           msg.includes("invalid refresh");
         if (hardDead) {
-          // Refresh morto — manter/persistir a sessão antiga deixa o sync preso.
+          // Só limpa se ninguém gravou tokens novos na corrida.
+          const still = getSession();
+          if (still?.refresh_token?.trim() && still.refresh_token.trim() !== refreshTok) {
+            await persist(still);
+            return still;
+          }
           setSession(null);
           setLocalSession(null);
           await deleteSecureItem(STORAGE_KEY).catch(() => undefined);
@@ -154,17 +172,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             const parsed = JSON.parse(raw) as AuthSession;
             if (parsed?.access_token) {
-              // Restaura já na UI/memória antes do refresh de rede —
-              // senão falha/timeout de refresh deixa parecer "deslogado".
+              // Memória só — não pôr session no React até o refresh (loading
+              // ainda true). Senão o 1.0.111 apagava a conta todas as manhãs.
               setSession(parsed);
-              setLocalSession(parsed);
               const uid = parsed.user?.id?.trim();
               if (uid) await consumeSecureWipeIfNeeded(uid);
               const next = await refreshSessionIfNeeded(parsed);
               if (next == null) {
                 /* refresh morto — sessão limpa; ecrã de login */
-              } else if (next === parsed) {
-                await persist(parsed);
+              } else {
+                await persist(next);
               }
               void preparePlayIntegrity();
             }
