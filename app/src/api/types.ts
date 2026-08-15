@@ -306,11 +306,17 @@ export type SendChatResult = {
 
 export type AppUpdateInfo = {
   latest_version: string;
+  /** Versão publicada na App Store (evita banner Android antes da Play). */
+  latest_version_ios?: string;
+  /** Versão publicada na Play Store. */
+  latest_version_android?: string;
   play_store_url: string;
   ios_update_url?: string;
   message?: string;
   /** Version code Play — Android compara se versionName falhar. */
   android_version_code?: number;
+  /** store | env | env_fallback */
+  version_source?: string;
 };
 
 export type PublicHealthInfo = {

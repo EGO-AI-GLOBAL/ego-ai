@@ -262,7 +262,35 @@ STABLE_SYMBOLS: list[tuple[str, list[str]]] = [
             '@app.post("/api/v1/wellness-journey/shop")',
             '@app.post("/api/v1/pausa-ego/complete")',
             "admin_cron_ego_de_bolso_care",
+            '@app.post("/api/v1/admin/cron/store-versions")',
             '@app.get("/go")',
+        ],
+    ),
+    (
+        "ego_api/store_versions.py",
+        [
+            "parse_ios_lookup_payload",
+            "parse_play_html_version",
+            "get_store_versions",
+            "refresh_store_versions",
+            "max_version",
+        ],
+    ),
+    (
+        "ego_api/config.py",
+        [
+            "app_update_payload",
+            "store_version_auto_enabled",
+            "latest_version_ios",
+            "latest_version_android",
+        ],
+    ),
+    (
+        "app/src/context/AppUpdateContext.tsx",
+        [
+            "latest_version_ios",
+            "latest_version_android",
+            "AppUpdateProvider",
         ],
     ),
     (
@@ -727,6 +755,44 @@ def check_bootstrap_fallback_daily_care() -> int:
         return 1
 
 
+def check_store_versions_parse() -> int:
+    print("\n=== Store versions parse (banner automático) ===")
+    try:
+        if str(ROOT) not in sys.path:
+            sys.path.insert(0, str(ROOT))
+        from ego_api.store_versions import (
+            max_version,
+            parse_ios_lookup_payload,
+            parse_play_html_version,
+        )
+
+        ios_json = b'{"resultCount":1,"results":[{"version":"1.0.112","trackId":6780595396}]}'
+        ios_ver = parse_ios_lookup_payload(ios_json)
+        if ios_ver != "1.0.112":
+            print(f"  ERRO  iOS parse esperado 1.0.112, got {ios_ver!r}")
+            return 1
+
+        play_html = (
+            'noise [["1.0.99"]] more '
+            '[[["1.0.112"]]] '
+            '"softwareVersion":"1.0.110"'
+        )
+        play_ver = parse_play_html_version(play_html)
+        if play_ver != "1.0.112":
+            print(f"  ERRO  Play parse esperado 1.0.112, got {play_ver!r}")
+            return 1
+
+        if max_version("1.0.111", "1.0.112", "") != "1.0.112":
+            print("  ERRO  max_version falhou")
+            return 1
+
+        print("  OK    parse iOS + Play + max_version")
+        return 0
+    except Exception as exc:
+        print(f"  ERRO  store_versions: {exc}")
+        return 1
+
+
 def main() -> int:
     failed = check_symbols()
     failed += check_journey_missions()
@@ -735,6 +801,7 @@ def main() -> int:
     failed += check_gentleness()
     failed += check_pausa_exercise_pool()
     failed += check_bootstrap_fallback_daily_care()
+    failed += check_store_versions_parse()
     try:
         import importlib.util
 

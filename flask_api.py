@@ -886,6 +886,31 @@ def admin_cron_plan_retention():
     return _json_ok({"ok": True, "stats": stats})
 
 
+@app.post("/api/v1/admin/cron/store-versions")
+@require_admin
+def admin_cron_store_versions():
+    """Actualiza cache das versões publicadas na App Store / Play (banner automático)."""
+    from ego_api.store_versions import refresh_store_versions, store_versions_status
+
+    data = request.get_json(silent=True) or {}
+    force = str(data.get("force") or request.args.get("force") or "1").lower() not in (
+        "0",
+        "false",
+        "no",
+    )
+    versions = refresh_store_versions(force=force)
+    return _json_ok(
+        {
+            "ok": True,
+            "ios": versions.ios,
+            "android": versions.android,
+            "ios_ok": versions.ios_ok,
+            "android_ok": versions.android_ok,
+            "status": store_versions_status(),
+        }
+    )
+
+
 @app.post("/api/v1/admin/referrals/partners")
 @require_admin
 def admin_referrals_create_partner():

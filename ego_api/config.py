@@ -257,6 +257,12 @@ def production_bypass_warnings() -> list[str]:
     return warnings
 
 
+def store_version_auto_enabled() -> bool:
+    """Por defeito ON: lê versões publicadas nas lojas (sem mexer no Railway)."""
+    raw = read_env("EGO_STORE_VERSION_AUTO", "1").strip().lower()
+    return raw not in ("0", "false", "no", "nao", "não", "off")
+
+
 def latest_app_version() -> str:
     """Versão mais recente na loja — app antigo mostra aviso de atualização."""
     return read_env("EGO_LATEST_APP_VERSION", "1.0.50")
@@ -273,10 +279,16 @@ def play_store_update_url() -> str:
     return "market://details?id=com.egoai.app"
 
 
-def app_update_message() -> str:
-    return read_env(
-        "EGO_APP_UPDATE_MESSAGE",
-        "1.0.50: Sessão persistente — app fica logado ao reabrir. Toque em Atualizar agora.",
+def app_update_message(version: str = "") -> str:
+    custom = read_env("EGO_APP_UPDATE_MESSAGE", "").strip()
+    if custom:
+        return custom
+    ver = (version or "").strip() or latest_app_version()
+    if store_version_auto_enabled():
+        return f"{ver}: nova versão na loja. Toque em Atualizar agora."
+    return (
+        f"{ver}: Sessão persistente — app fica logado ao reabrir. "
+        "Toque em Atualizar agora."
     )
 
 
@@ -317,14 +329,51 @@ def latest_android_version_code() -> int:
 
 def app_update_payload() -> dict[str, str | int]:
     from ego_api.download_go import public_go_url
+    from ego_api.store_versions import max_version
+
+    env_version = latest_app_version().strip()
+    ios_ver = env_version
+    android_ver = env_version
+    android_code = latest_android_version_code()
+    source = "env"
+
+    if store_version_auto_enabled():
+        try:
+            from ego_api.store_versions import get_store_versions
+
+            stores = get_store_versions(allow_network=True)
+            if stores.ios:
+                ios_ver = stores.ios
+            elif env_version:
+                ios_ver = env_version
+            if stores.android:
+                android_ver = stores.android
+            elif env_version:
+                android_ver = env_version
+            # Sem versionCode fiável na página pública — app usa semver.
+            android_code = 0
+            source = "store"
+            if not stores.ios and not stores.android and env_version:
+                source = "env_fallback"
+                android_code = latest_android_version_code()
+        except Exception:
+            source = "env_fallback"
+            ios_ver = env_version
+            android_ver = env_version
+            android_code = latest_android_version_code()
+
+    latest = max_version(ios_ver, android_ver) or env_version
 
     return {
-        "latest_version": latest_app_version(),
+        "latest_version": latest,
+        "latest_version_ios": ios_ver or latest,
+        "latest_version_android": android_ver or latest,
         "play_store_url": play_store_update_url(),
         "ios_update_url": testflight_update_url(),
         "smart_download_url": public_go_url(),
-        "message": app_update_message(),
-        "android_version_code": latest_android_version_code(),
+        "message": app_update_message(latest),
+        "android_version_code": android_code,
+        "version_source": source,
     }
 
 

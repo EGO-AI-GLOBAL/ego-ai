@@ -1,0 +1,15 @@
+SYNC API — 1.0.112 banner automático lojas
+==========================================
+Status: ✅ PRONTO
+Commit: (após push)
+
+Zona: API / Segurança
+Ficheiros:
+- ego_api/store_versions.py (novo)
+- ego_api/config.py (app_update_payload auto)
+- flask_api.py (cron store-versions)
+- app/src/context/AppUpdateContext.tsx + types.ts
+- scripts/regression_guard.py
+
+Comportamento: /health lê versão publicada App Store + Play (cache 15 min).
+Não precisa EGO_LATEST_* a cada release. Override: EGO_STORE_VERSION_AUTO=0

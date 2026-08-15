@@ -7,7 +7,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { AppState, type AppStateStatus } from "react-native";
+import { AppState, Platform, type AppStateStatus } from "react-native";
 import { fetchPublicHealth } from "@/api/client";
 import {
   clearUpdateBannerDismissedVersion,
@@ -51,11 +51,21 @@ export function AppUpdateProvider({ children }: { children: React.ReactNode }) {
     try {
       const health = await fetchPublicHealth();
       const info = health?.app_update;
-      const latest = (info?.latest_version || "").trim();
+      const platformLatest =
+        Platform.OS === "ios"
+          ? (info?.latest_version_ios || info?.latest_version || "").trim()
+          : (info?.latest_version_android || info?.latest_version || "").trim();
+      const latest = platformLatest;
       const latestAndroidCode =
         typeof info?.android_version_code === "number"
           ? info.android_version_code
           : parseInt(String(info?.android_version_code || ""), 10);
+      const androidCodeForCompare =
+        Platform.OS === "android" &&
+        Number.isFinite(latestAndroidCode) &&
+        latestAndroidCode > 0
+          ? latestAndroidCode
+          : null;
 
       if (!latest) {
         setShowBanner(false);
@@ -67,12 +77,14 @@ export function AppUpdateProvider({ children }: { children: React.ReactNode }) {
       setLatestVersion(latest);
       setPlayStoreUrl((info?.play_store_url || "").trim());
       setIosUpdateUrl((info?.ios_update_url || "").trim());
-      setMessage((info?.message || "").trim());
+      const autoMsg = `${latest}: nova versão na loja. Toque em Atualizar agora.`;
+      const apiMsg = (info?.message || "").trim();
+      setMessage(apiMsg || autoMsg);
 
       const behind = isAppUpdateAvailable(
         installed,
         latest,
-        Number.isFinite(latestAndroidCode) ? latestAndroidCode : null
+        androidCodeForCompare
       );
 
       if (!behind) {
