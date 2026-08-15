@@ -1,7 +1,7 @@
 SYNC API — 1.0.112 banner automático lojas
 ==========================================
 Status: ✅ PRONTO
-Commit: (após push)
+Commit: 6bfc18e
 
 Zona: API / Segurança
 Ficheiros:
