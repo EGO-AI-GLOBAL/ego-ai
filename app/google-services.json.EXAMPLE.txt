@@ -1,0 +1,3 @@
+# Colar aqui o google-services.json do Firebase project EGO-AI
+# (Android app package: com.egoai.app — NÃO usar o do ShapeScan)
+# Depois deste ficheiro existir, app.config.ts activa @react-native-firebase/app.

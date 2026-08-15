@@ -4,9 +4,11 @@ import { ErrorBoundary } from "@/monitoring/ErrorBoundary";
 import { Stack } from "expo-router";
 
 initMonitoring();
+import { useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { Dimensions, useColorScheme, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { trackFirstOpenIfNeeded } from "@/analytics/egoAnalytics";
 import { AppBannerOverlay } from "@/components/AppBannerOverlay";
 import { AppUpdateProvider } from "@/context/AppUpdateContext";
 import { MaintenanceProvider } from "@/context/MaintenanceContext";
@@ -30,6 +32,9 @@ function RootNavigator() {
   const colors = useColors();
   const scheme = useColorScheme();
   useDeepLinkRouting();
+  useEffect(() => {
+    void trackFirstOpenIfNeeded();
+  }, []);
   return (
     <>
       <StatusBar style={scheme === "dark" ? "light" : "dark"} />

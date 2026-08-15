@@ -10,6 +10,8 @@ import {
 import { ShapeScanBodyNudgeCard } from "@/components/ShapeScanBodyNudgeCard";
 import { useDashboard } from "@/hooks/useDashboard";
 import { shouldShowChatAds } from "@/utils/shouldShowChatAds";
+import { trackSessionOrCheckinCompleted } from "@/analytics/egoAnalytics";
+import { useNaturalPauseInterstitial } from "@/ads/useNaturalPauseInterstitial";
 import { formatPausaDuration, resolveDailyExercise } from "@/utils/pausaDailyExercise";
 
 type Props = {
@@ -28,6 +30,9 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
   const [showBodyNudge, setShowBodyNudge] = useState(false);
   const { data: dash } = useDashboard();
   const showCrossPromo = shouldShowChatAds(dash?.access);
+  const { show: showPauseInterstitial } = useNaturalPauseInterstitial({
+    enabled: showCrossPromo,
+  });
 
   const openSos = () => {
     onSosTalk?.(
@@ -39,7 +44,10 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
   const finishSession = (kind: string) => {
     launcher.closeSession();
     onComplete(kind);
-    if (showCrossPromo) setShowBodyNudge(true);
+    trackSessionOrCheckinCompleted("pausa", { session_kind: kind });
+    showPauseInterstitial(() => {
+      if (showCrossPromo) setShowBodyNudge(true);
+    });
   };
 
   return (

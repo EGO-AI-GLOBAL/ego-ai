@@ -1,6 +1,7 @@
 import { Redirect, Stack, useRouter, useSegments, type Href } from "expo-router";
 import { useEffect, useRef } from "react";
 import { ActivityIndicator, View } from "react-native";
+import { useAdMobBootstrap } from "@/ads/adMobBootstrap";
 import { syncDailyCheckInNotification } from "@/utils/dailyCheckInNotification";
 import { AppDrawer } from "@/components/AppDrawer";
 import { PersonaGate } from "@/components/PersonaGate";
@@ -10,6 +11,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useDailyRitualNotifications } from "@/hooks/useDailyRitualNotifications";
 import { useColors } from "@/theme/ThemeContext";
+import { shouldShowChatAds } from "@/utils/shouldShowChatAds";
 
 function PendingInviteRedirect() {
   const router = useRouter();
@@ -31,7 +33,9 @@ function MainShell() {
   const colors = useColors();
   const segments = useSegments();
   const hideDrawer = segments.includes("choose-avatar");
+  const { data } = useDashboard();
   useDailyRitualNotifications();
+  useAdMobBootstrap(shouldShowChatAds(data?.access));
 
   return (
     <PersonaGate>

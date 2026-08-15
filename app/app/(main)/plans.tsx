@@ -1,5 +1,5 @@
 import { useFocusEffect } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -39,6 +39,11 @@ import {
   usesStripeCheckout,
 } from "@/utils/iosAppStoreBilling";
 import { iosIapCatalog, useIosIap } from "@/hooks/useIosIap";
+import {
+  trackPaywallView,
+  trackSubscribe,
+  trackTrialStart,
+} from "@/analytics/egoAnalytics";
 
 export default function PlansScreen() {
   const colors = useColors();
@@ -47,8 +52,10 @@ export default function PlansScreen() {
   const [catalog, setCatalog] = useState<PlanCatalogItem[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [openingKey, setOpeningKey] = useState<string | null>(null);
+  const paywallTracked = useRef(false);
 
   const iap = useIosIap(() => {
+    trackSubscribe({ method: "iap", plan: "premium" });
     void refresh();
   }, { showLaunchOffer: false });
 
@@ -76,6 +83,10 @@ export default function PlansScreen() {
     useCallback(() => {
       void refresh();
       void loadCatalog();
+      if (!paywallTracked.current) {
+        paywallTracked.current = true;
+        trackPaywallView("plans");
+      }
     }, [refresh, loadCatalog])
   );
 
@@ -95,6 +106,7 @@ export default function PlansScreen() {
   const onIapSubscribe = async (busyKey: string) => {
     setOpeningKey(busyKey);
     try {
+      trackTrialStart("premium");
       await iap.purchaseTier("premium");
     } finally {
       setOpeningKey(null);
@@ -162,6 +174,8 @@ export default function PlansScreen() {
         );
         return;
       }
+      trackTrialStart("premium");
+      trackSubscribe({ method: "stripe", plan: "premium", status: "checkout_opened" });
       await Linking.openURL(checkoutUrl);
       Alert.alert(
         "Pagamento",

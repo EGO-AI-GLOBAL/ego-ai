@@ -1,0 +1,47 @@
+EGO-AI — COMPLETAR Firebase + AdMob (só tu no browser)
+======================================================
+Código já está pronto. Faltam 2 coisas da tua conta Google.
+
+
+A) FIREBASE Analytics (project EGO — NÃO ShapeScan)
+---------------------------------------------------
+1. Abre: https://console.firebase.google.com
+2. Criar project (ou abrir) nome: EGO-AI
+3. Adicionar app Android
+   Package: com.egoai.app
+   Descarrega google-services.json
+   Guarda em: Desktop\EGO-AI-SHIP-AGITA\app\google-services.json
+4. Adicionar app iOS
+   Bundle: com.egoai.app
+   Descarrega GoogleService-Info.plist
+   Guarda em: Desktop\EGO-AI-SHIP-AGITA\app\GoogleService-Info.plist
+5. Build → Analytics → activar se pedir
+
+
+B) ADMOB — criar 2 units (app EGO já existe)
+-------------------------------------------
+1. Abre: https://admob.google.com
+2. Apps → Ego-IA / com.egoai.app (Android) E a app iOS
+3. Blocos de anúncios → Adicionar bloco
+
+   Android + iOS (cada um):
+   • Nome: interstitial-pause-free   Tipo: Intersticial
+   • Nome: rewarded-dica-dia         Tipo: Recompensado
+
+4. Copia os 4 Unit IDs e manda no chat neste formato:
+
+EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_ID=ca-app-pub-6748248434426888/
+EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_ID=ca-app-pub-6748248434426888/
+EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID=ca-app-pub-6748248434426888/
+EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID=ca-app-pub-6748248434426888/
+
+
+C) DEPOIS DE A+B
+----------------
+Diz «ficheiros prontos» + cola os 4 IDs.
+Eu meto no eas.json, confirmo Firebase, e pergunto se pode buildar.
+
+
+Banner (já ok, não criar de novo):
+  Android banner-chat-free  ca-app-pub-6748248434426888/7854339207
+  iOS banner-chat-free      ca-app-pub-6748248434426888/6704220703

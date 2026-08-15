@@ -2,6 +2,7 @@ EGO-AI — IDs AdMob (completos)
 ==============================
 Publisher: pub-6748248434426888
 app-ads.txt: https://egoai.com.br/app-ads.txt  ✅
+Package / Bundle: com.egoai.app (Android + iOS)
 
 ANDROID
 -------
@@ -15,5 +16,29 @@ App ID:    ca-app-pub-6748248434426888~5471030083
 Banner:    ca-app-pub-6748248434426888/6704220703
 Nome:      banner-chat-free
 
-Já no eas.json (production).
-Próximo: commit FreeFooterBanner + build nova com estes IDs.
+Já no eas.json (production) — App ID + Banner.
+
+
+UNITS EM FALTA — cria na consola AdMob do EGO (NÃO ShapeScan)
+-------------------------------------------------------------
+Na app Android com.egoai.app e iOS com.egoai.app, cria:
+
+1) Interstitial
+   Nome sugerido: interstitial-pause-free
+   Tipo: Intersticial
+   → copia Unit ID Android + iOS
+
+2) Rewarded
+   Nome sugerido: rewarded-dica-dia
+   Tipo: Recompensado
+   → copia Unit ID Android + iOS
+
+Depois cola no eas.json (production.env):
+
+  EXPO_PUBLIC_ADMOB_ANDROID_INTERSTITIAL_ID=ca-app-pub-6748248434426888/XXXX
+  EXPO_PUBLIC_ADMOB_IOS_INTERSTITIAL_ID=ca-app-pub-6748248434426888/YYYY
+  EXPO_PUBLIC_ADMOB_ANDROID_REWARDED_ID=ca-app-pub-6748248434426888/AAAA
+  EXPO_PUBLIC_ADMOB_IOS_REWARDED_ID=ca-app-pub-6748248434426888/BBBB
+
+__DEV__ (Metro) usa IDs de teste Google automaticamente.
+Sem estes env em produção → interstitial/rewarded ficam desligados (banner + ShapeScan fallback ok).

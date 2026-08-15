@@ -1,4 +1,6 @@
 import type { ExpoConfig } from "expo/config";
+import fs from "fs";
+import path from "path";
 
 const apiUrl = (process.env.EXPO_PUBLIC_API_URL || "").trim();
 const appEnv = (process.env.APP_ENV || process.env.NODE_ENV || "development").toLowerCase();
@@ -13,6 +15,13 @@ const allowHttp =
 if (isProd && apiUrl && !apiUrl.startsWith("https://")) {
   throw new Error("Produção exige EXPO_PUBLIC_API_URL com https://");
 }
+
+/** Firebase EGO (GA4) — só activa plugin se os ficheiros existirem (project EGO, não ShapeScan). */
+const androidGoogleServices = path.join(__dirname, "google-services.json");
+const iosGoogleServices = path.join(__dirname, "GoogleService-Info.plist");
+const hasFirebaseAndroid = fs.existsSync(androidGoogleServices);
+const hasFirebaseIos = fs.existsSync(iosGoogleServices);
+const hasFirebase = hasFirebaseAndroid || hasFirebaseIos;
 
 const config: ExpoConfig = {
   name: "Ego-IA",
@@ -37,6 +46,7 @@ const config: ExpoConfig = {
     entitlements: {
       "com.apple.security.application-groups": ["group.com.egoai.app.widget"],
     },
+    ...(hasFirebaseIos ? { googleServicesFile: "./GoogleService-Info.plist" } : {}),
     infoPlist: {
       CFBundleDevelopmentRegion: "pt-BR",
       CFBundleLocalizations: ["pt-BR"],
@@ -53,6 +63,7 @@ const config: ExpoConfig = {
   android: {
     versionCode: 169,
     package: "com.egoai.app",
+    ...(hasFirebaseAndroid ? { googleServicesFile: "./google-services.json" } : {}),
     adaptiveIcon: {
       /** Mesmo PNG do iOS — evita ícone minúsculo dentro do círculo no launcher. */
       foregroundImage: "./assets/icon.png",
@@ -73,6 +84,8 @@ const config: ExpoConfig = {
       "android.permission.READ_MEDIA_IMAGES",
       "android.permission.READ_MEDIA_VIDEO",
       "android.permission.READ_MEDIA_VISUAL_USER_SELECTED",
+      "android.permission.READ_EXTERNAL_STORAGE",
+      "android.permission.WRITE_EXTERNAL_STORAGE",
     ],
     /** Evita o teclado tapar a caixa de mensagem no chat. */
     softwareKeyboardLayoutMode: "resize",
@@ -80,6 +93,7 @@ const config: ExpoConfig = {
   plugins: [
     "expo-router",
     "@bacons/apple-targets",
+    ...(hasFirebase ? ["@react-native-firebase/app"] : []),
     [
       "react-native-android-widget",
       {
@@ -118,8 +132,8 @@ const config: ExpoConfig = {
     [
       "expo-image-picker",
       {
-        photosPermission:
-          "O EGO-AI acede às fotos para ler texto em imagens anexadas ao chat.",
+        /** false = não declara READ_MEDIA_* (Photo Picker do sistema). iOS já tem NSPhotoLibraryUsageDescription. */
+        photosPermission: false,
         cameraPermission:
           "O EGO-AI usa a câmara para fotografar páginas e extrair o texto.",
       },
@@ -144,6 +158,13 @@ const config: ExpoConfig = {
           kotlinVersion: "2.0.21",
           usesCleartextTraffic: allowHttp,
         },
+        ...(hasFirebaseIos
+          ? {
+              ios: {
+                useFrameworks: "static" as const,
+              },
+            }
+          : {}),
       },
     ],
     "./plugins/withXcode26FmtFix",
@@ -159,6 +180,7 @@ const config: ExpoConfig = {
         iosAppId:
           process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID ||
           "ca-app-pub-3940256099942544~1458002511",
+        delayAppMeasurementInit: true,
       },
     ],
   ],
@@ -181,8 +203,8 @@ const config: ExpoConfig = {
     supportEmail:
       process.env.EXPO_PUBLIC_SUPPORT_EMAIL || "contato@egoai.com.br",
     apiUrl,
+    firebaseAnalyticsReady: hasFirebase,
   },
 };
 
 export default config;
-

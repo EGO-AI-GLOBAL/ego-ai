@@ -39,7 +39,8 @@ export function FreeFooterBanner({ access }: Props) {
     void (async () => {
       try {
         const mod = await import("react-native-google-mobile-ads");
-        await mod.default().initialize();
+        const { ensureAdMobInitialized } = await import("@/ads/adMobBootstrap");
+        await ensureAdMobInitialized();
         if (cancelled) return;
         setAds(mod);
         setMode("pending");

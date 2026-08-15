@@ -1,0 +1,3 @@
+# Colar aqui o GoogleService-Info.plist do Firebase project EGO-AI
+# (iOS bundle: com.egoai.app — NÃO usar o do ShapeScan)
+# Ficheiro real: app/GoogleService-Info.plist

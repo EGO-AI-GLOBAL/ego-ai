@@ -22,6 +22,7 @@ import { allowsInAppPlanPurchase, IOS_CHAT_BLOCKED_PLACEHOLDER, IOS_TRIAL_END_AL
 import { IAP_PRODUCTS } from "@/constants/iapProducts";
 import { sendChatMessage, submitNightDumpBlob, submitNightDumpFromUri, submitNightDumpText, completePausaEgoSession } from "@/api/client";
 import type { ChatMessage, SendChatResult } from "@/api/types";
+import { trackSessionOrCheckinCompleted } from "@/analytics/egoAnalytics";
 import { AppGradientBackground } from "@/components/AppGradientBackground";
 import { ChatComposer } from "@/components/ChatComposer";
 import { FreeFooterBanner } from "@/components/FreeFooterBanner";
@@ -243,6 +244,7 @@ function ChatScreenInner() {
   const finishNightDump = useCallback(
     (dump: { items?: { length: number }; comfort_reply?: string }) => {
       const n = dump.items?.length ?? 0;
+      trackSessionOrCheckinCompleted("night_dump", { items: n });
       setChatNotice(
         n > 0
           ? `Desabafo recebido. Amanhã de manhã abra a Agenda — a ${assistantName} separou ${n} item(ns) para você confirmar.`

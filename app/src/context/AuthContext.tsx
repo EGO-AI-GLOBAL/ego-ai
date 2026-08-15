@@ -41,6 +41,7 @@ import {
 } from "@/storage/freshInstallGuard";
 import { sessionNeedsRefresh } from "@/storage/sessionRefresh";
 import { preparePlayIntegrity } from "@/security/playIntegrity";
+import { trackLogin, trackSignUp } from "@/analytics/egoAnalytics";
 
 type AuthContextValue = {
   session: AuthSession | null;
@@ -216,6 +217,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const uid = s.user?.id?.trim();
       if (uid) await consumeSecureWipeIfNeeded(uid);
       await persist(s);
+      trackLogin("email");
       void preparePlayIntegrity();
     },
     [persist]
@@ -237,6 +239,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (uid && ph) {
           await saveLocalProfilePhone(uid, ph);
         }
+        trackSignUp("email");
         void preparePlayIntegrity();
         return { needsEmailConfirm: false };
       }

@@ -8,7 +8,10 @@ import { resolveMoodLabel } from "@/constants/moodMonsters";
 import { queueMonsterChatNotice } from "@/utils/monsterChatNotice";
 import { useDashboard } from "@/hooks/useDashboard";
 import { shouldShowChatAds } from "@/utils/shouldShowChatAds";
+import { trackSessionOrCheckinCompleted } from "@/analytics/egoAnalytics";
+import { useNaturalPauseInterstitial } from "@/ads/useNaturalPauseInterstitial";
 import { DailyCareShareModal } from "./DailyCareShareModal";
+import { RewardedDailyTipCard } from "./RewardedDailyTipCard";
 import { ShapeScanBodyNudgeCard } from "./ShapeScanBodyNudgeCard";
 import { MoodAdventureBanner } from "./moodMonsters/MoodAdventureBanner";
 import { MoodCrisisBridgeCard } from "./moodMonsters/MoodCrisisBridgeCard";
@@ -111,6 +114,9 @@ export function DailyCareChallenge({
   const recentClips = useRef<MonsterClipAction[]>([]);
   const { data: dash } = useDashboard();
   const showCrossPromo = shouldShowChatAds(dash?.access);
+  const { show: showPauseInterstitial } = useNaturalPauseInterstitial({
+    enabled: showCrossPromo,
+  });
 
   const setPreview = (key: string | undefined) => {
     setHoverMood(key);
@@ -204,9 +210,13 @@ export function DailyCareChallenge({
       celebrateCheckin(res.daily_care);
       // Sem Alert no 1º humor — métricas Finch: <2 toques, sem modal.
       if (wasFirstToday) {
+        trackSessionOrCheckinCompleted("checkin", { first_today: 1 });
         const line = res.daily_care.monster_line?.trim();
         if (line) void queueMonsterChatNotice(line);
-        if (showCrossPromo) setShowBodyNudge(true);
+        // Interstitial só em pausa natural (após check-in), nunca a meio do chat.
+        showPauseInterstitial(() => {
+          if (showCrossPromo) setShowBodyNudge(true);
+        });
       }
     } finally {
       pickingMood.current = false;
@@ -302,6 +312,12 @@ export function DailyCareChallenge({
     <>
       {/* 1º no scroll sob o pet sticky — define a cor do monstrinho. */}
       {moodCheckIn}
+
+      <RewardedDailyTipCard
+        colors={colors}
+        enabled={showCrossPromo}
+        visible={Boolean(care?.checked_today)}
+      />
 
       {showBodyNudge && showCrossPromo ? (
         <ShapeScanBodyNudgeCard

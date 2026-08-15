@@ -1,0 +1,65 @@
+EGO-AI — Firebase Analytics + AdMob interstitial/rewarded
+=========================================================
+Data: 2026-08-15 · NÃO buildar até «pode buildar»
+
+
+1) FIREBASE (project EGO — NÃO ShapeScan)
+----------------------------------------
+1. console.firebase.google.com → criar / abrir project **EGO-AI**
+2. Add app Android: package com.egoai.app → descarrega google-services.json
+3. Add app iOS: bundle com.egoai.app → descarrega GoogleService-Info.plist
+4. Cola os ficheiros em:
+     app/google-services.json
+     app/GoogleService-Info.plist
+5. Activa Analytics (GA4) no project
+6. app.config.ts liga o plugin só se estes ficheiros existirem
+
+
+2) EVENTOS (código já dispara)
+------------------------------
+  first_open                      — 1× por instalação
+  login / sign_up                 — AuthContext
+  session_or_checkin_completed    — check-in Monstrinhos (1º do dia) + PAUSA
+  paywall_view                    — ecrã Planos (focus)
+  trial_start                     — ao iniciar IAP / abrir Stripe
+  purchase / subscribe            — IAP sucesso; Stripe checkout aberto
+  interstitial_ad / rewarded_ad   — diagnóstico ads
+
+
+3) ADMOB UNITS EM FALTA
+-----------------------
+Criar na consola AdMob EGO (pub-6748248434426888):
+
+  Nome: interstitial-pause-free   (Intersticial)  Android + iOS
+  Nome: rewarded-dica-dia         (Recompensado)  Android + iOS
+
+Banner já existe (banner-chat-free). Ver ADMOB-IDS-EGO-AI.txt.
+
+
+4) REGRAS ADS (já no código)
+----------------------------
+  Premium → SEM ads
+  Free + fill → AdMob
+  Free sem fill → ShapeScan cross-promo (banner)
+  Interstitial: só após check-in 1º do dia / fim PAUSA; cooldown ≥90s
+  Rewarded: só opt-in «Dica extra do dia» (nunca auto-play)
+
+
+5) CHECKLIST TESTE (depois do build)
+------------------------------------
+  [ ] Conta FREE: banner AdMob ou ShapeScan no chat
+  [ ] Conta Premium: zero ads / zero dica rewarded
+  [ ] Check-in humor 1º do dia → interstitial (ou skip se cooldown/sem fill)
+  [ ] PAUSA completa → interstitial (respeita 90s)
+  [ ] Rewarded: toque → confirma → anúncio → dica no chat
+  [ ] Planos: paywall_view no DebugView Firebase
+  [ ] Login / signup no DebugView
+  [ ] __DEV__: anúncios de teste Google
+
+
+6) ANTES DO BUILD
+-----------------
+  [ ] Units interstitial + rewarded criadas + IDs no eas.json
+  [ ] google-services.json + GoogleService-Info.plist na pasta app/
+  [ ] npm install em app/ (firebase packages)
+  [ ] Tu dizeres «pode buildar»
