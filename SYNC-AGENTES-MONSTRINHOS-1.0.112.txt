@@ -1,0 +1,7 @@
+SYNC — Monstrinhos / Build 1.0.112
+==================================
+Estado: ✅ PRONTO PARA BUILD
+Versão: 1.0.112 · iOS 117 · Android vc 170
+Commit: (ver git log)
+Conteúdo: Firebase Analytics EGO + AdMob interstitial/rewarded
+Utilizador autorizou: «sim» (pode buildar)

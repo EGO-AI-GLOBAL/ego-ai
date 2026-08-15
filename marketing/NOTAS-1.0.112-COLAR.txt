@@ -1,0 +1,39 @@
+1.0.112 — TEXTOS PRONTOS A COLAR
+=================================
+
+
+A) GOOGLE PLAY — "Novidades desta versão"
+-----------------------------------------
+COLE ISTO:
+
+Firebase Analytics para perceber o que ajuda na retenção.
+Anúncios melhorados no plano grátis (intersticial só em pausas
+naturais e dica opcional com anúncio premiado). Premium continua
+sem anúncios. Sessão estável ao abrir o app.
+
+
+B) APP STORE CONNECT — "O que há de novo nesta versão"
+------------------------------------------------------
+COLE ISTO:
+
+• Analytics para melhorar o app
+• Anúncios no grátis só em pausas naturais (Premium sem ads)
+• Dica opcional do dia com anúncio premiado (opt-in)
+• Sessão estável ao reabrir
+
+
+C) TESTFLIGHT — "O que testar"
+------------------------------
+COLE ISTO:
+
+1. Conta FREE: banner no chat; após check-in Monstrinhos pode
+   aparecer intersticial (cooldown 90s).
+2. «Dica extra do dia» — só se tocares (nunca sozinho).
+3. Conta Premium: zero anúncios / zero dica rewarded.
+4. Abrir o app de manhã sem precisar de logout.
+
+
+INTERNO
+-------
+Versão: 1.0.112 · iOS build 117 · Android versionCode 170
+Firebase EGO-AI Spark + AdMob interstitial/rewarded
