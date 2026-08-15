@@ -40,4 +40,6 @@ app/ios/
 app/*.jks
 app/*.keystore
 app/play-store-service-account.json
-app/google-services.json
+# Firebase EGO (Analytics) — ficheiros no repo para EAS build
+# app/google-services.json
+# app/GoogleService-Info.plist

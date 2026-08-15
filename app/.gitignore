@@ -6,7 +6,7 @@ node_modules/
 *.jks
 *.keystore
 play-store-service-account.json
-google-services.json
+# google-services.json + GoogleService-Info.plist ficam no repo (EAS / Firebase Analytics EGO)
 
 android/
 ios/

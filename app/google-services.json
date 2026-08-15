@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "577201825859",
+    "project_id": "ego-ai-66c1b",
+    "storage_bucket": "ego-ai-66c1b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:577201825859:android:cebaa537730e049e4b8cf6",
+        "android_client_info": {
+          "package_name": "com.egoai.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBY6sw3Y3HEWWMxBYzrbWERf7-xexGU43s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
