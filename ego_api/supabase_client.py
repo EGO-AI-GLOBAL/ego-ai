@@ -99,17 +99,19 @@ def insert_with_admin_fallback(
 
 
 def apply_user_auth(client: Client | None) -> bool:
-    """Aplica JWT do pedido atual ao cliente Supabase (RLS)."""
+    """Aplica JWT do pedido atual ao PostgREST (RLS).
+
+    Não anexar sessão GoTrue no servidor: isso auto-renova e invalida o
+    refresh guardado no telemóvel → login todas as manhãs.
+    A renovação é só POST /auth/refresh, com tokens devolvidos ao app.
+    """
     if not client:
         return False
     sess = get_session()
     if not sess or not sess.access_token:
         return False
     try:
-        if sess.refresh_token:
-            client.auth.set_session(sess.access_token, sess.refresh_token)
-        else:
-            client.postgrest.auth(sess.access_token)
+        client.postgrest.auth(sess.access_token)
         return True
     except Exception:
         return False

@@ -793,6 +793,27 @@ def check_store_versions_parse() -> int:
         return 1
 
 
+def check_apply_user_auth_no_set_session() -> int:
+    """RLS no servidor não pode chamar GoTrue set_session (queima refresh do app)."""
+    print("\n=== Auth persistente — apply_user_auth sem set_session ===")
+    path = ROOT / "ego_api" / "supabase_client.py"
+    text = path.read_text(encoding="utf-8")
+    start = text.find("def apply_user_auth")
+    if start < 0:
+        print("  ERRO  apply_user_auth ausente")
+        return 1
+    nxt = text.find("\ndef ", start + 1)
+    body = text[start : nxt if nxt > 0 else None]
+    if ".set_session(" in body:
+        print("  ERRO  apply_user_auth chama set_session (invalida refresh no telemóvel)")
+        return 1
+    if "postgrest.auth" not in body:
+        print("  ERRO  apply_user_auth deve usar postgrest.auth(access)")
+        return 1
+    print("  OK    JWT no PostgREST; refresh só em /auth/refresh")
+    return 0
+
+
 def main() -> int:
     failed = check_symbols()
     failed += check_journey_missions()
@@ -802,6 +823,7 @@ def main() -> int:
     failed += check_pausa_exercise_pool()
     failed += check_bootstrap_fallback_daily_care()
     failed += check_store_versions_parse()
+    failed += check_apply_user_auth_no_set_session()
     try:
         import importlib.util
 

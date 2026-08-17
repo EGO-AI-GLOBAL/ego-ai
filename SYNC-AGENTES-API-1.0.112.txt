@@ -1,15 +1,14 @@
-SYNC API — 1.0.112 banner automático lojas
-==========================================
+SYNC API — sessão persistente (hotfix Railway)
+==============================================
 Status: ✅ PRONTO
-Commit: 6bfc18e
 
 Zona: API / Segurança
-Ficheiros:
-- ego_api/store_versions.py (novo)
-- ego_api/config.py (app_update_payload auto)
-- flask_api.py (cron store-versions)
-- app/src/context/AppUpdateContext.tsx + types.ts
-- scripts/regression_guard.py
+Causa: apply_user_auth ainda fazia GoTrue set_session em cada pedido
+       autenticado → refresh do telemóvel morria → senha de manhã.
 
-Comportamento: /health lê versão publicada App Store + Play (cache 15 min).
-Não precisa EGO_LATEST_* a cada release. Override: EGO_STORE_VERSION_AUTO=0
+Ficheiros:
+- ego_api/supabase_client.py — só postgrest.auth(JWT)
+- flask_api.py — api_build 2026-08-17-auth-no-set-session-rls
+- scripts/regression_guard.py — bloqueia regressão
+
+Sem build EAS. Depois do deploy: login UMA vez; deve ficar logado.
