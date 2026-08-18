@@ -123,7 +123,7 @@ def normalize_wa_phone(raw: str) -> str | None:
 
 
 def _phone_from_profile(row: dict[str, Any]) -> str | None:
-    return normalize_wa_phone(str(row.get("phone") or row.get("whatsapp") or ""))
+    return normalize_wa_phone(str(row.get("phone") or ""))
 
 
 def _is_free_profile(row: dict[str, Any]) -> bool:
@@ -355,13 +355,11 @@ def handle_inbound_text(phone_raw: str, text: str) -> dict[str, Any]:
         try:
             res = (
                 svc.table("profiles")
-                .select("id,phone,whatsapp")
+                .select("id,phone")
                 .execute()
             )
             for row in list(res.data or []):
-                p = normalize_wa_phone(
-                    str(row.get("phone") or row.get("whatsapp") or "")
-                )
+                p = normalize_wa_phone(str(row.get("phone") or ""))
                 if p == phone:
                     user_id = str(row.get("id") or "") or None
                     break

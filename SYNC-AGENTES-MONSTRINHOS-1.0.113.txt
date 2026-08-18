@@ -1,0 +1,10 @@
+SYNC MONSTRINHOS — 1.0.113
+==========================
+Status: ✅ PRONTO (único que faz EAS)
+
+Inclui:
+• ShapeScan fallback em banner, rewarded e intersticial
+• Banner update (1.0.118 iOS = 1.0.112)
+• Sessão persistente (API já live)
+
+Versão app.config: 1.0.113 · iOS 119 · Android 172

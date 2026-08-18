@@ -1,0 +1,40 @@
+1.0.113 — TEXTOS PRONTOS A COLAR
+================================
+
+
+A) GOOGLE PLAY — "Novidades desta versão"
+-----------------------------------------
+COLE ISTO:
+
+Sessão estável ao abrir o app (sem pedir senha de manhã).
+No plano grátis, se o anúncio não carregar aparece o ShapeScan.
+Dica extra do dia deixa de ficar presa em «a carregar».
+Premium continua sem anúncios.
+
+
+B) APP STORE CONNECT — "O que há de novo nesta versão"
+------------------------------------------------------
+COLE ISTO:
+
+• Fica logado ao reabrir o app
+• Sem anúncio no grátis: aparece ShapeScan (Premium sem ads)
+• Dica extra do dia já não fica em «a carregar»
+• Aviso de atualização só quando há versão nova na loja
+
+
+C) TESTFLIGHT — "O que testar"
+------------------------------
+COLE ISTO:
+
+1. Abrir de manhã sem pedir senha.
+2. Conta FREE: banner chat — AdMob ou ShapeScan se não houver fill.
+3. Dica extra: em ~4s ou vira ShapeScan ou «Ver anúncio».
+4. Após check-in/PAUSA: intersticial se houver fill; senão card ShapeScan.
+5. Conta Premium: zero ads / zero ShapeScan / zero dica rewarded.
+
+
+INTERNO
+-------
+Versão: 1.0.113 · iOS build 119 · Android versionCode 172
+(EAS autoIncrement pode subir 1)
+ShapeScan no-fill + sessão persistente (API já no ar)
