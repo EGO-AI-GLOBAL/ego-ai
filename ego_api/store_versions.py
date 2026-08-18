@@ -25,6 +25,13 @@ ANDROID_PACKAGE = "com.egoai.app"
 CACHE_TTL_SEC = 15 * 60
 HTTP_TIMEOUT_SEC = 8
 
+# App Store Connect da 1.0.112 ficou com o NOME da versão = build iOS (118).
+# Sem isto o banner compara 1.0.112 instalado vs 1.0.118 na loja e nunca some.
+IOS_STORE_VERSION_ALIASES = {
+    "1.0.117": "1.0.112",
+    "1.0.118": "1.0.112",
+}
+
 _lock = threading.Lock()
 _cache: "_StoreCache | None" = None
 _refreshing = False
@@ -159,6 +166,35 @@ def _version_gt(a: str, b: str) -> bool:
     return False
 
 
+def normalize_ios_store_version(ios: str, android: str = "") -> str:
+    """Corrige versionName iOS quando o Connect usou o build number."""
+    ios = (ios or "").strip()
+    if not ios:
+        return ""
+    aliased = IOS_STORE_VERSION_ALIASES.get(ios)
+    if aliased:
+        return aliased
+    andr = (android or "").strip()
+    if (
+        _looks_like_version(ios)
+        and _looks_like_version(andr)
+        and _version_gt(ios, andr)
+    ):
+        ios_parts = _parse_parts(ios)
+        and_parts = _parse_parts(andr)
+        # 1.0.118 vs 1.0.111: patch iOS parece CFBundleVersion, não marketing.
+        if (
+            len(ios_parts) >= 3
+            and len(and_parts) >= 3
+            and ios_parts[0] == and_parts[0]
+            and ios_parts[1] == and_parts[1]
+            and ios_parts[2] >= 115
+            and ios_parts[2] - and_parts[2] >= 5
+        ):
+            return andr
+    return ios
+
+
 def max_version(*versions: str) -> str:
     best = ""
     for v in versions:
@@ -200,6 +236,8 @@ def _fetch_both() -> StoreVersions:
         android_ok = bool(android)
     except Exception as exc:
         logger.warning("store_versions android fetch failed: %s", exc)
+    if ios:
+        ios = normalize_ios_store_version(ios, android)
     return StoreVersions(
         ios=ios,
         android=android,

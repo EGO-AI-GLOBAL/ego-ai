@@ -12,6 +12,7 @@ import { fetchPublicHealth } from "@/api/client";
 import {
   clearUpdateBannerDismissedVersion,
   getUpdateBannerDismissedVersion,
+  setUpdateBannerDismissedVersion,
 } from "@/storage/updateBannerPrefs";
 import {
   getInstalledAppVersion,
@@ -97,13 +98,9 @@ export function AppUpdateProvider({ children }: { children: React.ReactNode }) {
 
       setNeedsUpdate(true);
 
-      // Dismiss antigo no storage: limpar para voltar a mostrar em quem ainda está atrás.
-      const legacyDismissed = await getUpdateBannerDismissedVersion();
-      if (legacyDismissed === latest) {
-        await clearUpdateBannerDismissedVersion();
-      }
-
-      if (sessionDismissedRef.current) {
+      const dismissed = await getUpdateBannerDismissedVersion();
+      if (sessionDismissedRef.current || dismissed === latest) {
+        sessionDismissedRef.current = true;
         setShowBanner(false);
         return;
       }
@@ -118,7 +115,11 @@ export function AppUpdateProvider({ children }: { children: React.ReactNode }) {
   const dismissBanner = useCallback(async () => {
     sessionDismissedRef.current = true;
     setShowBanner(false);
-  }, []);
+    const ver = latestVersion.trim();
+    if (ver) {
+      await setUpdateBannerDismissedVersion(ver);
+    }
+  }, [latestVersion]);
 
   useEffect(() => {
     void refresh();

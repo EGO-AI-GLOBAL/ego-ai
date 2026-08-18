@@ -786,6 +786,12 @@ def check_store_versions_parse() -> int:
             print("  ERRO  max_version falhou")
             return 1
 
+        from ego_api.store_versions import normalize_ios_store_version
+
+        if normalize_ios_store_version("1.0.118", "1.0.111") != "1.0.112":
+            print("  ERRO  alias iOS 1.0.118 -> 1.0.112 falhou")
+            return 1
+
         print("  OK    parse iOS + Play + max_version")
         return 0
     except Exception as exc:
