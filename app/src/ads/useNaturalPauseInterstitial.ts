@@ -20,12 +20,12 @@ type AdsTypes = typeof import("react-native-google-mobile-ads");
 
 /**
  * Interstitial só em pausa natural (check-in / PAUSA).
- * Cooldown ≥90s. Sem fill → onClosed imediato (fluxo segue; banner já tem fallback ShapeScan).
+ * Cooldown ≥90s. Sem fill / erro / cooldown → onDone(false) para o pai mostrar ShapeScan.
  */
 export function useNaturalPauseInterstitial({ enabled }: Options) {
   const adRef = useRef<InstanceType<AdsTypes["InterstitialAd"]> | null>(null);
   const [loaded, setLoaded] = useState(false);
-  const onClosedRef = useRef<(() => void) | null>(null);
+  const onClosedRef = useRef<((didShowAd: boolean) => void) | null>(null);
   const unsubsRef = useRef<Array<() => void>>([]);
   const admobOn =
     enabled && adMobInterstitialEnabled() && Platform.OS !== "web";
@@ -63,7 +63,7 @@ export function useNaturalPauseInterstitial({ enabled }: Options) {
           setLoaded(false);
           const cb = onClosedRef.current;
           onClosedRef.current = null;
-          cb?.();
+          cb?.(true);
           try {
             ad.load();
           } catch {
@@ -87,17 +87,17 @@ export function useNaturalPauseInterstitial({ enabled }: Options) {
   }, [admobOn, loadAd, teardown]);
 
   const show = useCallback(
-    (onClosed: () => void): void => {
-      const finish = () => {
+    (onDone: (didShowAd: boolean) => void): void => {
+      const finish = (didShowAd: boolean) => {
         try {
-          onClosed();
+          onDone(didShowAd);
         } catch {
           /* ok */
         }
       };
 
       if (!admobOn) {
-        finish();
+        finish(false);
         return;
       }
 
@@ -105,7 +105,7 @@ export function useNaturalPauseInterstitial({ enabled }: Options) {
         const ok = await canShowInterstitialNow();
         if (!ok) {
           trackInterstitial("skipped_cooldown");
-          finish();
+          finish(false);
           return;
         }
         const ad = adRef.current;
@@ -119,12 +119,12 @@ export function useNaturalPauseInterstitial({ enabled }: Options) {
           } catch {
             onClosedRef.current = null;
             trackInterstitial("no_fill");
-            finish();
+            finish(false);
             return;
           }
         }
         trackInterstitial("no_fill");
-        finish();
+        finish(false);
       })();
     },
     [admobOn, loaded]

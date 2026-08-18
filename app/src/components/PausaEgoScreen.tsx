@@ -45,8 +45,8 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
     launcher.closeSession();
     onComplete(kind);
     trackSessionOrCheckinCompleted("pausa", { session_kind: kind });
-    showPauseInterstitial(() => {
-      if (showCrossPromo) setShowBodyNudge(true);
+    showPauseInterstitial((didShowAd) => {
+      if (showCrossPromo && !didShowAd) setShowBodyNudge(true);
     });
   };
 

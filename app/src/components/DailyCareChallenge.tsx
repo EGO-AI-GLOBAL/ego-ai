@@ -214,8 +214,8 @@ export function DailyCareChallenge({
         const line = res.daily_care.monster_line?.trim();
         if (line) void queueMonsterChatNotice(line);
         // Interstitial só em pausa natural (após check-in), nunca a meio do chat.
-        showPauseInterstitial(() => {
-          if (showCrossPromo) setShowBodyNudge(true);
+        showPauseInterstitial((didShowAd) => {
+          if (showCrossPromo && !didShowAd) setShowBodyNudge(true);
         });
       }
     } finally {

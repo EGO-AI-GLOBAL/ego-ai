@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { trackRewardedOptIn } from "@/analytics/egoAnalytics";
 import { useRewardedOptIn } from "@/ads/useRewardedOptIn";
+import { ShapeScanCrossPromoBanner } from "@/components/ShapeScanCrossPromoBanner";
 import { queueMonsterChatNotice } from "@/utils/monsterChatNotice";
 import type { AppColors } from "@/theme/colors";
 
@@ -26,7 +27,7 @@ const TIPS = [
  * Benefício: dica do dia no chat (após ver o anúncio).
  */
 export function RewardedDailyTipCard({ colors, enabled, visible }: Props) {
-  const { ready, showOptIn } = useRewardedOptIn({ enabled });
+  const { ready, noFill, showOptIn } = useRewardedOptIn({ enabled });
 
   useEffect(() => {
     if (visible && enabled) trackRewardedOptIn("offer_shown");
@@ -83,17 +84,42 @@ export function RewardedDailyTipCard({ colors, enabled, visible }: Props) {
       ]}
     >
       <Text style={[styles.title, { color: colors.text }]}>💡 Dica extra do dia</Text>
-      <Text style={[styles.sub, { color: colors.textMuted }]}>
-        Opcional: vê um anúncio curto e recebe uma dica no chat. Nunca abre sozinho.
-      </Text>
-      <Pressable
-        onPress={onPress}
-        style={[styles.btn, { backgroundColor: colors.primary }]}
-        accessibilityRole="button"
-        accessibilityLabel="Ver anúncio e ganhar dica"
-      >
-        <Text style={styles.btnText}>{ready ? "Ver anúncio e ganhar dica" : "A carregar…"}</Text>
-      </Pressable>
+      {noFill ? (
+        <>
+          <Text style={[styles.sub, { color: colors.textMuted }]}>
+            Sem anúncio agora — treino e dieta no ShapeScan, grátis para começar.
+          </Text>
+          <ShapeScanCrossPromoBanner />
+        </>
+      ) : !ready ? (
+        <>
+          <Text style={[styles.sub, { color: colors.textMuted }]}>
+            Opcional: vê um anúncio curto e recebe uma dica no chat. Nunca abre sozinho.
+          </Text>
+          <Pressable
+            onPress={onPress}
+            style={[styles.btn, { backgroundColor: colors.primary }]}
+            accessibilityRole="button"
+            accessibilityLabel="A carregar anúncio"
+          >
+            <Text style={styles.btnText}>A carregar…</Text>
+          </Pressable>
+        </>
+      ) : (
+        <>
+          <Text style={[styles.sub, { color: colors.textMuted }]}>
+            Opcional: vê um anúncio curto e recebe uma dica no chat. Nunca abre sozinho.
+          </Text>
+          <Pressable
+            onPress={onPress}
+            style={[styles.btn, { backgroundColor: colors.primary }]}
+            accessibilityRole="button"
+            accessibilityLabel="Ver anúncio e ganhar dica"
+          >
+            <Text style={styles.btnText}>Ver anúncio e ganhar dica</Text>
+          </Pressable>
+        </>
+      )}
     </View>
   );
 }

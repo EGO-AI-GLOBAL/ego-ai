@@ -21,6 +21,7 @@ type AdsTypes = typeof import("react-native-google-mobile-ads");
 export function useRewardedOptIn({ enabled }: Options) {
   const adRef = useRef<InstanceType<AdsTypes["RewardedAd"]> | null>(null);
   const [loaded, setLoaded] = useState(false);
+  const [noFill, setNoFill] = useState(false);
   const earnedRef = useRef(false);
   const onEarnedRef = useRef<(() => void) | null>(null);
   const onFailRef = useRef<(() => void) | null>(null);
@@ -38,12 +39,20 @@ export function useRewardedOptIn({ enabled }: Options) {
     unsubsRef.current = [];
     adRef.current = null;
     setLoaded(false);
+    setNoFill(false);
   }, []);
 
   const loadAd = useCallback(async () => {
-    if (!admobOn || !ADMOB_REWARDED_UNIT_ID) return;
+    if (!admobOn || !ADMOB_REWARDED_UNIT_ID) {
+      setNoFill(true);
+      return;
+    }
     await ensureAdMobInitialized();
     teardown();
+    let filled = false;
+    const fillTimer = setTimeout(() => {
+      if (!filled) setNoFill(true);
+    }, 4000);
     try {
       const {
         RewardedAd,
@@ -55,12 +64,20 @@ export function useRewardedOptIn({ enabled }: Options) {
       });
       adRef.current = ad;
       unsubsRef.current = [
-        ad.addAdEventListener(RewardedAdEventType.LOADED, () => setLoaded(true)),
+        ad.addAdEventListener(RewardedAdEventType.LOADED, () => {
+          filled = true;
+          clearTimeout(fillTimer);
+          setNoFill(false);
+          setLoaded(true);
+        }),
         ad.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
           earnedRef.current = true;
         }),
         ad.addAdEventListener(AdEventType.ERROR, () => {
+          filled = true;
+          clearTimeout(fillTimer);
           setLoaded(false);
+          setNoFill(true);
           const fail = onFailRef.current;
           onFailRef.current = null;
           onEarnedRef.current = null;
@@ -87,10 +104,13 @@ export function useRewardedOptIn({ enabled }: Options) {
             /* ok */
           }
         }),
+        () => clearTimeout(fillTimer),
       ];
       ad.load();
     } catch {
+      clearTimeout(fillTimer);
       setLoaded(false);
+      setNoFill(true);
     }
   }, [admobOn, teardown]);
 
@@ -131,5 +151,5 @@ export function useRewardedOptIn({ enabled }: Options) {
     [admobOn, loaded]
   );
 
-  return { loaded, ready: admobOn && loaded, showOptIn, reload: loadAd };
+  return { loaded, ready: admobOn && loaded, noFill, showOptIn, reload: loadAd };
 }

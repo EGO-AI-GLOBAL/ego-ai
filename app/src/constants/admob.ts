@@ -10,7 +10,7 @@ import { TestIds } from "react-native-google-mobile-ads";
  * Regra free:
  * 1. Premium → zero ads
  * 2. Unit AdMob real + fill → AdMob
- * 3. Sem fill / erro → fallback ShapeScan (banner)
+ * 3. Sem fill / erro → fallback ShapeScan (banner, intersticial e rewarded)
  *
  * __DEV__ → TestIds Google. Produção → só env (nunca TestIds na loja).
  */
