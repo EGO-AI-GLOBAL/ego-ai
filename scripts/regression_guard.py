@@ -817,6 +817,19 @@ def check_apply_user_auth_no_set_session() -> int:
         print("  ERRO  apply_user_auth deve usar postgrest.auth(access)")
         return 1
     print("  OK    JWT no PostgREST; refresh só em /auth/refresh")
+
+    print("\n=== Auth persistente — sem auto_refresh no servidor ===")
+    lite = (ROOT / "ego_supabase.py").read_text(encoding="utf-8")
+    if "auto_refresh_token: bool = True" in lite:
+        print("  ERRO  ego_supabase auto_refresh_token=True (queima refresh do telemóvel)")
+        return 1
+    if "auto_refresh_token: bool = False" not in lite:
+        print("  ERRO  ego_supabase deve default auto_refresh_token=False")
+        return 1
+    if "auto_refresh_token=False" not in text and "_server_client_options" not in text:
+        print("  ERRO  supabase_client deve forçar auto_refresh off")
+        return 1
+    print("  OK    auto_refresh_token desligado no worker")
     return 0
 
 

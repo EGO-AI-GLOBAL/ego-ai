@@ -9,9 +9,18 @@ if TYPE_CHECKING:
     from ego_supabase import Client
 
 try:
-    from ego_supabase import create_client
+    from ego_supabase import ClientOptions, create_client
 except ImportError:
     from supabase import create_client  # type: ignore[assignment]
+
+    ClientOptions = None  # type: ignore[misc, assignment]
+
+
+def _server_client_options():
+    """Sem auto-refresh / sem persistir sessão GoTrue no worker Railway."""
+    if ClientOptions is None:
+        return None
+    return ClientOptions(auto_refresh_token=False, persist_session=False)
 
 
 def supabase_env_status() -> dict[str, bool | int | str]:
@@ -27,7 +36,8 @@ def supabase_env_status() -> dict[str, bool | int | str]:
     if not url or not key:
         return status
     try:
-        create_client(url, key)
+        opts = _server_client_options()
+        create_client(url, key, opts) if opts is not None else create_client(url, key)
         status["client_ok"] = True
     except Exception as exc:
         status["client_error"] = str(exc)[:200] or type(exc).__name__
@@ -39,7 +49,8 @@ def create_anon_client() -> Client | None:
     if not url or not key:
         return None
     try:
-        return create_client(url, key)
+        opts = _server_client_options()
+        return create_client(url, key, opts) if opts is not None else create_client(url, key)
     except Exception:
         return None
 
@@ -51,7 +62,8 @@ def create_service_client() -> Client | None:
     if not url or not key:
         return None
     try:
-        return create_client(url, key)
+        opts = _server_client_options()
+        return create_client(url, key, opts) if opts is not None else create_client(url, key)
     except Exception:
         return None
 

@@ -38,8 +38,10 @@ class SupabaseException(Exception):
 class ClientOptions:
     schema: str = "public"
     headers: Dict[str, str] = field(default_factory=DEFAULT_HEADERS.copy)
-    auto_refresh_token: bool = True
-    persist_session: bool = True
+    # Servidor NUNCA auto-renova: isso rota o refresh e o app pede senha ao reabrir.
+    # Renovação só em POST /auth/refresh, com tokens devolvidos ao telemóvel.
+    auto_refresh_token: bool = False
+    persist_session: bool = False
     postgrest_client_timeout: Union[int, float, Timeout] = DEFAULT_POSTGREST_CLIENT_TIMEOUT
     flow_type: AuthFlowType = "pkce"
     storage: SyncSupportedStorage = field(default_factory=SyncMemoryStorage)
@@ -55,8 +57,8 @@ class SyncSupabaseAuthClient(SyncGoTrueClient):
         url: str,
         headers: Optional[Dict[str, str]] = None,
         storage_key: Optional[str] = None,
-        auto_refresh_token: bool = True,
-        persist_session: bool = True,
+        auto_refresh_token: bool = False,
+        persist_session: bool = False,
         storage: Optional[SyncSupportedStorage] = None,
         http_client: Optional[SyncHttpxClient] = None,
         flow_type: AuthFlowType = "implicit",

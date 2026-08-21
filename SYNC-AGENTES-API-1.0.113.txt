@@ -1,0 +1,22 @@
+SYNC API — sessão nunca pede senha de novo (Railway)
+====================================================
+Status: ✅ PRONTO
+
+Zona: API / Segurança · SEM build EAS
+
+Causa raiz:
+- ego_supabase tinha auto_refresh_token=True no worker Railway
+- GoTrue no servidor renovava o refresh em background
+- O telemóvel ficava com refresh morto → login em todo abrir
+
+Fix:
+- ego_supabase.py → auto_refresh_token=False, persist_session=False
+- ego_api/supabase_client.py → ClientOptions forçado off
+- ego_api/services.py → refresh via HTTP directo ao GoTrue
+- flask_api.py → 401 no refresh só se token morto de verdade
+- api_build: 2026-08-21-auth-no-server-auto-refresh
+
+Depois do Railway live:
+1. Abre o app UMA vez e faz login
+2. Fecha o app por completo
+3. Abre de novo — tem de entrar direto, sem e-mail/senha

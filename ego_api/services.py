@@ -480,17 +480,64 @@ def complete_password_reset(
 
 
 def refresh_session(refresh_token: str) -> tuple[dict | None, str | None]:
-    client = create_anon_client()
-    if not client:
-        return None, "Supabase não configurado."
+    """Renova tokens via GoTrue. Sem auto-refresh no worker (só esta chamada)."""
+    from ego_api.config import supabase_anon_key, supabase_url
+
     if not (refresh_token or "").strip():
         return None, "refresh_token em falta."
+    base = (supabase_url() or "").rstrip("/")
+    key = supabase_anon_key()
+    if not base or not key:
+        return None, "Supabase não configurado."
+
+    # HTTP directo — evita GoTrue client com timer de auto-refresh no Railway.
     try:
-        res = client.auth.refresh_session(refresh_token.strip())
-        payload = _session_payload(res)
-        if not payload.get("access_token"):
+        import httpx
+
+        res = httpx.post(
+            f"{base}/auth/v1/token?grant_type=refresh_token",
+            headers={
+                "apikey": key,
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/json",
+            },
+            json={"refresh_token": refresh_token.strip()},
+            timeout=20.0,
+        )
+        data = res.json() if res.content else {}
+        if res.status_code >= 400:
+            err_msg = ""
+            if isinstance(data, dict):
+                err_msg = str(data.get("error_description") or data.get("msg") or data.get("error") or "")
+            return None, format_auth_error(RuntimeError(err_msg or f"HTTP {res.status_code}"))
+        access = str(data.get("access_token") or "").strip()
+        if not access:
             return None, "Não foi possível renovar a sessão."
-        return payload, None
+        user = data.get("user") if isinstance(data.get("user"), dict) else {}
+        expires_at = data.get("expires_at")
+        expires_in = data.get("expires_in")
+        try:
+            expires_at = int(expires_at) if expires_at is not None else None
+        except (TypeError, ValueError):
+            expires_at = None
+        try:
+            expires_in = int(expires_in) if expires_in is not None else None
+        except (TypeError, ValueError):
+            expires_in = None
+        if expires_at is None and isinstance(expires_in, int) and expires_in > 0:
+            import time as _time
+
+            expires_at = int(_time.time()) + expires_in
+        return {
+            "access_token": access,
+            "refresh_token": str(data.get("refresh_token") or refresh_token).strip(),
+            "expires_at": expires_at,
+            "expires_in": expires_in,
+            "user": {
+                "id": str(user.get("id") or ""),
+                "email": str(user.get("email") or ""),
+            },
+        }, None
     except Exception as e:  # noqa: BLE001
         return None, format_auth_error(e)
 
