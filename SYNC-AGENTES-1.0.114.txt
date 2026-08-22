@@ -1,0 +1,13 @@
+SYNC MESTRE — 1.0.114 · Funil 14 dias
+======================================
+Data: 2026-08-22
+
+| Agente       | Ficheiro                              | Status        |
+|--------------|---------------------------------------|---------------|
+| Monstrinhos  | SYNC-AGENTES-MONSTRINHOS-1.0.114.txt | ✅ PRONTO     |
+| EGO de Bolso | SYNC-AGENTES-BOLSO-1.0.114.txt        | ✅ PRONTO     |
+| API          | SYNC-AGENTES-API-1.0.114.txt          | ✅ PRONTO     |
+| Marketing    | SYNC-AGENTES-MARKETING-1.0.114.txt    | ✅ PRONTO     |
+
+Build: GERAR-1.0.114.bat → AGUARDAR-E-SUBMETER-1.0.114.bat
+Versão: 1.0.114 · iOS 120 · Android 173

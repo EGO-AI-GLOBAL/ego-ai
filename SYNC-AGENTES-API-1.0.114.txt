@@ -1,0 +1,6 @@
+SYNC API — 1.0.114
+==================
+Status: ✅ PRONTO
+
+Sem diff API nesta release — funil 14d só no app client.
+API live: api_build=2026-08-21-auth-no-server-auto-refresh

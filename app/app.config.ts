@@ -26,7 +26,7 @@ const hasFirebase = hasFirebaseAndroid || hasFirebaseIos;
 const config: ExpoConfig = {
   name: "Ego-IA",
   slug: "ego-ai",
-  version: "1.0.113",
+  version: "1.0.114",
   orientation: "portrait",
   scheme: "egoai",
   userInterfaceStyle: "automatic",
@@ -41,7 +41,7 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: "com.egoai.app",
-    buildNumber: "119",
+    buildNumber: "120",
     appleTeamId: "7XVMZQ2Z33",
     entitlements: {
       "com.apple.security.application-groups": ["group.com.egoai.app.widget"],
@@ -61,7 +61,7 @@ const config: ExpoConfig = {
     },
   },
   android: {
-    versionCode: 172,
+    versionCode: 173,
     package: "com.egoai.app",
     ...(hasFirebaseAndroid ? { googleServicesFile: "./google-services.json" } : {}),
     adaptiveIcon: {
