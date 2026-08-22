@@ -1,0 +1,67 @@
+EGO-AI ↔ ShapeScan — CROSS-PROMO BANNERS · 27/07/2026
+======================================================
+Máx. ~80 caracteres · emoji estratégico · só plano Essential / grátis
+
+
+================================================
+PARTE 1 — DENTRO DO EGO-AI (anuncia ShapeScan)
+================================================
+Objetivo: desabafo/ansiedade → corpo também ajuda a mente
+Onde: banner acima do composer · só plan_tier essential
+CTA destino: https://shapescanapp.com.br
+
+VARIAÇÃO A (recomendada — equilíbrio)
+------------------------------------
+💪 Mente leve precisa de corpo forte. ShapeScan: treinos por IA. Gratis!
+(74 chars)
+
+VARIAÇÃO B (mente barulhenta)
+-----------------------------
+🏋️ Mente barulhenta? Mexe o corpo. ShapeScan: treino e dieta. Baixe!
+(69 chars)
+
+VARIAÇÃO C (ansiedade → treino)
+-------------------------------
+😌 Ansiedade? Treinar ajuda. ShapeScan monta treino por voz. Gratis!
+(68 chars)
+
+TESTE A/B: começa com A · se CTR baixo testa C (dor ansiedade)
+
+
+================================================
+PARTE 2 — DENTRO DO ShapeScan (anuncia EGO-AI)
+================================================
+Objetivo: pós-treino → mente também precisa de cuidado
+Onde: rodapé fixo ~60px na tela de treinos
+CTA destino: https://egoai.com.br
+  ou Play: https://play.google.com/store/apps/details?id=com.egoai.app
+  ou iOS: https://apps.apple.com/app/id6780595396
+
+VARIAÇÃO A (recomendada — pós-treino)
+------------------------------------
+✅ Treino feito! Agora a mente. EGO-AI: ansiedade e humor. Toque.
+(65 chars)
+
+VARIAÇÃO B (corpo + mente)
+--------------------------
+🧠 Corpo forte, mente em paz. Desabafe com Luna no EGO-AI. Toque.
+(65 chars)
+
+VARIAÇÃO C (clássico mente sã)
+------------------------------
+💜 Mente sa, corpo sao. EGO-AI cuida do humor e ansiedade. Conheca.
+(67 chars)
+
+TESTE A/B: começa com A (gancho “treino feito”) · depois B
+
+
+================================================
+REGRAS DE USO
+================================================
+• Só utilizadores gratuitos / essential (não Premium)
+• 1 banner por ecrã — não empilhar
+• Não prometer cura / substituir terapia ou nutri
+• EGO: não vender ShapeScan como “substituto da Luna”
+• ShapeScan: não vender EGO como app de treino
+
+Entregar ao agente App: texto + URL + regra plan_tier

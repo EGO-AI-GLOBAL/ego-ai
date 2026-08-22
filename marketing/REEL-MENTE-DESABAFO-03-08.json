@@ -1,0 +1,55 @@
+{
+  "version": "mente-03-08",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-VARIEDADE",
+  "output": "marketing/videos/app-real/ego-ai-mente-desabafo-03-08-reels.mp4",
+  "post_file": "marketing/POST-HOJE-03-08-MENTE-DESABAFO.txt",
+  "voice_rate": "+22%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 52,
+  "title_font_boost": 1.1,
+  "photo_width_ratio": 0.78,
+  "top_bar_h": 240,
+  "bottom_reserve": 280,
+  "badge_text": "DESABAFO",
+  "post": {
+    "title": "Nao quis mandar audio no Zap — desabei no EGO-AI",
+    "description": "POV: quer desabafar mas nao quer incomodar ninguem.\n\nAbri o EGO-AI:\nChat com Luna ou Leo\nEssential gratis (texto ate 5 msgs/dia)\nVoz e sem anuncios no Premium\n\nJa no Android e no iPhone.\n\nComenta MENTE que te mando o link no Direct\n\n#egoai #desabafo #ansiedade #chat #mentebarulhenta",
+    "hashtags": ["#egoai", "#desabafo", "#ansiedade", "#chat", "#mentebarulhenta"],
+    "pinned_comment": "Comenta MENTE\nTe mando Android + iPhone no Direct."
+  },
+  "scenes": [
+    {
+      "photo": "04-desabafo-gravando.png",
+      "lines": [["Nao quis o Zap", 52, true], ["desabei aqui", 46, false]],
+      "darken": 0.12,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Nao quis mandar audio no Zap. Abri o EGO-AI e desabei."
+    },
+    {
+      "photo": "02-chat-texto.png",
+      "lines": [["Luna ou Leo", 52, true], ["sem julgamento", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Luna ou Leo. Sem julgamento. So escuta."
+    },
+    {
+      "photo": "03-chat-voz.png",
+      "lines": [["Texto gratis", 52, true], ["voz no Premium", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Essential gratis por texto. Voz fica no Premium."
+    },
+    {
+      "photo": "02-chat-texto.png",
+      "lines": [["Comenta MENTE", 50, true], ["link no Direct", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Ja no Android e no iPhone. Comenta MENTE e te mando o link no Direct."
+    }
+  ]
+}

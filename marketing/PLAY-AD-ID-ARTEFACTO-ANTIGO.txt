@@ -1,0 +1,82 @@
+PLAY — DECLARAÇÃO OK MAS AINDA BLOQUEIA (artefacto antigo)
+==========================================================
+28/07/2026
+
+Facto técnico: o AAB 1.0.106 (163) JÁ TEM no manifesto:
+  com.google.android.gms.permission.AD_ID
+(confirmado no ficheiro local)
+
+A Play bloqueia porque há OUTRO AAB antigo (sem AD_ID) ainda
+“ativo” noutro canal — mesmo com a declaração em Sim.
+
+
+PASSO 1 — Ver todos os artefactos ativos
+----------------------------------------
+1. Play Console → app EGO-AI
+2. Menu: Testar e lançar → Explorador de pacotes de apps
+   (App bundle explorer)
+3. Lista os pacotes. Anota quais versionCodes estão ativos e em que faixa:
+   - Produção
+   - Teste aberto
+   - Teste fechado
+   - Teste interno
+
+Qualquer pacote ANTES do 163 (ex.: 160, 161, 162) sem AD_ID
+continua a gerar o erro enquanto estiver ativo.
+
+
+PASSO 2 — Na versão que estás a criar AGORA
+-------------------------------------------
+1. Testar e lançar → Teste fechado (ou Produção)
+2. Abre o rascunho da versão
+3. Em Pacotes de apps:
+   - REMOVE 160 / 161 / 162 se estiverem na lista
+   - Deixa SÓ: 1.0.106 (163)
+4. Se o erro continuar → o problema NÃO é este rascunho; é outro canal (Passo 3)
+
+
+PASSO 3 — Atualizar CADA canal que ainda tenha pacote velho
+-----------------------------------------------------------
+Para CADA faixa com pacote < 163 ativo:
+
+Opção A (recomendado) — pôr o 163 também nesse canal:
+1. Abre essa faixa (ex.: Teste interno)
+2. Criar nova versão
+3. NÃO faças upload de ficheiro novo
+4. Adicionar da biblioteca → escolhe 1.0.106 (163)
+5. Notas: "sync AD_ID"
+6. Guardar → Rever → Iniciar lançamento
+
+Opção B — esvaziar o canal (se não usas):
+1. Criar nova versão NESTA faixa
+2. Remover o pacote antigo (não adiciones nenhum)
+3. Nome: "remover pacote sem AD_ID"
+4. Guardar → lançar (lançamento vazio desativa o artefacto)
+
+
+PASSO 4 — Declaração (confirma outra vez)
+-----------------------------------------
+Política do app → ID de publicidade:
+- Usa ID? Sim
+- Motivo: Publicidade ou marketing
+- NÃO marcar “desativar erros de lançamento”
+- Guardar
+
+Fecha o Chrome desta página, abre de novo, confirma que está Concluído.
+
+
+PASSO 5 — Voltar ao lançamento
+------------------------------
+1. Atualiza a página (F5)
+2. Com SÓ o 163 na versão → Seguinte → Enviar
+
+Se AINDA bloquear:
+- Copia o texto EXATO do erro vermelho (e se diz “artefacto ativo”)
+- Diz em que faixa estás (interno / fechado / produção)
+- Responde aqui
+
+
+AAB certo
+---------
+Desktop\EGO-AAB-PLAY\EGO-AI-1.0.106-vc163.aab
+https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/531f89a8-847c-420d-8940-e65f10f28d58

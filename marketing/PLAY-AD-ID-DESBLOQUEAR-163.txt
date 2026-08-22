@@ -1,0 +1,52 @@
+PLAY — ERRO AD_ID COM O 163 (o 163 está certo)
+================================================
+O AAB 163 JÁ TEM com.google.android.gms.permission.AD_ID.
+A Play aponta para OUTRO artefacto ativo (160/161/162) noutro canal.
+
+
+OPÇÃO RÁPIDA (desbloqueia o lançamento agora)
+---------------------------------------------
+1. Política do app → ID de publicidade → Gerir
+2. Continua: Sim + Publicidade ou marketing (+ Análise ok)
+3. MARCA a caixa:
+   "Desativar os erros de lançamento"
+   / "Entendi as consequências… e quero desativar os erros de versão"
+4. Guardar
+5. Volta à versão de Produção com SÓ o pacote 163
+6. Rever → Enviar / Iniciar lançamento
+
+Isto não tira o AD_ID do 163. Só para a Play de bloquear por causa
+dos pacotes velhos ainda listados como “ativos”.
+
+
+OPÇÃO CORRETA (limpar artefactos — faz depois ou já)
+----------------------------------------------------
+1. Testar e lançar → Explorador de pacotes de apps
+2. Abre cada pacote < 163 (160, 161, 162…)
+3. Vê em que faixas está "Ativo" (interno / fechado / aberto / produção)
+
+Para CADA faixa com pacote velho:
+A) Criar nova versão
+B) Remover o pacote antigo
+C) Adicionar da biblioteca → 1.0.106 (163)
+D) Lançar
+
+OU lançamento vazio (só remove o pacote, sem adicionar) se não usas essa faixa.
+
+
+NA VERSÃO DE PRODUÇÃO AGORA
+---------------------------
+1. Produção → Criar nova versão (ou editar rascunho)
+2. Lista de pacotes: APENAS 163
+3. Se 160/161/162 aparecerem → Remover
+4. Não faças upload de ficheiro novo — biblioteca → 163
+5. Enviar
+
+
+NÃO faças
+---------
+- Mudar declaração para "Não" (o 163 TEM AD_ID → dá o erro inverso)
+- Voltar a subir o 162
+
+
+Quando enviar: "play producao ok"

@@ -1,0 +1,47 @@
+PATROCINAR ANDROID NA LOJA · R$ 25/DIA · 27/07/2026
+===================================================
+Isto é o equivalente Android do Apple Search Ads:
+campanha de APP no Google Ads → instalações pela Google Play.
+
+App:
+https://play.google.com/store/apps/details?id=com.egoai.app
+
+PASSO A PASSO (só isto agora)
+-----------------------------
+1. https://ads.google.com
+2. + Nova campanha
+3. Objetivo: **Instalações do aplicativo** / App promotion
+4. Tipo de campanha: **Aplicativo**
+5. Plataforma: **Google Play**
+6. App: procura EGO-AI ou cola o pacote **com.egoai.app**
+7. Nome: EGO-AI-Play-loja-R25
+8. Locais: **Brasil**
+9. Idioma: **Português**
+10. Orçamento diário: **R$ 25,00**
+11. Foco / conversão:
+    • Instalações do app (ou “Volume de instalações”)
+    • CPA alvo: deixa **automático** nos primeiros 7 dias
+12. Anúncios / criativos:
+    • Usa os da ficha Play (ícone + prints + textos já atualizados)
+    • Textos extras (se pedir):
+      - Ansiedade, solidão e desabafo. 3 dias grátis.
+      - Depois assine o Premium. Luna e Leo no bolso.
+      - Indique: se o amigo pagar, você ganha 1 mês.
+13. Revisar → **Publicar**
+
+O QUE NÃO FAZER
+---------------
+• Não criar campanha de “Tráfego para site” para isto
+• Não misturar iOS nesta campanha
+• Não pausar Apple Search Ads
+
+COMO SABER QUE ESTÁ CERTO
+-------------------------
+Na lista de campanhas deve aparecer algo como:
+App / Google Play / EGO-AI / R$ 25/dia / Ativa
+
+Em 24–48h olha:
+• Instalações
+• Custo por instalação (CPI)
+
+Quando publicar → responde: **play ads ok**

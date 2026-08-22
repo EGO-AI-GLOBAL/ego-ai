@@ -1,0 +1,46 @@
+PLAY — PREENCHER ID DE PUBLICIDADE (estado exacto)
+==================================================
+Se a Play diz que está “preenchido errado” / incompleto, deixa a página
+assim e GUARDA no fim. Não inventes combinações.
+
+1) Seu app usa um ID de publicidade?
+   → SIM   (bolinha em Sim)
+   → NÃO fiques em Não
+
+2) Por que o app precisa… (podes marcar 1 ou 2)
+   → MARCA:  Publicidade ou marketing
+   → MARCA também (recomendado): Análise
+      (SDKs Google / ads às vezes contam como análise)
+   → NÃO marques: Funcionalidade, Mensagens, Segurança,
+                   Personalização, Gerenciamento de contas
+
+3) Desativar os erros de lançamento
+   → DEIXA DESMARCADO
+   (essa caixa é para quem NÃO tem a permissão AD_ID no AAB;
+    o teu 163 JÁ TEM — marcar isto confunde o fluxo)
+
+4) Desce até ao fundo da página
+   → clica GUARDAR / SALVAR
+   → se aparecer ENVIAR / CONFIRMAR → clica também
+
+5) Volta a Política do app / Conteúdo do app
+   → cartão “ID de publicidade” tem de ficar CONCLUÍDO / verde
+   → se ainda disser “ação necessária”, a declaração NÃO gravou:
+      fecha o separador, abre de novo, repete 1–4
+
+6) Só DEPOIS disso volta à versão
+   → pacote SÓ 1.0.106 (163)
+   → remove 160/161/162 daquela versão
+   → e nos outros canais (interno/fechado) põe o 163 da biblioteca
+
+
+NÃO faças
+----------
+- Sim + nenhuma finalidade marcada
+- Não + AAB 163 (o 163 TEM AD_ID → a Play rejeita o contrário)
+- Marcar “Desativar os erros…” com o AAB 163
+
+
+Se depois de Guardar o cartão ficar Concluído e AINDA bloquear,
+copia a frase VERMELHA exacta da página da VERSÃO (não desta
+página da declaração) e cola aqui.

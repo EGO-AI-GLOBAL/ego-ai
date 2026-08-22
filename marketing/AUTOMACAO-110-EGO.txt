@@ -1,0 +1,104 @@
+EGO-AI — AUTOMAÇÃO 110% · CHECKLIST + ARQUITETURA
+=================================================
+Atualizado: 31/07/2026
+Prioridade: Ego nas 2 lojas · humano só se pedir «falar com humano»
+
+
+A) CHECKLIST — O QUE JÁ EXISTE vs O QUE FALTA
+=============================================
+
+JÁ EXISTE (Ego)
+---------------
+[x] App nas lojas (Android + iOS)
+[x] Site egoai.com.br (freemium 0 trial · Essential + Premium)
+[x] FAQ suporte fechado: marketing/FAQ-SUPORTE-FREEMIUM-ADS.txt
+[x] Fluxo IG desenhado «MENTE»: marketing/MANYCHAT-FLUXO-MENTE.txt
+[x] Links oficiais:
+    Play:  https://play.google.com/store/apps/details?id=com.egoai.app
+    iOS:   https://apps.apple.com/app/id6780595396
+    Site:  https://egoai.com.br
+[x] E-mail CS: contato@egoai.com.br
+[x] Ads Android activo (R$50/dia)
+[x] Modelo produto claro: Essential grátis texto 5/dia+ads · Premium voz R$49,90
+
+FALTA (Ego) — prioridade
+------------------------
+[ ] Conta ManyChat ligada ao Instagram @EGO (Business) — ACTIVAR
+[ ] Automação IG Comment Keyword «MENTE» LIVE no painel
+[ ] DM Bloco 1 + botões com UTM
+[ ] Follow-ups 2h + 24h (sem clique)
+[ ] Keyword handoff: «humano» / «atendente» / «falar com humano»
+[ ] FAQ no bot (menu: preço · grátis · voz · bug · lojas)
+[ ] Bio IG = egoai.com.br (ou linktree com UTMs)
+[ ] Comentário fixado nos Reels: «Comenta MENTE…»
+[ ] WhatsApp Business API (número oficial Meta) + bot 24h
+[ ] Recuperação abandono Stripe/site (se houver checkout abandonado)
+[ ] Horário CS + notificação quando handoff
+[ ] Docs genéricos para espelhar ShapeScan (secção E)
+
+FORA DE ESCOPO AGORA
+--------------------
+[ ] ShapeScan implementação (só guia E)
+[ ] Religar Apple Search Ads (opcional depois)
+
+
+LINKS COM UTM (usar nos botões)
+------------------------------
+Site hub:
+  https://egoai.com.br/?utm_source=instagram&utm_medium=bot&utm_campaign=ego_auto
+
+Play:
+  https://play.google.com/store/apps/details?id=com.egoai.app&utm_source=instagram&utm_medium=bot&utm_campaign=ego_auto
+
+iOS:
+  https://apps.apple.com/app/id6780595396?utm_source=instagram&utm_medium=bot&utm_campaign=ego_auto
+
+WhatsApp (quando existir):
+  utm_source=whatsapp&utm_medium=bot&utm_campaign=ego_auto
+
+
+B) MANYCHAT IG — estado
+-----------------------
+Desenho: PRONTO (MANYCHAT-FLUXO-MENTE.txt)
+Painel:  PASSO A PASSO abaixo (1 ecrã por mensagem)
+
+
+C) WHATSAPP — recomendação rápida (Ego)
+---------------------------------------
+Ferramenta: **ManyChat WhatsApp** (mesma conta do IG).
+Porquê: já vais montar IG no ManyChat · 1 painel · handoff igual · mais rápido que Blip/Z-API agora.
+Depois: número WhatsApp Business verificado Meta → ligar no ManyChat → copiar fluxos FAQ + lojas.
+
+
+D) HANDOFF + HORÁRIO CS (pronto a colar)
+----------------------------------------
+Keywords bot → humano:
+  falar com humano | atendente | humano | pessoa real | suporte humano
+
+Resposta bot (pausa automação):
+---
+Entendi — vou chamar um humano da equipa EGO-AI. 💜
+Em horário comercial respondemos o mais rápido possível.
+Fora do horário: deixa a tua dúvida que respondemos no próximo período.
+
+Horário CS (sugestão): seg–sex 10h–18h (Brasília)
+Canal backup: contato@egoai.com.br
+---
+
+Notificação: ManyChat → Notify admin / e-mail no handoff.
+
+
+E) ESPELHAR NO SHAPESCAN (1 página — sem implementar)
+-----------------------------------------------------
+1. Duplicar estrutura ManyChat (nova página/marca ShapeScan)
+2. Keyword própria (ex. TREINO / CORPO) — NÃO usar MENTE
+3. FAQ ShapeScan (treino/dieta/preço) — nunca misturar Luna/Leo
+4. Links: shapescanapp.com.br + lojas ShapeScan + UTMs utm_campaign=shapescan_auto
+5. Mesmo handoff «falar com humano»
+6. Cross-promo: Ego free → ShapeScan (já no app); ShapeScan free → Ego (já desenhado)
+
+
+PRÓXIMO PASSO AGORA = B · ECRÃ 1
+--------------------------------
+Abrir ManyChat → confirmar Instagram ligado.
+Responde **ok** quando estiveres nesse ecrã.

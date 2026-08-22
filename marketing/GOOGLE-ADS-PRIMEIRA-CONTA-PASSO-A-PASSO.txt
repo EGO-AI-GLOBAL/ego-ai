@@ -1,0 +1,103 @@
+GOOGLE ADS — PRIMEIRA CONTA · Play R$ 25 · 27/07/2026
+======================================================
+Tela: «Crie sua primeira campanha com algumas etapas simples»
+1. Informações comerciais
+2. Criar anúncios
+3. Orçamento
+
+Vamos um ecrã de cada vez. Se aparecer pergunta diferente, manda print.
+
+
+------------------------------------------------
+PASSO 1 — INFORMAÇÕES COMERCIAIS
+------------------------------------------------
+Objetivo / o que quer:
+→ Escolhe **Instalações do aplicativo** ou **Downloads do app**
+  (NÃO escolhas «Visitas ao site» nem «Leads»)
+
+App:
+→ Plataforma: **Google Play**
+→ Procura: **EGO-AI**  OU  pacote: **com.egoai.app**
+→ Seleciona o app oficial
+
+Negócio / nome da conta (se pedir):
+→ ECONOMIZZE CATAGUASES  (ou EGO-AI)
+→ País: Brasil
+→ Moeda: **BRL – Real brasileiro**  (não muda depois — atenção!)
+→ Fuso: Brasília (GMT-3)
+
+Site (se pedir, obrigatório em algumas contas):
+→ https://egoai.com.br
+
+Telefone / endereço: o da empresa Economizze (o que já usas na Apple/Play)
+
+Quando terminar o passo 1 → Continuar
+Se aparecer print diferente → manda foto
+
+
+------------------------------------------------
+PASSO 2 — CRIAR ANÚNCIOS
+------------------------------------------------
+O Google vai usar ícone + prints + textos da Play.
+Se pedir textos manuais, cola estes (curtos):
+
+Título / frase 1:
+Ansiedade, solidão e desabafo
+
+Título / frase 2:
+3 dias grátis no EGO-AI
+
+Título / frase 3:
+Luna e Leo com voz
+
+Descrição 1:
+Mente barulhenta? Organiza a agenda por voz.
+
+Descrição 2:
+Depois dos 3 dias, assine o Premium. Indique e ganhe 1 mês se o amigo pagar.
+
+Se pedir vídeo: pode pular / deixar só os da loja.
+Se pedir «palavras-chave»: no App Campaign muitas vezes NÃO pede
+(o Google otimiza sozinho). Se pedir, cola:
+ansiedade, solidão, desabafo, saúde mental, app ansiedade
+
+
+------------------------------------------------
+PASSO 3 — ORÇAMENTO
+------------------------------------------------
+Orçamento diário: **R$ 25,00**
+Datas: começa hoje · sem data de fim (contínuo)
+Local: **Brasil**
+Idioma: **Português**
+
+Lance / CPA:
+→ Automático / «Maximizar instalações» / sem CPA alvo no início
+→ NÃO metas de R$ 1 (bloqueia entrega)
+
+Pagamento:
+→ Cartão (Mastercard que já usas na Apple Ads serve, se quiseres)
+→ Confirma endereço de faturação Economizze
+
+
+------------------------------------------------
+PUBLICAR
+------------------------------------------------
+Revisa:
+[ ] App = EGO-AI / com.egoai.app / Google Play
+[ ] Objetivo = Instalações
+[ ] Orçamento = R$ 25/dia
+[ ] País = Brasil
+[ ] Moeda = BRL
+
+→ Publicar / Enviar / Criar campanha
+
+Pode dizer «Em análise» ou «A aprender» nas primeiras horas — normal.
+
+
+------------------------------------------------
+DEPOIS
+------------------------------------------------
+Responde: **play ads ok**
+Em 48h olhamos instalações e CPI juntos.
+
+Dúvida num ecrã → manda o print que eu digo o clique exato.

@@ -1,86 +1,29 @@
-EGO-AI — MODELO FREEMIUM OFICIAL · Marketing · 27/07/2026
+EGO-AI — MODELO FREEMIUM OFICIAL · Marketing · 31/07/2026
 ==========================================================
-STATUS: DECISÃO DE PRODUTO CONFIRMADA
-PUBLICAR NA LOJA/SITE: só DEPOIS do agente App entregar o build
+STATUS: LIVE NA API (0 trial · 5 msgs Essential)
 
 MODELO
 ------
-1) Trial (como hoje): X dias grátis com acesso amplo (voz incluída no trial)
-2) Depois do trial → plano Essential (grátis):
+1) SEM período de teste (EGO_TRIAL_DAYS=0)
+2) Essential (grátis):
    • Chat TEXTO: até 5 mensagens/dia
-   • Banner AdMob fixo acima do composer
-   • VOZ / TTS / Realtime: BLOQUEADOS
+   • Banner AdMob (ou cross-promo ShapeScan sem fill)
+   • VOZ / TTS: BLOQUEADOS
 3) Premium R$ 49,90/mês:
-   • Libera voz + uso amplo
+   • Voz + uso amplo
    • Sem anúncios
-   • plan_tier != essential (e/ou is_pro)
 
-POSICIONAMENTO (copy)
----------------------
-• Grátis = desabafo em texto + humor/vídeos/Calma (baixo custo)
-• Pago = conversar com Luna/Leo por VOZ (alto custo API)
-• Nunca prometer “grátis ilimitado” nem “cura”
-
-HANDOFF
--------
-Agente APP / API:
-[ ] Flask: essential pós-trial → texto 5/dia, voz bloqueada, show_ads
-[ ] App: BannerAd acima do composer se show_ads
-[ ] AdMob IDs produção Android + iOS
-[ ] Build EAS → lojas
-
-Marketing (eu) — DEPOIS do build aprovado:
-[ ] Atualizar Play breve + descrição
-[ ] Atualizar App Store
-[ ] Atualizar site egoai.com.br (ZIP UOL)
-[ ] Ajustar ads Google/Apple se a mensagem mudar
-
-ATÉ LÁ (agora)
+POSICIONAMENTO
 --------------
-Site + Play + ads continuam com a mensagem actual:
-«3 dias grátis → depois assina Premium»
-Não anunciar Freemium+ads antes do app estar nas lojas.
+• Grátis = desabafo em texto (com ads)
+• Pago = Luna/Leo por VOZ (sem ads)
+• Nunca: «3 dias grátis» · «depois trava» · «grátis ilimitado»
 
+SITE
+----
+site-publico atualizado · ZIP: site-uol.zip
+UOL: extrair na raiz egoai.com.br
 
-================================================
-TEXTOS PRONTOS (colar quando o app Freemium estiver LIVE)
-================================================
-
---- PLAY · BREVE (máx. 80, sem emoji) ---
-Ansiedade e desabafo gratis em texto. Voz no Premium. 5 msgs/dia.
-
-(contagem ~62)
-
-ALTERNATIVA (se quiseres trial explícito):
-3 dias gratis. Depois texto com ads; voz no Premium R$49,90.
-
---- PLAY / SITE · DESCRIÇÃO (núcleo) ---
-O EGO-AI ajuda com humor, ansiedade, stress, desabafo e solidão —
-com Luna e Leo (rosto e voz) em português.
-
-Comece com o período de teste. Depois, no plano Essencial grátis:
-converse por TEXTO (até 5 mensagens por dia), com anúncios.
-A VOZ da Luna/Leo fica no plano Premium.
-
-Premium R$ 49,90/mês: voz, mais uso e sem anúncios.
-
-Agenda, família, Monstrinhos e Calma 1 min fazem parte do app.
-Indique um amigo: se ele pagar o Premium, quem indicou ganha 1 mês grátis.
-
-As respostas são IA e não substituem profissionais de saúde.
-
---- APP STORE · SUBTÍTULO (máx. 30) ---
-Desabafo · texto gratis · voz Premium
-
---- NOTAS DA VERSÃO (quando subir o build) ---
-• Essencial grátis: chat por texto (5/dia) com anúncios
-• Voz Luna/Leo no Premium
-• Premium R$ 49,90 · sem anúncios
-• Melhorias de estabilidade
-
-
-================================================
-O QUE NÃO MUDAR NOS ADS ENQUANTO O APP NÃO SOBE
-================================================
-Google Ads Play R$ 40 + Apple Search Ads R$ 10: manter.
-Não trocar criativos para “grátis com ads” ainda.
+LOJAS
+-----
+Colar: marketing/PLAY-FICHA-COLAR-AGORA-27-07.txt

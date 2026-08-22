@@ -8,6 +8,7 @@ Canal: WhatsApp / e-mail / Instagram DM / chat interno
 ------------------------------------
 • Essential grátis (pós-trial): texto + anúncios no chat
 • Limite texto Essential na API: **5 mensagens/dia**
+• **ZERO dias de teste** — Essential grátis desde o início
 • Voz / ouvir Luna-Leo falando: **Premium**
 • Premium: R$ 49,90/mês · sem anúncios · voz + uso amplo
 • NÃO dizer “criptografia ponta a ponta” (o chat passa por IA na nuvem)
@@ -17,7 +18,7 @@ Canal: WhatsApp / e-mail / Instagram DM / chat interno
 ────────────────────────────────────────
 1) “O app é gratuito? Consigo falar com a Luna/Leo?”
 ────────────────────────────────────────
-Sim! 💜 Depois do período de teste, o plano Essential continua grátis:
+Sim! 💜 O plano Essential é grátis desde o início:
 você conversa por **texto** com a Luna ou o Leo todos os dias
 (até **5 mensagens por dia**).
 

@@ -1,0 +1,84 @@
+PLAY CONSOLE — ARRUMAR ID DE PUBLICIDADE + AAB 163
+====================================================
+EGO-AI · 28/07/2026
+Pacote certo: Desktop\EGO-AAB-PLAY\EGO-AI-1.0.106-vc163.aab
+NÃO uses vc 161 nem 162.
+
+
+PARTE A — Declaração do ID de publicidade (obrigatório com AdMob)
+------------------------------------------------------------------
+
+1. Abre: https://play.google.com/console
+2. Entra na conta certa → escolhe a app **EGO-AI** (com.egoai.app)
+3. Menu esquerdo: **Política do app** (ou **Política** / **App content** / **Conteúdo do app**)
+4. Procura o cartão **ID de publicidade** / **Advertising ID**
+5. Clica **Iniciar** / **Gerir** / **Continuar** (o botão que abrir o formulário)
+
+6. Pergunta: **O seu app usa ID de publicidade?**
+   → marca **Sim**
+   (porque tens AdMob / anúncios no plano grátis)
+
+7. Se pedir **finalidade** / **para que é usado**:
+   → marca **Publicidade** / **Advertising** (anúncios)
+   → se houver opção de análise ligada a ads, podes marcar também; o essencial é Publicidade
+
+8. Clica **Guardar** / **Salvar**
+9. Se pedir **Enviar** / **Submit** na página de política → envia
+10. Confirma que o cartão **ID de publicidade** fica **Concluído** / verde / sem erro
+
+
+PARTE B — Upload do AAB certo (versionCode 163)
+------------------------------------------------
+
+1. Menu esquerdo: **Testar e lançar** → **Teste fechado**
+   (se estiveres a publicar direto: **Produção**)
+
+2. Abre a versão em rascunho OU clica **Criar nova versão**
+
+3. Se ainda tiver o pacote **162** (ou 161) na lista:
+   → remove esse artefacto (ícone de lixo / Remover)
+   → confirma remoção
+
+4. Em **Pacotes de apps** / **App bundles**:
+   → **Carregar** / **Upload**
+   → escolhe:
+      C:\Users\Iury\Desktop\EGO-AAB-PLAY\EGO-AI-1.0.106-vc163.aab
+   → espera o upload terminar (deve mostrar **1.0.106 (163)**)
+
+5. **Notas da versão** (se pedir):
+```
+• Plano grátis: chat por texto sem voz automática do avatar
+• Voz e «Ouvir ao responder» só no EGO Premium
+• Banner ShapeScan no Essential; sem anúncios no Premium
+• Até 5 mensagens de texto por dia no plano grátis
+• Melhorias de estabilidade
+```
+
+6. **Seguinte** / **Next** → rever erros
+   - Se ainda aparecer erro de AD_ID: volta à PARTE A, guarda de novo, e refresca a página da versão
+   - Se disser “código 162 já usado”: estás a carregar o AAB errado — usa só o **vc163**
+
+7. **Guardar** → **Rever lançamento** → **Iniciar lançamento** / **Enviar para revisão**
+
+
+PARTE C — Conferência final (antes de sair)
+-------------------------------------------
+[ ] Declaração ID de publicidade = **Sim** + Guardada
+[ ] Pacote na versão = **1.0.106 (163)** só
+[ ] Sem aviso vermelho de manifesto AD_ID
+[ ] Lançamento enviado / em revisão
+
+
+Links úteis
+-----------
+Build EAS 163:
+https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/531f89a8-847c-420d-8940-e65f10f28d58
+
+Download AAB:
+https://expo.dev/artifacts/eas/QOrBnBuZmVHF4PEPoHTO230pkKZ9WLh7zK5uAWZxTHM.aab
+
+Play Console:
+https://play.google.com/console
+
+
+Quando terminar → responde "play ad id ok"

@@ -5,15 +5,15 @@ alwaysApply: true
 
 # Agentes EGO-AI (esta janela)
 
-Projeto canónico de ship: `EGO-AI-SHIP-AGITA`.
+Projeto canónico (pasta = nome do app): `Ego-IA` (Desktop).
 
 Usa **2 chats** nesta janela, com nomes claros:
 
 1. **EGO · App** — app Expo (`app/`), API (`ego_api/`, `flask_api.py`), builds EAS, Railway, Supabase, lojas.
-2. **EGO · Marketing** — site (`marketing/`, `site-publico/`), UOL, copy, redes, notas de loja, ZIP do site.
+2. **EGO · Marketing** — site no ar = `site-uol.zip` (UOL), copy, redes, notas de loja.
 
 Regras:
 - Não misturar: App não edita campanhas; Marketing não altera lógica da API/app salvo texto público.
-- Ship só nesta pasta; não sobrescrever a partir de `EGO-AI-APP` sem pedido explícito.
+- Só esta pasta. Não usar `EGO-AI-APP` / `EGO-AI-APP - Copia` / `EGO-AI-SHIP-AGITA`.
 - iOS production: submit TestFlight automático após build.
 - Android: AAB para upload manual na Play.

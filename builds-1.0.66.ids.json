@@ -1,7 +1,0 @@
-{
-  "version": "1.0.66",
-  "ios": "40b6faa9-1520-4e82-bafa-c62263b22c8b",
-  "android": "",
-  "queued_at": "2026-06-30T19:28:59",
-  "note": "Android: enfileirar com ENFILEIRAR-ANDROID-1.0.66.bat e colar o UUID no campo android"
-}

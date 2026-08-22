@@ -1,0 +1,19 @@
+EGO-AI MARKETING — CONTINUAR · 31/07/2026
+========================================
+MODELO LIVE
+-----------
+ZERO trial · Essential grátis (texto 5/dia + ads) · Premium voz
+
+FEITO
+-----
+[x] Site home + /planos/ sem «3 dias» / «trava»
+[x] site-uol.zip · UOL actualizado (user)
+[x] Ficha Play / FAQ / ManyChat / posicionamento
+[x] API produção: freemium-5msgs-ads
+
+PRÓXIMOS
+--------
+1) App Store — «O que há de novo» freemium 0 trial (se ainda não)
+2) ManyChat — confirmar textos sem «3 dias»
+3) Ads iOS — religar Search Ads (teste 7d expirou)
+4) Android Ads — manter (CPI ~R$0,85 OK)

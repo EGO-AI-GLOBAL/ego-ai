@@ -1,29 +1,16 @@
-SITE ZIP — Calma 1 min · enviar na UOL
-=====================================
-Arquivo: site-uol.zip (~2 MB) — na raiz do projeto
-Caminho: (pasta do EGO-AI) \ site-uol.zip
+SITE UOL — ZIP FREEMIUM 0 TRIAL · 31/07/2026
+============================================
+Arquivo: C:\Users\Iury\Desktop\EGO-AI-SHIP-AGITA\site-uol.zip
 
-PAINEL UOL
-----------
-https://uolhost.uol.com.br
-(ou https://meupainelhost.uol.com.br)
+O QUE MUDOU NO SITE
+-------------------
+• Removido «3 dias grátis» e «depois trava»
+• Essential grátis: texto 5 msgs/dia + anúncios
+• Premium R$ 49,90: voz · sem anúncios
+• Indicação: se o amigo pagar Premium → 1 mês
 
-CLIQUE A CLIQUE
----------------
-1. Entra no painel UOL (link acima)
-2. Abre o hosting do egoai.com.br
-3. Gerenciador de ficheiros / Arquivos
-4. Entra em public_html
-5. (Opcional) Apaga index.html antigo e pastas velhas se quiseres limpar
-6. Upload → escolhe site-uol.zip
-7. Depois do upload: botão direito no ZIP → Extrair / Descompactar
-   (destino = public_html — o conteúdo do zip tem de ficar DENTRO de public_html,
-    não dentro de public_html/site-uol/)
-8. Se extrair criar pasta site-uol ou site-publico: move o CONTEÚDO para public_html
-9. Testa: https://egoai.com.br  (Ctrl+F5)
-   Procura: Calma 1 min
-
-SE A UOL NÃO EXTRAIR ZIP
-------------------------
-1. No PC: clica direito em site-uol.zip → Extrair tudo
-2. Envia TODOS os ficheiros/pastas extraídos para public_html
+UOL HOST
+--------
+1. Sobe site-uol.zip
+2. Extrai na RAIZ de egoai.com.br
+3. Confere https://egoai.com.br e /planos/

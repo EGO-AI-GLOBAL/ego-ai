@@ -1,0 +1,57 @@
+{
+  "version": "mente-10-08-igsafe",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-VARIEDADE",
+  "output": "marketing/videos/app-real/ego-ai-mente-hoje-10-08-reels.mp4",
+  "post_file": "marketing/POST-HOJE-10-08-MENTE.txt",
+  "voice_rate": "+22%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 48,
+  "title_font_boost": 1.05,
+  "photo_width_ratio": 0.68,
+  "top_bar_h": 420,
+  "bottom_reserve": 360,
+  "safe_top": 210,
+  "safe_bottom": 340,
+  "badge_text": "EGO-AI",
+  "post": {
+    "title": "Nao quis incomodar ninguem — abri o EGO-AI",
+    "description": "POV: a mente nao desliga e voce nao quer mandar audio no Zap.\n\nNo EGO-AI: chat com Luna ou Leo + Calma 1 min.\nEssential gratis (texto ate 5 msgs/dia).\nVoz e sem anuncios no Premium.\n\nJa no Android e no iPhone.\n\nComenta MENTE que te mando o link no Direct\n\n#egoai #ansiedade #calma #chat #mentebarulhenta",
+    "hashtags": ["#egoai", "#ansiedade", "#calma", "#chat", "#mentebarulhenta"],
+    "pinned_comment": "Comenta MENTE\nTe mando Android + iPhone no Direct."
+  },
+  "scenes": [
+    {
+      "photo": "04-desabafo-gravando.png",
+      "lines": [["Mente barulhenta", 48, true], ["sem o Zap", 42, false]],
+      "darken": 0.12,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "A mente nao desliga. E voce nao quer incomodar ninguem no Zap."
+    },
+    {
+      "photo": "02-chat-texto.png",
+      "lines": [["Luna ou Leo", 50, true], ["te escutam", 42, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Abri o EGO-AI. Luna ou Leo escutam sem julgamento."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["Calma 1 min", 50, true], ["quando aperta", 42, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Quando aperta, Calma de um minuto. Depois volta mais leve."
+    },
+    {
+      "photo": "03-chat-voz.png",
+      "lines": [["Comenta MENTE", 48, true], ["link no Direct", 42, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Ja no Android e no iPhone. Comenta MENTE e te mando o link no Direct."
+    }
+  ]
+}

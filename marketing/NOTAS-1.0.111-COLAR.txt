@@ -1,0 +1,42 @@
+1.0.111 — TEXTOS PRONTOS A COLAR
+=================================
+
+
+A) GOOGLE PLAY — "Novidades desta versão" (máx. 500 caracteres)
+---------------------------------------------------------------
+COLE ISTO:
+
+Corrigimos o problema em que o app ficava sem sincronizar ao abrir
+(Monstrinhos, Agenda e Calma) e só voltava ao normal depois de sair e
+entrar de novo. Agora a sessão renova sozinha e os dados carregam sem
+precisar fazer logout.
+
+
+B) APP STORE CONNECT — "O que há de novo nesta versão"
+------------------------------------------------------
+COLE ISTO:
+
+• Correção do sync ao abrir o app
+• Monstrinhos, Agenda e Calma voltam a carregar sem sair da conta
+• Sessão renovada automaticamente — sem logout diário
+
+
+C) TESTFLIGHT — "O que testar"
+------------------------------
+COLE ISTO:
+
+1. Abra o app de manhã (ou depois de várias horas fechado).
+2. Vá em Monstrinhos, Agenda e Calma 1 min — devem carregar sem
+   "sincronizar" / "saia e entre de novo".
+3. Feche o app por completo, reabra e confirme que continua ok.
+4. NÃO faça logout de propósito neste teste — o ponto é não precisar.
+
+
+INTERNO (não colar nas lojas)
+-----------------------------
+Versão: 1.0.111
+iOS build 116 · Android versionCode ~169 (EAS)
+Causa: require_auth renovava refresh sem devolver tokens ao app
+Fix: eco de tokens + refresh proativo + limpar sessão se refresh morto
+AAB: https://expo.dev/artifacts/eas/ImcccHaSZaroWXjuFN2e3V84iPRnqUf1UZsx4gmI59Q.aab
+IPA: https://expo.dev/artifacts/eas/REvwz8LiUBDMufgZ6AGrsXxOeq1H6SpDzCHI3m9JK-0.ipa

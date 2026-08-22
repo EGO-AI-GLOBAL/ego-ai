@@ -1,0 +1,68 @@
+APP STORE — DESCRIÇÃO FREEMIUM 0 TRIAL · COLAR AGORA
+=====================================================
+Data: 08/08/2026
+Problema: a descrição publicada ainda diz «3 dias para experimentar no
+iPhone, sem cartão na loja» — o modelo actual é 0 dias de teste.
+
+Onde: App Store Connect → app EGO-AI → versão iOS → campo «Descrição»
+https://appstoreconnect.apple.com/apps/6780595396/distribution/ios
+
+NOTA: se a versão publicada estiver bloqueada para edição, colar na
+próxima versão em preparação. Não precisa de build nova só para isto.
+
+
+------------------------------------------------------
+SUBTÍTULO (manter)
+------------------------------------------------------
+Ansiedade · humor · desabafo
+
+
+------------------------------------------------------
+DESCRIÇÃO — COLAR TUDO
+------------------------------------------------------
+Quando a ansiedade aperta, você não precisa ficar sozinha no celular.
+
+O EGO-AI é companheiro com rosto e voz: Luna ou Leo ouvem por texto e
+áudio, ajudam a organizar o dia e oferecem pausas guiadas quando o
+stress sobe.
+
+• Calma 1 min — exercícios de respiração e calma em cerca de 1 minuto;
+  botão «Estou mal agora» e apoio SOS
+• Monstrinhos do Humor — marque como se sente hoje e acompanhe seu humor
+  ao longo dos dias
+• Chat por texto e voz — ouça as respostas quando precisar
+• Agenda pessoal, compartilhada e Entre Nós — lembretes no plano grátis
+
+Planos
+• Essential (grátis): chat por texto até 5 mensagens por dia, com
+  anúncios
+• EGO Premium: voz de Luna e Leo, texto amplo e sem anúncios
+
+Grátis para baixar. Uso em percentagem simples, como a bateria do
+celular.
+
+O EGO-AI não substitui médicos, psicólogos ou outros profissionais de
+saúde.
+
+Terms of Use (EULA): https://egoai.com.br/termos/
+Privacy Policy: https://egoai.com.br/privacidade/
+
+
+------------------------------------------------------
+O QUE MUDOU (só isto)
+------------------------------------------------------
+REMOVIDO:
+  • 3 dias para experimentar no iPhone, sem cartão na loja
+
+ACRESCENTADO:
+  Planos
+  • Essential (grátis): chat por texto até 5 mensagens por dia, com anúncios
+  • EGO Premium: voz de Luna e Leo, texto amplo e sem anúncios
+
+
+------------------------------------------------------
+NUNCA ESCREVER (modelo actual)
+------------------------------------------------------
+- 3 dias grátis · 20 dias grátis · teste grátis
+- «depois trava»
+- «sem cartão na loja»

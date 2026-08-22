@@ -1,0 +1,121 @@
+HOJE 27/07 — ANDROID R$ 25/DIA + REEL
+=====================================
+Ordem:
+1) Terminar ficha Play (se ainda não) → Salvar
+2) Postar o Reel de hoje (abaixo)
+3) Ligar Google App Campaign R$ 25/dia
+
+
+================================================
+A) GOOGLE ADS — PATROCINAR ANDROID · R$ 25/DIA
+================================================
+Isto NÃO é igual ao Apple Search Ads.
+Não escolhes palavra a palavra: o Google otimiza sozinho
+usando a ficha da Play (por isso a breve com ansiedade/desabafo importa).
+
+LINK DO APP
+-----------
+https://play.google.com/store/apps/details?id=com.egoai.app
+
+PASSO A PASSO
+-------------
+1. Abre: https://ads.google.com
+2. + Nova campanha
+3. Objetivo: **Instalações de app** (App promotion)
+4. Tipo: **App**
+5. App: procura **EGO-AI** / pacote **com.egoai.app** (Google Play)
+6. Campanha:
+   Nome: EGO-AI-BR-Android-lancamento-25
+   Locais: Brasil
+   Idioma: Português
+7. Orçamento: **R$ 25,00 por dia**
+8. Oferta / meta (escolhe o que a Console mostrar):
+   Preferência: **Instalações** ou **Volume de instalações**
+   Se pedir CPA alvo: deixa automático no início (7 dias)
+9. Criativos: deixa o Google usar os da Play (ícone + prints + textos da ficha)
+   Opcional: adiciona 1–2 textos curtos:
+   • «Ansiedade e desabafo com Luna. 3 dias grátis.»
+   • «Mente barulhenta? Organiza a agenda por voz.»
+   • «Indique um amigo: se ele pagar, você ganha 1 mês.»
+10. Publicar / Ativar
+
+NÃO FAZER
+---------
+• Não misturar iOS nesta campanha (iOS continua no Apple Search Ads)
+• Não gastar Meta com link Play se o Google Ads já está a instalar
+• Não pausar Apple Ads por causa disto — são canais diferentes
+
+OLHAR EM 48–72H
+---------------
+• Instalações
+• Custo por instalação (CPI)
+• Se CPI explodir (> R$ 15–20) → baixa bid/orçamento ou pausa 1 dia e me avisa
+
+
+================================================
+B) REEL DE HOJE — «VIU?» NO WHATSAPP (família)
+================================================
+Porquê: Android já público · CTA Android+iPhone · 2º pilar editorial
+
+ARQUIVO (narração + legendas prontas · só cola música)
+------------------------------------------------------
+marketing\videos\app-real\ego-ai-viu-whatsapp-27-07-reels.mp4
+
+NOME DO POST
+------------
+Chega de «viu?» no WhatsApp
+
+DESCRIÇÃO (colar)
+-----------------
+Chega de «viu?» no WhatsApp.
+
+Mercado, escola, consulta —
+no EGO-AI a Agenda da Família e o Entre Nós organizam a casa sem atrito.
+
+Luna e Leo com rosto e voz.
+3 dias grátis. Depois assina o Premium.
+Indique um amigo: se ele pagar, você ganha 1 mês grátis.
+
+🤖 Android e 🍎 iPhone
+Link na bio: https://egoai.com.br
+
+5 HASHTAGS
+----------
+#egoai #android #familia #agenda #desabafo
+
+COMENTÁRIO FIXADO
+-----------------
+🤖 Play: https://play.google.com/store/apps/details?id=com.egoai.app
+🍎 App Store: https://apps.apple.com/app/id6780595396
+Site: https://egoai.com.br
+
+TEXTO NA TELA
+-------------
+0–3s   Cansou de cobrar no Zap?
+3–6s   Cobrar no Zap não é organização.
+6–11s  Agenda da Família. Todo mundo vê.
+11–15s Entre Nós. Sem «viu?». Sem briga.
+15–20s Android + iPhone · link na bio
+
+NARRAÇÃO
+--------
+Chega de «viu?» no WhatsApp pra saber se alguém lembrou do mercado.
+
+No EGO-AI a Agenda da Família e o Entre Nós organizam a casa sem atrito.
+
+Liberado pra Android e iPhone.
+Baixe grátis no link da bio.
+
+
+================================================
+CHECKLIST HOJE
+================================================
+[x] Ficha Play salva (breve + descrição) — Iury 27/07
+[x] Reel postado (viu? WhatsApp) — Iury 27/07
+[x] Google Ads App · Play · ATIVA — Iury 27/07
+[x] Promo crédito: gaste 1200 receba 1200
+[x] Split orçamento já aplicado pelo Iury (27/07 noite):
+    Android Google Ads R$ 40/dia · iOS Apple Search Ads ~R$ 10/dia
+[ ] Em 5–7 dias: olhar CPI Android + gasto/toques iOS (não mexer até lá)
+
+STATUS: play ads ok ✅ · split 80/20 aplicado ✅

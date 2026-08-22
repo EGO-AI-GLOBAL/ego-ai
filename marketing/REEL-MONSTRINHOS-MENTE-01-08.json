@@ -1,0 +1,55 @@
+{
+  "version": "mente-01-08",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-MONSTRINHOS-1.0.81",
+  "output": "marketing/videos/app-real/ego-ai-mente-monstrinho-01-08-reels.mp4",
+  "post_file": "marketing/POST-HOJE-01-08-MENTE-MONSTRINHO.txt",
+  "voice_rate": "+22%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 52,
+  "title_font_boost": 1.1,
+  "photo_width_ratio": 0.78,
+  "top_bar_h": 240,
+  "bottom_reserve": 280,
+  "badge_text": "EGO-AI 🎭",
+  "post": {
+    "title": "Marquei o humor… e o monstrinho mudou comigo 🥚",
+    "description": "POV: acordei ansiosa e não queria mandar áudio no Zap.\n\nAbri o EGO-AI → marquei o humor → o monstrinho reagiu.\nUm toque. Sem julgamento.\n\n🎭 Monstrinhos do Humor\n🌬️ Calma 1 min quando aperta\n💬 Essential grátis (texto até 5 msgs/dia)\n🎙️ Voz e sem anúncios no Premium\n\nJá no Android e no iPhone.\n\nComenta MENTE que te mando o link no Direct 💙\n\n#egoai #ansiedade #humor #monstrinhos #mentebarulhenta",
+    "hashtags": ["#egoai", "#ansiedade", "#humor", "#monstrinhos", "#mentebarulhenta"],
+    "pinned_comment": "Comenta MENTE 💙\nTe mando Android (Play) + iPhone (App Store) no Direct."
+  },
+  "scenes": [
+    {
+      "photo": "01-jardim-sol-humor-hoje.png",
+      "lines": [["Como me sinto", 58, true], ["hoje? 🎭", 52, false]],
+      "darken": 0.12,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Como me sinto hoje? Um toque no humor e o jardim reage."
+    },
+    {
+      "photo": "02-diario-nota-missoes.png",
+      "lines": [["Marquei o humor", 52, true], ["monstrinho mudou 🥚", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Marquei o humor. O monstrinho mudou comigo. Sem julgamento."
+    },
+    {
+      "photo": "03-missoes-quiz-convidar.png",
+      "lines": [["Pausa 1 min", 54, true], ["quando aperta 🌬️", 46, false]],
+      "darken": 0.14,
+      "accent": 1,
+      "voice": "Quando aperta, pausa de um minuto. Respira. Volta mais leve."
+    },
+    {
+      "photo": "01-jardim-sol-humor-hoje.png",
+      "lines": [["Comenta MENTE", 50, true], ["link no Direct", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Ja no Android e no iPhone. Comenta MENTE e te mando o link no Direct."
+    }
+  ]
+}

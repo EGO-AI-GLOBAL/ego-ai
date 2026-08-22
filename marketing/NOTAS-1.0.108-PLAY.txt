@@ -1,0 +1,30 @@
+NOTAS VERSÃO 1.0.108 — Play / App Store
+=======================================
+Android versionCode 165 · iOS build 113
+Commit: b214a4d
+
+CURTO (O que há de novo — colar Play / ASC)
+------------------------------------------
+• Após check-in no Jardim ou PAUSA: atalho «Mente ok. E o corpo?» para o ShapeScan
+• No plano grátis, se o anúncio não carregar, aparece o banner ShapeScan
+• Premium continua sem anúncios nem promo de outro app
+• Links oficiais ShapeScan (Android e iOS) pelo site shapescanapp.com.br
+
+MÉDIO (Play Console — notas completas)
+--------------------------------------
+• Cross-promo ShapeScan (só Essential / grátis): card «Mente ok. E o corpo?» depois do check-in dos Monstrinhos e da sessão PAUSA
+• CTA «Abrir ShapeScan» → Android: shapescanapp.com.br/baixar-android · iOS: /baixar-ios
+• Rodapé: AdMob com fill mantém o anúncio; sem fill → banner ShapeScan (nunca os dois juntos)
+• Contas Premium: sem AdMob e sem promo ShapeScan
+• Sem IAP do ShapeScan no checkout do EGO
+
+ULTRA CURTO (~500 chars)
+------------------------
+1.0.108: atalho ShapeScan após check-in/PAUSA (grátis); banner se o anúncio não carregar; Premium sem promo.
+
+O QUE TESTAR
+------------
+1. Conta FREE: check-in Monstrinhos → card «Mente ok. E o corpo?» → Abrir ShapeScan
+2. Conta FREE: terminar PAUSA → mesmo card
+3. Android: link abre baixar-android
+4. Premium: sem card e sem banner ShapeScan
