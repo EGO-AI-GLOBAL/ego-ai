@@ -10,4 +10,4 @@ Inclui:
 • AdMob + fallback ShapeScan (já existente)
 
 Versão app.config: 1.0.114 · iOS 120 · Android 173
-Commit build: (preencher após push)
+Commit build: 7b7f3b6
