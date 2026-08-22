@@ -2,13 +2,15 @@
  * Firebase Analytics (GA4) — project EGO (com.egoai.app).
  * Sem google-services / Firebase nativo → no-op seguro (não crasha Expo Go).
  *
- * Eventos mínimos: first_open, login, sign_up, session_or_checkin_completed,
+ * Eventos mínimos: first_open, onboarding_done, first_checkin,
+ * login, sign_up, session_or_checkin_completed,
  * paywall_view, trial_start, purchase, subscribe.
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Platform } from "react-native";
 
 const FIRST_OPEN_KEY = "ego_analytics_first_open_v1";
+const FIRST_CHECKIN_KEY = "ego_analytics_first_checkin_v1";
 
 type EventParams = Record<string, string | number | boolean | null | undefined>;
 
@@ -93,6 +95,23 @@ export function trackLogin(method = "email"): void {
 
 export function trackSignUp(method = "email"): void {
   void logEgoEvent("sign_up", { method });
+}
+
+/** Avatar escolhido — fim do onboarding curto (≤2 ecrãs). */
+export function trackOnboardingDone(): void {
+  void logEgoEvent("onboarding_done", { platform: Platform.OS });
+}
+
+/** Primeiro check-in Monstrinhos (uma vez por instalação). */
+export async function trackFirstCheckinIfNeeded(): Promise<void> {
+  try {
+    const seen = await AsyncStorage.getItem(FIRST_CHECKIN_KEY);
+    if (seen) return;
+    await AsyncStorage.setItem(FIRST_CHECKIN_KEY, "1");
+    await logEgoEvent("first_checkin", { platform: Platform.OS });
+  } catch {
+    /* ignore */
+  }
 }
 
 /** Check-in Monstrinhos, PAUSA, etc. */

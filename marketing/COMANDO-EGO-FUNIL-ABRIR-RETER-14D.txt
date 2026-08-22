@@ -1,0 +1,52 @@
+COMANDO — EGO-AI · Funil abrir → reter → monetizar (14 dias)
+Cola no chat do agente EGO (repo EGO — NÃO no ShapeScan)
+Atualizado: 2026-08-21
+
+CONTEXTO EMPRESA
+Economizze = EGO-AI (mente) + ShapeScan (corpo). Mesma empresa, balanço conjunto.
+Ads EGO religado ~R$50/dia · CPI ~R$0,60–0,70 (bom).
+Fraco = install sem abrir / sem 2ª sessão / AdMob baixo.
+NÃO subir Ads. Espelho do que o Shape vai fazer no funil.
+
+PODE APLICAR código no app EGO. Sem builds de loja até eu dizer.
+
+OBJECTIVO
+1) Mais % que ABRE no dia do install
+2) Mais que faz 1 check-in e VOLTA D1
+3) AdMob em sessão free; Premium EGO → sem ads
+4) Manter cross-promo ShapeScan no free (já combinado)
+
+FAZER (mínimo)
+
+1) ONBOARDING CURTO
+- ≤ 2 ecrãs após 1º open
+- CTA único: “Fazer meu 1º check-in” (1 minuto)
+- Sem paywall no 1º minuto
+
+2) PUSH / LEMBRETE
+- D0: “1 check-in de 1 minuto — abre o EGO”
+- D1: “Como está tua cabeça hoje? 1 toque”
+- Máx. 1 push/dia
+
+3) ADMOB
+- Rewarded/interstitial em momentos naturais (fim de sessão / entre check-ins)
+- Premium → zero ads
+- Fallback cross-promo ShapeScan se sem fill (regras já definidas)
+
+4) FIREBASE
+- first_open
+- onboarding_done / first_checkin
+- session_completed (ou nome equivalente EGO)
+- Não misturar project Firebase com ShapeScan
+
+5) NÃO FAZER
+- Redesign total
+- Mudar preço Premium sem eu pedir
+- Misturar checkout Shape no EGO
+
+ENTREGA
+- O que mudou
+- Como testar
+- Perguntar se pode buildar
+
+FIM — cola só no agente EGO-AI

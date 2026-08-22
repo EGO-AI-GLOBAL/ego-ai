@@ -360,7 +360,9 @@ export function PersonaPicker({
               {loading ? (
                 <ActivityIndicator color={colors.primary} style={{ marginTop: 6 }} />
               ) : (
-                <Text style={[styles.badge, { color: colors.primaryLight }]}>Escolher</Text>
+                <Text style={[styles.badge, { color: colors.primaryLight }]}>
+                  {isOnboarding ? "Continuar → check-in" : "Escolher"}
+                </Text>
               )}
             </Pressable>
           );

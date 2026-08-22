@@ -10,8 +10,20 @@ import { DrawerProvider } from "@/context/DrawerContext";
 import { useAuth } from "@/context/AuthContext";
 import { useDashboard } from "@/hooks/useDashboard";
 import { useDailyRitualNotifications } from "@/hooks/useDailyRitualNotifications";
+import { refreshFunnelEngagementReminders } from "@/notifications/funnelEngagementReminders";
 import { useColors } from "@/theme/ThemeContext";
 import { shouldShowChatAds } from "@/utils/shouldShowChatAds";
+
+function FunnelRemindersSync() {
+  const { data } = useDashboard();
+  const checkedToday = Boolean(data.daily_care?.checked_today);
+
+  useEffect(() => {
+    void refreshFunnelEngagementReminders({ checkedToday });
+  }, [checkedToday]);
+
+  return null;
+}
 
 function PendingInviteRedirect() {
   const router = useRouter();
@@ -39,6 +51,7 @@ function MainShell() {
 
   return (
     <PersonaGate>
+      <FunnelRemindersSync />
       <PendingInviteRedirect />
       <DrawerProvider>
         <>

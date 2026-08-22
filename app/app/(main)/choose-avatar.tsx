@@ -2,7 +2,12 @@ import { router } from "expo-router";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { trackOnboardingDone } from "@/analytics/egoAnalytics";
 import { PersonaPicker } from "@/components/PersonaPicker";
+import {
+  pingFunnelEngagementReminders,
+  requestFunnelNotificationPermission,
+} from "@/notifications/funnelEngagementReminders";
 import { DEFAULT_PERSONA } from "@/constants/personas";
 import type { PersonaChoice } from "@/constants/personas";
 import { useAuth } from "@/context/AuthContext";
@@ -18,7 +23,7 @@ import { resolveUserId } from "@/utils/resolveUserId";
 export default function ChooseAvatarScreen() {
   const colors = useColors();
   const { session } = useAuth();
-  const { data, setPersona } = useDashboard();
+  const { data, loading: dashLoading, setPersona } = useDashboard();
   const [persona, setPersonaLocal] = useState<PersonaChoice>(DEFAULT_PERSONA);
   const [checking, setChecking] = useState(true);
   const completingRef = useRef(false);
@@ -35,7 +40,13 @@ export default function ChooseAvatarScreen() {
       const local = await getLocalPersonaChoice(uid);
       if (local?.avatar_id && local?.voice_id) {
         if (!cancelled) setPersonaLocal(local);
-        if (!cancelled) router.replace("/(main)/chat");
+        if (dashLoading && data.daily_care === undefined) return;
+        if (!cancelled) {
+          const dest = data.daily_care?.checked_today
+            ? "/(main)/chat"
+            : "/(main)/daily-care";
+          router.replace(dest);
+        }
         return;
       }
       if (!cancelled) setChecking(false);
@@ -43,7 +54,7 @@ export default function ChooseAvatarScreen() {
     return () => {
       cancelled = true;
     };
-  }, [session, data.me?.user_id]);
+  }, [session, data.me?.user_id, data.daily_care, dashLoading]);
 
   const onComplete = useCallback(async () => {
     if (completingRef.current) return;
@@ -55,7 +66,10 @@ export default function ChooseAvatarScreen() {
       await markPersonaConfiguredLocal(uid);
       await saveLocalPersonaChoice(uid, choice);
     }
-    router.replace("/(main)/chat");
+    trackOnboardingDone();
+    await requestFunnelNotificationPermission();
+    pingFunnelEngagementReminders(false, true);
+    router.replace("/(main)/daily-care");
   }, [setPersona, session, data.me?.user_id]);
 
   if (checking) {
@@ -70,10 +84,10 @@ export default function ChooseAvatarScreen() {
     <SafeAreaView style={[styles.fill, { backgroundColor: colors.bg }]}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <Text style={[styles.title, { color: colors.text }]}>
-          Escolha o seu assistente
+          Escolha Luna ou Leo
         </Text>
         <Text style={[styles.sub, { color: colors.textMuted }]}>
-          Pode trocar depois em Conta. O avatar anima a boca quando a IA fala.
+          Depois: Fazer meu 1º check-in — 1 minuto. Sem paywall agora.
         </Text>
 
         <PersonaPicker
