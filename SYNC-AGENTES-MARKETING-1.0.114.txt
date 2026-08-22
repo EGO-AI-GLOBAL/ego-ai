@@ -11,6 +11,6 @@ Funil abrir → check-in → AdMob (espelho ShapeScan):
 • Copy marketing: marketing/COMANDO-EGO-FUNIL-ABRIR-RETER-14D.txt
 • Campanha ABRE: marketing/FUNIL-ABRE-14-DIAS-22-08.txt
 
-Commit: (preencher após push)
+Commit: 098c42c
 
 Build: só quando user autorizar — bump 1.0.114 + EAS Monstrinhos
