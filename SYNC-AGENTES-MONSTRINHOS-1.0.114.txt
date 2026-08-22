@@ -1,0 +1,13 @@
+SYNC MONSTRINHOS — 1.0.114
+==========================
+Status: ✅ PRONTO (único que faz EAS)
+
+Inclui:
+• Funil 14d: avatar → Monstrinhos → 1º check-in
+• Push local D0/D1 (máx 1/dia)
+• Firebase: onboarding_done, first_checkin
+• Abrir app sem check-in → Monstrinhos
+• AdMob + fallback ShapeScan (já existente)
+
+Versão app.config: 1.0.114 · iOS 120 · Android 173
+Commit build: (preencher após push)

@@ -1,0 +1,38 @@
+1.0.114 — TEXTOS PRONTOS A COLAR
+================================
+
+
+A) GOOGLE PLAY — "Novidades desta versão"
+-----------------------------------------
+COLE ISTO:
+
+Quem instalou e não abriu: onboarding mais curto — escolhe Luna/Leo e faz o 1º check-in do humor em 1 minuto.
+Lembretes suaves D0/D1 se faltar check-in (máx. 1 por dia).
+Premium continua sem anúncios.
+
+
+B) APP STORE CONNECT — "O que há de novo nesta versão"
+------------------------------------------------------
+COLE ISTO:
+
+• Onboarding direto ao check-in do monstrinho (1 minuto)
+• Lembretes locais se faltar humor do dia
+• Quem abre sem check-in vai ao Monstrinhos primeiro
+• Premium sem anúncios
+
+
+C) TESTFLIGHT — "O que testar"
+------------------------------
+COLE ISTO:
+
+1. Conta NOVA: cadastro → Luna → Monstrinhos (não chat) → 1 toque humor.
+2. Fechar app sem check-in → reabrir → Monstrinhos.
+3. Push D0/D1 (aceitar notificação após avatar).
+4. Conta FREE: interstitial após check-in ou card ShapeScan.
+5. Conta Premium: zero ads.
+
+
+INTERNO
+-------
+Versão: 1.0.114 · iOS build 120 · Android versionCode 173
+Funil 14d espelho ShapeScan
