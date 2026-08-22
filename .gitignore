@@ -43,3 +43,6 @@ app/play-store-service-account.json
 # Firebase EGO (Analytics) — ficheiros no repo para EAS build
 # app/google-services.json
 # app/GoogleService-Info.plist
+
+# Reels CapCut — pasta temp de render (não versionar)
+marketing/videos/app-real/_work-reel-entrega/
