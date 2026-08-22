@@ -1,0 +1,62 @@
+{
+  "version": "mente-abre-22-08",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-ENTREGA",
+  "output": "marketing/videos/app-real/ego-ai-mente-abre-22-08-reels.mp4",
+  "post_file": "marketing/POST-HOJE-22-08-MENTE-ABRE.txt",
+  "voice_rate": "+20%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 52,
+  "title_font_boost": 1.12,
+  "photo_width_ratio": 0.78,
+  "top_bar_h": 260,
+  "bottom_reserve": 300,
+  "badge_text": "ABRE AGORA",
+  "post": {
+    "title": "Instalou e não abriu? Abre agora — 1 min · 1 check-in",
+    "description": "Instalou o EGO e não abriu?\n\nInstalar não acalma a cabeça.\n\nAbre o app:\n→ Calma 1 min\n→ 1 check-in do monstrinho\n→ 1 mensagem com a Luna ou o Leo\n\nEssential grátis (texto até 5 msgs/dia).\nVoz e sem anúncios no Premium.\n\nJá no Android e no iPhone.\n\nComenta ABRE que te mando o link no Direct\n\n#egoai #ansiedade #mentebarulhenta #checkin #abreoapp",
+    "hashtags": ["#egoai", "#ansiedade", "#mentebarulhenta", "#checkin", "#abreoapp"],
+    "pinned_comment": "Comenta ABRE\nTe mando o link + passo a passo de 1 minuto."
+  },
+  "scenes": [
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [["Instalou o EGO?", 54, true], ["e não abriu?", 48, false]],
+      "darken": 0.14,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Instalou o EGO e não abriu? Instalar não acalma a cabeça."
+    },
+    {
+      "photo": "03-respirar-3x.png",
+      "lines": [["Abre agora", 54, true], ["1 minuto", 46, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Abre agora. Um minuto de calma."
+    },
+    {
+      "photo": "01-monstrinho-jardim.png",
+      "lines": [["1 check-in", 54, true], ["do humor", 46, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Um check-in do humor."
+    },
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [["1 mensagem", 52, true], ["Luna ou Leo", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Uma mensagem com a Luna ou o Leo. Pronto — a cabeça já respira diferente."
+    },
+    {
+      "photo": "01-monstrinho-jardim.png",
+      "lines": [["Comenta ABRE", 52, true], ["link no Direct", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Comenta ABRE que te mando o link no Direct."
+    }
+  ]
+}
