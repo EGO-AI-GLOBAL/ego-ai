@@ -8,7 +8,11 @@ import { resolveMoodLabel } from "@/constants/moodMonsters";
 import { queueMonsterChatNotice } from "@/utils/monsterChatNotice";
 import { useDashboard } from "@/hooks/useDashboard";
 import { shouldShowChatAds } from "@/utils/shouldShowChatAds";
-import { trackSessionOrCheckinCompleted } from "@/analytics/egoAnalytics";
+import {
+  trackFirstCheckinIfNeeded,
+  trackSessionOrCheckinCompleted,
+} from "@/analytics/egoAnalytics";
+import { pingFunnelEngagementReminders } from "@/notifications/funnelEngagementReminders";
 import { useNaturalPauseInterstitial } from "@/ads/useNaturalPauseInterstitial";
 import { DailyCareShareModal } from "./DailyCareShareModal";
 import { RewardedDailyTipCard } from "./RewardedDailyTipCard";
@@ -196,6 +200,7 @@ export function DailyCareChallenge({
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
     try {
       const wasFirstToday = !care.checked_today;
+      const wasFirstEver = wasFirstToday && (care.current ?? 0) === 0;
       const res = await submitDailyCareCheckin(key);
       if (!res?.daily_care) {
         setCelebrate(false);
@@ -211,6 +216,8 @@ export function DailyCareChallenge({
       // Sem Alert no 1º humor — métricas Finch: <2 toques, sem modal.
       if (wasFirstToday) {
         trackSessionOrCheckinCompleted("checkin", { first_today: 1 });
+        if (wasFirstEver) void trackFirstCheckinIfNeeded();
+        pingFunnelEngagementReminders(true);
         const line = res.daily_care.monster_line?.trim();
         if (line) void queueMonsterChatNotice(line);
         // Interstitial só em pausa natural (após check-in), nunca a meio do chat.
@@ -244,7 +251,9 @@ export function DailyCareChallenge({
       ]}
     >
       {needsCheckin ? (
-        <Text style={[styles.stepBadge, { color: colors.primary }]}>1º PASSO — MARQUE O HUMOR</Text>
+        <Text style={[styles.stepBadge, { color: colors.primary }]}>
+          FAZER MEU 1º CHECK-IN — 1 MINUTO
+        </Text>
       ) : null}
       <Text style={[styles.question, { color: colors.text }]}>{care.question.text}</Text>
       <Text style={[styles.hint, { color: colors.textMuted }]}>

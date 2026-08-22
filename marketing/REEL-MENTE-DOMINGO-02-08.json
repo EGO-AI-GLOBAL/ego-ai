@@ -1,0 +1,55 @@
+{
+  "version": "mente-02-08",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-VARIEDADE",
+  "output": "marketing/videos/app-real/ego-ai-mente-domingo-02-08-reels.mp4",
+  "post_file": "marketing/POST-HOJE-02-08-MENTE-DOMINGO.txt",
+  "voice_rate": "+22%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 52,
+  "title_font_boost": 1.1,
+  "photo_width_ratio": 0.78,
+  "top_bar_h": 240,
+  "bottom_reserve": 280,
+  "badge_text": "DOMINGO",
+  "post": {
+    "title": "Domingo à noite bate diferente — Calma 1 min",
+    "description": "Domingo à noite.\n\nNão precisa incomodar ninguém no Zap.\n\nNo EGO-AI: Calma 1 min + Luna ou Leo no chat.\nEssential grátis (texto até 5 msgs/dia).\nVoz e sem anúncios no Premium.\n\nJá no Android e no iPhone.\n\nComenta MENTE que te mando o link no Direct\n\n#egoai #domingo #ansiedade #calma #mentebarulhenta",
+    "hashtags": ["#egoai", "#domingo", "#ansiedade", "#calma", "#mentebarulhenta"],
+    "pinned_comment": "Comenta MENTE\nTe mando Android + iPhone no Direct."
+  },
+  "scenes": [
+    {
+      "photo": "04-desabafo-gravando.png",
+      "lines": [["DOMINGO A NOITE", 54, true], ["bate diferente", 46, false]],
+      "darken": 0.14,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Domingo a noite bate diferente."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["Sem incomodar", 52, true], ["ninguem no Zap", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Nao precisa incomodar ninguem no Zap."
+    },
+    {
+      "photo": "03-chat-voz.png",
+      "lines": [["Calma 1 min", 54, true], ["+ Luna ouve", 46, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Calma de um minuto. Depois desabafa no chat com a Luna."
+    },
+    {
+      "photo": "02-chat-texto.png",
+      "lines": [["Comenta MENTE", 50, true], ["link no Direct", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Ja no Android e no iPhone. Comenta MENTE e te mando o link no Direct."
+    }
+  ]
+}

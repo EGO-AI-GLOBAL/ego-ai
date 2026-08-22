@@ -1,0 +1,16 @@
+SYNC MARKETING — 1.0.114 (funil 14 dias · código app)
+=====================================================
+Status: ✅ PRONTO — aguarda build Monstrinhos (não correr EAS ainda)
+
+Funil abrir → check-in → AdMob (espelho ShapeScan):
+• Onboarding curto: avatar → Monstrinhos (1º check-in)
+• Push local D0/D1 (máx 1/dia) — funnelEngagementReminders.ts
+• Firebase: onboarding_done, first_checkin, session_or_checkin_completed
+• Abrir app sem check-in hoje → Monstrinhos (index + cache)
+• Permissão push só após escolher avatar (não no 1º segundo)
+• Copy marketing: marketing/COMANDO-EGO-FUNIL-ABRIR-RETER-14D.txt
+• Campanha ABRE: marketing/FUNIL-ABRE-14-DIAS-22-08.txt
+
+Commit: 098c42c
+
+Build: só quando user autorizar — bump 1.0.114 + EAS Monstrinhos

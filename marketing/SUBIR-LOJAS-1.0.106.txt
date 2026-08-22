@@ -1,0 +1,60 @@
+SUBIR 1.0.106 ÀS DUAS LOJAS (produção)
+======================================
+29/07/2026
+Builds prontas — NÃO precisa gerar build nova.
+
+
+ANDROID (Play) — AAB 1.0.106 versionCode 163
+--------------------------------------------
+Ficheiro: Desktop\EGO-AAB-PLAY\EGO-AI-1.0.106-vc163.aab
+Build: https://expo.dev/accounts/iuryfreiras/projects/ego-ai/builds/531f89a8-847c-420d-8940-e65f10f28d58
+
+Se ontem já enviaste para REVISÃO no teste fechado:
+1. Play Console → EGO-AI → Testar e lançar → Teste fechado
+2. Quando estiver “Disponível para testadores” / aprovada:
+3. Menu da versão → Promover para produção
+   OU Produção → Criar nova versão → Adicionar da biblioteca → 163
+4. Países → Notas (abaixo) → Rever → Enviar / Iniciar lançamento em produção
+
+Se ainda está “Em revisão” no fechado: espera aprovar, depois promove.
+NÃO faças upload do 162.
+
+
+iOS (App Store) — 1.0.106 build 111
+-----------------------------------
+Já no TestFlight (interno verde). Para a LOJA pública:
+
+1. https://appstoreconnect.apple.com → Apps → EGO-AI (ou Ego-IA)
+2. Distribuição / App Store → + Versão (se ainda não existir 1.0.106)
+3. Selecione a build: 1.0.106 (111)
+4. Preenche / confirma:
+   - O que há de novo (notas abaixo)
+   - Capturas se pedirem
+   - Privacidade / classificação (já existentes)
+5. Adicionar para revisão → Enviar para revisão
+6. Espera Apple (em geral 1–2 dias)
+
+
+NOTAS DA VERSÃO (colar Play + App Store)
+----------------------------------------
+• Plano grátis: chat por texto sem voz automática do avatar
+• Voz e «Ouvir ao responder» só no EGO Premium
+• Banner ShapeScan no Essential; sem anúncios no Premium
+• Até 5 mensagens de texto por dia no plano grátis
+• Permissão AD_ID alinhada com anúncios (Android)
+• Melhorias de estabilidade
+
+Curta:
+1.0.106: texto grátis sem voz; voz no Premium; estabilidade.
+
+
+CHECKLIST
+---------
+[ ] Android: 163 em Produção (ou promover do fechado)
+[ ] iOS: build 111 na versão 1.0.106 → Enviar para revisão
+[ ] Teste rápido interno antes (free sem voz / Premium com voz)
+
+
+Quando terminares cada um:
+- "play producao ok"
+- "ios revisao ok"

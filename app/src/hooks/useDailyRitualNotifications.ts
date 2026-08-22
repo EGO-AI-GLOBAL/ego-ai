@@ -3,6 +3,7 @@ import { router } from "expo-router";
 import { useEffect } from "react";
 import type { DailyRitualId } from "@/constants/dailyRituals";
 import { useAuth } from "@/context/AuthContext";
+import { funnelReminderRoute } from "@/notifications/funnelEngagementReminders";
 import { savePendingRitual } from "@/storage/pendingRitual";
 
 function screenFromData(data: unknown): "chat" | "agenda" | null {
@@ -42,7 +43,17 @@ function handleNotificationData(data: unknown): void {
     void openChatWithRitual(ritual);
     return;
   }
-  const type = data && typeof data === "object" ? (data as { type?: string }).type : "";
+  const payload = data && typeof data === "object" ? (data as { type?: string; kind?: string }) : null;
+  const type = payload?.type || "";
+  const funnelRoute = funnelReminderRoute(payload?.kind);
+  if (funnelRoute) {
+    router.push(funnelRoute);
+    return;
+  }
+  if (type === "funnel_checkin") {
+    router.push("/(main)/daily-care");
+    return;
+  }
   if (type === "mood_monster") {
     router.push("/(main)/daily-care");
     return;

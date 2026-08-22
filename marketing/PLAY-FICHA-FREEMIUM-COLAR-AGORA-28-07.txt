@@ -1,91 +1,33 @@
-PLAY + APP STORE — FICHA FREEMIUM (grátis + compras no app)
-==========================================================
-Atualizado: 28/07/2026 · EGO-AI 1.0.104+
+PLAY + APP STORE — FICHA FREEMIUM (0 TRIAL)
+==========================================
+Atualizado: 31/07/2026 · API: 2026-07-31-freemium-5msgs-ads
 
-MODELO REAL (não usar o texto antigo «depois trava»)
-----------------------------------------------------
-• App = GRÁTIS (com anúncios no Essential)
-• 3 dias de teste com mais recursos
-• Depois: texto no chat continua (5 msgs/dia) + anúncios
-• Voz / áudio do avatar = EGO Premium (assinatura / compra no app)
-• Indique: se o amigo PAGAR Premium, quem indicou ganha 1 mês
-
-
-PLAY CONSOLE — checklist preço
-------------------------------
-1. Presença na loja → o app deve estar como GRÁTIS (não pago)
-2. Monetizar → Produtos → Assinaturas: EGO Premium (e outros) activos
-3. Conteúdo do app → ID de publicidade = Sim (já fizeste)
-4. Colar textos abaixo em PT-BR
+MODELO REAL
+-----------
+• ZERO dias de teste / trial
+• App = GRÁTIS (Essential)
+• Texto: até 5 msgs/dia + anúncios no chat
+• Voz / áudio do avatar = EGO Premium (assinatura)
+• Indique: se o amigo PAGAR Premium → 1 mês grátis
+• NÃO usar: «3 dias grátis» · «depois trava»
 
 
-1) BREVE DESCRIÇÃO (máx. 80 · sem emoji) — COLAR:
-------------------------------------------------
+PLAY — BREVE (máx. 80)
+----------------------
 Ansiedade e desabafo gratis. Voz no Premium. Compras no app.
 
-(62 caracteres)
+
+PLAY — DESCRIÇÃO / NOTAS
+------------------------
+Usar: marketing/PLAY-FICHA-COLAR-AGORA-27-07.txt
 
 
-2) DESCRIÇÃO COMPLETA — COLAR TUDO:
------------------------------------
-App para ansiedade, solidão, desabafo e saúde mental — com Luna e Leo (rosto e voz) em português.
-
-Quando a cabeça não desliga — escola, mercado, consultas, mensagens — você não precisa guardar tudo sozinho no travesseiro nem cobrar ninguém no WhatsApp.
-
-O EGO-AI é um assistente pessoal de produtividade e organização. Converse por texto ou áudio: você desabafa, a Luna ou o Leo ajudam a organizar o dia seguinte. Na agenda, basta confirmar.
-
-O app é grátis para começar. Nos primeiros dias você experimenta com mais liberdade. Depois, o plano Essential continua grátis: chat por texto (até 5 mensagens por dia), com anúncios. Voz e áudio do avatar ficam no EGO Premium (assinatura no app).
-
-Indique um amigo: no app, abra Conta e toque em Indique um amigo. Se o amigo pagar o EGO Premium, quem indicou ganha 1 mês grátis.
-
-Agenda Pessoal, Agenda da Família e Entre Nós — organização da casa sem «viu?» no WhatsApp. Lista de compras por voz.
-
-Jardim dos Monstrinhos: humor, missões leves e lembretes para respirar quando a ansiedade ou o stress apertam.
-
-No chat, as respostas podem ser ouvidas em voz alta (Premium). Dá para anexar PDF ou foto e pedir resumo. Cadastro com e-mail e senha. Recuperação de senha e exclusão de conta no site.
-
-Planos: Essential grátis (texto + anúncios) e EGO Premium (assinatura no app, com voz e mais uso). Cancele quando quiser, conforme as regras da loja.
-
-As respostas são geradas por inteligência artificial. Elas não substituem aconselhamento médico, psicológico, jurídico ou financeiro.
-
-Suporte: contato@egoai.com.br
-Site: https://egoai.com.br
-Política de privacidade: https://egoai.com.br/privacidade/
-Exclusão de conta: https://egoai.com.br/exclusao-conta/
-Termos de uso (EULA): https://egoai.com.br/termos/
-
-
-3) NOTAS DA VERSÃO (Play) — COLAR:
----------------------------------
-• App grátis com compras no app (Essential + Premium)
-• Depois do teste: texto continua (5 msgs/dia) com anúncios
-• Voz e áudio do avatar no EGO Premium
-• Indique um amigo: se ele pagar, você ganha 1 mês
-• Melhorias de estabilidade
-
-
-APP STORE CONNECT (iOS) — o que há de novo / descrição
------------------------------------------------------
-Usar o mesmo espírito da descrição completa acima.
-«O que há de novo» (1.0.104+):
-
-• App grátis com assinatura Premium no app
-• Essential: texto após o teste (5 msgs/dia) com anúncios
-• Voz do avatar no Premium
-• Atalho ShapeScan no chat Essential
-• Melhorias de estabilidade
-
-Em Informações do app: preço = Grátis · compras dentro do app = Sim
-(assinaturas IAP já devem estar ligadas à versão)
-
-
-API (obrigatório para o modelo bater com a ficha)
-------------------------------------------------
-Railway → Redeploy do main (freemium + limite 5 msgs).
-Sem isto a loja diz «continua grátis» mas a API antiga ainda pode travar.
-
-
-NÃO COLAR MAIS (texto velho)
+APP STORE — O QUE HÁ DE NOVO
 ----------------------------
-❌ «Depois desse período, o uso trava»
-❌ «3 dias gratis; depois Premium» como única opção
+• App grátis (Essential) + Premium no app
+• Texto grátis até 5 msgs/dia com anúncios
+• Voz do avatar no Premium
+• Sem período de teste — grátis e pago lado a lado
+• Melhorias de estabilidade
+
+Preço app = Grátis · compras no app = Sim

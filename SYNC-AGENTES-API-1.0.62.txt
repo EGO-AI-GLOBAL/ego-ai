@@ -1,9 +1,0 @@
-AGENTE API — RELEASE 1.0.62
-============================
-Estado: ✅ PRONTO — sem alteração ego_api/ nesta release
-
-API produção: api_build=2026-06-29-1.0.61-signup-auth-recovery
-• EGO_CHAT_AGENDA_ACTIONS=0 (avatar não agenda no chat)
-• smoke_test_api.py OK
-
-GIT: sem diff ego_api/

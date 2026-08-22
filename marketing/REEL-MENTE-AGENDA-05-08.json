@@ -1,0 +1,55 @@
+{
+  "version": "mente-05-08",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-ENTREGA",
+  "output": "marketing/videos/app-real/ego-ai-mente-agenda-05-08-reels.mp4",
+  "post_file": "marketing/POST-HOJE-05-08-MENTE-AGENDA.txt",
+  "voice_rate": "+22%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 50,
+  "title_font_boost": 1.1,
+  "photo_width_ratio": 0.78,
+  "top_bar_h": 240,
+  "bottom_reserve": 280,
+  "badge_text": "AGENDA",
+  "post": {
+    "title": "Desabafei a noite — de manha a agenda ja estava la",
+    "description": "POV: a mente vira lista de tarefas na cama.\n\nNo EGO-AI voce desabafa — a Luna organiza sugestoes na agenda.\nEssential gratis (texto ate 5 msgs/dia).\nVoz e sem anuncios no Premium.\n\nJa no Android e no iPhone.\n\nComenta MENTE que te mando o link no Direct\n\n#egoai #agenda #ansiedade #organizacao #mentebarulhenta",
+    "hashtags": ["#egoai", "#agenda", "#ansiedade", "#organizacao", "#mentebarulhenta"],
+    "pinned_comment": "Comenta MENTE\nTe mando Android + iPhone no Direct."
+  },
+  "scenes": [
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [["Mente barulhenta", 50, true], ["na cama", 44, false]],
+      "darken": 0.12,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "A mente virou lista de tarefas na cama."
+    },
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [["Desabafei", 54, true], ["Luna organizou", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Desabei no EGO-AI. A Luna organizou sugestoes na agenda."
+    },
+    {
+      "photo": "03-respirar-3x.png",
+      "lines": [["Tu confirmas", 52, true], ["e dorme", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Tu confirmas. E dorme mais leve."
+    },
+    {
+      "photo": "01-monstrinho-jardim.png",
+      "lines": [["Comenta MENTE", 50, true], ["link no Direct", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Ja no Android e no iPhone. Comenta MENTE e te mando o link no Direct."
+    }
+  ]
+}

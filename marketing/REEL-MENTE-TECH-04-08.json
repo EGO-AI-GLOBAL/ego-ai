@@ -1,0 +1,55 @@
+{
+  "version": "mente-04-08-tech",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-VARIEDADE",
+  "output": "marketing/videos/app-real/ego-ai-mente-tech-04-08-reels.mp4",
+  "post_file": "marketing/POST-HOJE-04-08-MENTE-TECH.txt",
+  "voice_rate": "+22%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 50,
+  "title_font_boost": 1.1,
+  "photo_width_ratio": 0.78,
+  "top_bar_h": 240,
+  "bottom_reserve": 280,
+  "badge_text": "IA NO BOLSO",
+  "post": {
+    "title": "IA de ultima geracao no bolso — onde o EGO-AI ajuda",
+    "description": "Tecnologia de ultima geracao no celular:\navatar com rosto e voz · chat inteligente · Calma 1 min · agenda · monstrinhos do humor.\n\nOnde ajuda:\nAnsiedade e desabafo sem incomodar ninguem\nMente barulhenta no meio do dia\nOrganizar o dia por voz ou texto\n\nEssential gratis (texto ate 5 msgs/dia).\nVoz e sem anuncios no Premium.\n\nJa no Android e no iPhone.\n\nComenta MENTE que te mando o link no Direct\n\n#egoai #ia #ansiedade #tecnologia #mentebarulhenta",
+    "hashtags": ["#egoai", "#ia", "#ansiedade", "#tecnologia", "#mentebarulhenta"],
+    "pinned_comment": "Comenta MENTE\nTe mando Android + iPhone no Direct."
+  },
+  "scenes": [
+    {
+      "photo": "03-chat-voz.png",
+      "lines": [["IA no bolso", 52, true], ["rosto + voz", 44, false]],
+      "darken": 0.12,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Tecnologia de ultima geracao no bolso. Avatar com rosto e voz."
+    },
+    {
+      "photo": "02-chat-texto.png",
+      "lines": [["Desabafo", 54, true], ["sem julgamento", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Onde ajuda: desabafo e ansiedade sem incomodar ninguem no Zap."
+    },
+    {
+      "photo": "01-pausa-humor-monstrinhos.png",
+      "lines": [["Calma 1 min", 52, true], ["+ humor", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Calma de um minuto quando a mente nao desliga. E monstrinhos do humor."
+    },
+    {
+      "photo": "04-desabafo-gravando.png",
+      "lines": [["Comenta MENTE", 50, true], ["link no Direct", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Ja no Android e no iPhone. Comenta MENTE e te mando o link no Direct."
+    }
+  ]
+}

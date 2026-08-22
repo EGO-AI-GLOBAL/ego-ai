@@ -28,7 +28,7 @@ def main() -> int:
     while True:
         res = (
             svc.table("profiles")
-            .select("id,phone,whatsapp,is_pro,plan_tier,referral_bonus_until")
+            .select("id,phone,is_pro,plan_tier,referral_bonus_until")
             .range(start, start + page - 1)
             .execute()
         )
@@ -51,7 +51,7 @@ def main() -> int:
         if resolve_plan_tier(row) != PLAN_ESSENTIAL:
             paid += 1
             continue
-        phone = norm_phone(str(row.get("phone") or row.get("whatsapp") or ""))
+        phone = norm_phone(str(row.get("phone") or ""))
         if not phone or phone in seen:
             free_no_phone += 1
             continue

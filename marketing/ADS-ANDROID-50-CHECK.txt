@@ -1,0 +1,16 @@
+EGO-AI MARKETING — ADS ANDROID · 31/07/2026
+===========================================
+Campanha: EGO-AI-Play-BR-R35
+Estado: Ativada · Qualificada (limitada)
+Orçamento: R$ 50/dia ✅
+Foco: Volume de instalações
+Tracking: Instalações Google Play (com.egoai.app)
+tCPI desejado: R$ 0,70
+CPI real recente: ~R$ 0,85
+
+Leitura: orçamento já a R$50; «limitada» = Google queria gastar mais no R$40,
+com R$50 deve aliviar. tCPI 0,70 é apertado vs CPI real 0,85 — se o volume cair,
+sobe tCPI para R$ 0,90–1,00.
+
+Play Painel ≠ Ads: validar em Estatísticas 27–30/07.
+iOS Search Ads: manter pausado.

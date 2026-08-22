@@ -33,6 +33,7 @@ import {
   syncSharedCalendarLocalNotifications,
 } from "@/utils/sharedCalendarNotifications";
 import { syncDailyCheckInNotification } from "@/utils/dailyCheckInNotification";
+import { cacheFunnelCheckedToday } from "@/notifications/funnelEngagementReminders";
 import {
   cancelMoodMonsterNotifications,
   syncMoodMonsterNotifications,
@@ -225,6 +226,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       }
       setData(dashboard);
       void saveStreakCache(dashboard.streak);
+      void cacheFunnelCheckedToday(Boolean(dashboard.daily_care?.checked_today));
       setPersonaLocalOk(Boolean(uid && localChoice));
       if (dashboard.me || (dashboard.shared_calendars?.length ?? 0) > 0) {
         setError(null);
@@ -456,6 +458,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     }));
     void syncMoodMonsterNotifications(care).catch(() => {});
     void syncMoodGardenHomeWidget(care).catch(() => {});
+    void cacheFunnelCheckedToday(Boolean(care.checked_today));
   }, []);
 
   const setPersona = useCallback(async (avatarId: string, voiceId: string) => {

@@ -1,0 +1,123 @@
+EGO-AI — ANDROID EM REVISÃO · O QUE FAZER · 25/07/2026
+=======================================================
+STATUS PLAY CONSOLE (print Iury · 25/07 12:21)
+----------------------------------------------
+• Página: Visão geral da publicação
+• Em análise: Produção · 159 (1.0.103) · «Iniciar o lançamento completo»
+• Publicação gerenciada: DESATIVADA → quando Google aprovar, vai ao ar SOZINHO
+• Última publicação: 25 Jul 2026 (histórico / rascunho anterior)
+
+Situação marketing:
+• iOS: na loja → Apple Ads OK
+• Android: lançamento completo em revisão → ainda NÃO público para todo mundo
+  https://play.google.com/store/apps/details?id=com.egoai.app (404 até aprovar)
+
+Conclusão: continuar anunciando SÓ Apple até a Play ficar pública.
+Não gastar Google Ads / Meta com CTA Android enquanto o link não instalar.
+
+-------------------------------------------------------
+O QUE ABRIR NA PLAY CONSOLE (você · 2 min)
+-------------------------------------------------------
+https://play.google.com/console
+→ EGO-AI → Visão geral / Publicar
+
+Anotar e me mandar (print ou texto):
+1) Status da versão de produção (Em análise / Pendente / Rejeitado / Rascunho)
+2) Qualquer e-mail ou alerta vermelho da Google
+3) Se pediu «mais informações» / política / conteúdo
+
+Enquanto estiver «Em análise»:
+• NÃO cancelar o envio
+• NÃO trocar o AAB sem necessidade (reinicia revisão)
+• Ficha (textos/prints) em Presença na loja geralmente dá pra ajustar
+  sem cancelar o pacote — mas se a Google já «congelou» a ficha
+  daquele envio, espere aprovar e atualize depois
+
+-------------------------------------------------------
+O QUE PRECISA MUDAR NA FICHA (quando puder editar)
+-------------------------------------------------------
+Problema nos textos antigos do repo:
+• Misturam «PAUSA» e «Calma 1 min»
+• Foco demais em ansiedade isolada; pouco «mente barulhenta + organização por voz»
+• Linha de lançamento agora = Luna/Leo · agenda · família · monstrinhos
+
+COPIAR ABAIXO → Play Console
+Presença na loja → Páginas de detalhes → Detalhes do app → Português (Brasil)
+
+--- NOME (máx. 30) ---
+EGO-AI
+
+--- BREVE DESCRIÇÃO (máx. 80 · sem emoji) ---
+Mente barulhenta? Luna e Leo organizam agenda, família e humor por voz.
+
+(contagem: 78 caracteres)
+
+--- DESCRIÇÃO COMPLETA ---
+Quando a cabeça não desliga — escola, mercado, consultas, mensagens —
+você não precisa guardar tudo sozinho no travesseiro nem cobrar ninguém no WhatsApp.
+
+O EGO-AI é um assistente pessoal de produtividade e organização com rosto e voz em português. Converse com a Luna ou o Leo por texto ou áudio: você desabafa, eles ajudam a organizar o dia seguinte. Na agenda, basta confirmar.
+
+Agenda Pessoal para a sua rotina. Agenda da Família e o modo Entre Nós para a casa sem atrito e sem ficar mandando «viu?» no Zap. Lista de compras por voz, ligada à organização do dia.
+
+Jardim dos Monstrinhos: marque o humor, receba missões leves e lembretes para respirar — um cuidado leve com a ansiedade do dia a dia, sem julgamento.
+
+No chat, as respostas podem ser ouvidas em voz alta. Dá para anexar PDF ou foto e pedir resumo. Cadastro com e-mail e senha. Recuperação de senha e exclusão de conta no site.
+
+Uso gratuito para começar; assinaturas opcionais ampliam limites de chat, voz e agenda.
+
+As respostas são geradas por inteligência artificial. Elas não substituem aconselhamento médico, psicológico, jurídico ou financeiro.
+
+Suporte: contato@egoai.com.br
+Site: https://egoai.com.br
+Política de privacidade: https://egoai.com.br/privacidade/
+Exclusão de conta: https://egoai.com.br/exclusao-conta/
+
+--- NOTAS DA VERSÃO (release em análise) ---
+• Assistente com rosto e voz (Luna e Leo)
+• Agenda pessoal, Agenda da Família e Entre Nós
+• Lista de compras por voz
+• Jardim dos Monstrinhos: humor, missões e respirar
+• Melhorias de estabilidade
+
+-------------------------------------------------------
+PRINTS (ordem recomendada — telefone 9x16)
+-------------------------------------------------------
+Usar pasta: marketing\PLAY-FICHA-TELEFONE-9x16\
+  01-monstrinhos-humor-hoje.png
+  02-chat-desabafo-luna.png
+  03-pausa-1-min-ansiedade.png
+  04-agenda-familia.png
+  05-chat-voz-rosto.png
+  06-monstrinhos-missoes.png (opcional)
+  07-respirar-3x.png (opcional)
+
+Ordem ideal na loja (primeira impressão):
+  1) chat voz / Luna desabafo
+  2) agenda família
+  3) monstrinhos humor
+  4) pausa / respirar
+  5) chat voz rosto
+
+-------------------------------------------------------
+CHECKLIST RÁPIDO PLAY (política — evita rejeição)
+-------------------------------------------------------
+[ ] Política de privacidade abre: https://egoai.com.br/privacidade/
+[ ] Exclusão de conta abre: https://egoai.com.br/exclusao-conta/
+[ ] Categoria: Produtividade ou Estilo de vida (não rede social / jogo)
+[ ] Sem preços Stripe na descrição
+[ ] Sem promessa de «cura» / substituir terapia
+[ ] Conta demo / instruções de login preenchidas se a Google pedir
+[ ] Declarações de conteúdo / Data safety alinhadas ao app
+
+-------------------------------------------------------
+DEPOIS QUE PUBLICAR (produção)
+-------------------------------------------------------
+1) Testar link público no Android: instala de verdade?
+2) Ativar botão Play no site egoai.com.br
+3) Atualizar bios / Reels CTA: «Android e iPhone»
+4) Só então pensar Google App Campaigns
+5) Continuar Apple Ads (já está rodando)
+
+Me manda o print do status na Console se quiser que eu diga
+exatamente se é só esperar ou se tem algo a corrigir.

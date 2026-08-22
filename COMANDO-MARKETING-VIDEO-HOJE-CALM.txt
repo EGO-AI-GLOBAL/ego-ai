@@ -1,0 +1,69 @@
+EGO-AI — COMANDO MARKETING — VÍDEO HOJE ESTILO CALM (novas mudanças)
+====================================================================
+Colar no chat do agente MARKETING. Zona só marketing/ + Connect/Play/site.
+NÃO: GERAR-*.bat, eas build, eas submit, app.config, app/, ego_api/
+
+──────────────────────────────────────────────────────────────
+COLAR DAQUI ATÉ AO FIM
+──────────────────────────────────────────────────────────────
+
+Zona MARKETING — gerar o **vídeo de hoje** (Reels 9:16) estilo **Calm**, com narração + legendas queimadas. Iury só cola a música. Sem build.
+
+CONTEXTO (git pull origin main):
+- Release instalável: **1.0.95** (iOS 100 / Android 144) — Billing 8 no Android.
+- AAB **1.0.96** (VC 145, target API 36) pronto no Expo se Iury já tiver subido; senão focar copy em 1.0.95.
+- Mudanças recentes USER-FACING para o vídeo:
+  1) Jardim da Gentileza — layout corrigido (texto já não sai letra a letra)
+  2) Calma 1 min (ex-PAUSA EGO) — nome oficial
+  3) Nublina + Agita missões 08–24
+  4) Desabafo em áudio → agenda
+  5) Luna/Leo com rosto e voz
+- NÃO vender “Billing 8” nem “API 36” no Reels (técnico demais). Pode ir nas **notas da loja**.
+
+LEITURA OBRIGATÓRIA:
+1. marketing/POST-HOJE-23-07-ESTILO-CALM.txt  ← base do vídeo de hoje
+2. marketing/anuncios/SCRIPTS_15S_FALAS.md
+3. marketing/loja/PLAY_STORE_COPY.md
+4. marketing/loja/APP_STORE_COPY.md
+5. marketing/NOME-CALMA-1-MIN.txt
+6. marketing/VIDEO-CAPCUT-HOJE.txt (legado — NÃO usar tom roxo/emoji se conflitar com Calm)
+
+TAREFAS (nesta ordem):
+
+A) git pull origin main
+
+B) VÍDEO PRONTO PARA POSTAR (prioridade #1)
+   Entregar MP4 9:16 em:
+     marketing/videos/app-real/ego-ai-hoje-reels.mp4
+   Requisitos:
+   • Estilo **Calm**: azul/noite serena, dissolves lentos, tipografia fina branca, zero emoji na tela, zero CTA vermelho
+   • **Narração** Edge TTS pt-BR (Luna ou voz suave) já no ficheiro
+   • **Legendas queimadas** (burned-in) já no ficheiro
+   • Iury **só cola música** no CapCut (piano ambient / rain soft · 12–20%)
+   • Duração ~18–35 s
+   • Base de copy/narração: marketing/POST-HOJE-23-07-ESTILO-CALM.txt
+   • Still de fundo (se útil): assets gerados ego-calm-style-hoje-still.png OU fotos reais em marketing/CAPCUT-FOTOS-1.0.34/
+   • Se regenerares por script Python local, documenta o comando em marketing/VIDEO-CAPCUT-HOJE.txt
+   • Atualizar marketing/VIDEO-CAPCUT-HOJE.txt apontando para o MP4 final + “só falta música”
+
+C) NOTAS DA VERSÃO NAS LOJAS (se Connect/Play permitirem editar agora)
+   Play — notas da versão (próximo release / 1.0.95–1.0.96):
+     • Google Play Billing atualizado (requisito Play)
+     • Layout do Jardim da Gentileza corrigido
+     • App preparado para Android 16 (API 36) — se for o build 1.0.96
+   App Store — What's New (se houver binário iOS novo; senão deixar pronto):
+     • Layout do Jardim da Gentileza corrigido
+     • Estabilidade de sessão e Calma 1 min
+   Colar também em marketing/loja/PLAY_STORE_COPY.md e APP_STORE_COPY.md se ainda não estiver.
+
+D) CHECK
+   • Ficheiro MP4 existe e abre
+   • Legendas legíveis no telemóvel
+   • Narração presente (Iury só adiciona música)
+   • Atualizar SYNC-AGENTES-MARKETING (versão atual) → ✅ VÍDEO HOJE PRONTO
+   • NUNCA: GERAR-*.bat, eas build, eas submit, mexer em app/ ou ego_api/
+
+FECHAR:
+✅ MARKETING VÍDEO HOJE — estilo Calm · MP4: [caminho] · lojas notas: [feito/pendente] · site: [n/a]
+
+FIM DO COMANDO

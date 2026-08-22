@@ -1,0 +1,105 @@
+FREEMIUM LOJAS — CLIQUE A CLIQUE (só o que falta)
+=================================================
+28/07/2026 · Railway JÁ ESTÁ FEITO (não precisas redeploy)
+
+Abre o ficheiro de textos ao lado:
+  marketing\PLAY-FICHA-COLAR-AGORA-27-07.txt
+
+
+════════════════════════════════════════════════
+A) GOOGLE PLAY (5–8 min)
+════════════════════════════════════════════════
+
+1. Abre o Chrome → https://play.google.com/console
+2. Entra na conta da empresa
+3. Clica no app **EGO-AI**
+4. Menu esquerdo → **Presença na loja** (Store presence)
+5. Clica **Detalhes do app** / **Main store listing**
+6. Idioma **Português (Brasil)** — se não estiver, escolhe PT-BR
+
+--- BREVE DESCRIÇÃO ---
+7. Campo **Descrição breve** / Short description
+8. Apaga o texto antigo
+9. Cola isto (sem emoji):
+
+Ansiedade e desabafo gratis. Voz no Premium. Compras no app.
+
+10. Confirma que tem ≤ 80 caracteres
+
+--- DESCRIÇÃO COMPLETA ---
+11. Campo **Descrição completa** / Full description
+12. Apaga o texto antigo (o que diz «depois trava»)
+13. Abre `marketing\PLAY-FICHA-COLAR-AGORA-27-07.txt`
+14. Copia TODO o bloco em «2) DESCRIÇÃO COMPLETA»
+15. Cola no campo da Play
+
+--- NOTAS DA VERSÃO (opcional se já publicaste 1.0.104) ---
+16. Se aparecer campo de notas desta release / «O que há de novo»:
+    cola o bloco «3) NOTAS DA VERSÃO» do mesmo ficheiro
+
+--- GUARDAR ---
+17. Clica **Guardar** / Save (canto inferior direito ou superior)
+18. Se pedir «Enviar para revisão» / Send for review → **Enviar**
+19. Confirma que o app continua marcado como **Grátis** (não Pago)
+20. Pronto Play → responde no chat: **play ficha ok**
+
+
+════════════════════════════════════════════════
+B) APP STORE CONNECT (5–8 min)
+════════════════════════════════════════════════
+
+1. Abre → https://appstoreconnect.apple.com/apps/6780595396/distribution
+2. Entra com a conta Apple
+3. Clica **EGO-AI** (se não abriu directo)
+4. Separador **Distribuição** / Distribution (ou App Store)
+5. Clica a versão **1.0.104** (a que está em TestFlight / pronta a enviar)
+   · Se ainda não criaste versão 1.0.104 para App Store: **+ Versão** → 1.0.104
+
+--- O QUE HÁ DE NOVO ---
+6. Campo **O que há de novo** / What's New
+7. Cola:
+
+• App grátis com assinatura Premium no app
+• Essential: texto após o teste (5 msgs/dia) com anúncios
+• Voz do avatar no Premium
+• Atalho ShapeScan no chat Essential
+• Melhorias de estabilidade
+
+--- DESCRIÇÃO (se ainda tiver texto «trava») ---
+8. Campo **Descrição**
+9. Apaga o parágrafo do «uso trava»
+10. Cola a descrição completa do ficheiro Play
+   (`PLAY-FICHA-COLAR-AGORA-27-07.txt` secção 2)
+11. No fim da descrição confirma que existem:
+    Termos: https://egoai.com.br/termos/
+    Privacidade: https://egoai.com.br/privacidade/
+
+--- PREÇO / COMPRAS ---
+12. Confirma: app = **Grátis**
+13. Compras no app / assinaturas EGO Premium **ligadas** à versão
+14. Se fores publicar na App Store agora:
+    · Anexa build **109** (TestFlight)
+    · **Adicionar para revisão** → Enviar
+
+15. Pronto iOS → responde no chat: **ios ficha ok**
+
+
+════════════════════════════════════════════════
+C) NÃO PRECISAS FAZER (já feito)
+════════════════════════════════════════════════
+[x] Redeploy Railway + freemium API
+[x] Limite 5 msgs/dia no grátis
+[x] Vars 1.0.104 / versionCode 160
+[x] Build Play 1.0.104 aprovada
+[x] iOS 1.0.104 no TestFlight
+[x] Declaração ID de publicidade (Play)
+
+
+════════════════════════════════════════════════
+D) TESTE RÁPIDO (depois das fichas)
+════════════════════════════════════════════════
+1. No telemóvel, actualiza o app (Play / TestFlight)
+2. Conta Essential (sem Premium), pós-teste
+3. Chat texto deve funcionar (até 5/dia)
+4. Voz deve pedir Premium
+5. Deve aparecer banner (ads teste ou ShapeScan)

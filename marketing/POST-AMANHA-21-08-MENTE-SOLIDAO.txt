@@ -1,0 +1,98 @@
+EGO-AI — REEL AMANHÃ · 21/08/2026 · SOLIDÃO
+============================================
+Regra: 1 vídeo novo · áudio novo · legenda nova
+Wayin → clips IA → juntar 15–20s → eu (ou CapCut) + voz Luna + MENTE
+
+NÃO repetir: monstrinho / agenda / tech / desabafo Zap / calma meio-dia
+(ângulos já usados recentemente)
+
+
+------------------------------------------
+WAYIN (Texto → Vídeo)
+------------------------------------------
+Modelo: Veo 3.1 Lite (ou o que tiveres)
+Formato: 9:16 · 720p
+Duração: 7s se existir; senão 4s
+SEM texto na imagem · SEM logos · SEM UI do EGO-AI
+
+CLIP 1 — gancho (solidão)
+Prompt:
+Cinematic vertical 9:16, night bedroom, soft blue moonlight through curtains,
+person sitting alone on the edge of the bed looking at a dark phone screen,
+lonely mood, shallow depth of field, no face close-up, no text, no logos
+
+CLIP 2 — contraste
+Prompt:
+Vertical 9:16, empty living room at night, TV off, one lamp on,
+smartphone glowing on the sofa, quiet solitude atmosphere,
+realistic, no people faces, no text, no logos
+
+CLIP 3 — virada (companhia no bolso)
+Prompt:
+Vertical 9:16, close-up of hands holding a phone in dim light,
+warm soft glow from the screen on fingers, hopeful calm mood,
+intimate, no readable UI, no text, no logos
+
+CLIP 4 (opcional se usares 4s)
+Prompt:
+Vertical 9:16, morning light on an empty pillow and phone charging nearby,
+quiet but softer mood, cinematic, no text, no logos
+
+Gerar 3–4 clips DIFERENTES → exportar MP4
+
+
+------------------------------------------
+JUNÇÃO (15–20s)
+------------------------------------------
+Ordem: Clip1 → Clip2 → Clip3 (→ Clip4)
+Sem música alta ainda (eu ponho voz; tu podes meter música 12–15% no CapCut)
+
+
+------------------------------------------
+TÍTULO / NOME NO POST
+------------------------------------------
+3h da manhã e ninguém online — solidão no bolso
+
+
+------------------------------------------
+LEGENDA (colar — NOVA)
+------------------------------------------
+Solidão não é falta de gente.
+É falta de alguém que escute de verdade.
+
+Às 3h a mente barulha e o Zap está silencioso.
+
+No EGO-AI a Luna ou o Leo estão aí —
+texto grátis no Essential (até 5 msgs/dia).
+Voz e sem anúncios no Premium.
+
+Já no Android e no iPhone.
+
+Comenta MENTE que te mando o link no Direct
+
+#egoai #solidão #ansiedade #mente #companhia
+
+
+------------------------------------------
+COMENTÁRIO FIXADO
+------------------------------------------
+Comenta MENTE
+Te mando Android + iPhone no Direct.
+
+
+------------------------------------------
+VOZ LUNA (quando juntares os clips)
+------------------------------------------
+Narração sugerida (eu gero no MP4 final):
+1) "Três da manhã. Ninguém online."
+2) "Solidão aperta — e você não quer incomodar."
+3) "No EGO-AI tem alguém que escuta."
+4) "Comenta MENTE. Te mando o link no Direct."
+
+
+------------------------------------------
+TEU PASSO AMANHÃ
+------------------------------------------
+1) Gerar os clips no Wayin com estes prompts
+2) Mandar os ficheiros / pasta aqui (ou juntar no CapCut 15–20s)
+3) Eu fecho: voz + legendas IG-safe + CTA MENTE

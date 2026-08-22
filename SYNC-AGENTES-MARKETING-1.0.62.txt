@@ -1,7 +1,0 @@
-AGENTE MARKETING — RELEASE 1.0.62
-==================================
-Estado: ✅ PRONTO
-
-• marketing/MENSAGEM-TESTADORES-1.0.62.txt
-
-GIT: (atualizar após commit)

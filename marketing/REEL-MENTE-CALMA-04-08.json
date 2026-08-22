@@ -1,0 +1,55 @@
+{
+  "version": "mente-04-08",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-ENTREGA",
+  "output": "marketing/videos/app-real/ego-ai-mente-calma-04-08-reels.mp4",
+  "post_file": "marketing/POST-HOJE-04-08-MENTE-CALMA.txt",
+  "voice_rate": "+22%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 52,
+  "title_font_boost": 1.1,
+  "photo_width_ratio": 0.78,
+  "top_bar_h": 240,
+  "bottom_reserve": 280,
+  "badge_text": "CALMA 1 MIN",
+  "post": {
+    "title": "A mente nao desliga no meio do dia — 1 min de calma",
+    "description": "POV: peito apertado no meio do dia e voce nao pode sair correndo.\n\nNo EGO-AI: Calma 1 min + Luna ou Leo no chat.\nEssential gratis (texto ate 5 msgs/dia).\nVoz e sem anuncios no Premium.\n\nJa no Android e no iPhone.\n\nComenta MENTE que te mando o link no Direct\n\n#egoai #calma #ansiedade #stress #mentebarulhenta",
+    "hashtags": ["#egoai", "#calma", "#ansiedade", "#stress", "#mentebarulhenta"],
+    "pinned_comment": "Comenta MENTE\nTe mando Android + iPhone no Direct."
+  },
+  "scenes": [
+    {
+      "photo": "03-respirar-3x.png",
+      "lines": [["Peito apertou", 52, true], ["no meio do dia", 44, false]],
+      "darken": 0.12,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Peito apertou no meio do dia. Voce nao pode sair correndo."
+    },
+    {
+      "photo": "03-respirar-3x.png",
+      "lines": [["Calma 1 min", 54, true], ["olhos abertos", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Calma de um minuto. Olhos abertos. Respira."
+    },
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [["Depois o chat", 52, true], ["Luna ouve", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Depois desabafa no chat. Luna ou Leo escutam."
+    },
+    {
+      "photo": "01-monstrinho-jardim.png",
+      "lines": [["Comenta MENTE", 50, true], ["link no Direct", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Ja no Android e no iPhone. Comenta MENTE e te mando o link no Direct."
+    }
+  ]
+}

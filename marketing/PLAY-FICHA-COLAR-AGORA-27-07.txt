@@ -1,14 +1,12 @@
-PLAY CONSOLE — COLAR AGORA · FREEMIUM 28/07/2026
-================================================
-(Atualiza o guia de 27/07 — NÃO uses «depois trava»)
+PLAY CONSOLE — COLAR AGORA · FREEMIUM 0 TRIAL · 31/07/2026
+==========================================================
+MODELO REAL (API live):
+• ZERO dias de teste
+• Essential GRÁTIS: texto até 5 msgs/dia + anúncios
+• Voz Luna/Leo = só Premium (R$ 49,90)
+• NÃO dizer «3 dias» nem «depois trava»
 
-Fonte completa: marketing/PLAY-FICHA-FREEMIUM-COLAR-AGORA-28-07.txt
 Caminho: Play Console → EGO-AI → Presença na loja → Detalhes do app → PT-BR
-
-MODELO
-------
-• App GRÁTIS + compras no app (Premium)
-• Depois do teste: texto 5/dia + anúncios · voz no Premium
 
 
 1) BREVE DESCRIÇÃO (máx. 80 · sem emoji) — COLAR:
@@ -22,19 +20,17 @@ App para ansiedade, solidão, desabafo e saúde mental — com Luna e Leo (rosto
 
 Quando a cabeça não desliga — escola, mercado, consultas, mensagens — você não precisa guardar tudo sozinho no travesseiro nem cobrar ninguém no WhatsApp.
 
-O EGO-AI é um assistente pessoal de produtividade e organização. Converse por texto ou áudio: você desabafa, a Luna ou o Leo ajudam a organizar o dia seguinte. Na agenda, basta confirmar.
-
-O app é grátis para começar. Nos primeiros dias você experimenta com mais liberdade. Depois, o plano Essential continua grátis: chat por texto (até 5 mensagens por dia), com anúncios. Voz e áudio do avatar ficam no EGO Premium (assinatura no app).
+O EGO-AI é um assistente pessoal de produtividade e organização. No plano Essential (grátis) você conversa por texto com a Luna ou o Leo (até 5 mensagens por dia), com anúncios no chat. A voz e o áudio do avatar ficam no EGO Premium (assinatura no app).
 
 Indique um amigo: no app, abra Conta e toque em Indique um amigo. Se o amigo pagar o EGO Premium, quem indicou ganha 1 mês grátis.
 
-Agenda Pessoal, Agenda da Família e Entre Nós — organização da casa sem «viu?» no WhatsApp. Lista de compras por voz.
+Agenda Pessoal, Agenda da Família e Entre Nós — organização da casa sem «viu?» no WhatsApp. Lista de compras por voz (Premium).
 
 Jardim dos Monstrinhos: humor, missões leves e lembretes para respirar quando a ansiedade ou o stress apertam.
 
-No chat, as respostas podem ser ouvidas em voz alta (Premium). Dá para anexar PDF ou foto e pedir resumo. Cadastro com e-mail e senha. Recuperação de senha e exclusão de conta no site.
+Dá para anexar PDF ou foto e pedir resumo. Cadastro com e-mail e senha. Recuperação de senha e exclusão de conta no site.
 
-Planos: Essential grátis (texto + anúncios) e EGO Premium (assinatura no app, com voz e mais uso). Cancele quando quiser, conforme as regras da loja.
+Planos: Essential grátis (texto + anúncios) e EGO Premium (voz, mais uso, sem anúncios). Cancele quando quiser, conforme as regras da loja.
 
 As respostas são geradas por inteligência artificial. Elas não substituem aconselhamento médico, psicológico, jurídico ou financeiro.
 
@@ -47,9 +43,9 @@ Termos de uso (EULA): https://egoai.com.br/termos/
 
 3) NOTAS DA VERSÃO — COLAR:
 ---------------------------
-• App grátis com compras no app (Essential + Premium)
-• Depois do teste: texto continua (5 msgs/dia) com anúncios
-• Voz e áudio do avatar no EGO Premium
+• App grátis (Essential) + Premium no app
+• Texto grátis até 5 msgs/dia com anúncios
+• Voz Luna/Leo no EGO Premium
 • Indique um amigo: se ele pagar, você ganha 1 mês
 • Melhorias de estabilidade
 
