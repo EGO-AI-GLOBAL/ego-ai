@@ -1,0 +1,18 @@
+1.0.115 — Play política (Billing 8 + API 36)
+============================================
+
+A) GOOGLE PLAY — "Novidades desta versão"
+-----------------------------------------
+COLE ISTO:
+
+Atualização técnica exigida pela Google Play:
+compatibilidade com a biblioteca de faturamento atual e Android 16.
+Mesmas funções do EGO — sem mudança de uso.
+
+
+INTERNO
+-------
+Versão: 1.0.115 · Android versionCode 174
+• Força Play Billing Library 8.0.0 (prazo 31/08)
+• Força targetSdk / compileSdk 36 (Android 16)
+• Plugins: withForcePlayBilling + withForceTargetSdk36
