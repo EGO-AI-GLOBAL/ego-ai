@@ -1,0 +1,18 @@
+SYNC MESTRE — 1.0.115 · ÚLTIMA BUILD (Play Billing 8 + API 36)
+==============================================================
+Data: 2026-08-25
+
+| Agente       | Status    |
+|--------------|-----------|
+| Monstrinhos  | ✅ PRONTO |
+| EGO de Bolso | ✅ PRONTO |
+| API          | ✅ PRONTO |
+| Marketing    | ✅ PRONTO |
+
+Inclui (já em main desde 1.0.114 + fix 115):
+• Funil 14d (avatar → check-in → AdMob)
+• Monstrinhos: loja 10+24, missões 18+9, sementes OK
+• Play: força Billing 8.0.0 + targetSdk 36
+
+Versão: 1.0.115 · iOS 121 · Android 174
+Build: GERAR-1.0.115.bat → AGUARDAR-E-SUBMETER-1.0.115.bat
