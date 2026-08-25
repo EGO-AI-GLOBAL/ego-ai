@@ -1,18 +1,36 @@
-1.0.115 — Play política (Billing 8 + API 36)
-============================================
+1.0.115 — TEXTOS PRONTOS A COLAR (ÚLTIMA)
+=========================================
+
 
 A) GOOGLE PLAY — "Novidades desta versão"
 -----------------------------------------
 COLE ISTO:
 
-Atualização técnica exigida pela Google Play:
-compatibilidade com a biblioteca de faturamento atual e Android 16.
-Mesmas funções do EGO — sem mudança de uso.
+Atualização técnica exigida pela Google Play (faturamento e Android 16).
+Monstrinhos, check-in e chat continuam iguais.
+Premium sem anúncios.
+
+
+B) APP STORE CONNECT — "O que há de novo nesta versão"
+------------------------------------------------------
+COLE ISTO:
+
+• Atualização de estabilidade e compatibilidade
+• Mesmo funil: check-in do monstrinho em 1 minuto
+• Premium sem anúncios
+
+
+C) TESTFLIGHT — "O que testar"
+------------------------------
+COLE ISTO:
+
+1. Conta nova: cadastro → Luna → Monstrinhos → 1 toque humor.
+2. Loja do jardim: comprar 1 item com sementes.
+3. Missões do dia e streak.
+4. Premium: zero ads.
 
 
 INTERNO
 -------
-Versão: 1.0.115 · Android versionCode 174
-• Força Play Billing Library 8.0.0 (prazo 31/08)
-• Força targetSdk / compileSdk 36 (Android 16)
-• Plugins: withForcePlayBilling + withForceTargetSdk36
+Versão: 1.0.115 · iOS 121 · Android 174
+Play Billing 8 + API 36 · última build planeada

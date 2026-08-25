@@ -1,0 +1,16 @@
+SYNC MONSTRINHOS — 1.0.115 (ÚLTIMA)
+===================================
+Status: ✅ PRONTO
+
+Monstrinhos / sementes (validado 2026-08-25):
+• Loja: 10 base + 24 pool = 34 · 8/semana · IDs únicos
+• Consumíveis: petisco, bolo, caixa surpresa
+• Missões: 18 + 9 surpresa
+• Sementes: check-in 5 · missões 2 · aventura 3 · dia perfeito +3 · quiz 5
+• Hooks MoodGardenWidgetCard OK (useMemo antes de return null)
+
+Play (esta release):
+• Billing Library 8.0.0 forçado
+• targetSdk / compileSdk 36
+
+Versão: 1.0.115 · iOS 121 · Android 174
