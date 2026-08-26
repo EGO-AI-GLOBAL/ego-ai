@@ -1,0 +1,62 @@
+{
+  "version": "mente-abre-24-08",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-ENTREGA",
+  "output": "marketing/videos/app-real/ego-ai-mente-abre-24-08-reels.mp4",
+  "post_file": "marketing/POST-HOJE-24-08-MENTE-ABRE.txt",
+  "voice_rate": "+20%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 52,
+  "title_font_boost": 1.12,
+  "photo_width_ratio": 0.78,
+  "top_bar_h": 260,
+  "bottom_reserve": 300,
+  "badge_text": "CALMA 1 MIN",
+  "post": {
+    "title": "Fila ou elevador? Abre 1 min de calma — agora",
+    "description": "Fila. Elevador. Consultório.\n\nPeito apertou e você não pode sair correndo?\n\nAbre o EGO:\n→ Calma 1 min (olhos abertos)\n→ 1 check-in do humor\n→ 1 msg com Luna ou Leo\n\nEssential grátis (texto até 5 msgs/dia).\nVoz e sem anúncios no Premium.\n\nJá no Android e no iPhone.\n\nComenta ABRE que te mando o link no Direct\n\n#egoai #calma #ansiedade #stress #abreoapp",
+    "hashtags": ["#egoai", "#calma", "#ansiedade", "#stress", "#abreoapp"],
+    "pinned_comment": "Comenta ABRE\nTe mando o link + passo a passo de 1 minuto."
+  },
+  "scenes": [
+    {
+      "photo": "03-respirar-3x.png",
+      "lines": [["Fila ou elevador?", 52, true], ["peito apertou", 46, false]],
+      "darken": 0.14,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Fila, elevador, consultorio. Peito apertou e voce nao pode sair correndo."
+    },
+    {
+      "photo": "03-respirar-3x.png",
+      "lines": [["Abre o EGO", 54, true], ["Calma 1 min", 46, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Abre o EGO. Calma de um minuto. Olhos abertos."
+    },
+    {
+      "photo": "02-missao-humor.png",
+      "lines": [["Respira", 54, true], ["volta mais leve", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Respira. Volta mais leve."
+    },
+    {
+      "photo": "01-monstrinho-jardim.png",
+      "lines": [["1 check-in", 52, true], ["1 msg no chat", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Check-in do humor. Uma mensagem com a Luna ou o Leo."
+    },
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [["Comenta ABRE", 52, true], ["link no Direct", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Comenta ABRE que te mando o link no Direct."
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "version": "mente-promo-2990-25-08",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-ENTREGA",
+  "output": "marketing/videos/app-real/ego-ai-promo-2990-25-08-reels.mp4",
+  "post_file": "marketing/POST-HOJE-25-08-PROMO-2990.txt",
+  "voice_rate": "+18%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 50,
+  "title_font_boost": 1.1,
+  "photo_width_ratio": 0.78,
+  "top_bar_h": 260,
+  "bottom_reserve": 300,
+  "badge_text": "PROMO 3 MESES",
+  "post": {
+    "title": "Premium R$ 29,90 nos 3 primeiros meses — só novos",
+    "description": "Novos assinantes:\nEGO Premium por R$ 29,90/mês nos 3 primeiros meses.\n\nDepois: R$ 49,90/mês.\n\nVoz do avatar · sem anúncios · uso amplo.\n\nEssential continua grátis (texto até 5 msgs/dia).\n\nJá no Android e no iPhone.\n\nComenta ABRE que te mando o link no Direct\n\n#egoai #premium #ansiedade #voz #oferta",
+    "hashtags": ["#egoai", "#premium", "#ansiedade", "#voz", "#oferta"],
+    "pinned_comment": "Comenta ABRE\nTe mando Android + iPhone no Direct.\nPromo: R$ 29,90 · 3 meses · novos."
+  },
+  "scenes": [
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [["Novos assinantes", 50, true], ["promo 3 meses", 44, false]],
+      "darken": 0.14,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Novos assinantes. Promocao de tres meses."
+    },
+    {
+      "photo": "03-respirar-3x.png",
+      "lines": [["EGO Premium", 54, true], ["R$ 29,90/mês", 48, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "EGO Premium por vinte e nove reais e noventa por mes."
+    },
+    {
+      "photo": "01-monstrinho-jardim.png",
+      "lines": [["nos 3 primeiros", 50, true], ["meses", 48, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Nos tres primeiros meses. Depois quarenta e nove noventa."
+    },
+    {
+      "photo": "02-missao-humor.png",
+      "lines": [["Voz · sem ads", 50, true], ["uso amplo", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Voz do avatar, sem anuncios, uso amplo."
+    },
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [["Comenta ABRE", 52, true], ["link no Direct", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Comenta ABRE que te mando o link no Direct."
+    }
+  ]
+}

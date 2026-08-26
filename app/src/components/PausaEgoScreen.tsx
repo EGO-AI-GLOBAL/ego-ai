@@ -11,6 +11,7 @@ import { ShapeScanBodyNudgeCard } from "@/components/ShapeScanBodyNudgeCard";
 import { useDashboard } from "@/hooks/useDashboard";
 import { shouldShowChatAds } from "@/utils/shouldShowChatAds";
 import { trackSessionOrCheckinCompleted } from "@/analytics/egoAnalytics";
+import { afterSessionClosedMaybeInterstitial } from "@/ads/afterSessionClosedMaybeInterstitial";
 import { useNaturalPauseInterstitial } from "@/ads/useNaturalPauseInterstitial";
 import { formatPausaDuration, resolveDailyExercise } from "@/utils/pausaDailyExercise";
 
@@ -45,7 +46,8 @@ export function PausaEgoScreen({ colors, pausa, assistantName, onComplete, onSos
     launcher.closeSession();
     onComplete(kind);
     trackSessionOrCheckinCompleted("pausa", { session_kind: kind });
-    showPauseInterstitial((didShowAd) => {
+    // A cada 2 sessões fechadas → interstitial (ZERO a meio da respiração).
+    afterSessionClosedMaybeInterstitial(showPauseInterstitial, (didShowAd) => {
       if (showCrossPromo && !didShowAd) setShowBodyNudge(true);
     });
   };

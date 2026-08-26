@@ -1,0 +1,124 @@
+COMANDO — EGO-AI · AdMob receita máxima (uso real, zero botão)
+Cola no chat: agente EGO-AI (repo EGO — NÃO no ShapeScan)
+Atualizado: 2026-08-26
+Origem: ShapeScan · Marketing (best practice mundial 2026 × produto mente)
+
+CONTEXTO EMPRESA
+Economizze = EGO-AI (mente) + ShapeScan (corpo).
+AdMob hoje: EGO já é ~70–80% das impressões da conta (iOS+Android). Shape atrás.
+CPI EGO bom (~R$0,70). Fraco = sessão curta / check-in sem fechar / fill instável.
+Iury: ZERO botão “aperta e vê propaganda”. Só automático no uso.
+NÃO subir Ads. NÃO buildar até eu dizer “pode buildar”.
+PODE APLICAR código no app EGO (autorizado por este comando).
+
+OBJECTIVO
+Máxima receita AdMob no free SEM:
+- interromper a meio do check-in / chat / respiração / crise
+- botão opt-in fraco
+- ads em Premium EGO
+- violar política AdMob (natural breaks only)
+
+────────────────────────────────────────
+BEST PRACTICE MUNDIAL × APP DE MENTE (2026)
+────────────────────────────────────────
+Apps wellness / chat / health NÃO monétizam como games.
+
+O que mais avança HOJE:
+1) BANNER passivo em ecrãs de lista / home / histórico (sempre que free)
+2) INTERSTITIAL só DEPOIS de fechar uma unidade de valor
+   (check-in concluído, conversa encerrada, “dia fechado”, insight lido)
+3) Contador “a cada N unidades” (ex.: a cada 2–3 check-ins) — Google:
+   interstitial após N acções, NUNCA a cada tap, NUNCA no launch
+4) Cooldown ≥ 90s · nunca 2 interstitials seguidos
+5) Preload do interstitial ANTES do fim da sessão (latência = ad no sítio errado)
+6) Rewarded clássico (botão) = fraco fora de games → NÃO usar como peça principal
+7) (Avançado / fase 2) Rewarded interstitial no FIM da sessão:
+   automático + mensagem clara “+1 insight / streak” — SEM botão verde
+8) Fallback sem fill → cross-promo ShapeScan (já espelhado)
+9) Mediation multi-rede = fase 2 (quando DAU subir)
+10) NPA total reduz fill BR — preferir UMP + ads personalizados se legal ok
+
+PROIBIDO (Google + UX mente):
+- Ad a meio da mensagem / a meio do áudio / durante exercício de respiração
+- Ad no app open do 1º minuto pós-install
+- Ad a tapar paywall / checkout Premium
+- “Vê anúncio para continuar a conversar” (parece chantagem em app de ansiedade)
+
+────────────────────────────────────────
+MAPA EGO (ecrãs típicos) → O QUE FAZER
+────────────────────────────────────────
+Olha o app TODO e aplica onde existir o equivalente:
+
+A) HOME / HOJE / LISTA DE CHECK-INS — PRIORIDADE
+[ ] Banner rodapé free: AdMob fill → anúncio; sem fill → ShapeScan
+[ ] Premium → null
+
+B) CHECK-IN / SESSÃO / CONVERSA (uso diário #1)
+[ ] NUNCA interstitial a meio
+[ ] Ao CONCLUIR / FECHAR sessão → interstitial (se cooldown ok)
+[ ] Contador: a cada 2 sessões concluídas no dia → interstitial
+    (mente = sessões mais curtas que treino; 2 é o sweet spot; 3 se churn subir)
+[ ] Preload quando a sessão passa de ~50% ou user toca “Concluir”
+
+C) INSIGHT / RESULTADO / STREAK / “DIA FECHADO”
+[ ] Natural break → interstitial OU card ShapeScan (se sem fill)
+[ ] Card pós-vitória ShapeScan (já no comando cross-promo) — MANTER como EXTRA
+    (não substitui AdMob quando há fill)
+
+D) HISTÓRICO / DIÁRIO / PERFIL FREE
+[ ] Banner ok
+[ ] Sem interstitial em scroll infinito (só ao sair de um item aberto, se N atingido)
+
+E) RESPIRAÇÃO / ÁUDIO / EXERCÍCIO GUIADO
+[ ] ZERO ads a meio
+[ ] Interstitial só depois de “Concluir” / ecrã de fim
+
+F) PAYWALL / PREMIUM
+[ ] Zero AdMob · zero cross-promo agressivo no mesmo ecrã do CTA pagar
+
+G) ONBOARDING
+[ ] Zero interstitial · banner só depois do 1º check-in completo (se quiser)
+
+────────────────────────────────────────
+REGRAS TÉCNICAS (obrigatório)
+────────────────────────────────────────
+- adsEnabled / !isPremium → só free
+- ADMOB_INTERSTITIAL_COOLDOWN_MS ≥ 90000
+- Máx. ~1 interstitial / 2–3 min uso activo
+- Sem fill → segue fluxo + fallback ShapeScan no slot banner
+- Contador sessões: AsyncStorage por dia local (reset meia-noite)
+- Units: banner + interstitial (+ rewarded só se fase 2)
+- __DEV__ = TestIds Google
+- Firebase EGO separado do ShapeScan: ad_impression, session_completed / checkin_completed
+- Não misturar IDs AdMob Shape ↔ EGO
+
+────────────────────────────────────────
+CRUZAMENTO COM SHAPE (empresa)
+────────────────────────────────────────
+Shape (comando irmão): a cada 3 «Como fazer» + fim treino · tira botão dica
+EGO (este): a cada 2 sessões fechadas + fim check-in · zero botão · fallback Shape
+
+Espelho de banner:
+- Shape free sem fill → EGO
+- EGO free sem fill → ShapeScan
+
+────────────────────────────────────────
+NÃO FAZER NESTA PASSADA
+────────────────────────────────────────
+- Redesign / novos módulos de terapia
+- Mudar preço Premium
+- Subir Google Ads
+- Mediation multi-rede
+- Rewarded com botão “aperta aqui”
+- Ads no 1º minuto / a meio do chat
+
+────────────────────────────────────────
+ENTREGA NO CHAT EGO
+────────────────────────────────────────
+1) Mapa real dos ecrãs onde meteste triggers (nomes de ficheiros)
+2) Lista do que mudou
+3) Teste: free → 2 check-ins → ad; Premium → zero; sem fill → banner Shape
+4) Confirmar: nenhum botão “vê anúncio”
+5) Perguntar se pode buildar
+
+FIM — cola só no agente EGO-AI

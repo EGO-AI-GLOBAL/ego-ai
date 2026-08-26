@@ -13,9 +13,9 @@ import {
   trackSessionOrCheckinCompleted,
 } from "@/analytics/egoAnalytics";
 import { pingFunnelEngagementReminders } from "@/notifications/funnelEngagementReminders";
+import { afterSessionClosedMaybeInterstitial } from "@/ads/afterSessionClosedMaybeInterstitial";
 import { useNaturalPauseInterstitial } from "@/ads/useNaturalPauseInterstitial";
 import { DailyCareShareModal } from "./DailyCareShareModal";
-import { RewardedDailyTipCard } from "./RewardedDailyTipCard";
 import { ShapeScanBodyNudgeCard } from "./ShapeScanBodyNudgeCard";
 import { MoodAdventureBanner } from "./moodMonsters/MoodAdventureBanner";
 import { MoodCrisisBridgeCard } from "./moodMonsters/MoodCrisisBridgeCard";
@@ -220,8 +220,8 @@ export function DailyCareChallenge({
         pingFunnelEngagementReminders(true);
         const line = res.daily_care.monster_line?.trim();
         if (line) void queueMonsterChatNotice(line);
-        // Interstitial só em pausa natural (após check-in), nunca a meio do chat.
-        showPauseInterstitial((didShowAd) => {
+        // A cada 2 sessões fechadas → interstitial (nunca a meio do check-in).
+        afterSessionClosedMaybeInterstitial(showPauseInterstitial, (didShowAd) => {
           if (showCrossPromo && !didShowAd) setShowBodyNudge(true);
         });
       }
@@ -321,12 +321,6 @@ export function DailyCareChallenge({
     <>
       {/* 1º no scroll sob o pet sticky — define a cor do monstrinho. */}
       {moodCheckIn}
-
-      <RewardedDailyTipCard
-        colors={colors}
-        enabled={showCrossPromo}
-        visible={Boolean(care?.checked_today)}
-      />
 
       {showBodyNudge && showCrossPromo ? (
         <ShapeScanBodyNudgeCard

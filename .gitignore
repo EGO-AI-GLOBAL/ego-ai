@@ -46,3 +46,13 @@ app/play-store-service-account.json
 
 # Reels CapCut — pasta temp de render (não versionar)
 marketing/videos/app-real/_work-reel-entrega/
+
+# Inspect local de AAB / bundletool (não versionar)
+releases/aab-inspect-*/
+releases/**/*.aab
+releases/**/*.zip
+releases/**/bundletool.jar
+
+# Previews marketing locais
+marketing/_preview-hoje/
+
