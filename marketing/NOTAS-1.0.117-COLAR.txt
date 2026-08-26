@@ -1,0 +1,37 @@
+1.0.117 — TEXTOS PRONTOS A COLAR
+================================
+
+
+A) GOOGLE PLAY — "Novidades desta versão"
+-----------------------------------------
+COLE ISTO:
+
+Mais espaços com anúncios só no free: Monstrinhos, diário, agenda e conta.
+Continua a cada 2 check-ins/Calma 1 min; Premium sem anúncios.
+Sem botão «ver anúncio».
+
+
+B) APP STORE CONNECT — "O que há de novo nesta versão"
+------------------------------------------------------
+COLE ISTO:
+
+• Banner no free também em Monstrinhos, diário, agenda e conta
+• Interstitial só a cada 2 sessões fechadas
+• Premium sem anúncios
+
+
+C) TESTFLIGHT — "O que testar"
+------------------------------
+COLE ISTO:
+
+1. FREE: banner no rodapé em Monstrinhos / Diário / Conta / Agenda / Uso.
+2. Chat: banner no rodapé (como antes).
+3. Calma 1 min e Planos: zero banner.
+4. Premium: zero ads em todo o lado.
+5. 2 sessões fechadas → interstitial se fill.
+
+
+INTERNO
+-------
+Versão: 1.0.117 · iOS 123 · Android 176
+AdMob fase 2 banners listas · sem App Open / rewarded interstitial

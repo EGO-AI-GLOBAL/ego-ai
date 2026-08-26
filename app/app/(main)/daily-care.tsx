@@ -50,7 +50,11 @@ export default function DailyCareScreen() {
   const showPet = Boolean(data.daily_care?.question) && (!loading || refreshing);
 
   return (
-    <ScreenShell title="Monstrinhos do Humor" subtitle="1 toque por dia · ranking · Stories">
+    <ScreenShell
+      title="Monstrinhos do Humor"
+      subtitle="1 toque por dia · ranking · Stories"
+      adsAccess={data.access ?? null}
+    >
       <View style={styles.body}>
         {showPet ? (
           <MoodMonsterStickyPet

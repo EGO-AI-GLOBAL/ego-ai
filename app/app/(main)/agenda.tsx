@@ -45,7 +45,7 @@ export default function AgendaScreen() {
       : "Agenda em grupo · abaixo: Entre Nós (você + 1 pessoa)";
 
   return (
-    <ScreenShell title="Agenda" subtitle={subtitle}>
+    <ScreenShell title="Agenda" subtitle={subtitle} adsAccess={data.access ?? null}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={

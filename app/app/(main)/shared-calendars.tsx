@@ -47,7 +47,7 @@ export default function SharedCalendarsScreen() {
   const colors = useColors();
   const router = useRouter();
   const { session } = useAuth();
-  const { refresh: refreshDashboard } = useDashboard();
+  const { data, refresh: refreshDashboard } = useDashboard();
   const [list, setList] = useState<SharedCalendar[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -79,7 +79,11 @@ export default function SharedCalendarsScreen() {
   };
 
   return (
-    <ScreenShell title="Agendas compartilhadas" subtitle="Consulta · só leitura">
+    <ScreenShell
+      title="Agendas compartilhadas"
+      subtitle="Consulta · só leitura"
+      adsAccess={data.access ?? null}
+    >
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={

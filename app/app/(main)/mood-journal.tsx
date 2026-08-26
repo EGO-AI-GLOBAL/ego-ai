@@ -42,7 +42,11 @@ export default function MoodJournalScreen() {
   const insight30 = moodJournalTopLabel(entries, 30);
 
   return (
-    <ScreenShell title="Diário de humor" subtitle="Até 6 semanas · nota curta por dia">
+    <ScreenShell
+      title="Diário de humor"
+      subtitle="Até 6 semanas · nota curta por dia"
+      adsAccess={data.access ?? null}
+    >
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
