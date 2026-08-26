@@ -1,0 +1,37 @@
+1.0.116 — TEXTOS PRONTOS A COLAR
+================================
+
+
+A) GOOGLE PLAY — "Novidades desta versão"
+-----------------------------------------
+COLE ISTO:
+
+Anúncios só em pausas naturais: a cada 2 check-ins ou Calma 1 min concluídos.
+Sem botão «ver anúncio». Banner no chat grátis; Premium sem anúncios.
+Se o anúncio não carregar, aparece o ShapeScan.
+
+
+B) APP STORE CONNECT — "O que há de novo nesta versão"
+------------------------------------------------------
+COLE ISTO:
+
+• Anúncios só após fechar check-in ou Calma 1 min (a cada 2)
+• Sem botão para ver propaganda
+• Premium continua sem anúncios
+
+
+C) TESTFLIGHT — "O que testar"
+------------------------------
+COLE ISTO:
+
+1. FREE: 1º check-in → sem interstitial; 2ª sessão (PAUSA ou outro dia) → interstitial se fill.
+2. Chat: só banner no rodapé (nunca a meio da mensagem).
+3. Durante respiração: zero ads.
+4. Premium: zero banner / zero interstitial.
+5. Sem fill: card ShapeScan.
+
+
+INTERNO
+-------
+Versão: 1.0.116 · iOS 122 · Android 175
+AdMob receita max uso · Billing 8 + API 36 mantidos

@@ -1,0 +1,12 @@
+SYNC MESTRE — 1.0.116 · AdMob a cada 2 sessões
+==============================================
+Status: ✅ PRONTO para EAS
+
+Inclui (já em main + bump):
+• Interstitial a cada 2 sessões fechadas (check-in / PAUSA)
+• Zero botão «vê anúncio»
+• Banner + ShapeScan fallback · Premium zero ads
+• Billing 8 + targetSdk 36 (desde 1.0.115)
+
+Versão: 1.0.116 · iOS 122 · Android 175
+Build: GERAR-1.0.116.bat → AGUARDAR-E-SUBMETER-1.0.116.bat
