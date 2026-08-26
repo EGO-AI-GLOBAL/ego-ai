@@ -46,7 +46,9 @@ import { cancelEgoDeBolsoCareNotification } from "@/utils/egoDeBolsoNotification
 import { syncMoodGardenHomeWidget } from "@/widgets/syncMoodGardenHomeWidget";
 import { saveStreakCache } from "@/storage/streakCache";
 import {
+  dashboardCacheIsUsable,
   loadDashboardCache,
+  peekPreloadedDashboard,
   saveDashboardCache,
 } from "@/storage/dashboardCache";
 import {
@@ -179,6 +181,15 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     async (dashboardIn: DashboardData, options?: RefreshOptions) => {
       let dashboard = dashboardIn;
       const uid = resolveUserId(getSession(), dashboard.me?.user_id);
+      const quickAccess = normalizeAccessInfo(dashboardIn.access);
+      const quickPaint = { ...dashboardIn, access: quickAccess };
+      setData((prev) => ({ ...prev, ...quickPaint }));
+      if (uid) {
+        void saveDashboardCache(uid, { ...empty, ...quickPaint });
+      }
+      void saveStreakCache(quickPaint.streak);
+      void cacheFunnelCheckedToday(Boolean(quickPaint.daily_care?.checked_today));
+
       const [localChoice, msgs, localPh] = await Promise.all([
         uid ? getLocalPersonaChoice(uid) : Promise.resolve(null),
         uid && dashboardIn.access
@@ -447,9 +458,10 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     void (async () => {
       let cacheHit = false;
       if (uid) {
-        const cached = await loadDashboardCache(uid);
+        const cached =
+          peekPreloadedDashboard(uid) ?? (await loadDashboardCache(uid));
         if (cached && !cancelled) {
-          cacheHit = Boolean(cached.daily_care?.question || cached.me?.user_id);
+          cacheHit = dashboardCacheIsUsable(cached);
           setData((prev) => ({ ...prev, ...cached }));
           if (cached.me?.persona_configured) {
             setPersonaLocalOk(true);
@@ -467,10 +479,19 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         setLoading(true);
       }
 
+      if (cacheHit) {
+        void load({
+          deferNotifications: true,
+          initialOpen: true,
+          cacheHit: true,
+        });
+        return;
+      }
+
       await load({
         deferNotifications: true,
         initialOpen: true,
-        cacheHit,
+        cacheHit: false,
       });
       if (!cancelled) {
         setLoading(false);

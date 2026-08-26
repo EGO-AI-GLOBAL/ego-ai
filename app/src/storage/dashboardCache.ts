@@ -53,10 +53,33 @@ export async function loadDashboardCache(
     if (!raw) return null;
     const parsed = JSON.parse(raw) as DashboardCacheSnapshot;
     if (!parsed || typeof parsed !== "object") return null;
+    preloaded = { uid: id, data: parsed };
     return parsed;
   } catch {
     return null;
   }
+}
+
+/** Pré-carrega em memória assim que soubermos o uid (AuthContext). */
+let preloaded: { uid: string; data: Partial<DashboardData> } | null = null;
+
+export async function preloadDashboardCache(uid: string): Promise<void> {
+  const id = uid.trim();
+  if (!id) return;
+  if (preloaded?.uid === id && preloaded.data) return;
+  await loadDashboardCache(id);
+}
+
+export function peekPreloadedDashboard(uid: string): Partial<DashboardData> | null {
+  const id = uid.trim();
+  if (!id || preloaded?.uid !== id) return null;
+  return preloaded.data ?? null;
+}
+
+export function dashboardCacheIsUsable(
+  snap: Partial<DashboardData> | null | undefined
+): boolean {
+  return Boolean(snap?.daily_care?.question || snap?.me?.user_id);
 }
 
 export async function clearDashboardCache(uid: string): Promise<void> {
