@@ -19,8 +19,9 @@ type Options = {
 type AdsTypes = typeof import("react-native-google-mobile-ads");
 
 /**
- * Interstitial só em pausa natural (check-in / PAUSA).
- * Cooldown ≥90s. Sem fill / erro / cooldown → onDone(false) para o pai mostrar ShapeScan.
+ * Interstitial só DEPOIS de fechar sessão (check-in / PAUSA), a cada 2 no dia.
+ * Cooldown ≥90s. Sem fill → onDone(false) → pai pode mostrar ShapeScan.
+ * Nunca a meio do chat / respiração / áudio.
  */
 export function useNaturalPauseInterstitial({ enabled }: Options) {
   const adRef = useRef<InstanceType<AdsTypes["InterstitialAd"]> | null>(null);

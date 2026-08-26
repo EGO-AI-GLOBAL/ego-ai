@@ -1,0 +1,62 @@
+{
+  "version": "mente-banda-agenda-26-08",
+  "fotos_dir": "marketing/CAPCUT-FOTOS-ENTREGA",
+  "output": "marketing/videos/app-real/ego-ai-mente-banda-agenda-26-08-reels.mp4",
+  "post_file": "marketing/POST-HOJE-26-08-MENTE-BANDA-AGENDA.txt",
+  "voice_rate": "+18%",
+  "audio_pad": 0.05,
+  "use_zoom": false,
+  "clear_mode": true,
+  "caption_font_size": 48,
+  "title_font_boost": 1.08,
+  "photo_width_ratio": 0.78,
+  "top_bar_h": 260,
+  "bottom_reserve": 300,
+  "badge_text": "AGENDA BANDA",
+  "post": {
+    "title": "Banda: ninguém esquece ensaio, show nem a van",
+    "description": "Um cara de banda me procurou hoje.\n\nQueriam uma agenda compartilhada:\nensaio · show · van · quem leva o cabo.\nPra ninguém esquecer.\n\nNo EGO-AI:\n→ Agenda compartilhada\n→ Convida a galera\n→ Todo mundo vê o mesmo compromisso\n\nEssential grátis (texto até 5 msgs/dia).\nVoz e sem anúncios no Premium.\nNovos: Premium R$ 29,90 nos 3 primeiros meses.\n\nJá no Android e no iPhone.\n\nComenta ABRE que te mando o link no Direct\n\n#egoai #banda #agenda #ensaio #organizacao",
+    "hashtags": ["#egoai", "#banda", "#agenda", "#ensaio", "#organizacao"],
+    "pinned_comment": "Comenta ABRE\nTe mando Android + iPhone no Direct.\nAgenda compartilhada pra banda (e família)."
+  },
+  "scenes": [
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [["Cara de banda", 50, true], ["me procurou", 46, false]],
+      "darken": 0.14,
+      "center": true,
+      "badge": true,
+      "accent": 1,
+      "voice": "Um cara de banda me procurou hoje."
+    },
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [["Agenda pra", 50, true], ["ninguém esquecer", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Queriam uma agenda compartilhada. Ensaio, show, van — pra ninguem esquecer."
+    },
+    {
+      "photo": "02-missao-humor.png",
+      "lines": [["Convida a galera", 48, true], ["todo mundo vê", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "No EGO-AI: agenda compartilhada. Convida a galera. Todo mundo ve o mesmo compromisso."
+    },
+    {
+      "photo": "01-monstrinho-jardim.png",
+      "lines": [["Ensaio · show", 50, true], ["van · cabos", 44, false]],
+      "darken": 0.1,
+      "accent": 1,
+      "voice": "Ensaio, show, van, quem leva o cabo. Organizado."
+    },
+    {
+      "photo": "05-agenda-luna.png",
+      "lines": [["Comenta ABRE", 52, true], ["link no Direct", 44, false]],
+      "darken": 0.08,
+      "center": true,
+      "accent": 0,
+      "voice": "Comenta ABRE que te mando o link no Direct."
+    }
+  ]
+}
