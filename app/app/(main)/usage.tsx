@@ -43,7 +43,11 @@ export default function UsageScreen() {
   const pct = primaryTokenPercent(data.access);
 
   return (
-    <ScreenShell title="Uso" subtitle="Percentagem do seu plano">
+    <ScreenShell
+      title="Uso"
+      subtitle="Percentagem do seu plano"
+      adsAccess={data.access ?? null}
+    >
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={

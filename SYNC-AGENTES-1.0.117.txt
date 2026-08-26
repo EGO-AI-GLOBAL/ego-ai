@@ -1,0 +1,11 @@
+SYNC MESTRE — 1.0.117 · AdMob banners em listas free
+====================================================
+Status: ✅ PRONTO para EAS
+
+Inclui:
+• Banner AdMob + ShapeScan em Monstrinhos, Diário, Conta, Agenda, Uso, agendas partilhadas
+• Chat banner (já existia) · interstitial a cada 2 (1.0.116)
+• Sem App Open · sem rewarded interstitial · Planos/Calma sem banner
+
+Versão: 1.0.117 · iOS 123 · Android 176
+Build: GERAR-1.0.117.bat → AGUARDAR-E-SUBMETER-1.0.117.bat

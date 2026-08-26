@@ -1,0 +1,22 @@
+COMANDO — EGO · AdMob fase 2 (banners em listas) — 2026-08-26
+Código aplicado; NÃO buildar até “pode buildar”.
+
+O QUE ENTROU (seguro, sem ban)
+- Banner AdMob + fallback ShapeScan no rodapé FREE de:
+  Monstrinhos (daily-care), Diário (mood-journal), Conta, Agenda,
+  Uso, Agendas partilhadas (lista)
+- Chat: mantém FreeFooterBanner (já existia)
+- Interstitial a cada 2 sessões + cooldown ≥90s (1.0.116) — inalterado
+
+O QUE NÃO ENTROU (de propósito)
+- App Open Ad (1.º minuto / churn / política)
+- Rewarded interstitial (precisa unidade nova no AdMob + ecrã intro
+  obrigatório Google com skip + recompensa API)
+- Banner em Planos / Calma 1 min / onboarding / detalhe agenda
+- Mediation multi-rede (quando DAU subir)
+
+TESTE
+1) Free → banner nos ecrãs acima; Premium → zero
+2) Sem fill → ShapeScan
+3) Calma 1 min a meio → zero banner
+4) Planos → zero AdMob

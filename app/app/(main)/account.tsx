@@ -109,7 +109,7 @@ export default function AccountScreen() {
   const accessStatus = data.access?.access_status || data.me?.access?.status || "—";
 
   return (
-    <ScreenShell title="Conta" subtitle={name}>
+    <ScreenShell title="Conta" subtitle={name} adsAccess={data.access ?? null}>
       <ScrollView
         contentContainerStyle={styles.scroll}
         refreshControl={
