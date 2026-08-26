@@ -43,7 +43,9 @@ export function PersonaGate({ children }: Props) {
   }, [personaGateOk]);
 
   const personaReady = hasLocalChoice || personaGateOk;
-  const bootstrapping = !localReady || (loading && !data.me?.user_id);
+  const hasCachedShell = Boolean(data.daily_care?.question || data.me?.user_id);
+  const bootstrapping =
+    !localReady || (loading && !hasCachedShell && !personaReady);
 
   if (bootstrapping) {
     return (

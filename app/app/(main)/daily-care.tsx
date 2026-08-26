@@ -47,7 +47,8 @@ export default function DailyCareScreen() {
     }, [refresh, data.daily_care?.question])
   );
 
-  const showPet = Boolean(data.daily_care?.question) && (!loading || refreshing);
+  const showPet = Boolean(data.daily_care?.question);
+  const showCareBody = Boolean(data.daily_care?.question) || !loading || refreshing;
 
   return (
     <ScreenShell
@@ -80,13 +81,13 @@ export default function DailyCareScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.primary} />
           }
         >
-          {loading && !refreshing ? (
+          {loading && !refreshing && !data.daily_care?.question ? (
             <ActivityIndicator color={colors.primary} style={{ marginTop: 24 }} />
           ) : null}
           {error ? (
             <Text style={[styles.error, { color: colors.danger }]}>{error}</Text>
           ) : null}
-          {!loading || refreshing ? (
+          {showCareBody ? (
             <DailyCareChallenge
               colors={colors}
               care={data.daily_care}
