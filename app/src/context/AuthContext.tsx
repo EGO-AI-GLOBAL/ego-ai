@@ -39,6 +39,7 @@ import {
   ensureInstallMarkers,
   runFreshInstallMigrations,
 } from "@/storage/freshInstallGuard";
+import { preloadDashboardCache } from "@/storage/dashboardCache";
 import { sessionNeedsRefresh } from "@/storage/sessionRefresh";
 import { preparePlayIntegrity } from "@/security/playIntegrity";
 import { trackLogin, trackSignUp } from "@/analytics/egoAnalytics";
@@ -162,9 +163,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     (async () => {
+      let hydrated = false;
       try {
-        await clearSecureSessionIfFreshInstall();
-        await runFreshInstallMigrations();
+        await Promise.all([
+          clearSecureSessionIfFreshInstall(),
+          runFreshInstallMigrations(),
+        ]);
         const raw = await getSecureItem(STORAGE_KEY);
         if (raw) {
           if (await shouldClearSessionForAppUpdate()) {
@@ -174,14 +178,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const parsed = JSON.parse(raw) as AuthSession;
             if (parsed?.access_token) {
               setSession(parsed);
-              const uid = parsed.user?.id?.trim();
-              if (uid) await consumeSecureWipeIfNeeded(uid);
-              // Sessão local imediata; refresh em background (não bloqueia abertura).
               setLocalSession(parsed);
+              hydrated = true;
+              setAuthHydrationComplete(true);
+              setLoading(false);
+
+              const uid = parsed.user?.id?.trim();
+              if (uid) {
+                void consumeSecureWipeIfNeeded(uid);
+                void preloadDashboardCache(uid);
+              }
               void (async () => {
                 const next = await refreshSessionIfNeeded(parsed);
                 if (next == null) {
-                  /* refresh morto — sessão limpa no refreshSessionIfNeeded */
+                  /* refresh morto */
                 } else {
                   await persist(next);
                 }
@@ -193,8 +203,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } catch {
         /* ignore */
       } finally {
-        setAuthHydrationComplete(true);
-        setLoading(false);
+        if (!hydrated) {
+          setAuthHydrationComplete(true);
+          setLoading(false);
+        }
       }
     })();
   }, [persist, refreshSessionIfNeeded]);

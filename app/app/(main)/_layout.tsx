@@ -81,7 +81,7 @@ export default function MainLayout() {
     }
   }, [session?.access_token]);
 
-  if (loading) {
+  if (loading && !session?.access_token?.trim()) {
     return (
       <View
         style={{

@@ -44,8 +44,7 @@ export function PersonaGate({ children }: Props) {
 
   const personaReady = hasLocalChoice || personaGateOk;
   const hasCachedShell = Boolean(data.daily_care?.question || data.me?.user_id);
-  const bootstrapping =
-    !localReady || (loading && !hasCachedShell && !personaReady);
+  const bootstrapping = !personaReady && !hasCachedShell && !localReady;
 
   if (bootstrapping) {
     return (
