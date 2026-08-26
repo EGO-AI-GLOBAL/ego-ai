@@ -173,18 +173,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           } else {
             const parsed = JSON.parse(raw) as AuthSession;
             if (parsed?.access_token) {
-              // Memória só — não pôr session no React até o refresh (loading
-              // ainda true). Senão o 1.0.111 apagava a conta todas as manhãs.
               setSession(parsed);
               const uid = parsed.user?.id?.trim();
               if (uid) await consumeSecureWipeIfNeeded(uid);
-              const next = await refreshSessionIfNeeded(parsed);
-              if (next == null) {
-                /* refresh morto — sessão limpa; ecrã de login */
-              } else {
-                await persist(next);
-              }
-              void preparePlayIntegrity();
+              // Sessão local imediata; refresh em background (não bloqueia abertura).
+              setLocalSession(parsed);
+              void (async () => {
+                const next = await refreshSessionIfNeeded(parsed);
+                if (next == null) {
+                  /* refresh morto — sessão limpa no refreshSessionIfNeeded */
+                } else {
+                  await persist(next);
+                }
+                void preparePlayIntegrity();
+              })();
             }
           }
         }

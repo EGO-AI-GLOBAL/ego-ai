@@ -46,6 +46,10 @@ import { cancelEgoDeBolsoCareNotification } from "@/utils/egoDeBolsoNotification
 import { syncMoodGardenHomeWidget } from "@/widgets/syncMoodGardenHomeWidget";
 import { saveStreakCache } from "@/storage/streakCache";
 import {
+  loadDashboardCache,
+  saveDashboardCache,
+} from "@/storage/dashboardCache";
+import {
   getLocalPersonaChoice,
   isPersonaConfiguredLocal,
   markPersonaConfiguredLocal,
@@ -80,10 +84,16 @@ type RefreshOptions = {
   skipNotifications?: boolean;
   /** Carga inicial: adia syncs pesados para o chat abrir mais rápido. */
   deferNotifications?: boolean;
+  /** Abertura do app: timeout curto + cache local se rede lenta. */
+  initialOpen?: boolean;
+  /** Já pintámos cache — timeout não bloqueia ecrã. */
+  cacheHit?: boolean;
 };
 
 const DEFER_BACKGROUND_SYNC_MS = 2000;
+const BOOTSTRAP_OPEN_TIMEOUT_MS = 2000;
 const TOKEN_ESTIMATE_MSG_CAP = 50;
+const OPEN_TIMEOUT = "__ego_open_timeout__";
 
 type DashboardContextValue = {
   data: DashboardData;
@@ -110,10 +120,14 @@ const DashboardContext = createContext<DashboardContextValue | null>(null);
 
 async function mergeStoredProfilePhone(
   dashboard: DashboardData,
-  uid: string | null
+  uid: string | null,
+  localPhPreload?: string | null
 ): Promise<DashboardData> {
   if (!uid) return dashboard;
-  const localPh = await getLocalProfilePhone(uid).catch(() => null);
+  const localPh =
+    localPhPreload !== undefined
+      ? localPhPreload
+      : await getLocalProfilePhone(uid).catch(() => null);
   if (!localPh?.trim() || profilePhoneFromMe(dashboard.me)) {
     return dashboard;
   }
@@ -165,7 +179,13 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     async (dashboardIn: DashboardData, options?: RefreshOptions) => {
       let dashboard = dashboardIn;
       const uid = resolveUserId(getSession(), dashboard.me?.user_id);
-      const localChoice = uid ? await getLocalPersonaChoice(uid) : null;
+      const [localChoice, msgs, localPh] = await Promise.all([
+        uid ? getLocalPersonaChoice(uid) : Promise.resolve(null),
+        uid && dashboardIn.access
+          ? loadLocalChatHistory(uid).catch(() => [] as Awaited<ReturnType<typeof loadLocalChatHistory>>)
+          : Promise.resolve([] as Awaited<ReturnType<typeof loadLocalChatHistory>>),
+        uid ? getLocalProfilePhone(uid).catch(() => null) : Promise.resolve(null),
+      ]);
       if (localChoice) {
         const persona = accountPersona(localChoice);
         if (dashboard.me) {
@@ -193,7 +213,6 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         }
       }
       if (uid && dashboard.access) {
-        const msgs = await loadLocalChatHistory(uid).catch(() => []);
         const recent =
           msgs.length > TOKEN_ESTIMATE_MSG_CAP
             ? msgs.slice(-TOKEN_ESTIMATE_MSG_CAP)
@@ -220,11 +239,14 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         ...dashboard,
         access: normalizeAccessInfo(dashboard.access),
       };
-      dashboard = await mergeStoredProfilePhone(dashboard, uid);
+      dashboard = await mergeStoredProfilePhone(dashboard, uid, localPh);
       if (uid && profilePhoneFromMe(dashboard.me)) {
         void clearSignupPhoneCache(uid);
       }
       setData(dashboard);
+      if (uid) {
+        void saveDashboardCache(uid, dashboard);
+      }
       void saveStreakCache(dashboard.streak);
       void cacheFunnelCheckedToday(Boolean(dashboard.daily_care?.checked_today));
       setPersonaLocalOk(Boolean(uid && localChoice));
@@ -272,13 +294,16 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
     // Corrida ao abrir: React tem sessão, memória do axios ainda vazia —
     // semear e esperar (80ms era curto demais e gerava falso «expirada»).
     const authSession = sessionRef.current;
-    if (authSession?.access_token?.trim() && !getSession()?.access_token?.trim()) {
-      setSession(authSession);
-    }
-    for (let i = 0; i < 20 && !getSession()?.access_token?.trim(); i++) {
-      const s = sessionRef.current;
-      if (s?.access_token?.trim()) setSession(s);
-      await new Promise((r) => setTimeout(r, 100));
+    if (authSession?.access_token?.trim()) {
+      if (!getSession()?.access_token?.trim()) {
+        setSession(authSession);
+      }
+    } else {
+      for (let i = 0; i < 5 && !getSession()?.access_token?.trim(); i++) {
+        const s = sessionRef.current;
+        if (s?.access_token?.trim()) setSession(s);
+        await new Promise((r) => setTimeout(r, 50));
+      }
     }
     if (!getSession()?.access_token?.trim()) {
       if (!sessionRef.current?.access_token?.trim()) {
@@ -296,7 +321,34 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       );
 
     const tryLoadOnce = async () => {
-      const dashboard = await fetchDashboard();
+      let dashboard: DashboardData;
+      if (options?.initialOpen) {
+        const fetchPromise = fetchDashboard();
+        const timed = Promise.race([
+          fetchPromise,
+          new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error(OPEN_TIMEOUT)), BOOTSTRAP_OPEN_TIMEOUT_MS);
+          }),
+        ]);
+        try {
+          dashboard = await timed;
+        } catch (e) {
+          const msg = e instanceof Error ? e.message : "";
+          if (msg === OPEN_TIMEOUT && options?.cacheHit) {
+            const now = Date.now();
+            if (now - syncRetryAtRef.current > 15_000) {
+              syncRetryAtRef.current = now;
+              setTimeout(() => {
+                void load({ skipNotifications: true, deferNotifications: true });
+              }, 2500);
+            }
+            return;
+          }
+          throw e;
+        }
+      } else {
+        dashboard = await fetchDashboard();
+      }
       await applyDashboard(dashboard, {
         ...options,
         skipNotifications,
@@ -370,7 +422,7 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
         } else {
           setError("Sessão expirada. Saia e entre novamente.");
         }
-      } else if (!uid || !(await isPersonaConfiguredLocal(uid))) {
+      } else if (!options?.cacheHit && (!uid || !(await isPersonaConfiguredLocal(uid)))) {
         setError(msg);
       }
     }
@@ -387,9 +439,48 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
       void cancelPausaLocalNotifications();
       return;
     }
-    setLoading(true);
-    load({ deferNotifications: true }).finally(() => setLoading(false));
-  }, [enabled, load]);
+
+    let cancelled = false;
+    const uid =
+      session?.user?.id?.trim() || "";
+
+    void (async () => {
+      let cacheHit = false;
+      if (uid) {
+        const cached = await loadDashboardCache(uid);
+        if (cached && !cancelled) {
+          cacheHit = Boolean(cached.daily_care?.question || cached.me?.user_id);
+          setData((prev) => ({ ...prev, ...cached }));
+          if (cached.me?.persona_configured) {
+            setPersonaLocalOk(true);
+          } else {
+            const local = await getLocalPersonaChoice(uid);
+            if (local) setPersonaLocalOk(true);
+          }
+          if (cacheHit) {
+            setLoading(false);
+          }
+        }
+      }
+
+      if (!cacheHit && !cancelled) {
+        setLoading(true);
+      }
+
+      await load({
+        deferNotifications: true,
+        initialOpen: true,
+        cacheHit,
+      });
+      if (!cancelled) {
+        setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [enabled, load, session?.user?.id]);
 
   const refresh = useCallback(async (options?: RefreshOptions) => {
     if (!enabled) return;
@@ -451,15 +542,22 @@ export function DashboardProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const mergeDailyCare = useCallback((care: DailyCareInfo, journey?: WellnessJourney) => {
-    setData((prev) => ({
-      ...prev,
-      daily_care: care,
-      ...(journey ? { wellness_journey: journey } : {}),
-    }));
+    setData((prev) => {
+      const next = {
+        ...prev,
+        daily_care: care,
+        ...(journey ? { wellness_journey: journey } : {}),
+      };
+      const uid = resolveUserId(session, next.me?.user_id);
+      if (uid) {
+        void saveDashboardCache(uid, next);
+      }
+      return next;
+    });
     void syncMoodMonsterNotifications(care).catch(() => {});
     void syncMoodGardenHomeWidget(care).catch(() => {});
     void cacheFunnelCheckedToday(Boolean(care.checked_today));
-  }, []);
+  }, [session]);
 
   const setPersona = useCallback(async (avatarId: string, voiceId: string) => {
     const persona = accountPersona({ avatar_id: avatarId, voice_id: voiceId });
