@@ -9,7 +9,37 @@ from ego_api.schedule_tz import format_scheduled_for_user as _format_scheduled_p
 
 
 def _looks_like_false_schedule_success(text: str) -> bool:
-    return bool(re.search(r"(?i)\b(pronto|marquei|agendei|confirmado|registrei)\b", text))
+    """LLM diz que gravou na agenda sem o servidor ter gravado nada."""
+    t = (text or "").strip()
+    if not t:
+        return False
+    if not re.search(
+        r"(?i)\b(pronto|marquei|agendei|confirmado|registrei|já\s+marque[i]?)\b", t
+    ):
+        return False
+    # Evita falso positivo em «Pronto, estou bem» sem falar de agenda.
+    return bool(
+        re.search(
+            r"(?i)\b(agenda|lembrete|compromisso|consulta|reuni[aã]o|marque[i]?|"
+            r"agend(ei|ado|ar)|na\s+sua\s+agenda)\b",
+            t,
+        )
+    )
+
+
+def _looks_like_listen_mode_agenda_failure(text: str) -> bool:
+    """Templates antigos de falha/wizard — apps velhos mostram isto a vermelho."""
+    return bool(
+        re.search(
+            r"(?i)("
+            r"não\s+consegui\s+(confirm|gravar|guardar|agendar|criar|marcar|apagar|adicionar)|"
+            r"repita:\s*(marca|cria|apaga|convida)|"
+            r"quase\s+lá:\s*confirme\s+data|"
+            r"informe\s+dias\s+da\s+semana"
+            r")",
+            text or "",
+        )
+    )
 
 
 def build_dismiss_confirmation_reply(
@@ -70,6 +100,31 @@ def ensure_visible_chat_reply(
     text = (reply_clean or "").strip()
     pending_rem = rem_items or []
     pending_ag = ag_items or []
+
+    from ego_api.config import chat_agenda_actions_enabled
+
+    # Modo escuta (padrão): avatares NÃO agendam — hotfix sem rebuild do app.
+    # Bloqueia templates «Repita: Marca na agenda…» que o cliente antigo pinta a vermelho.
+    if not chat_agenda_actions_enabled():
+        anything_saved = bool(
+            reminders_saved
+            or agenda_saved
+            or shared_ev_saved
+            or shared_members
+            or created_cals
+            or deleted_cals
+        )
+        if not anything_saved:
+            from ego_api.app_guide import manual_agenda_redirect_reply
+
+            if text and (
+                _looks_like_false_schedule_success(text)
+                or _looks_like_listen_mode_agenda_failure(text)
+            ):
+                return manual_agenda_redirect_reply()
+            if text:
+                return text
+            return "Recebi sua mensagem. Pode repetir ou detalhar um pouco mais?"
 
     # Servidor gravou — resposta certa (ignora texto enganoso do LLM).
     if deleted_cals:

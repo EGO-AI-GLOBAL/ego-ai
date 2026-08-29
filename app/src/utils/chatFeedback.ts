@@ -96,9 +96,6 @@ export function chatWarnings(result: SendChatResult): string | null {
   }
   if (filtered.length) return filtered.join(" ");
   if (result.shared_members_saved?.length) return null;
-  const reply = (result.reply || "").trim();
-  if (/não consegui|não foi possível|não confirm/i.test(reply)) {
-    return reply;
-  }
+  // Não espelhar a bolha do avatar como erro vermelho (modo escuta / redirect agenda).
   return null;
 }
