@@ -76,14 +76,13 @@ def process_voice_message_fast(
     if not ok_tok:
         return None, f"{msg_tok} Uso: {used_tok:,}/{lim_tok:,}."
 
-    if db.is_essential_post_trial(supabase, user_id, prof):
-        return None, db.FREEMIUM_VOICE_TTS_MESSAGE
-
     ok_voice, _voice_used = db.daily_voice_messages_ok(supabase, user_id, limits, prof)
     if not ok_voice:
         from ego_api.plan_retention import on_daily_limit_hit
 
         on_daily_limit_hit(user_id)
+        if db.is_essential_post_trial(supabase, user_id, prof):
+            return None, db.FREEMIUM_VOICE_TTS_MESSAGE
         return None, _daily_limit_message(supabase, user_id)
 
     from ego_api.config import chat_defer_tts_on_voice
@@ -91,13 +90,13 @@ def process_voice_message_fast(
     defer_tts = chat_defer_tts_on_voice()
     speak_effective = False
     if speak_reply and not defer_tts:
-        if db.is_essential_post_trial(supabase, user_id, prof):
-            return None, db.FREEMIUM_VOICE_TTS_MESSAGE
         ok_tts, _tts_used = db.daily_tts_ok(supabase, user_id, limits, prof)
         if not ok_tts:
             from ego_api.plan_retention import on_daily_limit_hit
 
             on_daily_limit_hit(user_id)
+            if db.is_essential_post_trial(supabase, user_id, prof):
+                return None, db.FREEMIUM_VOICE_TTS_MESSAGE
             return None, _daily_limit_message(supabase, user_id)
         speak_effective = True
 
