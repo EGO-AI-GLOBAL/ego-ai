@@ -1,0 +1,33 @@
+1.0.119 — TEXTOS PRONTOS A COLAR
+================================
+
+
+A) GOOGLE PLAY — "Novidades desta versão"
+-----------------------------------------
+COLE ISTO:
+
+No plano grátis: 1 resposta por voz por dia. Check-in rápido e abertura mais leve.
+Correção: o avatar já não pede para marcar agenda no chat.
+
+
+B) APP STORE CONNECT — "O que há de novo nesta versão"
+------------------------------------------------------
+COLE ISTO:
+
+• Grátis: 1 voz por dia (mais no Premium)
+• Check-in de 1 minuto e retenção
+• Avatar só escuta — agenda na aba Agenda
+
+
+C) TESTFLIGHT — "O que testar"
+------------------------------
+COLE ISTO:
+
+1. Conta free: 1ª voz do dia OK; 2ª → limite / Premium.
+2. Conta free: chat «oi» sem mensagem de agenda nem erro vermelho.
+3. Check-in Monstrinhos sem paywall no 1º minuto.
+
+
+INTERNO
+-------
+Versão: 1.0.119 · iOS 125 · Android 178

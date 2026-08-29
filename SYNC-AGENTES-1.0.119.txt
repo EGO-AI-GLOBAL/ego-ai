@@ -1,0 +1,13 @@
+SYNC MESTRE — 1.0.119 · 1 voz/dia freemium + hotfix agenda escuta
+============================================================
+Status: ✅ PRONTO para EAS
+
+Inclui (já em main + este bump):
+• Essential: 1 voz + 1 TTS/dia (mic liberado no app)
+• Avatar modo escuta — sem «Repita: Marca na agenda…»
+• Aha / retenção / AdMob da linha 1.0.118
+
+Versão: 1.0.119 · iOS 125 · Android 178
+Build: GERAR-1.0.119.bat → AGUARDAR-E-SUBMETER-1.0.119.bat
+Pós-loja: EGO_MIN_APP_VERSION=1.0.119 · EGO_MIN_ANDROID_VERSION_CODE=178
+(ajustar se iOS na loja ainda for 1.0.117 — min não pode ficar acima do publicado)
