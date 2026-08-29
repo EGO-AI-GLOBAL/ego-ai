@@ -1,0 +1,50 @@
+COMANDO — EGO Aha! + retenção + AdMob — ENTREGA 2026-08-29
+==========================================================
+Código aplicado. NÃO buildar até «pode buildar».
+
+
+JÁ EXISTIA (mantido)
+--------------------
+· Onboarding: Luna/Leo → daily-care (não chat)
+· Check-in 1 toque + feedback imediato
+· Push D0/D1 máx 1/dia (funnelEngagementReminders)
+· AdMob a cada 2 + banners + ShapeScan + Premium zero
+· Firebase helpers (first_open, first_checkin, onboarding_done, …)
+
+
+MUDANÇAS NESTA PASSADA
+----------------------
+app/app/(main)/index.tsx
+  → mesma regra do root: daily-care se falta check-in
+
+app/app/(main)/daily-care.tsx
+  → TrialBanner só DEPOIS do check-in do dia (sem paywall no 1º min)
+
+app/src/components/DailyCareChallenge.tsx
+  → Aha limpo: missões/loja/ranking só após humor
+  → 1º check-in ever: burst «Check-in feito!» se API sem bónus
+
+app/src/analytics/egoAnalytics.ts
+  → alias session_completed (+ session_or_checkin_completed)
+
+marketing/FIREBASE-ADMOB-EGO-CHECKLIST.txt
+  → eventos actualizados
+
+
+TESTE 3 PASSOS
+--------------
+1) Conta nova (ou apagar dados): cadastro → Luna → Monstrinhos
+2) 1 toque no humor → feedback já; missões aparecem a seguir; zero «Ver planos» antes
+3) Firebase DebugView: onboarding_done → first_checkin → session_completed
+
+
+EVENTOS
+-------
+first_open · onboarding_done · first_checkin · session_completed
+(+ session_or_checkin_completed legado)
+
+
+AdMob: sem alteração nesta passada (já maximizado seguro).
+
+
+Perguntar: pode buildar?

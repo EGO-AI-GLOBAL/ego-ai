@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react";
+import { router } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import * as Haptics from "expo-haptics";
 import { submitDailyCareCheckin } from "@/api/client";
@@ -13,8 +14,14 @@ import {
   trackSessionOrCheckinCompleted,
 } from "@/analytics/egoAnalytics";
 import { pingFunnelEngagementReminders } from "@/notifications/funnelEngagementReminders";
+import {
+  comebackLabel,
+  DEFAULT_COMEBACK_HOUR,
+  scheduleComeBackTomorrow,
+} from "@/notifications/comeBackTomorrow";
 import { afterSessionClosedMaybeInterstitial } from "@/ads/afterSessionClosedMaybeInterstitial";
 import { useNaturalPauseInterstitial } from "@/ads/useNaturalPauseInterstitial";
+import { StreakBadge } from "@/components/StreakBadge";
 import { DailyCareShareModal } from "./DailyCareShareModal";
 import { ShapeScanBodyNudgeCard } from "./ShapeScanBodyNudgeCard";
 import { MoodAdventureBanner } from "./moodMonsters/MoodAdventureBanner";
@@ -113,6 +120,7 @@ export function DailyCareChallenge({
   const [reward, setReward] = useState<MoodReward | null>(null);
   const [hoverMood, setHoverMood] = useState<string | undefined>();
   const [showBodyNudge, setShowBodyNudge] = useState(false);
+  const [comebackHour, setComebackHourState] = useState(DEFAULT_COMEBACK_HOUR);
   const playNonce = useRef(0);
   const pickingMood = useRef(false);
   const recentClips = useRef<MonsterClipAction[]>([]);
@@ -121,6 +129,18 @@ export function DailyCareChallenge({
   const { show: showPauseInterstitial } = useNaturalPauseInterstitial({
     enabled: showCrossPromo,
   });
+
+  useEffect(() => {
+    let cancelled = false;
+    void import("@/notifications/comeBackTomorrow").then(({ getComebackHour }) =>
+      getComebackHour().then((h) => {
+        if (!cancelled) setComebackHourState(h);
+      })
+    );
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const setPreview = (key: string | undefined) => {
     setHoverMood(key);
@@ -216,10 +236,35 @@ export function DailyCareChallenge({
       // Sem Alert no 1º humor — métricas Finch: <2 toques, sem modal.
       if (wasFirstToday) {
         trackSessionOrCheckinCompleted("checkin", { first_today: 1 });
-        if (wasFirstEver) void trackFirstCheckinIfNeeded();
+        const hour = await scheduleComeBackTomorrow().catch(() => DEFAULT_COMEBACK_HOUR);
+        setComebackHourState(hour);
+        if (wasFirstEver) {
+          void trackFirstCheckinIfNeeded();
+          // Aha! imediato se API não trouxe bónus/escudo.
+          const hasParty =
+            (res.daily_care.checkin_bonus ?? 0) > 0 ||
+            res.daily_care.shield_earned ||
+            res.daily_care.streak_protected ||
+            res.daily_care.pet_level_up;
+          if (!hasParty) {
+            setReward({
+              kind: "bonus",
+              emoji: "✓💜",
+              title: "Check-in feito!",
+              sub: comebackLabel(hour),
+            });
+          }
+          // Stories no Aha (dia 1) — após o burst.
+          setTimeout(() => setShareOpen(true), 1600);
+        }
         pingFunnelEngagementReminders(true);
-        const line = res.daily_care.monster_line?.trim();
-        if (line) void queueMonsterChatNotice(line);
+        const line =
+          res.daily_care.monster_line?.trim() ||
+          res.daily_care.avatar_congrats?.trim() ||
+          (wasFirstEver
+            ? "Vi o teu humor de hoje. Quando quiseres, fala comigo no chat — estou aqui."
+            : "Check-in no jardim — se quiseres desabafar, estou no chat.");
+        void queueMonsterChatNotice(line);
         // A cada 2 sessões fechadas → interstitial (nunca a meio do check-in).
         afterSessionClosedMaybeInterstitial(showPauseInterstitial, (didShowAd) => {
           if (showCrossPromo && !didShowAd) setShowBodyNudge(true);
@@ -245,12 +290,35 @@ export function DailyCareChallenge({
       style={[
         styles.moodFirst,
         {
-          borderColor: needsCheckin ? colors.primary : colors.border,
-          backgroundColor: needsCheckin ? colors.primaryTint : "transparent",
+          borderColor: needsCheckin
+            ? care.at_risk
+              ? colors.warning
+              : colors.primary
+            : colors.border,
+          backgroundColor: needsCheckin
+            ? care.at_risk
+              ? `${colors.warning}18`
+              : colors.primaryTint
+            : "transparent",
         },
       ]}
     >
-      {needsCheckin ? (
+      {days > 0 || care.at_risk ? (
+        <StreakBadge
+          colors={colors}
+          streak={{
+            current: days,
+            longest: care.longest ?? days,
+            active_today: Boolean(care.checked_today),
+            at_risk: Boolean(care.at_risk),
+          }}
+        />
+      ) : null}
+      {needsCheckin && care.at_risk && days > 0 ? (
+        <Text style={[styles.stepBadge, { color: colors.warning }]}>
+          🔥 {days}d EM RISCO HOJE — 1 TOQUE SALVA
+        </Text>
+      ) : needsCheckin ? (
         <Text style={[styles.stepBadge, { color: colors.primary }]}>
           FAZER MEU 1º CHECK-IN — 1 MINUTO
         </Text>
@@ -301,12 +369,23 @@ export function DailyCareChallenge({
           <Text style={[styles.done, { color: colors.success }]}>
             ✓ Hoje: {todayLabel} no jardim
           </Text>
+          <Text style={[styles.hook, { color: colors.primary }]}>
+            {comebackLabel(comebackHour)}
+          </Text>
+          <Pressable
+            onPress={() => router.push("/(main)/chat")}
+            style={[styles.chatHintBtn, { borderColor: colors.primary }]}
+          >
+            <Text style={[styles.chatHintText, { color: colors.primary }]}>
+              Ver o que o avatar disse →
+            </Text>
+          </Pressable>
           <Text style={[styles.hook, { color: colors.textMuted }]}>{care.share_hook}</Text>
           <Pressable
             onPress={() => setShareOpen(true)}
             style={[styles.shareBtn, { backgroundColor: colors.primary }]}
           >
-            <Text style={styles.shareText}>Postar e desafiar amigos</Text>
+            <Text style={styles.shareText}>Postar Stories / desafiar amigos</Text>
           </Pressable>
         </>
       ) : care.at_risk ? (
@@ -367,81 +446,81 @@ export function DailyCareChallenge({
           hidePet
         />
 
-        <MoodCrisisBridgeCard colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
+        {/* Aha! / 1º minuto: só humor + feedback; resto após check-in (sem paywall/loja a atrapalhar). */}
+        {!needsCheckin ? (
+          <>
+            <MoodCrisisBridgeCard colors={colors} care={care} onUpdate={(next) => onUpdate(next)} />
 
-        {/* O bicho e o cuidado com ele vêm antes de tudo o resto — é o coração do ecrã. */}
-        <MoodPetLevelCard
-          colors={colors}
-          care={care}
-          onUpdate={(next) => onUpdate(next)}
-          onFeed={() => playUnique(preferredClipForGardenEvent("shop"))}
-          onReward={setReward}
-          onPressName={onPressPetName}
-        />
+            <MoodPetLevelCard
+              colors={colors}
+              care={care}
+              onUpdate={(next) => onUpdate(next)}
+              onFeed={() => playUnique(preferredClipForGardenEvent("shop"))}
+              onReward={setReward}
+              onPressName={onPressPetName}
+            />
 
-        {needsCheckin ? (
+            <MoodDailyGoals
+              colors={colors}
+              care={care}
+              userId={userId}
+              onUpdate={(next) => onUpdate(next)}
+              onGoalCompleted={(goal, allGoalsBonus) => {
+                playUnique(
+                  preferredClipForGardenEvent(
+                    allGoalsBonus ? "goals-bonus" : "goal",
+                    goal.key,
+                    goal.surprise
+                  )
+                );
+              }}
+              onGoalsBonus={(line) => {
+                setBurstCongrats(line);
+                setGoalsBurst(true);
+                const msg =
+                  line?.trim() ||
+                  "Dia completo no Jardim! Volte ao chat para celebrar com seu avatar.";
+                void queueMonsterChatNotice(msg);
+              }}
+            />
+
+            <MoodJournalTodayNote
+              colors={colors}
+              care={care}
+              onUpdate={(next) => onUpdate(next)}
+              onLetterSaved={() => playUnique(preferredClipForGardenEvent("journal"))}
+            />
+
+            <MoodJournalWeek colors={colors} entries={care.mood_journal} moods={care.moods} />
+
+            {care.adventure?.active || care.adventure?.collected ? (
+              <MoodAdventureBanner colors={colors} adventure={care.adventure} />
+            ) : null}
+
+            <MoodSeedShop
+              colors={colors}
+              care={care}
+              onUpdate={(next) => onUpdate(next)}
+              onPurchase={() => playUnique(preferredClipForGardenEvent("shop"))}
+            />
+
+            <MoodWeeklyQuizCard
+              colors={colors}
+              quiz={care.weekly_quiz}
+              onUpdate={(next) => onUpdate(next)}
+            />
+
+            <MoodSocialInviteCard colors={colors} invite={care.social_invite} />
+
+            <RankingLadder colors={colors} care={care} />
+
+            <SocialFollowBar colors={colors} compact />
+          </>
+        ) : (
           <Text style={[styles.missionsLocked, { color: colors.textMuted }]}>
-            {care.gentleness?.crisis_bridge?.show
-              ? "3º passo — missões gentis depois da Calma 1 min"
-              : "2º passo — complete as missões depois de marcar o humor"}
+            Depois do humor: missões, loja e ranking abrem aqui.
           </Text>
-        ) : null}
-
-        <MoodDailyGoals
-          colors={colors}
-          care={care}
-          userId={userId}
-          onUpdate={(next) => onUpdate(next)}
-          onGoalCompleted={(goal, allGoalsBonus) => {
-            playUnique(
-              preferredClipForGardenEvent(
-                allGoalsBonus ? "goals-bonus" : "goal",
-                goal.key,
-                goal.surprise
-              )
-            );
-          }}
-          onGoalsBonus={(line) => {
-            setBurstCongrats(line);
-            setGoalsBurst(true);
-            const msg =
-              line?.trim() ||
-              "Dia completo no Jardim! Volte ao chat para celebrar com seu avatar.";
-            void queueMonsterChatNotice(msg);
-          }}
-        />
-
-        <MoodJournalTodayNote
-          colors={colors}
-          care={care}
-          onUpdate={(next) => onUpdate(next)}
-          onLetterSaved={() => playUnique(preferredClipForGardenEvent("journal"))}
-        />
-
-        <MoodJournalWeek colors={colors} entries={care.mood_journal} moods={care.moods} />
-
-        {care.adventure?.active || care.adventure?.collected ? (
-          <MoodAdventureBanner colors={colors} adventure={care.adventure} />
-        ) : null}
-
-        <MoodSeedShop
-          colors={colors}
-          care={care}
-          onUpdate={(next) => onUpdate(next)}
-          onPurchase={() => playUnique(preferredClipForGardenEvent("shop"))}
-        />
-
-        <MoodWeeklyQuizCard
-          colors={colors}
-          quiz={care.weekly_quiz}
-          onUpdate={(next) => onUpdate(next)}
-        />
-
-        <MoodSocialInviteCard colors={colors} invite={care.social_invite} />
-
-        <RankingLadder colors={colors} care={care} />
-
-        <SocialFollowBar colors={colors} compact />
+        )}
       </View>
 
       <DailyCareShareModal
@@ -497,6 +576,14 @@ const styles = StyleSheet.create({
   moodLabel: { fontSize: 9, fontWeight: "700", marginTop: 2 },
   done: { marginTop: 12, fontSize: 14, fontWeight: "700", textAlign: "center" },
   hook: { marginTop: 6, fontSize: 12, textAlign: "center", lineHeight: 17 },
+  chatHintBtn: {
+    marginTop: 10,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    paddingVertical: 10,
+    alignItems: "center",
+  },
+  chatHintText: { fontSize: 13, fontWeight: "800" },
   shareBtn: { marginTop: 12, borderRadius: 12, paddingVertical: 12, alignItems: "center" },
   shareText: { color: "#fff", fontWeight: "800", fontSize: 14 },
   risk: { marginTop: 10, fontSize: 13, fontWeight: "600", textAlign: "center" },

@@ -98,9 +98,17 @@ export default function DailyCareScreen() {
               onPressPetName={() => setNameOpen(true)}
               afterMood={
                 <>
-                  <TrialBanner colors={colors} access={data.access} journey={data.wellness_journey} />
+                  {data.daily_care?.checked_today ? (
+                    <TrialBanner
+                      colors={colors}
+                      access={data.access}
+                      journey={data.wellness_journey}
+                    />
+                  ) : null}
                   <Text style={[styles.lead, { color: colors.textMuted }]}>
-                    Pet no topo — humor define a cor · missões fazem ele reagir.
+                    {data.daily_care?.checked_today
+                      ? "Pet no topo — humor define a cor · missões fazem ele reagir."
+                      : "1 toque no humor — o monstrinho reage já. Missões e loja abrem a seguir."}
                   </Text>
                 </>
               }

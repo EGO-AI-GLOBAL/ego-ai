@@ -317,6 +317,11 @@ export type AppUpdateInfo = {
   android_version_code?: number;
   /** store | env | env_fallback */
   version_source?: string;
+  /** Abaixo disto → ecrã bloqueante (sem fechar). */
+  min_version?: string;
+  min_android_version_code?: number;
+  force_update?: boolean;
+  force_message?: string;
 };
 
 export type PublicHealthInfo = {

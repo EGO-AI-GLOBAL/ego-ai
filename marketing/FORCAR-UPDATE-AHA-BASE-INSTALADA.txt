@@ -1,0 +1,38 @@
+FORÇAR UPDATE + AHA (base instalada) — no dia do release
+=======================================================
+Apple/Google NÃO permitem atualizar o app em silêncio sem o user.
+Máximo legal no EGO:
+
+1) Soft banner (já existia) — «Atualizar agora»
+2) FORCE GATE (novo) — ecrã bloqueante, sem ✕, só «Atualizar agora»
+3) Push Aha one-shot na 1ª abertura da versão nova
+4) Auto-update das lojas = definição do utilizador no telemóvel (não controlamos)
+
+
+NO DIA EM QUE A VERSÃO SAIR NAS LOJAS (ex. 1.0.118)
+----------------------------------------------------
+Railway (API) — variáveis:
+
+  EGO_MIN_APP_VERSION=1.0.118
+  EGO_MIN_ANDROID_VERSION_CODE=177
+  EGO_LATEST_APP_VERSION=1.0.118
+  EGO_LATEST_ANDROID_VERSION_CODE=177
+  EGO_FORCE_UPDATE_MESSAGE=Atualize o EGO — check-in de 1 minuto e o monstrinho reagem já.
+
+(Ajusta 1.0.118 / 177 aos números reais do release.)
+
+Sem EGO_MIN_APP_VERSION → só banner soft (não bloqueia).
+
+
+FLUXO USER ANTIGO
+-----------------
+1. Abre app antigo → vê ecrã «Atualização obrigatória»
+2. Atualizar agora → Play / App Store
+3. Abre v nova → campanha Aha agenda push (~2h/18h)
+4. Check-in 1 toque = Aha
+
+
+NÃO FAZER
+---------
+- Manter EGO_MIN acima da versão publicada (bloqueia quem já atualizou)
+- Deixar EGO_MAINTENANCE=1

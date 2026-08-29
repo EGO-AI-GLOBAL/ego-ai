@@ -1,0 +1,36 @@
+1.0.118 — TEXTOS PRONTOS A COLAR
+================================
+
+
+A) GOOGLE PLAY — "Novidades desta versão"
+-----------------------------------------
+COLE ISTO:
+
+Check-in de 1 minuto com feedback imediato. Lembretes para voltar ao jardim.
+Abertura mais rápida. Quem está atrasado é convidado a atualizar.
+
+
+B) APP STORE CONNECT — "O que há de novo nesta versão"
+------------------------------------------------------
+COLE ISTO:
+
+• Check-in de 1 minuto — o monstrinho reage já
+• Lembretes D0–D7 e para quem já usa o app
+• Abertura mais rápida com cache
+• Atualização obrigatória se a versão for antiga demais
+
+
+C) TESTFLIGHT — "O que testar"
+------------------------------
+COLE ISTO:
+
+1. Conta nova: Luna → Monstrinhos → 1 toque humor → Stories / chat.
+2. Conta antiga: streak em risco visível; «Volta amanhã às 10h».
+3. Widget jardim abre daily-care.
+4. Versão antiga + EGO_MIN na API → ecrã bloqueante.
+
+
+INTERNO
+-------
+Versão: 1.0.118 · iOS 124 · Android 177
+Após publicar lojas: EGO_MIN_APP_VERSION=1.0.118 · EGO_MIN_ANDROID_VERSION_CODE=177

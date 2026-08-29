@@ -1,65 +1,50 @@
-EGO-AI — Firebase Analytics + AdMob interstitial/rewarded
-=========================================================
-Data: 2026-08-15 · NÃO buildar até «pode buildar»
+EGO-AI — Firebase Analytics + AdMob (project EGO)
+=================================================
+Atualizado: 2026-08-29 · Sem Mixpanel · NÃO ShapeScan
 
 
-1) FIREBASE (project EGO — NÃO ShapeScan)
-----------------------------------------
-1. console.firebase.google.com → criar / abrir project **EGO-AI**
-2. Add app Android: package com.egoai.app → descarrega google-services.json
-3. Add app iOS: bundle com.egoai.app → descarrega GoogleService-Info.plist
-4. Cola os ficheiros em:
-     app/google-services.json
-     app/GoogleService-Info.plist
-5. Activa Analytics (GA4) no project
-6. app.config.ts liga o plugin só se estes ficheiros existirem
+1) PROJECT
+----------
+Firebase console → project EGO-AI (apps com.egoai.app)
+  app/google-services.json
+  app/GoogleService-Info.plist
+Código: app/src/analytics/egoAnalytics.ts
 
 
-2) EVENTOS (código já dispara)
-------------------------------
-  first_open                      — 1× por instalação
-  login / sign_up                 — AuthContext
-  session_or_checkin_completed    — check-in Monstrinhos (1º do dia) + PAUSA
-  paywall_view                    — ecrã Planos (focus)
-  trial_start                     — ao iniciar IAP / abrir Stripe
-  purchase / subscribe            — IAP sucesso; Stripe checkout aberto
-  interstitial_ad / rewarded_ad   — diagnóstico ads
+2) EVENTOS GA4 (código dispara)
+-------------------------------
+  first_open                    — 1× por instalação (_layout)
+  sign_up / login               — AuthContext
+  onboarding_done               — choose-avatar (Luna/Leo escolhido)
+  first_checkin                 — 1º check-in Monstrinhos (1× instalação)
+  session_or_checkin_completed  — check-in do dia / PAUSA / night_dump
+  session_completed             — alias do anterior (mesmo momento)
+  paywall_view / trial_start / purchase / subscribe
+  interstitial_ad / rewarded_ad — diagnóstico ads
+
+DebugView: filtrar first_checkin + session_completed para funil 7d.
 
 
-3) ADMOB UNITS EM FALTA
+3) ADMOB (já no código · free only)
+-----------------------------------
+  Banner: chat + listas free · sem fill → ShapeScan
+  Interstitial: a cada 2 sessões fechadas (check-in / PAUSA) · cooldown ≥90s
+  Premium / is_pro → zero ads
+  Sem botão «ver anúncio»
+
+
+4) FUNIL AHA + RETENÇÃO
 -----------------------
-Criar na consola AdMob EGO (pub-6748248434426888):
-
-  Nome: interstitial-pause-free   (Intersticial)  Android + iOS
-  Nome: rewarded-dica-dia         (Recompensado)  Android + iOS
-
-Banner já existe (banner-chat-free). Ver ADMOB-IDS-EGO-AI.txt.
+  ≤2 ecrãs: choose-avatar → daily-care → 1 toque humor
+  Sem TrialBanner / paywall até check-in do dia feito
+  Push D0/D1 (funnelEngagementReminders) máx 1/dia do módulo funil
+  Deep link → /(main)/daily-care
 
 
-4) REGRAS ADS (já no código)
-----------------------------
-  Premium → SEM ads
-  Free + fill → AdMob
-  Free sem fill → ShapeScan cross-promo (banner)
-  Interstitial: só após check-in 1º do dia / fim PAUSA; cooldown ≥90s
-  Rewarded: só opt-in «Dica extra do dia» (nunca auto-play)
-
-
-5) CHECKLIST TESTE (depois do build)
-------------------------------------
-  [ ] Conta FREE: banner AdMob ou ShapeScan no chat
-  [ ] Conta Premium: zero ads / zero dica rewarded
-  [ ] Check-in humor 1º do dia → interstitial (ou skip se cooldown/sem fill)
-  [ ] PAUSA completa → interstitial (respeita 90s)
-  [ ] Rewarded: toque → confirma → anúncio → dica no chat
-  [ ] Planos: paywall_view no DebugView Firebase
-  [ ] Login / signup no DebugView
-  [ ] __DEV__: anúncios de teste Google
-
-
-6) ANTES DO BUILD
------------------
-  [ ] Units interstitial + rewarded criadas + IDs no eas.json
-  [ ] google-services.json + GoogleService-Info.plist na pasta app/
-  [ ] npm install em app/ (firebase packages)
-  [ ] Tu dizeres «pode buildar»
+5) TESTE RÁPIDO
+---------------
+  [ ] Conta nova: Luna → Monstrinhos → 1 humor → «Check-in feito!»
+  [ ] Sem «Ver planos» no 1º minuto
+  [ ] DebugView: onboarding_done → first_checkin → session_completed
+  [ ] Free: banner; Premium: zero
+  [ ] 2ª sessão fechada → interstitial (ou ShapeScan se sem fill)

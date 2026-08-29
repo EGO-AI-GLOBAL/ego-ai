@@ -114,12 +114,13 @@ export async function trackFirstCheckinIfNeeded(): Promise<void> {
   }
 }
 
-/** Check-in Monstrinhos, PAUSA, etc. */
+/** Check-in Monstrinhos, PAUSA, etc. Também emite session_completed (alias GA4). */
 export function trackSessionOrCheckinCompleted(
   kind: "checkin" | "pausa" | "chat" | "night_dump",
   extra?: EventParams
 ): void {
   void logEgoEvent("session_or_checkin_completed", { kind, ...extra });
+  void logEgoEvent("session_completed", { kind, ...extra });
 }
 
 export function trackPaywallView(source = "plans"): void {

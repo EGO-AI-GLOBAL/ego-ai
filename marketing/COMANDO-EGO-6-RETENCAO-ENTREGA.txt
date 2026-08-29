@@ -1,0 +1,52 @@
+COMANDO — 6 retenção (Aha+) — ENTREGA 2026-08-29
+=================================================
+Código aplicado. NÃO buildar até «pode buildar».
+
+1) STREAK + EM RISCO NO OPEN
+   DailyCareChallenge — StreakBadge + faixa «Xd EM RISCO HOJE»
+   Widget snapshot — copy «em risco / 1 toque»
+
+2) WIDGET → CHECK-IN
+   iOS: já egoai://daily-care
+   Android: OPEN_URI egoai://daily-care (MoodGardenAndroidWidget)
+   Subtitle: «1 toque — humor de hoje»
+
+3) AVATAR 1 FRASE APÓS CHECK-IN
+   queueMonsterChatNotice (API ou fallback)
+   CTA «Ver o que o avatar disse →» → chat
+
+4) PUSH D2–D7 + AHA PARA QUEM JÁ TEM O APP
+   Copy por dia (d2…d7)
+   Pós D7: kind «aha» contínuo (roda 3 copies)
+   Se abriu sem check-in → push às 18h (ou amanhã 10h)
+   ONE-SHOT base instalada: na 1ª abertura desta versão,
+     quem já tinha o app (update / install day ≥1) recebe
+     «Novidade: check-in de 1 minuto…» (~2h ou 18h)
+   Máx 1/dia no funil diário · deep link daily-care
+   funnelEngagementReminders.ts
+
+5) VOLTA AMANHÃ ÀS Xh
+   comeBackTomorrow.ts — notif amanhã 10h (default)
+   Label no ecrã após check-in
+
+6) STORIES NO AHA (DIA 1)
+   setShareOpen(true) ~1.6s após 1º check-in ever
+
+
+FICHEIROS
+---------
+app/src/notifications/comeBackTomorrow.ts (novo)
+app/src/notifications/funnelEngagementReminders.ts
+app/src/components/DailyCareChallenge.tsx
+app/src/widgets/MoodGardenAndroidWidget.tsx
+app/src/storage/moodGardenWidgetSnapshot.ts
+
+
+TESTE 3 PASSOS
+--------------
+1) Conta com streak em risco → abrir Monstrinhos → faixa laranja + 1 toque
+2) Check-in → «Volta amanhã às 10h» + CTA chat + (1º ever) sheet Stories
+3) Widget jardim → abre daily-care
+
+
+Perguntar: pode buildar?
