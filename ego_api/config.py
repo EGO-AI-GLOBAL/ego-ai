@@ -268,6 +268,35 @@ def latest_app_version() -> str:
     return read_env("EGO_LATEST_APP_VERSION", "1.0.50")
 
 
+def min_app_version() -> str:
+    """
+    Versão mínima obrigatória — abaixo disto o app bloqueia até atualizar.
+    Definir na Railway no dia do release (ex.: 1.0.118) para forçar base instalada.
+    Vazio = sem bloqueio (só banner soft).
+    """
+    return read_env("EGO_MIN_APP_VERSION", "").strip()
+
+
+def min_android_version_code() -> int:
+    """Version code mínimo Play (opcional; 0 = ignorar)."""
+    raw = read_env("EGO_MIN_ANDROID_VERSION_CODE", "0").strip()
+    try:
+        return max(0, int(raw))
+    except ValueError:
+        return 0
+
+
+def force_update_message() -> str:
+    custom = read_env("EGO_FORCE_UPDATE_MESSAGE", "").strip()
+    if custom:
+        return custom
+    ver = min_app_version() or latest_app_version()
+    return (
+        f"Atualize para a v{ver} para continuar. "
+        "Check-in de 1 minuto e o monstrinho reagem já — toque em Atualizar."
+    )
+
+
 def play_store_update_url() -> str:
     """Link Play (produção por defeito — parceiros / QR /go)."""
     url = read_env(
@@ -363,6 +392,9 @@ def app_update_payload() -> dict[str, str | int]:
             android_code = latest_android_version_code()
 
     latest = max_version(ios_ver, android_ver) or env_version
+    min_ver = min_app_version()
+    min_code = min_android_version_code()
+    force = bool(min_ver) or min_code > 0
 
     return {
         "latest_version": latest,
@@ -374,6 +406,10 @@ def app_update_payload() -> dict[str, str | int]:
         "message": app_update_message(latest),
         "android_version_code": android_code,
         "version_source": source,
+        "min_version": min_ver,
+        "min_android_version_code": min_code,
+        "force_update": force,
+        "force_message": force_update_message() if force else "",
     }
 
 

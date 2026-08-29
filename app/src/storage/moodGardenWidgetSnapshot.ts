@@ -16,7 +16,7 @@ export type MoodGardenWidgetSnapshot = {
 export function defaultMoodGardenWidgetSnapshot(): MoodGardenWidgetSnapshot {
   return {
     title: "Jardim dos Monstrinhos",
-    subtitle: "Abra o app para registrar seu humor",
+    subtitle: "1 toque — humor de hoje",
     emoji: "🌱",
     atRisk: false,
     goalsLine: "",
@@ -37,7 +37,7 @@ export function buildMoodGardenWidgetSnapshot(
 
   const remaining = Math.max(0, total - done);
 
-  let subtitle = "Toque para registrar humor e cuidar o pet";
+  let subtitle = "1 toque — humor de hoje";
   const congrats = care.avatar_congrats?.trim();
   if (congrats) {
     subtitle = congrats;
@@ -45,15 +45,15 @@ export function buildMoodGardenWidgetSnapshot(
     if (!care.checked_today) {
       subtitle =
         streak > 0
-          ? `Sequência ${streak}d em risco — check-in pendente`
-          : "Check-in pendente hoje";
+          ? `🔥 ${streak}d em risco — 1 toque agora`
+          : "Check-in pendente — 1 toque";
     } else if (remaining > 0) {
       subtitle = `Faltam ${remaining} missões · ${streak}d em risco`;
     } else {
       subtitle = `Dia completo · ${streak} dias`;
     }
   } else if (!care.checked_today) {
-    subtitle = "Check-in pendente hoje";
+    subtitle = "1 toque — humor de hoje";
   } else if (remaining > 0) {
     subtitle = `Faltam ${remaining} missões · ${seeds} sementes`;
   } else {

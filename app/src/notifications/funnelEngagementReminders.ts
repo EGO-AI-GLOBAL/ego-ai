@@ -1,6 +1,6 @@
 /**
- * Funil 14 dias — lembretes locais (expo-notifications), espelho ShapeScan.
- * D0/D1 check-in · máximo 1 push/dia · sem FCM.
+ * Funil retenção — D0–D7 (novos) + Aha contínuo (quem já tem o app).
+ * Máx 1 push/dia · deep link → daily-care.
  */
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
@@ -12,14 +12,39 @@ const SENT_DAY_KEY = "ego_funnel_sent_day";
 const SCHEDULE_META_KEY = "ego_funnel_schedule_v1";
 const CHECKED_TODAY_CACHE_KEY = "ego_funnel_checked_today_day_v1";
 const ID_FUNNEL = "ego_funnel_checkin_v1";
+/** One-shot: base instalada (já tinha o app antes desta versão). */
+const ID_AHA_BASE = "ego_aha_base_instalada_v1";
+const AHA_BASE_CAMPAIGN_KEY = "ego_aha_base_instalada_campaign_v1";
+const LAST_SEEN_VERSION_KEY = "ego_funnel_last_seen_version_v1";
 
 const COPY = {
   d0: "1 check-in de 1 minuto — abre o EGO",
   d1: "Como está tua cabeça hoje? 1 toque",
-  retention: "Seu monstrinho espera — 1 toque no humor de hoje.",
+  d2: "Dia 2 — o monstrinho sente a tua falta. 1 toque.",
+  d3: "3 dias fazem sequência. Como estás hoje?",
+  d4: "Meio da semana — 1 minuto no jardim.",
+  d5: "Quase lá: 1 toque e a ofensiva segue.",
+  d6: "Amanhã fecha a semana — check-in de 1 minuto.",
+  d7: "Dia 7 — celebra com 1 toque no humor.",
+  /** Quem já tem o app (após D7) — Aha contínuo. */
+  aha: "1 check-in de 1 minuto — o monstrinho reage já",
+  aha_b: "Como está tua cabeça hoje? 1 toque no jardim",
+  aha_c: "Ofensiva em jogo — 1 minuto e o jardim fica",
+  /** One-shot para quem atualizou / já tinha o app. */
+  aha_base:
+    "Novidade no teu EGO: check-in de 1 minuto — toca e o monstrinho reage",
 } as const;
 
-export type FunnelReminderKind = "d0" | "d1" | "retention";
+export type FunnelReminderKind =
+  | "d0"
+  | "d1"
+  | "d2"
+  | "d3"
+  | "d4"
+  | "d5"
+  | "d6"
+  | "d7"
+  | "aha";
 
 export type FunnelReminderPick = {
   kind: FunnelReminderKind;
@@ -55,11 +80,52 @@ function daysBetween(installDay: string, today: string): number {
   }
 }
 
-/** Próximo lembrete do funil (máx. 1 por dia). */
+function ahaBodyFor(now: Date): string {
+  const i = now.getDay() % 3;
+  if (i === 1) return COPY.aha_b;
+  if (i === 2) return COPY.aha_c;
+  return COPY.aha;
+}
+
+function copyForDay(daysSinceInstall: number): { kind: FunnelReminderKind; body: string } | null {
+  if (daysSinceInstall === 0) return { kind: "d0", body: COPY.d0 };
+  if (daysSinceInstall === 1) return { kind: "d1", body: COPY.d1 };
+  if (daysSinceInstall === 2) return { kind: "d2", body: COPY.d2 };
+  if (daysSinceInstall === 3) return { kind: "d3", body: COPY.d3 };
+  if (daysSinceInstall === 4) return { kind: "d4", body: COPY.d4 };
+  if (daysSinceInstall === 5) return { kind: "d5", body: COPY.d5 };
+  if (daysSinceInstall === 6) return { kind: "d6", body: COPY.d6 };
+  if (daysSinceInstall === 7) return { kind: "d7", body: COPY.d7 };
+  return null;
+}
+
+function pickAhaSlot(now: Date, preferTomorrow: boolean): FunnelReminderPick {
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const body = ahaBodyFor(preferTomorrow ? tomorrow : now);
+
+  if (preferTomorrow) {
+    return { kind: "aha", at: atLocalHour(tomorrow, 10), body };
+  }
+
+  const ten = atLocalHour(now, 10);
+  if (ten.getTime() > now.getTime()) {
+    return { kind: "aha", at: ten, body };
+  }
+  const six = atLocalHour(now, 18);
+  if (six.getTime() > now.getTime()) {
+    return { kind: "aha", at: six, body };
+  }
+  return { kind: "aha", at: atLocalHour(tomorrow, 10), body: ahaBodyFor(tomorrow) };
+}
+
+/** Próximo lembrete: D0–D7 (novos) ou Aha contínuo (já tem o app). */
 export function pickNextFunnelReminder(input: {
   now: Date;
   alreadySentToday: boolean;
   checkedToday: boolean;
+  /** Abriu o app nesta sessão — D2+ e Aha não re-empurram hoje. */
+  openedToday: boolean;
   daysSinceInstall: number;
 }): FunnelReminderPick | null {
   if (input.checkedToday) return null;
@@ -68,9 +134,40 @@ export function pickNextFunnelReminder(input: {
   const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
 
+  // Utilizadores antigos / pós D7 — Aha diário se falta check-in.
+  if (input.daysSinceInstall > 7) {
+    if (input.alreadySentToday) {
+      return pickAhaSlot(now, true);
+    }
+    if (input.openedToday) {
+      // Abriu sem check-in → ainda pode lembrar hoje às 18h (Aha para base instalada).
+      const six = atLocalHour(now, 18);
+      if (six.getTime() > now.getTime() + 30 * 60 * 1000) {
+        return { kind: "aha", at: six, body: ahaBodyFor(now) };
+      }
+      return pickAhaSlot(now, true);
+    }
+    return pickAhaSlot(now, false);
+  }
+
+  // D2–D7: se já abriu hoje, não empurrar de novo hoje — agenda amanhã.
+  if (input.daysSinceInstall >= 2 && input.openedToday) {
+    const nextDay = input.daysSinceInstall + 1;
+    if (nextDay > 7) return pickAhaSlot(now, true);
+    const nextCopy = copyForDay(nextDay);
+    if (!nextCopy) return pickAhaSlot(now, true);
+    return { kind: nextCopy.kind, at: atLocalHour(tomorrow, 10), body: nextCopy.body };
+  }
+
+  const dayCopy = copyForDay(input.daysSinceInstall);
+  if (!dayCopy) return pickAhaSlot(now, input.openedToday || input.alreadySentToday);
+
   if (input.alreadySentToday) {
-    const kind: FunnelReminderKind = input.daysSinceInstall < 1 ? "d1" : "retention";
-    return { kind, at: atLocalHour(tomorrow, 10), body: COPY[kind] };
+    const nextDay = input.daysSinceInstall + 1;
+    if (nextDay > 7) return pickAhaSlot(now, true);
+    const nextCopy = copyForDay(nextDay);
+    if (!nextCopy) return pickAhaSlot(now, true);
+    return { kind: nextCopy.kind, at: atLocalHour(tomorrow, 10), body: nextCopy.body };
   }
 
   if (input.daysSinceInstall === 0) {
@@ -85,26 +182,19 @@ export function pickNextFunnelReminder(input: {
     return { kind: "d1", at: atLocalHour(tomorrow, 10), body: COPY.d1 };
   }
 
-  if (input.daysSinceInstall === 1) {
-    const ten = atLocalHour(now, 10);
-    if (ten.getTime() > now.getTime()) {
-      return { kind: "d1", at: ten, body: COPY.d1 };
-    }
-    const six = atLocalHour(now, 18);
-    if (six.getTime() > now.getTime()) {
-      return { kind: "d1", at: six, body: COPY.d1 };
-    }
-  }
-
   const ten = atLocalHour(now, 10);
   if (ten.getTime() > now.getTime()) {
-    return { kind: "retention", at: ten, body: COPY.retention };
+    return { kind: dayCopy.kind, at: ten, body: dayCopy.body };
   }
   const six = atLocalHour(now, 18);
   if (six.getTime() > now.getTime()) {
-    return { kind: "retention", at: six, body: COPY.retention };
+    return { kind: dayCopy.kind, at: six, body: dayCopy.body };
   }
-  return { kind: "retention", at: atLocalHour(tomorrow, 10), body: COPY.retention };
+  const nextDay = input.daysSinceInstall + 1;
+  if (nextDay > 7) return pickAhaSlot(now, true);
+  const nextCopy = copyForDay(nextDay);
+  if (!nextCopy) return pickAhaSlot(now, true);
+  return { kind: nextCopy.kind, at: atLocalHour(tomorrow, 10), body: nextCopy.body };
 }
 
 async function ensurePermissions(request = false): Promise<boolean> {
@@ -174,6 +264,74 @@ async function ensureInstallDay(): Promise<string> {
 }
 
 /**
+ * Base instalada: 1 push Aha na 1ª abertura desta versão
+ * (update ou já tinha o app — não cadastro novo no dia 0).
+ */
+async function maybeScheduleBaseInstaladaAha(input: {
+  daysSinceInstall: number;
+  checkedToday: boolean;
+}): Promise<void> {
+  try {
+    const done = await AsyncStorage.getItem(AHA_BASE_CAMPAIGN_KEY);
+    if (done) return;
+
+    const { getInstalledAppVersion } = await import("@/utils/appVersion");
+    const cur = getInstalledAppVersion() || "0.0.0";
+    const prev = (await AsyncStorage.getItem(LAST_SEEN_VERSION_KEY)) || "";
+    await AsyncStorage.setItem(LAST_SEEN_VERSION_KEY, cur);
+
+    const isUpdate = Boolean(prev && prev !== cur);
+    const isReturningWithoutVersionMark = !prev && input.daysSinceInstall >= 1;
+    if (!isUpdate && !isReturningWithoutVersionMark) {
+      // Install fresco desta versão → D0 cobre; marca para não repetir.
+      await AsyncStorage.setItem(AHA_BASE_CAMPAIGN_KEY, "skip_new_install");
+      return;
+    }
+
+    const now = new Date();
+    let at = new Date(now.getTime() + 2 * 60 * 60 * 1000);
+    const six = atLocalHour(now, 18);
+    if (six.getTime() > now.getTime() + 45 * 60 * 1000) {
+      at = six;
+    }
+    if (localDayKey(at) !== localDayKey(now)) {
+      const tomorrow = new Date(now);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      at = atLocalHour(tomorrow, 10);
+    }
+
+    try {
+      await Notifications.cancelScheduledNotificationAsync(ID_AHA_BASE);
+    } catch {
+      /* ok */
+    }
+
+    await Notifications.scheduleNotificationAsync({
+      identifier: ID_AHA_BASE,
+      content: {
+        title: "EGO-AI",
+        body: COPY.aha_base,
+        data: {
+          type: "funnel_checkin",
+          kind: "engagement_aha_base",
+        },
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: at,
+        channelId: Platform.OS === "android" ? "ego_funnel" : undefined,
+      },
+    });
+    await AsyncStorage.setItem(
+      AHA_BASE_CAMPAIGN_KEY,
+      input.checkedToday ? "scheduled_checked" : "scheduled"
+    );
+  } catch {
+    /* não bloquear */
+  }
+}
+
+/**
  * Chamar ao abrir o app (sessão autenticada) e após check-in Monstrinhos.
  */
 export async function refreshFunnelEngagementReminders(input?: {
@@ -183,6 +341,9 @@ export async function refreshFunnelEngagementReminders(input?: {
 }): Promise<void> {
   if (Platform.OS === "web") return;
   try {
+    const installDay = await ensureInstallDay();
+    const todayLocal = localDayKey(new Date());
+    const daysSinceInstall = daysBetween(installDay, todayLocal);
     await AsyncStorage.setItem(LAST_OPEN_KEY, String(Date.now()));
     if (input?.checkedToday === true) {
       await cacheFunnelCheckedToday(true);
@@ -201,9 +362,12 @@ export async function refreshFunnelEngagementReminders(input?: {
       });
     }
 
-    const installDay = await ensureInstallDay();
-    const todayLocal = localDayKey(new Date());
-    const daysSinceInstall = daysBetween(installDay, todayLocal);
+    // Quem já tinha o app antes desta versão → 1 push Aha (one-shot).
+    await maybeScheduleBaseInstaladaAha({
+      daysSinceInstall,
+      checkedToday: Boolean(input?.checkedToday),
+    });
+
     const sentDay = (await AsyncStorage.getItem(SENT_DAY_KEY)) || "";
     let alreadySentToday = sentDay === todayLocal;
     const prev = await loadMeta();
@@ -215,10 +379,12 @@ export async function refreshFunnelEngagementReminders(input?: {
       }
     }
 
+    // App aberto: D2+ / Aha não re-empurram de imediato; agenda tarde ou amanhã.
     const next = pickNextFunnelReminder({
       now: new Date(),
       alreadySentToday,
       checkedToday: Boolean(input?.checkedToday),
+      openedToday: true,
       daysSinceInstall,
     });
 
@@ -259,12 +425,6 @@ export function pingFunnelEngagementReminders(
 }
 
 export function funnelReminderRoute(kind: string | undefined): "/(main)/daily-care" | null {
-  if (
-    kind === "engagement_d0" ||
-    kind === "engagement_d1" ||
-    kind === "engagement_retention"
-  ) {
-    return "/(main)/daily-care";
-  }
-  return null;
+  if (!kind?.startsWith("engagement_")) return null;
+  return "/(main)/daily-care";
 }

@@ -23,7 +23,8 @@ export function MoodGardenAndroidWidget({ snapshot }: Props) {
         flexDirection: "row",
         alignItems: "center",
       }}
-      clickAction="OPEN_APP"
+      clickAction="OPEN_URI"
+      clickActionData={{ uri: "egoai://daily-care" }}
     >
       <FlexWidget style={{ flex: 1, flexDirection: "column", justifyContent: "center" }}>
         <TextWidget

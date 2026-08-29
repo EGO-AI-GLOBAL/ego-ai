@@ -1,0 +1,15 @@
+SYNC MESTRE — 1.0.118 · Aha + retenção + force update + perf
+============================================================
+Status: ✅ PRONTO para EAS
+
+Inclui:
+• Aha: Luna → check-in 1 toque · sem paywall no 1º min
+• 6 retenção: streak, widget deep link, avatar frase, push D2–D7+Aha base,
+  volta amanhã Xh, Stories dia 1
+• Force update gate (EGO_MIN_* na Railway após loja)
+• Perf abertura ~2s (cache) — já em main + este bump
+• AdMob 1.0.116/117 mantido
+
+Versão: 1.0.118 · iOS 124 · Android 177
+Build: GERAR-1.0.118.bat → AGUARDAR-E-SUBMETER-1.0.118.bat
+Pós-loja: marketing/FORCAR-UPDATE-AHA-BASE-INSTALADA.txt
