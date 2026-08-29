@@ -515,18 +515,12 @@ def daily_voice_messages_ok(
     limits: PlanLimits,
     profile: dict | None = None,
 ) -> tuple[bool, int]:
+    """Essential freemium: teto diário (1 voz); pago: limites do plano / ilimitado."""
     if not supabase or not user_id:
         return True, 0
     from ego_api.config import chat_local_history_enabled
 
     prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
-    if is_essential_post_trial(supabase, user_id, prof):
-        if chat_local_history_enabled():
-            prof = _ensure_daily_usage(supabase, user_id, prof)
-            _text_used, voice_used = daily_message_counts_from_profile(prof)
-            return False, voice_used
-        return False, _count_user_messages_today(supabase, user_id, voice_only=True)
-
     if chat_local_history_enabled():
         prof = _ensure_daily_usage(supabase, user_id, prof)
         _text_used, voice_used = daily_message_counts_from_profile(prof)
@@ -542,13 +536,10 @@ def daily_voice_messages_ok(
 def daily_tts_ok(
     supabase: Client | None, user_id: str, limits: PlanLimits, profile: dict | None = None
 ) -> tuple[bool, int]:
+    """Essential freemium: 1 TTS/dia (a «resposta por voz»); pago: limites do plano."""
     if not supabase or not user_id:
         return True, 0
     prof = profile if profile is not None else (load_profile(supabase, user_id) or {})
-    if is_essential_post_trial(supabase, user_id, prof):
-        prof = _ensure_daily_usage(supabase, user_id, prof)
-        used = int(prof.get("daily_tts_count") or 0)
-        return False, used
     if limits.unlimited_daily_tts() or beta_unlimited():
         return True, 0
     prof = _ensure_daily_usage(supabase, user_id, prof)
@@ -708,11 +699,11 @@ def _parse_ts_iso(value: str | None) -> datetime.datetime | None:
         return None
 
 
-# Freemium: essential pós-trial continua com texto (limite diário); voz/TTS exigem Premium.
-FREEMIUM_ACCESS_STATUS = "Essencial (texto + anúncios)"
+# Freemium: texto (5/dia) + 1 voz/TTS por dia + ads; mais voz = Premium.
+FREEMIUM_ACCESS_STATUS = "Essencial (texto + 1 voz/dia + anúncios)"
 FREEMIUM_VOICE_TTS_MESSAGE = (
-    "No plano grátis o chat por texto continua (até 5 mensagens/dia). "
-    "Voz e respostas em áudio são do Premium — assine para liberar."
+    "No plano grátis: até 5 textos/dia e 1 resposta por voz/dia. "
+    "Já usou a voz de hoje — assine o Premium para voz ilimitada."
 )
 
 
@@ -728,7 +719,8 @@ def is_essential_post_trial(
     profile: dict | None = None,
 ) -> bool:
     """
-    Essential após o trial: texto freemium liberado; voz e TTS bloqueados.
+    Essential freemium (trial off ou já acabou): texto + ads + teto 1 voz/TTS.
+    Flag usada no app/ads; os tetos vêm de daily_voice_messages_ok / daily_tts_ok.
     Pago / beta / indicação ativa → False.
     """
     if not supabase or not user_id:
@@ -820,7 +812,7 @@ def check_access(supabase: Client | None, user_id: str) -> tuple[bool, str]:
             if EGO_TRIAL_DAYS <= 0:
                 return True, FREEMIUM_ACCESS_STATUS
             return True, f"Trial ({EGO_TRIAL_DAYS} dias restantes)"
-        # Sem janela de trial: Essential = freemium de imediato (texto + ads; voz no Premium).
+        # Sem janela de trial: Essential = freemium (texto + 1 voz/dia + ads).
         if EGO_TRIAL_DAYS <= 0:
             return True, FREEMIUM_ACCESS_STATUS
         dias = max(0, (agora.date() - data_criacao.date()).days)

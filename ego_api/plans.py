@@ -101,8 +101,8 @@ def _limits_for_tier(tier: str) -> PlanLimits:
         PLAN_ESSENTIAL: PlanLimits(
             monthly_tokens=200_000,
             daily_text_messages=5,
-            daily_voice_messages=3,
-            daily_tts_replies=5,
+            daily_voice_messages=1,
+            daily_tts_replies=1,
             max_agenda_items=0,
             max_reminders=0,
             audio_speed_multipliers=(1.0,),

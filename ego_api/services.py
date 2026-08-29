@@ -731,13 +731,14 @@ def process_chat_message(
 
     is_voice_msg = bool(audio_bytes)
     if is_voice_msg:
-        if db.is_essential_post_trial(supabase, user_id, prof):
-            return None, db.FREEMIUM_VOICE_TTS_MESSAGE
         ok_voice, _voice_used = db.daily_voice_messages_ok(supabase, user_id, limits)
         if not ok_voice:
             from ego_api.plan_retention import on_daily_limit_hit
 
             on_daily_limit_hit(user_id)
+            # Freemium: mensagem clara 1 voz/dia; pago: limite genérico
+            if db.is_essential_post_trial(supabase, user_id, prof):
+                return None, db.FREEMIUM_VOICE_TTS_MESSAGE
             return None, _daily_limit_message(supabase, user_id)
     else:
         ok_txt, _txt_used = db.daily_text_messages_ok(supabase, user_id, limits)
@@ -750,11 +751,8 @@ def process_chat_message(
     # Não bloquear mensagem de voz/texto por limite TTS — o áudio da resposta é opcional.
     speak_reply_effective = False
     if speak_reply:
-        if db.is_essential_post_trial(supabase, user_id, prof):
-            speak_reply_effective = False
-        else:
-            ok_tts, _tts_used = db.daily_tts_ok(supabase, user_id, limits, prof)
-            speak_reply_effective = ok_tts
+        ok_tts, _tts_used = db.daily_tts_ok(supabase, user_id, limits, prof)
+        speak_reply_effective = ok_tts
 
     if is_voice_msg and audio_bytes:
         from ego_api.voice_fast import process_voice_message_fast
@@ -1752,24 +1750,23 @@ def process_realtime_voice_turn(
     if not ok_tok:
         return None, f"{msg_tok} Uso: {used_tok:,}/{lim_tok:,}."
 
-    if db.is_essential_post_trial(supabase, user_id, prof):
-        return None, db.FREEMIUM_VOICE_TTS_MESSAGE
-
     ok_voice, _voice_used = db.daily_voice_messages_ok(supabase, user_id, limits, prof)
     if not ok_voice:
         from ego_api.plan_retention import on_daily_limit_hit
 
         on_daily_limit_hit(user_id)
+        if db.is_essential_post_trial(supabase, user_id, prof):
+            return None, db.FREEMIUM_VOICE_TTS_MESSAGE
         return None, _daily_limit_message(supabase, user_id)
 
     if speak_reply:
-        if db.is_essential_post_trial(supabase, user_id, prof):
-            return None, db.FREEMIUM_VOICE_TTS_MESSAGE
         ok_tts, _tts_used = db.daily_tts_ok(supabase, user_id, limits, prof)
         if not ok_tts:
             from ego_api.plan_retention import on_daily_limit_hit
 
             on_daily_limit_hit(user_id)
+            if db.is_essential_post_trial(supabase, user_id, prof):
+                return None, db.FREEMIUM_VOICE_TTS_MESSAGE
             return None, _daily_limit_message(supabase, user_id)
 
     from ego_api.db import VOICE_MESSAGE_MARKER
@@ -1917,12 +1914,12 @@ def enforce_tts_limit(
     supabase: Client | None, user_id: str, profile: dict | None = None
 ) -> str | None:
     prof = profile if profile is not None else (db.load_profile(supabase, user_id) or {})
-    if db.is_essential_post_trial(supabase, user_id, prof):
-        return db.FREEMIUM_VOICE_TTS_MESSAGE
     _, limits = db.user_plan_limits(prof)
     ok, used = db.daily_tts_ok(supabase, user_id, limits, prof)
     if ok:
         return None
+    if db.is_essential_post_trial(supabase, user_id, prof):
+        return db.FREEMIUM_VOICE_TTS_MESSAGE
     return (
         f"Limite diário de áudio atingido ({used}/{limits.daily_tts_replies}). "
         f"Faça upgrade do plano."
