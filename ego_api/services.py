@@ -1615,6 +1615,20 @@ def process_chat_message(
 
     if not chat_agenda:
         schedule = {"step": "", "draft": {}}
+        # Cinto de segurança: nunca devolver templates antigos de marcação no chat.
+        from ego_api.chat_reply import (
+            _looks_like_false_schedule_success,
+            _looks_like_listen_mode_agenda_failure,
+        )
+        from ego_api.app_guide import manual_agenda_redirect_reply
+
+        if reply_clean and (
+            _looks_like_false_schedule_success(reply_clean)
+            or _looks_like_listen_mode_agenda_failure(reply_clean)
+        ):
+            reply_clean = manual_agenda_redirect_reply(
+                user_display, supabase=supabase, user_id=user_id
+            )
 
     try:
         cs.save_chat_schedule(
