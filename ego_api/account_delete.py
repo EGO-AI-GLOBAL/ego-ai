@@ -13,15 +13,23 @@ MSG_DELETE_FAIL = (
 
 
 def delete_user_account(user_id: str) -> tuple[bool, str | None]:
-    """Remove auth.users — dados public.* em cascade (perfil, chat, agenda, etc.)."""
+    """Remove auth.users — grava identidade free (trial_used) antes do cascade."""
     uid = (user_id or "").strip()
     if not uid:
         return False, "Utilizador inválido."
+    from ego_api import db
+    from ego_api.free_identity_guard import record_identities_on_account_delete
     from ego_api.supabase_client import create_service_client
 
     admin = create_service_client()
     if not admin:
         return False, "Servidor indisponível. Tente mais tarde."
+
+    prof = db.load_profile(admin, uid) or {}
+    try:
+        record_identities_on_account_delete(uid, prof)
+    except Exception as exc:  # noqa: BLE001
+        _LOG.warning("free_identity_guard pre-delete user=%s: %s", uid[:8], exc)
 
     try:
         admin.auth.admin.delete_user(uid)
