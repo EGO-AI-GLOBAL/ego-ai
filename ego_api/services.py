@@ -226,6 +226,17 @@ def _apply_referral_after_signup(user_id: str, referral_code: str) -> str | None
     code = (referral_code or "").strip()
     if not user_id or not code:
         return None
+    from ego_api import db
+    from ego_api.supabase_client import create_service_client
+
+    svc = create_service_client()
+    if not svc:
+        return "Indicação indisponível no momento. Tente novamente."
+    prof = db.load_profile(svc, user_id) or {}
+    from ego_api.free_identity_guard import profile_has_trial_used
+
+    if profile_has_trial_used(prof):
+        return None
     from ego_api.friend_referrals import (
         attach_friend_referral_on_signup,
         find_user_id_by_friend_code,
@@ -236,11 +247,7 @@ def _apply_referral_after_signup(user_id: str, referral_code: str) -> str | None
         set_profile_gym_code,
     )
     from ego_api.referrals import attach_referral_to_profile, get_admin_client, lookup_partner
-    from ego_api.supabase_client import create_service_client
 
-    svc = create_service_client()
-    if not svc:
-        return "Indicação indisponível no momento. Tente novamente."
     admin = get_admin_client() or svc
     gym_sb = gym_admin_client() or svc
 

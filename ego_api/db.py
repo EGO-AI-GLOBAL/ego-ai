@@ -205,6 +205,14 @@ def ensure_user_profile(
             supabase.table(SUPABASE_PROFILES_TABLE).insert(
                 {**row, "created_at": datetime.datetime.now(datetime.timezone.utc).isoformat()}
             ).execute()
+            try:
+                from ego_api.free_identity_guard import apply_guard_to_new_profile
+
+                apply_guard_to_new_profile(
+                    supabase, user_id, email=em, phone=ph or ""
+                )
+            except Exception:
+                pass
         return True, ""
     except Exception as exc:
         return False, _profile_update_error_message(str(exc))
@@ -666,7 +674,17 @@ def build_plan_access_payload(
         "referral_offer": referral_offer,
         "show_ads": should_show_ads(prof),
         "essential_post_trial": is_essential_post_trial(supabase, user_id, prof),
+        "trial_used": _profile_trial_used_flag(prof),
     }
+
+
+def _profile_trial_used_flag(prof: dict) -> bool:
+    try:
+        from ego_api.free_identity_guard import profile_has_trial_used
+
+        return profile_has_trial_used(prof)
+    except Exception:
+        return False
 
 
 def _team_seats_from_profile(prof: dict) -> int | None:
