@@ -158,19 +158,38 @@ def _next_monday(local_date: str | None = None) -> str:
         return ""
 
 
-def _weekly_rotating_ids(week_key: str, count: int = SHOP_ROTATION_COUNT) -> list[str]:
+def _pool_order_for_week(week_key: str) -> list[str]:
+    """Ordem estável do pool para a semana (hash)."""
     pool_ids = [str(i["id"]) for i in SHOP_ROTATING_POOL]
     if not pool_ids:
         return []
     seed = int(hashlib.sha256(week_key.encode()).hexdigest()[:8], 16)
-    ordered = sorted(pool_ids, key=lambda pid: int(hashlib.md5(f"{week_key}:{pid}".encode()).hexdigest(), 16))
+    ordered = sorted(
+        pool_ids,
+        key=lambda pid: int(hashlib.md5(f"{week_key}:{pid}".encode()).hexdigest(), 16),
+    )
     start = seed % len(ordered)
-    out: list[str] = []
-    for n in range(len(ordered)):
-        out.append(ordered[(start + n) % len(ordered)])
-        if len(out) >= min(count, len(ordered)):
-            break
-    return out
+    return [ordered[(start + n) % len(ordered)] for n in range(len(ordered))]
+
+
+def _weekly_rotating_ids(
+    week_key: str,
+    count: int = SHOP_ROTATION_COUNT,
+    *,
+    owned: set[str] | None = None,
+) -> list[str]:
+    """
+    8 slots da semana. Preferência: itens que o user ainda NÃO tem.
+    Se houver menos de `count` por comprar, completa com já possuídos (ordem da semana).
+    """
+    ordered = _pool_order_for_week(week_key)
+    if not ordered:
+        return []
+    have = owned or set()
+    unowned = [pid for pid in ordered if pid not in have]
+    already = [pid for pid in ordered if pid in have]
+    picked = (unowned + already)[: min(count, len(ordered))]
+    return picked
 
 
 def _base_all_owned(owned: set[str]) -> bool:
@@ -179,14 +198,15 @@ def _base_all_owned(owned: set[str]) -> bool:
 
 
 def shop_catalog_payload(raw: dict, seeds: int) -> dict:
-    """Catálogo visível + metadados de rotação."""
+    """Catálogo visível + metadados de rotação (slots preferem não-possuídos)."""
     owned_list = raw.get("shop_owned")
     owned: set[str] = set()
     if isinstance(owned_list, list):
         owned = {str(x).strip() for x in owned_list if str(x).strip()}
 
     week_key = _week_key()
-    rotating_ids = set(_weekly_rotating_ids(week_key))
+    rotating_list = _weekly_rotating_ids(week_key, owned=owned)
+    rotating_ids = set(rotating_list)
     base_complete = _base_all_owned(owned)
 
     items: list[dict] = []
@@ -206,7 +226,7 @@ def shop_catalog_payload(raw: dict, seeds: int) -> dict:
             }
         )
 
-    for iid in _weekly_rotating_ids(week_key):
+    for iid in rotating_list:
         item = _CATALOG.get(iid)
         if not item:
             continue
